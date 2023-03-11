@@ -51,7 +51,7 @@ mapfile -d '' -t relevant_search_dirs < <(
     -print0 )
 
 mapfile -d '' -t all_files < <( 
-  find "${relevant_search_dirs[@]}" -type f -print0 2> /dev/null )
+  find /usr/sbin -type f -print0 2> /dev/null ) # "${relevant_search_dirs[@]}"
 
 
 # sort out the <s>hell scripts from the files, with index <j>
