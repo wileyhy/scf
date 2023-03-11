@@ -27,7 +27,7 @@ for o in "${!save_dirs[@]}"; do
   fi; 
 done
 
-  [[ -z "${save_dirs[*]:0:1}" ]] &&
+if [[ -z "${save_dirs[*]:0:1}" ]]; then
 
   # take the de<v>ice with the most available space, and get its
   # <m>ountpoint
@@ -37,7 +37,7 @@ done
     awk '{ print $3 }' )"
   m="$( mount | 
     awk "\$1 ~ /${v##*/}/ "'{ print $3 }' )"
-
+fi
 
 
 # from the local root FS tree...
