@@ -42,7 +42,7 @@ fi
 # from the local root FS tree...
 f='(png|jpeg|mp4)' # filter for file <format>
 L='(perl|awk|false|python)' # filter for NA scripting <l>anguages
-unset relevant_search_dirs all_files index shell_scripts;
+unset relevant_search_dirs all_files shell_scripts;
 
 # ...get a list of relevant files
 mapfile -d '' -t relevant_search_dirs < <(
@@ -54,18 +54,18 @@ mapfile -d '' -t all_files < <(
   find "${relevant_search_dirs[@]}" -type f -print0 2> /dev/null )
 
 
-# sort out the <s>hell scripts from the files
-for index in "${!all_files[@]}"; do
+# sort out the <s>hell scripts from the files, with index <j>
+for j in "${!all_files[@]}"; do
 
   # use a <n>ameref
-  n="${all_files[$index]}"
+  n="${all_files[$j]}"
 
   # skip the photos and media files: png, jpeg, etc...
   # also, it must have a size -gt zero
   if [[ "$n" =~ \.${f}$ ]] || 
     [[ ! -s "$n" ]]; 
   then
-    unset 'all_files[$index]'
+    unset 'all_files[$j]'
     continue
   fi
 
