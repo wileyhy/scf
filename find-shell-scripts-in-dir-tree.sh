@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 # find-shell-scripts-in-dir-tree.sh
 
 # Vars & directory for saving findings
