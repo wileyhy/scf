@@ -102,7 +102,7 @@ for i in "${!shell_scripts[@]}"; do
 
   if [[ -n "$e" ]]; then 
 		
-    # some prioritized work lists with indices
+    # open & append some prioritized work lists with indices
     printf '%d  <%s>\n' "$i" "$s" >> \
       "${m}/${t}_found_scripts_with_indices" 
     printf '%s | %d\n' "$e" "$i" >> \
