@@ -42,7 +42,7 @@ done
 # from the local root FS tree...
 f='(png|jpeg|mp4)' # filter for file <format>
 L='(perl|awk|false|python)' # filter for NA scripting <l>anguages
-unset all_files shell_scripts crunch_space errors;
+unset relevant_search_dirs all_files index shell_scripts;
 
 # ...get a list of relevant files
 mapfile -d '' -t relevant_search_dirs < <(
@@ -102,7 +102,7 @@ for i in "${!shell_scripts[@]}"; do
 
   if [[ -n "$e" ]]; then 
 		
-    # some prioritized work lists
+    # some prioritized work lists with indices
     printf '%d  <%s>\n' "$i" "$s" >> \
       "${m}/${t}_found_scripts_with_indices" 
     printf '%s | %d\n' "$e" "$i" >> \
