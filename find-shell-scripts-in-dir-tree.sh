@@ -25,6 +25,7 @@ for o in "${!save_dirs[@]}"; do
   if [[ "${save_dirs[$o]}" =~ ^(${r}) ]]; then 
     unset 'save_dirs[$o]'; 
   fi; 
+done
 
   [[ -z "${save_dirs[*]:0:1}" ]] &&
     break
@@ -37,7 +38,7 @@ for o in "${!save_dirs[@]}"; do
     awk '{ print $3 }' )"
   m="$( mount | 
     awk "\$1 ~ /${v##*/}/ "'{ print $3 }' )"
-done
+
 
 
 # from the local root FS tree...
