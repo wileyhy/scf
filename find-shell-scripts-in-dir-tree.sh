@@ -40,7 +40,7 @@ fi
 
 
 # from the local root FS tree...
-f='(png|jpeg|mp4)' # filter for file <format>
+f='(png|jpeg|mp4|swp)' # filter for file <format>
 L='(perl|awk|false|python)' # filter for NA scripting <l>anguages
 unset relevant_search_dirs all_files shell_scripts;
 
