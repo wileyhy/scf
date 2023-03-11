@@ -25,7 +25,7 @@ for o in "${!save_dirs[@]}"; do
     unset 'save_dirs[$o]'; 
   fi; 
 
-  [[ -z "${save_dirs[*]}" ]] &&
+  [[ -z "${save_dirs[*]:0:1}" ]] &&
     break
 
   # take the de<v>ice with the most available space, and get its
