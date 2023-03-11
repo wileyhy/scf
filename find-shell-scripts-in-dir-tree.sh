@@ -69,7 +69,7 @@ for j in "${!all_files[@]}"; do
     continue
   fi
 
-  # look for a <c>runch-bang
+  # look for any files beginning with a <c>runch-bang
   c="$( strings -n 1 "$n" | 
     head -n 1 | 
     head -c 32 )"; 
