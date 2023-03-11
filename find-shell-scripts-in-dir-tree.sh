@@ -78,7 +78,7 @@ for j in "${!all_files[@]}"; do
     ! [[ "$c" =~ ${L} ]]; 
   then 
 
-    # keep a list
+    # write a list
     shell_scripts+=( "$n" ); 
     printf '%s \r\t\t\t\t%s \n' "$c" "$n" >> \
       "${m}/${t}_crunches" ; 
