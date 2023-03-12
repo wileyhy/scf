@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 # find-shell-scripts-in-dir-tree.sh
 # Written for bash version 5.1
 
@@ -54,7 +54,9 @@ mapfile -d '' -t relevant_search_dirs < <(
 mapfile -d '' -t all_files < <( 
   find /usr/sbin -type f -print0 2> /dev/null ) # "${relevant_search_dirs[@]}"
 
-
+  # <>
+  set -x
+  
 # sort out the <s>hell scripts from the files, with index <j>
 for j in "${!all_files[@]}"; do
 
