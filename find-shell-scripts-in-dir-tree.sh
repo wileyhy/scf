@@ -2,6 +2,7 @@
 # find-shell-scripts-in-dir-tree.sh
 # Written for bash version 5.1
 
+
 # Vars & directory for saving findings
 # shellcheck disable=SC2184
 unset [a-zA-Z] # expansion of single-letter variables is intended
