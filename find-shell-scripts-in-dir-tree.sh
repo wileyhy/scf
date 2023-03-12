@@ -48,8 +48,8 @@ unset relevant_search_dirs all_files shell_scripts;
 # ...get a list of relevant files
 mapfile -d '' -t relevant_search_dirs < <(
   find / -mindepth 1 -maxdepth 1 -type d \
-    \( \! -name proc -a \! -name sys -a \! -name git \) \
-    -print0 )
+    \( \! -name proc -a \! -name sys -a \! \
+    -name git \) -print0 )
 
 mapfile -d '' -t all_files < <( 
   find /usr/sbin -type f -print0 2> /dev/null ) # "${relevant_search_dirs[@]}"
