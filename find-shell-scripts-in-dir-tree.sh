@@ -63,6 +63,12 @@ for j in "${!all_files[@]}"; do
   # use a <n>ameref
   n="${all_files[$j]}"
 
+  # there must be size greater zero 
+  if [[ ! -s "$n" ]]; then
+    unset 'all_files[$j]'
+    continue
+  fi
+
   # read the first two bytes of every file on disk, and 
   # look for any files beginning with a <c>runchbang
   if [[ "$( od -Ax0 -N2 -x "$n" |
