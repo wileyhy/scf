@@ -30,7 +30,7 @@ done
 if [[ -z "${save_dirs[*]:0:1}" ]]; then
 
   # take the de<v>ice with the most available space, and get its
-  # <m>ountpoint
+  # <m>ountpoint, just in case 
   v="$( printf '%s\n' "${save_dirs[@]}" | 
     sort -grk2 | 
     head -n 1 |
