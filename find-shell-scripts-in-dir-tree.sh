@@ -6,7 +6,7 @@
 # Vars & directory for saving findings
 # shellcheck disable=SC2184
 unset [a-zA-Z] # expansion of single-letter variables is intended
-m="${TEMPDIR:=$HOME}" # default save directory, a <m>ountpoint
+m="${TEMPDIR:="$HOME"}" # default save directory, a <m>ountpoint
 r='(binfmt_misc|bpf|cgroup2|configfs|debugfs|devpts|devtmpfs|efivarfs|fusectl|hugetlbfs|iso9660|mqueue|proc|pstore|rpc_pipefs|securityfs|selinuxfs|sysfs|tmpfs|tracefs)' # <r>egex of `mount` "fstype"s 
 t="$( date '+%F_%H%M%S' )" # <t>ime
 
