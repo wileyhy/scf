@@ -10,13 +10,13 @@ m="${TEMPDIR:="$HOME"}" # default save directory, a <m>ountpoint
 r='(binfmt_misc|bpf|cgroup2|configfs|debugfs|devpts|devtmpfs|efivarfs|fusectl|hugetlbfs|iso9660|mqueue|proc|pstore|rpc_pipefs|securityfs|selinuxfs|sysfs|tmpfs|tracefs)' # <r>egex of `mount` "fstype"s 
 t="$( date '+%F_%H%M%S' )" # <t>ime
 
-# Bug? is '/run/media' portable?
+# Bug? is '/run/media' portable to other distros? 
 mapfile -d '' -t save_dirs < <( 
   find /run/media -mindepth 2 -maxdepth 2 -type d \
     -exec df --sync -l --output=fstype,avail,source \
     --block-size=1 '{}' ';' | 
   grep -iv avail | 
-  tr '\n' '\0' ) 
+  tr '\n' '\0' )
 
 
 # filter out certain FS types by <r>egex by sorting the <o>utput of `df`
