@@ -61,6 +61,15 @@ for j in "${!all_files[@]}"; do
   # use a <n>ameref
   n="${all_files[$j]}"
 
+  # read the first two bytes of every file on disk 
+  if [[ "$( od -Ax0 _n@ -x "$n" |
+    awk '{ print $2 }' )" != '2321' ]];
+  then
+    unset 'all_files[$j]'
+    continue
+  fi # xxd -l 2 -ps "$n" | strings -n 1
+
+
   # skip the photos and media files: png, jpeg, etc...
   # also, it must have a size -gt zero
   if [[ "$n" =~ \.${f}$ ]] || 
