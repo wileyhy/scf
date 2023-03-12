@@ -1,5 +1,6 @@
 #!/bin/bash -x
 # find-shell-scripts-in-dir-tree.sh
+# Written for bash version 5.1
 
 # Vars & directory for saving findings
 # shellcheck disable=SC2184
