@@ -65,7 +65,7 @@ for j in "${!all_files[@]}"; do
 
   # read the first two bytes of every file on disk, and 
   # look for any files beginning with a <c>runchbang
-  if [[ "$( od -Ax0 -n2 -x "$n" |
+  if [[ "$( od -Ax0 -N2 -x "$n" |
     awk '{ print $2 }' )" != '2321' ]];
   then
     unset 'all_files[$j]'
