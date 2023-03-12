@@ -70,7 +70,7 @@ for j in "${!all_files[@]}"; do
     continue
   fi # xxd -l 2 -ps "$n" | strings -n 1
 
-
+  # Bug? what are the succeed/fail ratios for these tests?
   # skip the photos and media files: png, jpeg, etc...
   # also, it must have a size -gt zero
   if [[ "$n" =~ \.${f}$ ]] || 
