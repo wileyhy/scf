@@ -61,7 +61,8 @@ for j in "${!all_files[@]}"; do
   # use a <n>ameref
   n="${all_files[$j]}"
 
-  # read the first two bytes of every file on disk 
+  # read the first two bytes of every file on disk, and 
+  # look for any files beginning with a <c>runchbang
   if [[ "$( od -Ax0 _n@ -x "$n" |
     awk '{ print $2 }' )" != '2321' ]];
   then
