@@ -9,7 +9,6 @@ r='(binfmt_misc|bpf|cgroup2|configfs|debugfs|devpts|devtmpfs|efivarfs|fusectl|hu
 t="$( date '+%F_%H%M%S' )" # <t>ime
 
 # Bug? is '/run/media' portable?
-unset save_dirs
 mapfile -d '' -t save_dirs < <( 
   find /run/media -mindepth 2 -maxdepth 2 -type d \
     -exec df --sync -l --output=fstype,avail,source \
