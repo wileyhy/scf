@@ -64,7 +64,9 @@ for j in "${!all_files[@]}"; do
 
   # there must be a size of greater than zero and skip the obviously
   # irrelevant files (filename extension filter)
-  if [[ ! -s "$n" ]]; then
+  if [[ ! -s "$n" ]] ||
+    [[ "$n" =~ \.${f}$ ]];
+  then
     unset 'all_files[$j]'
     continue
   fi
