@@ -62,7 +62,7 @@ for j in "${!all_files[@]}"; do
   # use a <n>ameref
   n="${all_files[$j]}"
 
-  # there must be size greater zero 
+  # there must be a size of greater than zero 
   if [[ ! -s "$n" ]]; then
     unset 'all_files[$j]'
     continue
