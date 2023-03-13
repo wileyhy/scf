@@ -56,7 +56,7 @@ mapfile -d '' -t all_files < <(
   # <>
   set -x
   
-# sort out the <s>hell scripts from the files, with index <j>
+# sort out the <s>hell scripts from the rest of the files, using index <j>
 for j in "${!all_files[@]}"; do
 
   # use a <n>ameref
