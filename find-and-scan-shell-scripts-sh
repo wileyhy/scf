@@ -2,6 +2,9 @@
 # find-and-scan-shell-scripts-sh
 # Written for bash version 5.1
 
+# Array of shells that `shellcheck -S` can parse
+w='(sh|bash|dash|ksh)'
+
 
 # Vars & directory for saving findings
 # shellcheck disable=SC2184
