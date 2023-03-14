@@ -16,10 +16,6 @@ _erx(){
   echo Error: "$@"
   exit "$ec"
 }
-_uc(){
-    unset 'all_files[$i]'
-    continue
-}
 
 # find data files from find-and-scan-shell-scripts-sh
 mapfile -d '' -t data_files < <( 
@@ -45,12 +41,14 @@ for i in "${!all_files[@]}"; do
   
   # must contain a period
   if ! [[ "${n##*/}" =~ \. ]]; then
-    _uc; 
+    unset 'all_files[$i]'
+    continue
   fi  
   
   # file must exist
   if [[ ! -e "$n" ]]; then 
-    _uc; 
+    unset 'all_files[$i]'
+    continue
   fi  
 
   # effectivel<y> `basename`
@@ -66,7 +64,8 @@ for i in "${!all_files[@]}"; do
   
   # no change = no extension
   if [[ "$y" == "$x" ]]; then 
-    _uc; 
+    unset 'all_files[$i]'
+    continue
   fi  
 
   # read from disk in binary the first two bytes of every remaining file  
@@ -79,7 +78,8 @@ for i in "${!all_files[@]}"; do
   if [[ "${hex_bits[1]}" == '2123' ]]; then
   
     # discard the <c>runchbangs
-    _uc
+    unset 'all_files[$i]'
+    continue
   else
     
     # gather more info on the other file types
@@ -89,7 +89,8 @@ for i in "${!all_files[@]}"; do
     printf '<%s> <%s> \n' "$x" "$n" >> "${m}/${t}_B_extensions" ; 
   fi;
 
-  _uc
+  unset 'all_files[$i]'
+  continue
 done
 
 # process the results, ie, into a form usable by said other script
