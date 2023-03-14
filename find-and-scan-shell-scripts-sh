@@ -58,7 +58,7 @@ for i in "${!all_files[@]}"; do
   unset b n x
   wait -f
 	
-  # use a <n>ameref
+  # use a <n>ameref (sort of), and one for the e<x>tension also
   n="${all_files[$i]}"
 
   # there must be a size of greater than zero and skip the obviously
