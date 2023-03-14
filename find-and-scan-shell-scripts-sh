@@ -2,13 +2,13 @@
 # find-and-scan-shell-scripts-sh
 # Written in bash version 5.1
 
-# Implementation-dependent array of shells parseable by `shellcheck -S`
+# Implementation-dependent variable of arguments parseable by `shellcheck`
 # (a <w>hitelist in regex).
+unset {a..z} {A..Z}
 w='(sh|bash|dash|ksh)'
 T='error'
 
 # Other variables
-unset {a..z} {A..Z}
 f='(0|1|2|7z|afm|al|aug|bz2|c|cfg|conf|css|ctb|dat|def|desktop|dict|enc|fd|go|gz|h|html|info|ini|jpeg|js|json|lang|ldf|lua|m4|map|mat|md|mf|mim|mld|mo|mod|mp4|msg|nse|otf|page|pdf|pem|pfb|pfm|pl|pm|png|po|pod|ps|py|pyc|pyi|qdocconf|qml|rb|rst|rules|scm|service|so|sqlite|sty|sub|svg|swp|t|tablet|tar|tcl|tex|texi|tfm|tmpl|ttf|txt|typelib|ui|upp|vf|vim|xml|xpi|xpm|xsd|xsl|xz|yaml|yml|zip)' # <f>ilename.suffix
 m="${TEMPDIR:="$HOME"}" # <m>ountpoint
 r='(binfmt_misc|bpf|cgroup2|configfs|debugfs|devpts|devtmpfs|efivarfs|fusectl|hugetlbfs|iso9660|mqueue|proc|pstore|rpc_pipefs|securityfs|selinuxfs|sysfs|tmpfs|tracefs)' # <r>egex 
