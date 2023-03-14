@@ -46,6 +46,7 @@ mapfile -d '' -t relevant_search_dirs < <(
     \( \! -name proc -a \! -name sys -a \! \
     -name git \) -print0 )
 
+# DEBUG: "${relevant_search_dirs[@]}" OR '/usr/sbin'
 mapfile -d '' -t all_files < <( 
   find /usr/sbin -type f -print0 2> /dev/null ) # "${relevant_search_dirs[@]}"
 
