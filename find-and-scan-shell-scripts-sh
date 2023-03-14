@@ -90,7 +90,21 @@ for i in "${!all_files[@]}"; do
     od -Ax0 -N2 -x "$n" |
       tr -s ' \n\t' '\0' )
 
+  # compare the <h>exidecimal representations to find any <c>runchbangs
+  if [[ "${h[1]}" == '2123' ]]; then
+ 
+    # when a <c>runchbang's found, use `strings` to filter out any non-
+    # printable data, to protect `head` from garbage input, and to 
+    # get the full <c>runchbang string in ASCII.
+    c="$( strings -n 1 "$n" |
+      head -n 1 |
+      head -c 32 )"; 
 
+    # using <n>amerefs, make a record of the filenames and their 
+    # <c>runchbangs, ie, open & append to a <t>imestamped file on disk
+    printf '%s \t\t\t %s \n' "$c" "$n" >> "${m}/${t}_crunches"; 
+    unset 'all_files[$j]'
+  fi; 
 done
 
 
