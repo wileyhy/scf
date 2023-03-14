@@ -22,7 +22,7 @@ mapfile -d '' -t data_files < <(
 for i in "${!data_files[@]}"; do
   [[ "${data_files[$i]}" -nt "$latest" ]] && 
     latest="${data_files[$i]}"
-done; # <i>ndex
+done
 # shellcheck disable=SC1090
 . "$latest" || { echo source failed; exit 2; } 
 [[ -z "${all_files[*]:1:1}" ]] && { echo "$LINENO, source failed"; exit 2; }
