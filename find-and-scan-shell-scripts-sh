@@ -40,9 +40,7 @@ if [[ -z "${save_dirs[*]:0:1}" ]]; then
     awk "\$1 ~ /${v##*/}/ "'{ print $3 }' )"
 fi
 
-
-
-# ...get a list of relevant files
+# Gather filenames from local attached disk storage
 mapfile -d '' -t relevant_search_dirs < <(
   find / -mindepth 1 -maxdepth 1 -type d \
     \( \! -name proc -a \! -name sys -a \! \
