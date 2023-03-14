@@ -62,8 +62,7 @@ for i in "${!all_files[@]}"; do
   n="${all_files[$i]}"
   x="${n##*.}"
 
-  # there must be a size of greater than zero and skip the obviously
-  # irrelevant files (filename extension filter)
+  # filter 1: there must be a size of greater than zero
   if [[ ! -s "$n" ]] ||
     [[ "$n" =~ \.${f}$ ]];
   then
