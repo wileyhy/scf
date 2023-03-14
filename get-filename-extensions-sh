@@ -1,18 +1,25 @@
 #!/bin/bash
 # get-filename-extensions-sh
+# shellcheck disable=SC1090
 # written in bash 5.1
 
     # get filename extensions from output of find-and-scan-shell-scripts-sh
     # for constructing the regex filter "$f" in said script
 
 unset {a..z} {A..Z}
+m="${TEMPDIR:="$HOME"}" # <m>ountpoint
+t="$( builtin printf '%(%F_%H%M%S)T\n' )" # <t>ime
+declare -p m t
+
+_erx(){ 
+  local ec=$?
+  echo Error: "$@"
+  exit "$ec"
+}
 _uc(){
     unset 'all_files[$i]'
     continue
 }
-m="${TEMPDIR:="$HOME"}" # <m>ountpoint
-t="$( builtin printf '%(%F_%H%M%S)T\n' )" # <t>ime
-declare -p m t
 
 # find data files from find-and-scan-shell-scripts-sh
 mapfile -d '' -t data_files < <( 
@@ -23,36 +30,60 @@ for i in "${!data_files[@]}"; do
   [[ "${data_files[$i]}" -nt "$latest" ]] && 
     latest="${data_files[$i]}"
 done
-# shellcheck disable=SC1090
-. "$latest" || { echo source failed; exit 2; } 
-[[ -z "${all_files[*]:1:1}" ]] && { echo "$LINENO, source failed"; exit 2; }
+. "$latest" || _erx $LINENO
+[[ -z "${all_files[*]:1:1}" ]] && _erx $LINENO 
 all_files=( "${all_files[@]}" )
 
 # get files that have filename extensions and that aren't shell scripts
 for i in "${!all_files[@]}"; do
-  unset n x y hex_bits # necc inside a loop
-  n="${all_files[$i]}" # <n>ameref (sort of)
   
-  if ! [[ "${n##*/}" =~ \. ]]; then        _uc; fi  # must contain a period
-  if   [[ ! -e "$n"        ]]; then        _uc; fi  # file must exist
+  # necc inside a loop
+  unset n x y hex_bits
+  
+  # <n>ameref (sort of)
+  n="${all_files[$i]}" 
+  
+  # must contain a period
+  if ! [[ "${n##*/}" =~ \. ]]; then
+    _uc; 
+  fi  
+  
+  # file must exist
+  if   [[ ! -e "$n" ]]; then 
+    _uc; 
+  fi  
 
-  # shellcheck disable=SC2034
-  y="${n##*/}" # effectivel<y> `basename`
-  if [[ "${y:0:1}" == '.'  ]]; then y="${y:1}"; fi  # rename dotfiles in RAM
+  # effectivel<y> `basename`
+  y="${n##*/}" 
+  
+  # rename dotfiles in RAM
+  if [[ "${y:0:1}" == '.'  ]]; then 
+    y="${y:1}"; 
+  fi  
 
-  x="${y##*.}" # e<x>tension
-  if   [[ "$y" == "$x"     ]]; then        _uc; fi  # no change = no extension
-
-  mapfile -d '' -t hex_bits < <(  
-    od -Ax0 -N2 -x "$n" |
-    tr -s ' \n\t' '\0' )
+  # e<x>tension
+  x="${y##*.}" 
+  
+  # no change = no extension
+  if   [[ "$y" == "$x" ]]; then 
+    _uc; 
+  fi  
 
   # read from disk in binary the first two bytes of every remaining file  
-  # in the list, and format it in <h>exadecimal.
+  # in the list, and format it in <h>exadecimal. (`od`: POSIX 2008)
+  mapfile -d '' -t hex_bits < <(  
+    od -Ax0 -N2 -x "$n" |
+      tr -s ' \n\t' '\0' )
+
+  # compare the <h>exidecimal representations to find any <c>runchbangs
   if [[ "${hex_bits[1]}" == '2123' ]]; then
     _uc
   else
+    
+    # gather more info on file types
     file -p "$n" >> "${m}/${t}_B_file_o" ;
+    
+    # gather filename extensions
     printf '<%s> <%s> \n' "$x" "$n" >> "${m}/${t}_B_extensions" ; 
   fi;
 
@@ -60,22 +91,20 @@ for i in "${!all_files[@]}"; do
 done
 
 # process results
-wc -l "${m}/${t}_B"_{extensions,file_o}
-
-mapfile -t new_exts < <( 
+mapfile -t common_extensions < <( 
   awk '{ print $1 }' "${m}/${t}_B_extensions" | 
     tr -d '<>' | 
     sort | 
     uniq -c | 
     sort -gr | 
     awk '( $1 >= 100 ) { print $2 }' |
-    sort ); # "the horror!"
+    sort ); # the horror!
 
-mapfile -d '' -t exts < <( 
-  printf '%s\0' "${new_exts[@]}" | 
-    sort -zu ) ; 
-
-echo "${#exts[@]}";
-declare -p exts
-echo; printf '|%s' "${exts[@]}"; echo
+echo "${#common_extensions[@]}";
+declare -p common_extensions
+printf 'f=(%s' "${common_extensions[0]}"
+for e in "${common_extensions[@]}"; do
+  printf '|%s' "$e"; 
+done
+printf ')\n'
 exit
