@@ -61,7 +61,7 @@ for i in "${!all_files[@]}"; do
     y="${y:1}"; 
   fi  
 
-  # e<x>tension
+  # get the filename's e<x>tension
   x="${y##*.}" 
   
   # no change = no extension
@@ -77,20 +77,22 @@ for i in "${!all_files[@]}"; do
 
   # compare the <h>exidecimal representations to find any <c>runchbangs
   if [[ "${hex_bits[1]}" == '2123' ]]; then
+  
+    # discard the <c>runchbangs
     _uc
   else
     
-    # gather more info on file types
+    # gather more info on the other file types
     file -p "$n" >> "${m}/${t}_B_file_o" ;
     
-    # gather filename extensions
+    # especially their filename extensions
     printf '<%s> <%s> \n' "$x" "$n" >> "${m}/${t}_B_extensions" ; 
   fi;
 
   _uc
 done
 
-# process results
+# process the results, ie, into a form usable by said other script
 mapfile -t common_extensions < <( 
   awk '{ print $1 }' "${m}/${t}_B_extensions" | 
     tr -d '<>' | 
@@ -106,4 +108,5 @@ for e in "${common_extensions[@]}"; do
   printf '|%s' "$e"; 
 done
 printf ')\n'
+
 exit
