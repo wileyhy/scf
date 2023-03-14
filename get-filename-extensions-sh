@@ -31,19 +31,22 @@ if [[ -z "${all_files[*]:1:1}" ]]; then
 fi
 
 all_files=( "${all_files[@]}" )
-  
+
+_uc(){
+    unset 'all_files[$i]'
+    continue
+}
+
 for i in "${!all_files[@]}"; do
   unset n x y hex_bits # necc inside a loop
   n="${all_files[$i]}" # <n>ameref (sort of)
   
   if ! [[ "${n##*/}" =~ \. ]]; then
-    unset 'all_files[$i]'
-    continue
+    _uc
   fi 
 
   if [[ ! -e "$n" ]]; then
-    unset 'all_files[$i]'
-    continue
+    _uc
   fi 
 
   # shellcheck disable=SC2034
@@ -54,8 +57,7 @@ for i in "${!all_files[@]}"; do
 
   x="${y##*.}" # e<x>tension
   if [[ "$y" == "$x" ]]; then
-    unset 'all_files[$i]'
-    continue
+    _uc
   fi 
 
   mapfile -d '' -t hex_bits < <(  
@@ -63,8 +65,7 @@ for i in "${!all_files[@]}"; do
     tr -s ' \n\t' '\0' )
 
   if [[ "${hex_bits[1]}" == '2123' ]]; then
-    unset 'all_files[$i]'
-    continue
+    _uc
   else
     file -p "$n" >> "${m}/${t}_B_file_o" ;
     printf '<%s> <%s> \n' "$x" "$n" >> "${m}/${t}_B_extensions" ; 
@@ -93,8 +94,6 @@ mapfile -d '' -t exts < <(
 echo "${#exts[@]}";
 declare -p exts
 
-echo; 
-printf '|%s' "${exts[@]}"; 
-echo
+echo; printf '|%s' "${exts[@]}"; echo
 
 exit
