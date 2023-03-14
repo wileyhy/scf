@@ -100,8 +100,7 @@ mapfile -t common_extensions < <(
     awk '( $1 >= 100 ) { print $2 }' |
     sort ); # the horror!
 
-echo "${#common_extensions[@]}";
-declare -p common_extensions
+# print the regex / variable assignment for find-and-scan-shell-scripts-sh
 printf 'f=(%s' "${common_extensions[0]}"
 for e in "${common_extensions[@]}"; do
   printf '|%s' "$e"; 
