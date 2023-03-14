@@ -1,8 +1,9 @@
-#!/bin/bash
+#! /bin/bash
 # find-and-scan-shell-scripts-sh
-# Written for bash version 5.1
+# Written in bash version 5.1
 
-# Array of shells that `shellcheck -S` can parse
+# Implementation-dependent array of shells parseable by `shellcheck -S`
+# (a <w>hitelist in regex).
 w='(sh|bash|dash|ksh)'
 
 
