@@ -3,7 +3,6 @@
 # Written in bash version 5.1
 
 # Implementation-dependent variables of arguments parseable by `shellcheck`
-# (a <w>hitelist in regex).
 unset {a..z} {A..Z}
 w='(sh|bash|dash|ksh)'
 T='error'
