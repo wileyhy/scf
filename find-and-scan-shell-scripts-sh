@@ -91,29 +91,6 @@ for i in "${!all_files[@]}"; do
       tr -s ' \n\t' '\0' )
 
 
-  # skip the photos and media files: png, jpeg, etc...
-  # also, it must have a size -gt zero
-  if [[ "$n" =~ \.${f}$ ]] || 
-    [[ ! -s "$n" ]]; 
-  then
-    unset 'all_files[$i]'
-    continue
-  fi
-
-  # look for any files beginning with a <c>runch-bang
-  c="$( strings -n 1 "$n" | 
-    head -n 1 | 
-    head -c 32 )"; 
-
-  if [[ "$c" =~ ^'#!' ]] && 
-    ! [[ "$c" =~ ${L} ]]; 
-  then 
-
-    # open & append a list
-    shell_scripts+=( "$n" ); 
-    printf '%s \r\t\t\t\t%s \n' "$c" "$n" >> \
-      "${m}/${t}_crunches" ; 
-  fi; 
 done
 
 
