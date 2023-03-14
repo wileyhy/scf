@@ -15,11 +15,10 @@ declare -p m t
 mapfile -d '' -t data_files < <( 
   find / -type f -name '*_remaining_files' -print0 2> /dev/null )
 
-for i in "${!data_files[@]}"; # <i>ndex
-do
+for i in "${!data_files[@]}"; do
   [[ "${data_files[$i]}" -nt "$latest" ]] && 
     latest="${data_files[$i]}"
-done
+done; # <i>ndex
 
 # shellcheck disable=SC1090
 . "$latest" || { echo source failed; exit 2; } 
@@ -41,13 +40,8 @@ for i in "${!all_files[@]}"; do
   unset n x y hex_bits # necc inside a loop
   n="${all_files[$i]}" # <n>ameref (sort of)
   
-  if ! [[ "${n##*/}" =~ \. ]]; then
-    _uc
-  fi 
-
-  if [[ ! -e "$n" ]]; then
-    _uc
-  fi 
+  if ! [[ "${n##*/}" =~ \. ]]; then   _uc;  fi 
+  if   [[ ! -e "$n"        ]]; then   _uc;  fi 
 
   # shellcheck disable=SC2034
   y="${n##*/}" # effectivel<y> `basename`
@@ -56,9 +50,7 @@ for i in "${!all_files[@]}"; do
   fi
 
   x="${y##*.}" # e<x>tension
-  if [[ "$y" == "$x" ]]; then
-    _uc
-  fi 
+  if   [[ "$y" == "$x"     ]]; then   _uc;  fi 
 
   mapfile -d '' -t hex_bits < <(  
     od -Ax0 -N2 -x "$n" |
@@ -71,7 +63,7 @@ for i in "${!all_files[@]}"; do
     printf '<%s> <%s> \n' "$x" "$n" >> "${m}/${t}_B_extensions" ; 
   fi;
 
-  unset 'all_files[$i]'
+  _uc
 done
 
 wc -l "${m}/${t}_B"_{extensions,file_o}
@@ -84,8 +76,6 @@ mapfile -t new_exts < <(
     sort -gr | 
     awk '( $1 >= 100 ) { print $2 }' |
     sort ); # "the horror!"
-
-new_exts+=( png jpeg mp4 swp tar bz2 gz 7z zip json ) ; 
 
 mapfile -d '' -t exts < <( 
   printf '%s\0' "${new_exts[@]}" | 
