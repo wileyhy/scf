@@ -2,12 +2,10 @@
 # get-filename-extensions-sh
 # written in bash 5.1
 
-# get filename extensions from output of find-and-scan-shell-scripts-sh
-# for constructing the regex filter "$f" in find-and-scan-shell-scripts-sh
+    # get filename extensions from output of find-and-scan-shell-scripts-sh
+    # for constructing the regex filter "$f" in find-and-scan-shell-scripts-sh
 
-
-# shellcheck disable=SC2184
-unset [a-zA-Z] # expansion intended
+unset {a..z} {A..Z}
 _uc(){
     unset 'all_files[$i]'
     continue
