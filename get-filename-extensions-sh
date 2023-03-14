@@ -8,6 +8,10 @@
 
 # shellcheck disable=SC2184
 unset [a-zA-Z] # expansion intended
+_uc(){
+    unset 'all_files[$i]'
+    continue
+}
 m="${TEMPDIR:="$HOME"}" # <m>ountpoint
 t="$( builtin printf '%(%F_%H%M%S)T\n' )" # <t>ime
 declare -p m t
@@ -28,13 +32,7 @@ if [[ -z "${all_files[*]:1:1}" ]]; then
   echo "line $LINENO, error with builtin source"
   exit 2
 fi
-
 all_files=( "${all_files[@]}" )
-
-_uc(){
-    unset 'all_files[$i]'
-    continue
-}
 
 for i in "${!all_files[@]}"; do
   unset n x y hex_bits # necc inside a loop
@@ -83,7 +81,5 @@ mapfile -d '' -t exts < <(
 
 echo "${#exts[@]}";
 declare -p exts
-
 echo; printf '|%s' "${exts[@]}"; echo
-
 exit
