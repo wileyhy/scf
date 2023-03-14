@@ -24,7 +24,6 @@ mapfile -d '' -t save_dirs < <(
 
 # filter out via  <r>egex certain FS types by sorting the <o>utput of `df`
 for o in "${!save_dirs[@]}"; do 
-
   if [[ "${save_dirs[$o]}" =~ ^(${r}) ]]; then 
     unset 'save_dirs[$o]'; 
   fi; 
