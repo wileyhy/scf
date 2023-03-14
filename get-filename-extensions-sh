@@ -3,7 +3,7 @@
 # written in bash 5.1
 
     # get filename extensions from output of find-and-scan-shell-scripts-sh
-    # for constructing the regex filter "$f" in find-and-scan-shell-scripts-sh
+    # for constructing the regex filter "$f" in said script
 
 unset {a..z} {A..Z}
 _uc(){
