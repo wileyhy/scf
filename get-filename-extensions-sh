@@ -97,6 +97,7 @@ done
 mapfile -t common_extensions < <( 
   awk '{ print $1 }' "${m}/${t}_B_extensions" | 
     tr -d '<>' | 
+    grep -ve ^'sh'$ -e ^'bash'$ -e ^'dash'$ -e ^'ksh'$ |
     sort | 
     uniq -c | 
     sort -gr | 
