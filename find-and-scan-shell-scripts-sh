@@ -84,6 +84,8 @@ for i in "${!all_files[@]}"; do
     continue
   fi	
 	
+  # read from disk in binary the first two bytes of every file left in 
+  # the list, and format it in <h>exadecimal.
   if [[ "$( od -Ax0 -N2 -x "$n" |
     awk '{ print $2 }' )" != '2321' ]];
   then
