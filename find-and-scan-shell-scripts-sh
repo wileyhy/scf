@@ -78,7 +78,11 @@ for i in "${!all_files[@]}"; do
     continue
   fi
 	
-	
+  # skip the obviously irrelevant files (filename extension <f>ilter)
+  if [[ "$x" =~ .\.${f}$ ]]; then
+    unset 'all_files[$i]'
+    continue
+  fi	
 	
   if [[ "$( od -Ax0 -N2 -x "$n" |
     awk '{ print $2 }' )" != '2321' ]];
