@@ -1,0 +1,100 @@
+#!/bin/bash
+# get-filename-extensions-sh
+# written in bash 5.1
+
+# get filename extensions from output of find-and-scan-shell-scripts-sh
+# for constructing the regex filter "$f" in find-and-scan-shell-scripts-sh
+
+
+# shellcheck disable=SC2184
+unset [a-zA-Z] # expansion intended
+m="${TEMPDIR:="$HOME"}" # <m>ountpoint
+t="$( builtin printf '%(%F_%H%M%S)T\n' )" # <t>ime
+declare -p m t
+
+mapfile -d '' -t data_files < <( 
+  find / -type f -name '*_remaining_files' -print0 2> /dev/null )
+
+for i in "${!data_files[@]}"; # <i>ndex
+do
+  [[ "${data_files[$i]}" -nt "$latest" ]] && 
+    latest="${data_files[$i]}"
+done
+
+# shellcheck disable=SC1090
+. "$latest" || { echo source failed; exit 2; } 
+
+# shellcheck disable=SC2154
+if [[ -z "${all_files[*]:1:1}" ]]; then
+  echo "line $LINENO, error with builtin source"
+  exit 2
+fi
+
+all_files=( "${all_files[@]}" )
+  
+for i in "${!all_files[@]}"; do
+  unset n x y hex_bits # necc inside a loop
+  n="${all_files[$i]}" # <n>ameref (sort of)
+  
+  if ! [[ "${n##*/}" =~ \. ]]; then
+    unset 'all_files[$i]'
+    continue
+  fi 
+
+  if [[ ! -e "$n" ]]; then
+    unset 'all_files[$i]'
+    continue
+  fi 
+
+  # shellcheck disable=SC2034
+  y="${n##*/}" # effectivel<y> `basename`
+  if [[ "${y:0:1}" == '.' ]]; then
+    y="${y:1}"
+  fi
+
+  x="${y##*.}" # e<x>tension
+  if [[ "$y" == "$x" ]]; then
+    unset 'all_files[$i]'
+    continue
+  fi 
+
+  mapfile -d '' -t hex_bits < <(  
+    od -Ax0 -N2 -x "$n" |
+    tr -s ' \n\t' '\0' )
+
+  if [[ "${hex_bits[1]}" == '2123' ]]; then
+    unset 'all_files[$i]'
+    continue
+  else
+    file -p "$n" >> "${m}/${t}_B_file_o" ;
+    printf '<%s> <%s> \n' "$x" "$n" >> "${m}/${t}_B_extensions" ; 
+  fi;
+
+  unset 'all_files[$i]'
+done
+
+wc -l "${m}/${t}_B"_{extensions,file_o}
+
+mapfile -t new_exts < <( 
+  awk '{ print $1 }' "${m}/${t}_B_extensions" | 
+    tr -d '<>' | 
+    sort | 
+    uniq -c | 
+    sort -gr | 
+    awk '( $1 >= 100 ) { print $2 }' |
+    sort ); # "the horror!"
+
+new_exts+=( png jpeg mp4 swp tar bz2 gz 7z zip json ) ; 
+
+mapfile -d '' -t exts < <( 
+  printf '%s\0' "${new_exts[@]}" | 
+    sort -zu ) ; 
+
+echo "${#exts[@]}";
+declare -p exts
+
+echo; 
+printf '|%s' "${exts[@]}"; 
+echo
+
+exit
