@@ -90,14 +90,7 @@ for i in "${!all_files[@]}"; do
     od -Ax0 -N2 -x "$n" |
       tr -s ' \n\t' '\0' )
 
-  if [[ "$( od -Ax0 -N2 -x "$n" |
-    awk '{ print $2 }' )" != '2321' ]];
-  then
-    unset 'all_files[$i]'
-    continue
-  fi # xxd -l 2 -ps "$n" | strings -n 1
 
-  # Bug? what are the succeed/fail ratios for these tests?
   # skip the photos and media files: png, jpeg, etc...
   # also, it must have a size -gt zero
   if [[ "$n" =~ \.${f}$ ]] || 
