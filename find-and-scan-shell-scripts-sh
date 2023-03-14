@@ -68,8 +68,8 @@ for i in "${!all_files[@]}"; do
     continue
   fi
 
-  # read the first two bytes of every file on disk, and 
-  # look for any files beginning with a <c>runchbang
+  # filter 2: apply a <w>hitelist of shell program names against 
+  # filename e<x>tensions
   if [[ "$( od -Ax0 -N2 -x "$n" |
     awk '{ print $2 }' )" != '2321' ]];
   then
