@@ -102,6 +102,7 @@ mapfile -t common_extensions < <(
     sort -gr | 
     awk '( $1 >= 100 ) { print $2 }' |
     sort ); # the horror!
+common_extensions+=( 7z bz2 gz info jpeg json mp4 png sqlite swp tar upp zip )
 
 # print the regex / variable assignment for find-and-scan-shell-scripts-sh
 printf 'f=(%s' "${common_extensions[0]}"
