@@ -5,6 +5,7 @@
 # Implementation-dependent array of shells parseable by `shellcheck -S`
 # (a <w>hitelist in regex).
 w='(sh|bash|dash|ksh)'
+T='error'
 
 # Other variables
 unset {a..z} {A..Z}
