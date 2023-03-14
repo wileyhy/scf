@@ -53,18 +53,18 @@ mapfile -d '' -t all_files < <(
   # <>
   set -x
   
-# sort out the <s>hell scripts from the rest of the files, using index <j>
-for j in "${!all_files[@]}"; do
+# Use <i>ndex to sort out the <s>cripts from the rest of the files
+for i in "${!all_files[@]}"; do
 
   # use a <n>ameref
-  n="${all_files[$j]}"
+  n="${all_files[$i]}"
 
   # there must be a size of greater than zero and skip the obviously
   # irrelevant files (filename extension filter)
   if [[ ! -s "$n" ]] ||
     [[ "$n" =~ \.${f}$ ]];
   then
-    unset 'all_files[$j]'
+    unset 'all_files[$i]'
     continue
   fi
 
@@ -73,7 +73,7 @@ for j in "${!all_files[@]}"; do
   if [[ "$( od -Ax0 -N2 -x "$n" |
     awk '{ print $2 }' )" != '2321' ]];
   then
-    unset 'all_files[$j]'
+    unset 'all_files[$i]'
     continue
   fi # xxd -l 2 -ps "$n" | strings -n 1
 
@@ -83,7 +83,7 @@ for j in "${!all_files[@]}"; do
   if [[ "$n" =~ \.${f}$ ]] || 
     [[ ! -s "$n" ]]; 
   then
-    unset 'all_files[$j]'
+    unset 'all_files[$i]'
     continue
   fi
 
@@ -104,11 +104,11 @@ for j in "${!all_files[@]}"; do
 done
 
 
-# with ShellCheck scan each <s>cript for <e>rrors, and use an <i>ndex
-for i in "${!shell_scripts[@]}"; do 
+# with ShellCheck scan each <s>cript for <e>rrors, and use index <j>
+for j in "${!shell_scripts[@]}"; do 
 
   # also use, for <s>cripts, a nameref
-  declare -n s="${shell_scripts[$i]}"
+  declare -n s="${shell_scripts[$j]}"
 
   e="$( shellcheck -S error "$s" | 
     grep -vFe 'shellcheck.net' | 
