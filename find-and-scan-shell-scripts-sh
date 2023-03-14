@@ -16,7 +16,8 @@ t="$( builtin printf '%(%F_%H%M%S)T' )" # <t>ime
 
 # Bug? is '/run/media' portable to other distros? 
 
-# a default save directory somewhere off of the local disk
+# a default save directory somewhere off of the local disk.
+# `df` will output three strings on one newline.
 mapfile -d '' -t save_dirs < <( 
   find /run/media -mindepth 2 -maxdepth 2 -type d \
       -exec df --sync -l --output=fstype,avail,source \
