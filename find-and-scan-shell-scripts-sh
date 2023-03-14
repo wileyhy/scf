@@ -63,9 +63,7 @@ for i in "${!all_files[@]}"; do
   x="${n##*.}"
 
   # filter 1: there must be a size of greater than zero
-  if [[ ! -s "$n" ]] ||
-    [[ "$n" =~ \.${f}$ ]];
-  then
+  if [[ ! -s "$n" ]]; then
     unset 'all_files[$i]'
     continue
   fi
