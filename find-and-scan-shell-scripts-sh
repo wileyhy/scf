@@ -55,7 +55,9 @@ mapfile -d '' -t all_files < <(
   
 # Use <i>ndex to sort out the <s>cripts from the rest of the files
 for i in "${!all_files[@]}"; do
-
+  unset b n x
+  wait -f
+	
   # use a <n>ameref
   n="${all_files[$i]}"
 
