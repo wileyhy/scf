@@ -25,7 +25,6 @@ for i in "${!data_files[@]}"; do
 done; # <i>ndex
 # shellcheck disable=SC1090
 . "$latest" || { echo source failed; exit 2; } 
-# shellcheck disable=SC2154
 [[ -z "${all_files[*]:1:1}" ]] && { echo "$LINENO, source failed"; exit 2; }
 all_files=( "${all_files[@]}" )
 
