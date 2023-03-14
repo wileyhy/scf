@@ -107,6 +107,8 @@ for i in "${!all_files[@]}"; do
   fi; 
 done
 
+# output some data for further constructing the blacklist 
+declare -p m all_files > "${m}/${t}_remaining_files"
 
 # with ShellCheck scan each <s>cript for <e>rrors, and use index <j>
 for j in "${!shell_scripts[@]}"; do 
