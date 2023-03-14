@@ -113,8 +113,8 @@ declare -p m all_files > "${m}/${t}_remaining_files"
 # with ShellCheck scan each <s>cript for <e>rrors, and use index <j>
 for j in "${!shell_scripts[@]}"; do 
 
-  # also use, for <s>cripts, a nameref
-  declare -n s="${shell_scripts[$j]}"
+  # also use a "nameref" for <s>cripts
+  s="${shell_scripts[$j]}"
 
   e="$( shellcheck -S error "$s" | 
     grep -vFe 'shellcheck.net' | 
