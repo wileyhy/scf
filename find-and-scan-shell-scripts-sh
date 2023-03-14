@@ -60,6 +60,7 @@ for i in "${!all_files[@]}"; do
 	
   # use a <n>ameref (sort of), and one for the e<x>tension also
   n="${all_files[$i]}"
+  x="${n##*.}"
 
   # there must be a size of greater than zero and skip the obviously
   # irrelevant files (filename extension filter)
