@@ -70,6 +70,16 @@ for i in "${!all_files[@]}"; do
 
   # filter 2: apply a <w>hitelist of shell program names against 
   # filename e<x>tensions
+  if [[ "$x" =~ ${w} ]]; then
+    
+    # using <n>amerefs, make a list in RAM of filenames which are scripts
+    shell_scripts+=( "$n" );  
+    unset 'all_files[$i]'
+    continue
+  fi
+	
+	
+	
   if [[ "$( od -Ax0 -N2 -x "$n" |
     awk '{ print $2 }' )" != '2321' ]];
   then
