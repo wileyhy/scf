@@ -17,13 +17,12 @@ t="$( date '+%F_%H%M%S' )" # <t>ime
 # a default save directory somewhere off of the local disk
 mapfile -d '' -t save_dirs < <( 
   find /run/media -mindepth 2 -maxdepth 2 -type d \
-	    -exec df --sync -l --output=fstype,avail,source \
-  	  --block-size=1 '{}' ';' | 
+			-exec df --sync -l --output=fstype,avail,source \
+			--block-size=1 '{}' ';' | 
 		grep -iv avail | 
   	tr '\n' '\0' )
 
-
-# filter out certain FS types by <r>egex by sorting the <o>utput of `df`
+# filter out via  <r>egex certain FS types by sorting the <o>utput of `df`
 for o in "${!save_dirs[@]}"; do 
 
   if [[ "${save_dirs[$o]}" =~ ^(${r}) ]]; then 
