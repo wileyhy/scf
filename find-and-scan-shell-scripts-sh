@@ -36,6 +36,40 @@ m="${TEMPDIR:="$HOME"}" # <m>ountpoint
 r='(binfmt_misc|bpf|cgroup2|configfs|debugfs|devpts|devtmpfs|efivarfs|fusectl|hugetlbfs|iso9660|mqueue|proc|pstore|rpc_pipefs|securityfs|selinuxfs|sysfs|tmpfs|tracefs)' # <r>egex 
 t="$( builtin printf '%(%F_%H%M%S)T' )" # <t>ime
 
+# Usage: _create_array 'w' 'w_list'
+_create_array(){
+  declare -n array="$1"
+  mapfile -d '' -t "$2" < <(  
+    tr -d '\n' <<< "${array[@]}" | 
+      sed 's,^(,,g' | 
+      tr '(|)' '\0'); 
+}
+
+# make sure the shell program names aren't included in the 'f' filter
+_create_array f f_list_new
+_create_array f f_list_orig
+_create_array w w_list
+
+# shellcheck disable=SC2154
+for F in "${!f_list_new[@]}"; do
+  # shellcheck disable=SC2154
+  for W in "${!w_list[@]}"; do
+    if [[ "${f_list_new[$F]}" == "${w_list[$W]}" ]]; then
+      unset 'f_list_new[$F]'
+    fi
+  done
+done
+
+if [[ "${#f_list_new[@]}" != "${#f_list_orig[@]}" ]]; then
+  f_list_orig=( "${f_list_new[@]}" )
+fi
+
+f="$( printf '(%s' "${f_list_orig[0]}" )"
+for e in "${f_list_orig[@]}"; do
+  f+="$( printf '|%s' "$e" )"
+done
+f+=')'
+
 # Bug? is '/run/media' portable to other distros? 
 
 # a default save directory somewhere off of the local disk.
