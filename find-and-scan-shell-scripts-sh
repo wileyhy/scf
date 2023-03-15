@@ -31,48 +31,9 @@ case "$#" in
 esac
 
 # Other variables
-f='(0|1|2|7z|afm|al|aug|bz2|c|cfg|conf|css|ctb|dat|def|desktop|dict|enc|fd|go|gz|h|html|info|ini|jpeg|js|json|lang|ldf|lua|m4|map|mat|md|mf|mim|mld|mo|mod|mp4|msg|nse|otf|page|pdf|pem|pfb|pfm|pl|pm|png|po|pod|ps|py|pyc|pyi|qdocconf|qml|rb|rst|rules|scm|service|so|sqlite|sty|sub|svg|swp|t|tablet|tar|tcl|tex|texi|tfm|tmpl|ttf|txt|typelib|ui|upp|vf|vim|xml|xpi|xpm|xsd|xsl|xz|yaml|yml|zip)' # <f>ilename.suffix
 m="${TEMPDIR:="$HOME"}" # <m>ountpoint
 r='(binfmt_misc|bpf|cgroup2|configfs|debugfs|devpts|devtmpfs|efivarfs|fusectl|hugetlbfs|iso9660|mqueue|proc|pstore|rpc_pipefs|securityfs|selinuxfs|sysfs|tmpfs|tracefs)' # <r>egex 
 t="$( builtin printf '%(%F_%H%M%S)T' )" # <t>ime
-
-# make sure the shell program names aren't included in the 'f' filter
-# Usage: _create_array 'w' 'w_list'
-_create_array(){
-  declare -n array="$1"
-  mapfile -d '' -t "$2" < <(  
-    tr -d '\n' <<< "${array[@]}" | 
-      sed 's,^(,,g' | 
-      tr '(|)' '\0'); 
-}
-
-# compare filters 'f' and 'w' by comparing arrays
-_create_array f f_list_new
-_create_array f f_list_orig
-_create_array w w_list
-
-# if a value exists in both arrays, remove it from filter 'f'
-# shellcheck disable=SC2154
-for F in "${!f_list_new[@]}"; do
-  # shellcheck disable=SC2154
-  for W in "${!w_list[@]}"; do
-    if [[ "${f_list_new[$F]}" == "${w_list[$W]}" ]]; then
-      unset 'f_list_new[$F]'
-    fi
-  done
-done
-
-# if filter 'f' has changed, then record that change
-if [[ "${#f_list_new[@]}" != "${#f_list_orig[@]}" ]]; then
-  f_list_orig=( "${f_list_new[@]}" )
-
-  # reconstruct filter 'f'
-  f="$( printf '(%s' "${f_list_orig[0]}" )"
-  for e in "${f_list_orig[@]}"; do
-    f+="$( printf '|%s' "$e" )"
-  done
-  f+=')'
-fi
 
 # Bug? is '/run/media' portable to other distros? 
 
@@ -132,18 +93,6 @@ for i in "${!all_files[@]}"; do
   # get the <b>asename
   b="${n##*/}"
 
-  # get the filename e<x>tension if there is one
-  #   Note: usually in a filename containing a type extension, the suffix 
-  #   will be separated from the rest of the name by a period, but with 
-  #   shell scripts I've also seen a dash or an underscore used. 
-  x="${b##*[.\-_]}"
-
-  # filter 2: filename extension <f>ilter
-  if [[ "$x" =~ ^${f}$ ]]; then
-    unset 'all_files[$i]'
-    continue
-  fi
-
   # read from disk in binary the first two bytes of every file left in 
   # the list, and format it in <h>exadecimal.
   mapfile -d '' -t h < <(  
@@ -176,9 +125,6 @@ done
 # array 'shell_scripts' must exist
 [[ -n "${shell_scripts[@]:0:1}" ]] || exit 3
 
-# output some data for further constructing the blacklist 
-declare -p m all_files > "${m}/${t}_remaining_files"
-
 # with ShellCheck scan each <s>cript for <e>rrors, and use index <j>
 for j in "${!shell_scripts[@]}"; do 
 
@@ -206,4 +152,3 @@ for j in "${!shell_scripts[@]}"; do
   unset errors s 'shell_scripts[$j]'
   wait -f
 done
-
