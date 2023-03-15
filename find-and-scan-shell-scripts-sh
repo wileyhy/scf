@@ -36,6 +36,7 @@ m="${TEMPDIR:="$HOME"}" # <m>ountpoint
 r='(binfmt_misc|bpf|cgroup2|configfs|debugfs|devpts|devtmpfs|efivarfs|fusectl|hugetlbfs|iso9660|mqueue|proc|pstore|rpc_pipefs|securityfs|selinuxfs|sysfs|tmpfs|tracefs)' # <r>egex 
 t="$( builtin printf '%(%F_%H%M%S)T' )" # <t>ime
 
+# make sure the shell program names aren't included in the 'f' filter
 # Usage: _create_array 'w' 'w_list'
 _create_array(){
   declare -n array="$1"
@@ -45,11 +46,12 @@ _create_array(){
       tr '(|)' '\0'); 
 }
 
-# make sure the shell program names aren't included in the 'f' filter
+# compare filters 'f' and 'w' by comparing arrays
 _create_array f f_list_new
 _create_array f f_list_orig
 _create_array w w_list
 
+# if a value exists in both arrays, remove it from filter 'f'
 # shellcheck disable=SC2154
 for F in "${!f_list_new[@]}"; do
   # shellcheck disable=SC2154
@@ -60,15 +62,17 @@ for F in "${!f_list_new[@]}"; do
   done
 done
 
+# if filter 'f' has changed, then record that change
 if [[ "${#f_list_new[@]}" != "${#f_list_orig[@]}" ]]; then
   f_list_orig=( "${f_list_new[@]}" )
-fi
 
-f="$( printf '(%s' "${f_list_orig[0]}" )"
-for e in "${f_list_orig[@]}"; do
-  f+="$( printf '|%s' "$e" )"
-done
-f+=')'
+  # reconstruct filter 'f'
+  f="$( printf '(%s' "${f_list_orig[0]}" )"
+  for e in "${f_list_orig[@]}"; do
+    f+="$( printf '|%s' "$e" )"
+  done
+  f+=')'
+fi
 
 # Bug? is '/run/media' portable to other distros? 
 
