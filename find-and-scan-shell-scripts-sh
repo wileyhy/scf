@@ -76,7 +76,7 @@ fi
 
 # Bug? is '/run/media' portable to other distros? 
 
-# a default save directory somewhere off of the local disk.
+# get possible save directories somewhere off of the local disk.
 # `df` will output three strings on one newline.
 mapfile -d '' -t save_dirs < <( 
   find /run/media -mindepth 2 -maxdepth 2 -type d \
@@ -113,40 +113,37 @@ mapfile -d '' -t relevant_search_dirs < <(
 mapfile -d '' -t all_files < <( 
   find "${relevant_search_dirs[@]}" -type f -print0 2> /dev/null )
 
-  # <>
-  set -x
-  
-# Use <i>ndex to sort out the <s>cripts from the rest of the files
+# sort out the <s>cripts, ie, any file beginning with a <c>runchbang, 
+# from the rest of the files. <i> is for index.
 for i in "${!all_files[@]}"; do
-  unset b n x
-  wait -f
+  
+  # necc bc loop
+  unset b c h n x
 	
-  # use a <n>ameref (sort of), and one for the e<x>tension also
+  # use a <n>ameref (sort of)
   n="${all_files[$i]}"
-  x="${n##*.}"
-
-  # filter 1: there must be a size of greater than zero
+  
+  # filter 1: file must exist and have a size greater than zero
   if [[ ! -s "$n" ]]; then
     unset 'all_files[$i]'
     continue
   fi
 
-  # filter 2: apply a <w>hitelist of shell program names against 
-  # filename e<x>tensions
-  if [[ "$x" =~ ${w} ]]; then
-    
-    # using <n>amerefs, make a list in RAM of filenames which are scripts
-    shell_scripts+=( "$n" );  
+  # get the <b>asename
+  b="${n##*/}"
+
+  # get the filename e<x>tension if there is one
+  #   Note: usually in a filename containing a type extension, the suffix 
+  #   will be separated from the rest of the name by a period, but with 
+  #   shell scripts I've also seen a dash or an underscore used. 
+  x="${b##*[.\-_]}"
+
+  # filter 2: filename extension <f>ilter
+  if [[ "$x" =~ ^${f}$ ]]; then
     unset 'all_files[$i]'
     continue
   fi
-	
-  # skip the obviously irrelevant files (filename extension <f>ilter)
-  if [[ "$x" =~ .\.${f}$ ]]; then
-    unset 'all_files[$i]'
-    continue
-  fi	
-	
+
   # read from disk in binary the first two bytes of every file left in 
   # the list, and format it in <h>exadecimal.
   mapfile -d '' -t h < <(  
@@ -163,12 +160,21 @@ for i in "${!all_files[@]}"; do
       head -n 1 |
       head -c 32 )"; 
 
-    # using <n>amerefs, make a record of the filenames and their 
-    # <c>runchbangs, ie, open & append to a <t>imestamped file on disk
+    # make a list of scripts, for use below
+    if [[ "$x" =~ ^${w}$ ]]; then
+      shell_scripts+=( "$n" )
+    fi
+
+    # using "<n>amerefs," make a record of the filenames and their 
+    # <c>runchbangs, ie, open & append to a <t>imestamped file somewhere
+    # off of the local hard disk
     printf '%s \t\t\t %s \n' "$c" "$n" >> "${m}/${t}_crunches"; 
     unset 'all_files[$j]'
   fi; 
 done
+
+# array 'shell_scripts' must exist
+[[ -n "${shell_scripts[@]:0:1}" ]] || exit 3
 
 # output some data for further constructing the blacklist 
 declare -p m all_files > "${m}/${t}_remaining_files"
