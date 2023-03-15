@@ -185,20 +185,25 @@ for j in "${!shell_scripts[@]}"; do
   # also use a "nameref" for <s>cripts
   s="${shell_scripts[$j]}"
 
-  e="$( shellcheck -S error "$s" | 
-    grep -vFe 'shellcheck.net' | 
-    grep -Eoe 'SC[0-9]{4}' | 
-    sed -e 's,^[[:space:]]*,,g' \
-      -e 's,[[:space:]]$,,g' | 
-    sort -gr | 
-    uniq -c )";
+  mapfile -t errs < <( shellcheck -S "$T" "$s" | 
+      grep -vFe 'shellcheck.net' | 
+      grep --color=never -Eo 'SC[0-9]{4}' | 
+      sort -g | 
+      uniq -c |
+      sed 's,^[[:space:]]*,,g' )
 
-  if [[ -n "$e" ]]; then 
+  if [[ -n "${errs[*]:0:1}" ]]; then 
 		
     # open & append some prioritized work lists with indices
-    printf '%d  <%s>\n' "$i" "$s" >> \
-      "${m}/${t}_found_scripts_with_indices" 
-    printf '%s | %d\n' "$e" "$i" >> \
-      "${m}/${t}_found_errors_with_indices"
+    printf '%d  <%s>\n' "$j" "$s" >> \
+      "${m}/${t}_found_scripts_with_indices"
+    for E in "${errs[@]}"; do
+      printf '%s | %d\n' "${E//$'\n'/}" "$j" >> \
+      "${m}/${t}_found_errors_with_indices_unsorted"
+    done
   fi
+
+  unset errors s 'shell_scripts[$j]'
+  wait -f
 done
+
