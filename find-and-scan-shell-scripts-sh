@@ -30,6 +30,7 @@ case "$#" in
         u="${d}_test5_unlisted" # <u>nlisted
         case "$1" in
           --python|--python2|--python3)
+                    grep python "$u" > "${u}_python";;
       -h|*)  _usage;;
     esac;;
   *)         _usage;;
