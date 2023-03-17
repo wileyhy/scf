@@ -75,9 +75,12 @@ for o in "${!save_dirs[@]}"; do
 done
 
 # Bug? -z sb -n ?
-# take the de<v>ice with the most available space, and get its
-# <m>ountpoint, just in case large log files. `awk` can do more here.
+# Just in case large log files, of the remaining 'save_dirs' take the 
+# de<v>ice with the most available space, and get its <m>ountpoint. 
+# If there are no 'save_dirs' left, then use '/'.
 if [[ -z "${save_dirs[*]:0:1}" ]]; then
+  m='/'
+else
   v="$( printf '%s\n' "${save_dirs[@]}" | 
     sort -grk2 | 
     head -n 1 |
