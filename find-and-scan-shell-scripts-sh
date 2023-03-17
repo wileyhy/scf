@@ -55,9 +55,11 @@ m="${TEMPDIR:="$HOME"}" # <m>ountpoint
 r='(binfmt_misc|bpf|cgroup2|configfs|debugfs|devpts|devtmpfs|efivarfs|fusectl|hugetlbfs|iso9660|mqueue|proc|pstore|rpc_pipefs|securityfs|selinuxfs|sysfs|tmpfs|tracefs)' # <r>egex 
 t="$( builtin printf '%(%F_%H%M%S)T' )" # <t>ime
 
-# get possible save directories somewhere off of the local disk.
-# `df` will output three strings on one newline.
-# Bug? is '/run/media' portable to other distros? 
+# Automatically choose some directory, attached 
+# to the local disk, where any output can be
+# saved; prefer USB flash drives. This `df` command 
+# will output three strings on one newline.
+#   Bug? is '/run/media' portable to other distros? 
 mapfile -d '' -t save_dirs < <( 
   find /run/media -mindepth 2 -maxdepth 2 -type d \
       -exec df --sync -l --output=fstype,avail,source \
