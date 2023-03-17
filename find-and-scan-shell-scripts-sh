@@ -26,6 +26,7 @@ case "$#" in
       -e)    T='error';; 
       -i)    T='info';; 
       -w)    T='warning';;
+      --[a-z]*)
       -h|*)  _usage;;
     esac;;
   *)         _usage;;
