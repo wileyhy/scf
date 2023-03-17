@@ -39,6 +39,7 @@ case "$#" in
                     grep ruby "$u" > "${u}_ruby";;
           #--other-lang*) # ToDo
           #         [parse '--other-language=(sed|tcsh|lua|etc)]
+	  --*)      printf '\t\nHappy Easter!\n\n'
       -h|*)  _usage;;
     esac;;
   *)         _usage;;
