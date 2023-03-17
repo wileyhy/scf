@@ -103,7 +103,7 @@ mapfile -d '' -t all_files < <(
 for i in "${!all_files[@]}"; do
   
   # necc bc loop
-  unset b crunchbangs hexes nextfile x
+  unset basename crunchbangs hexes nextfile extension
 	
   # use a (sort of) <n>ameref
   nextfile="${all_files[$i]}"
@@ -134,14 +134,15 @@ for i in "${!all_files[@]}"; do
       head -c 32 )"; 
 
     # make a list of scripts, for use below
-    if [[ "$x" =~ ^${shells}$ ]]; then
+    if [[ "$extension" =~ ^${shells}$ ]]; then
       shell_scripts+=( "$nextfile" )
     fi
 
     # using "namerefs," make a record of the filenames and their 
-    # crunchbangs, ie, open & append to a <t>imestamped file somewhere
+    # crunchbangs, ie, open & append to a timestamped file somewhere
     # off of the local hard disk
-    printf '%s \t\t\t %s \n' "$crunchbangs" "$nextfile" >> "${mountpoint}/${time}_crunches"; 
+    printf '%s \t\t\t %s \n' "$crunchbangs" "$nextfile" >> 
+      "${mountpoint}/${time}_crunches"; 
     unset 'all_files[$i]'
   fi; 
 done
@@ -149,13 +150,12 @@ done
 # array 'shell_scripts' must exist
 [[ -n "${shell_scripts[@]:0:1}" ]] || exit 3
 
-# with ShellCheck scan each <s>cript for <e>rrors, and use index <j>
+# with ShellCheck scan each script for errors
 for j in "${!shell_scripts[@]}"; do 
+  script="${shell_scripts[$j]}"
 
-  # also use a "nameref" for <s>cripts
-  s="${shell_scripts[$j]}"
-
-  mapfile -t errs < <( shellcheck -S "$S" "$s" | 
+  mapfile -t errs < <( 
+    shellcheck -S "$severity" "$script" | 
       grep -vFe 'shellcheck.net' | 
       grep --color=never -Eo 'SC[0-9]{4}' | 
       sort -g | 
@@ -166,13 +166,13 @@ for j in "${!shell_scripts[@]}"; do
 		
     # open & append some prioritized work lists with indices
     printf '%d  <%s>\n' "$j" "$s" >> \
-      "${m}/${t}_found_scripts_with_indices"
-    for E in "${errs[@]}"; do
-      printf '%s | %d\n' "${E//$'\n'/}" "$j" >> \
-      "${m}/${t}_found_errors_with_indices_unsorted"
+      "${mountpoint}/${time}_found_scripts_with_indices"
+    for e in "${errs[@]}"; do
+      printf '%s : idx_%d\n' "${e//$'\n'/}" "$j" >> \
+      "${mountpoint}/${time}_found_errors_with_indices_unsorted"
     done
   fi
 
-  unset errors s 'shell_scripts[$j]'
+  unset errors script 'shell_scripts[$j]'
   wait -f
 done
