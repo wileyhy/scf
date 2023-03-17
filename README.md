@@ -1,6 +1,6 @@
 # README
-
+#
 # scf-sh -- ShellCheck find
-# Automate shell script static analysis and prioritize debugging efforts. 
-
+# Prioritize debugging efforts by automating static analysis of shell
+# scripts.
 # Provisional license: MIT
