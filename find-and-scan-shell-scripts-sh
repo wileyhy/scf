@@ -5,7 +5,7 @@
 
 # Implementation-dependent arguments for options parseable by `shellcheck`.
 w='(sh|bash|dash|ksh)' # <w>hitelist
-S='error' # SEVERI<T>Y
+severity='error'
 
 # Functions
 _usage(){
