@@ -9,14 +9,15 @@ T='error' # SEVERI<T>Y
 
 _usage(){
 cat <<-EOF
-  ./find-and-scan-shell-scripts-sh [-ehiw]
-    -e error
-    -h help
-    -i info
-    -w warning
-  Find and scan shell scripts depending on severity level. One option only.
-EOF
-exit 1
+    ./find-and-scan-shell-scripts-sh [-ehiw]
+      -e error
+      -h help
+      -i info
+      -w warning
+    Find and scan shell scripts depending on severity level. One
+    option only.
+	EOF
+  exit 1
 }
 
 case "$#" in  
