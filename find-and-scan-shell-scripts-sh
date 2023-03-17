@@ -6,7 +6,7 @@ unset {a..z} {A..Z}
 
 # Implementation-dependent arguments for options parseable by `shellcheck`.
 w='(sh|bash|dash|ksh)' # <w>hitelist
-T='error' # SEVERI<T>Y
+S='error' # SEVERI<T>Y
 
 _usage(){
 cat <<-EOF
@@ -22,11 +22,11 @@ cat <<-EOF
 }
 
 case "$#" in  
-  0)         T='error';;
+  0)         S='error';;
   1) case "$1" in  
-      -e)    T='error';; 
-      -i)    T='info';; 
-      -w)    T='warning';;
+      -e)    S='error';; 
+      -i)    S='info';; 
+      -w)    S='warning';;
       --[a-z]*)
         u="${d}_test5_unlisted" # <u>nlisted
         case "$1" in
@@ -149,7 +149,7 @@ for j in "${!shell_scripts[@]}"; do
   # also use a "nameref" for <s>cripts
   s="${shell_scripts[$j]}"
 
-  mapfile -t errs < <( shellcheck -S "$T" "$s" | 
+  mapfile -t errs < <( shellcheck -S "$S" "$s" | 
       grep -vFe 'shellcheck.net' | 
       grep --color=never -Eo 'SC[0-9]{4}' | 
       sort -g | 
