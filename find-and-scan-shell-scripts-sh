@@ -8,6 +8,7 @@ unset {a..z} {A..Z}
 w='(sh|bash|dash|ksh)' # <w>hitelist
 S='error' # SEVERI<T>Y
 
+# Functions, option parsing and variables
 _usage(){
 cat <<-EOF
     ./find-and-scan-shell-scripts-sh [-ehiw]
