@@ -106,7 +106,7 @@ for i in "${!all_files[@]}"; do
   # necc bc loop
   unset b c h n x
 	
-  # use a <n>ameref (sort of)
+  # use a (sort of) <n>ameref
   n="${all_files[$i]}"
   
   # filter 1: file must exist and have a size greater than zero
