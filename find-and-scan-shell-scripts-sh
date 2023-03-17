@@ -29,6 +29,7 @@ case "$#" in
       --[a-z]*)
         u="${d}_test5_unlisted" # <u>nlisted
         case "$1" in
+          --python|--python2|--python3)
       -h|*)  _usage;;
     esac;;
   *)         _usage;;
