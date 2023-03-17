@@ -64,6 +64,7 @@ mapfile -d '' -t save_dirs < <(
   find /run/media ~ /var/tmp /tmp -mindepth 2 -maxdepth 2 -type d \
       -exec df --sync -l --output=fstype,avail,source \
       --block-size=1 '{}' ';' | 
+    sort |
     grep -iv avail | 
     tr '\n' '\0' )
 
