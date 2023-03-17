@@ -61,7 +61,7 @@ t="$( builtin printf '%(%F_%H%M%S)T' )" # <t>ime
 # will output three strings on one newline.
 #   Bug? is '/run/media' portable to other distros? 
 mapfile -d '' -t save_dirs < <( 
-  find /run/media -mindepth 2 -maxdepth 2 -type d \
+  find /run/media ~ /var/tmp /tmp -mindepth 2 -maxdepth 2 -type d \
       -exec df --sync -l --output=fstype,avail,source \
       --block-size=1 '{}' ';' | 
     grep -iv avail | 
