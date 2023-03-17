@@ -75,9 +75,9 @@ for o in "${!save_dirs[@]}"; do
 done
 
 # Bug? -z sb -n ?
-# Just in case large log files, of the remaining 'save_dirs' take the 
-# de<v>ice with the most available space, and get its <m>ountpoint. 
-# If there are no 'save_dirs' left, then use '/'.
+# Just in case of large log files, of the remaining 'save_dirs' take the 
+# de<v>ice with the most available space and get its <m>ountpoint. 
+# If there are no 'save_dirs' left then just use '/'.
 if [[ -z "${save_dirs[*]:0:1}" ]]; then
   m='/'
 else
