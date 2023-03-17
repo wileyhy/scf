@@ -74,6 +74,7 @@ for o in "${!save_dirs[@]}"; do
   fi; 
 done
 
+# Bug? -z sb -n ?
 # take the de<v>ice with the most available space, and get its
 # <m>ountpoint, just in case large log files. `awk` can do more here.
 if [[ -z "${save_dirs[*]:0:1}" ]]; then
