@@ -27,7 +27,8 @@ case "$#" in
       -i)    T='info';; 
       -w)    T='warning';;
       --[a-z]*)
-      u="${d}_test5_unlisted" # <u>nlisted
+        u="${d}_test5_unlisted" # <u>nlisted
+        case "$1" in
       -h|*)  _usage;;
     esac;;
   *)         _usage;;
