@@ -37,6 +37,7 @@ case "$#" in
                     grep awk "$u" > "${u}_awk";;
           --ruby)
                     grep ruby "$u" > "${u}_ruby";;
+          #--other-lang*) # ToDo
       -h|*)  _usage;;
     esac;;
   *)         _usage;;
