@@ -55,7 +55,7 @@ m="${TEMPDIR:="$HOME"}" # <m>ountpoint
 r='(binfmt_misc|bpf|cgroup2|configfs|debugfs|devpts|devtmpfs|efivarfs|fusectl|hugetlbfs|iso9660|mqueue|proc|pstore|rpc_pipefs|securityfs|selinuxfs|sysfs|tmpfs|tracefs)' # <r>egex 
 t="$( builtin printf '%(%F_%H%M%S)T' )" # <t>ime
 
-# Automatically choose some directory, attached 
+# DEBUG: Automatically choose some directory, attached 
 # to the local disk, where any output can be
 # saved; prefer USB flash drives. This `df` command 
 # will output three strings on one newline.
