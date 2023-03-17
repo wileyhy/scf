@@ -40,6 +40,7 @@ case "$#" in
           #--other-lang*) # ToDo
           #         [parse '--other-language=(sed|tcsh|lua|etc)]
 	  --*)      printf '\t\nHappy Easter!\n\n'
+                    exit 1
       -h|*)  _usage;;
     esac;;
   *)         _usage;;
