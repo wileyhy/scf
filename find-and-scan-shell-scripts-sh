@@ -33,6 +33,7 @@ case "$#" in
                     grep python "$u" > "${u}_python";;
           --perl)
                     grep perl "$u" > "${u}_perl";;
+          --awk|--gawk)
       -h|*)  _usage;;
     esac;;
   *)         _usage;;
