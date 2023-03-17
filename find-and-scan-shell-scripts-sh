@@ -31,6 +31,7 @@ case "$#" in
         case "$1" in
           --python|--python2|--python3)
                     grep python "$u" > "${u}_python";;
+          --perl)
       -h|*)  _usage;;
     esac;;
   *)         _usage;;
