@@ -66,6 +66,7 @@ mapfile -d '' -t save_dirs < <(
       --block-size=1 '{}' ';' | 
     grep -iv avail | 
     tr '\n' '\0' )
+# ToDo: add a catch-all, in case of 0 USB devices
 
 # filter out via  <r>egex certain FS types by sorting the <o>utput of `df`
 for o in "${!save_dirs[@]}"; do 
