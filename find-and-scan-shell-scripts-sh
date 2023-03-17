@@ -4,8 +4,9 @@
 
 
 # Implementation-dependent arguments for options parseable by `shellcheck`.
-w='(sh|bash|dash|ksh)' # <w>hitelist
+shells='(sh|bash|dash|ksh)'
 severity='error'
+unlisted="${d}_test5_unlisted"
 
 # Functions
 _usage(){
@@ -29,7 +30,6 @@ case "$#" in
       -i)    severity='info';; 
       -w)    severity='warning';;
       --[a-z]*)
-        u="${d}_test5_unlisted" # <u>nlisted
         case "$1" in
           --python|--python2|--python3)
                     grep python "$u" > "${u}_python";;
@@ -75,7 +75,7 @@ for df_o in "${!save_dirs[@]}"; do
 done
 
 # In case of large log files, of the remaining 'save_dirs' take the 
-# de<v>ice with the most available space and get its <m>ountpoint. 
+# device with the most available space and get its mountpoint. 
 # If there are no 'save_dirs' left then set 'm' to '/'.
 if [[ -n "${save_dirs[*]:0:1}" ]]; then
   device="$( printf '%s\n' "${save_dirs[@]}" | 
@@ -98,12 +98,12 @@ mapfile -d '' -t relevant_search_dirs < <(
 mapfile -d '' -t all_files < <( 
   find "${relevant_search_dirs[@]}" -type f -print0 2> /dev/null )
 
-# sort out the <s>cripts, ie, any file beginning with a <c>runchbang, 
-# from the rest of the files. <i> is for index.
+# sort out the scripts, ie, any file beginning with a crunchbang, 
+# from the rest of the files.
 for i in "${!all_files[@]}"; do
   
   # necc bc loop
-  unset b c h n x
+  unset b crunchbangs hexes nextfile x
 	
   # use a (sort of) <n>ameref
   nextfile="${all_files[$i]}"
@@ -123,26 +123,26 @@ for i in "${!all_files[@]}"; do
     od -Ax0 -N2 -x "$n" |
       tr -s ' \n\t' '\0' )
 
-  # compare the hexidecimal representations to find any <c>runchbangs
+  # compare the hexidecimal representations to find any crunchbangs
   if [[ "${hexes[1]}" == '2123' ]]; then
  
-    # when a <c>runchbang's found, use `strings` to filter out any non-
+    # when a crunchbang's found, use `strings` to filter out any non-
     # printable data, to protect `head` from garbage input, and to 
-    # get the full <c>runchbang string in ASCII.
-    c="$( strings -n 1 "$n" |
+    # get the full crunchbang string in ASCII.
+    crunchbangs="$( strings -n 1 "$nextfile" |
       head -n 1 |
       head -c 32 )"; 
 
     # make a list of scripts, for use below
-    if [[ "$x" =~ ^${w}$ ]]; then
-      shell_scripts+=( "$n" )
+    if [[ "$x" =~ ^${shells}$ ]]; then
+      shell_scripts+=( "$nextfile" )
     fi
 
-    # using "<n>amerefs," make a record of the filenames and their 
-    # <c>runchbangs, ie, open & append to a <t>imestamped file somewhere
+    # using "namerefs," make a record of the filenames and their 
+    # crunchbangs, ie, open & append to a <t>imestamped file somewhere
     # off of the local hard disk
-    printf '%s \t\t\t %s \n' "$c" "$n" >> "${m}/${t}_crunches"; 
-    unset 'all_files[$j]'
+    printf '%s \t\t\t %s \n' "$crunchbangs" "$nextfile" >> "${mountpoint}/${time}_crunches"; 
+    unset 'all_files[$i]'
   fi; 
 done
 
