@@ -1,9 +1,10 @@
 #! /bin/bash
 # find-and-scan-shell-scripts-sh
 # Written in bash version 5.1
+unset {a..z} {A..Z}
+
 
 # Implementation-dependent arguments for options parseable by `shellcheck`.
-unset {a..z} {A..Z}
 w='(sh|bash|dash|ksh)' # <w>hitelist
 T='error' # SEVERI<T>Y
 
