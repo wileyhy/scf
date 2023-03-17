@@ -23,11 +23,11 @@ cat <<-EOF
 
 # Option parsing
 case "$#" in  
-  0)         S='error';;
+  0)         severity='error';;
   1) case "$1" in  
-      -e)    S='error';; 
-      -i)    S='info';; 
-      -w)    S='warning';;
+      -e)    severity='error';; 
+      -i)    severity='info';; 
+      -w)    severity='warning';;
       --[a-z]*)
         u="${d}_test5_unlisted" # <u>nlisted
         case "$1" in
