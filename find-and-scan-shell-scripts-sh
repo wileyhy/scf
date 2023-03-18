@@ -6,7 +6,13 @@
 # Implementation-dependent arguments for options parseable by `shellcheck`.
 shells='(sh|bash|dash|ksh)'
 severity='error'
-unlisted="${d}_test5_unlisted"
+
+# Variables
+mountpoint="${TEMPDIR:="$HOME"}"
+regex='(binfmt_misc|bpf|cgroup2|configfs|debugfs|devpts|devtmpfs|efivarfs|fusectl|hugetlbfs|iso9660|mqueue|proc|pstore|rpc_pipefs|securityfs|selinuxfs|sysfs|tmpfs|tracefs)' 
+time="$( builtin printf '%(%F_%H%M%S)T' )"
+datafile="${mountpoint}/${time}_crunches"
+unlisted="${datafile}_test5_unlisted"
 
 # Functions
 _usage(){
@@ -49,11 +55,6 @@ case "$#" in
   *)         _usage;;
 esac
 
-# Variables
-mountpoint="${TEMPDIR:="$HOME"}"
-regex='(binfmt_misc|bpf|cgroup2|configfs|debugfs|devpts|devtmpfs|efivarfs|fusectl|hugetlbfs|iso9660|mqueue|proc|pstore|rpc_pipefs|securityfs|selinuxfs|sysfs|tmpfs|tracefs)' 
-time="$( builtin printf '%(%F_%H%M%S)T' )"
-
 # DEBUG: Automatically choose some directory, attached 
 # to the local disk, where any output can be
 # saved; prefer USB flash drives. This `df` command 
@@ -76,7 +77,7 @@ done
 
 # In case of large log files, of the remaining 'save_dirs' take the 
 # device with the most available space and get its mountpoint. 
-# If there are no 'save_dirs' left then set 'mountpoint' to '/'.
+# If there are no 'save_dirs' left then leave 'mountpoint' set as above. 
 if [[ -n "${save_dirs[*]:0:1}" ]]; then
   device="$( printf '%s\n' "${save_dirs[@]}" | 
     sort -grk2 | 
@@ -84,8 +85,6 @@ if [[ -n "${save_dirs[*]:0:1}" ]]; then
     awk '{ print $3 }' )"
   mountpoint="$( mount | 
     awk "\$1 ~ /${device##*/}/ "'{ print $3 }' )"
-else
-    mountpoint='/'
 fi
 
 # Gather filenames from local attached disk storage
@@ -101,7 +100,7 @@ mapfile -d '' -t all_files < <(
 # sort out the scripts, ie, any file beginning with a crunchbang, 
 # from the rest of the files.
 for i1 in "${!all_files[@]}"; do
-  unset basename crunchbangs hexes nextfile extension
+  unset crunchbangs hexes nextfile extension
   nextfile="${all_files[$i1]}"
   
   # filter 1: file must exist and have a size greater than zero
@@ -109,9 +108,6 @@ for i1 in "${!all_files[@]}"; do
     unset 'all_files[$i1]'
     continue
   fi
-
-  # get the basename
-  basename="${nextfile##*/}"
 
   # read from disk in binary the first two bytes of every file left in 
   # the list, and format it in hexadecimal.
@@ -136,14 +132,14 @@ for i1 in "${!all_files[@]}"; do
 
     # make a record of the filenames and their 
     # crunchbangs, ie, open & append to a timestamped file
-    printf '%s \t\t\t %s \n' "$crunchbangs" "$nextfile" >> 
+    printf '%s \t\t\t %s \n' "$crunchbangs" "$nextfile" >> \
       "${mountpoint}/${time}_crunches"; 
     unset 'all_files[$i]'
   fi; 
 done
 
 # array 'shell_scripts' must exist
-[[ -n "${shell_scripts[@]:0:1}" ]] || 
+[[ -n "${shell_scripts[*]:0:1}" ]] || 
   exit 3
 
 # with ShellCheck scan each script for errors
