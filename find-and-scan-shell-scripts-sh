@@ -1,6 +1,8 @@
 #!/bin/bash
 # find-and-scan-shell-scripts-sh
 # Written in bash version 5.1
+PATH='/usr/bin:/usr/sbin'
+readonly PATH
 
 
 # Implementation-dependent arguments for options parseable by `shellcheck`.
