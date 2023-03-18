@@ -107,7 +107,7 @@ mapfile -d '' -t relevant_search_dirs < <(
   find / -mindepth 1 -maxdepth 1 -type d \
     \( \! -name proc -a \! -name sys \) -print0 )
 
-# DEBUG: "${relevant_search_dirs[@]}" OR '/usr/sbin'
+# DEBUG: "${relevant_search_dirs[@]}" OR '/usr/sbin' OR /usr/{,s}bin
 mapfile -d '' -t all_files < <( 
   find "${relevant_search_dirs[@]}" -type f -print0 2> /dev/null )
 
@@ -162,6 +162,10 @@ f="$datafile"
 
 
 # Make the data readable and useful
+
+  # <> To Do
+  # var name ere*
+  # rmv `set -`
 
 # Test 1: in the data file, fix the hashbangs with spaces in them. ## works
 set -x
