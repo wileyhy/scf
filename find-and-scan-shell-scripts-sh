@@ -24,7 +24,8 @@ _erx(){
   echo Error: "$@" 
   return $ec ||  
     exit $ec
-}
+} # so if this^ fn is exec'd on cli, it doesn't end sudo-i,
+  # but if script exec's, `exit` is exec'd?
 _num(){ 
   local -n array="$1" 
   echo "${#array[@]}"
