@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/bash
 # find-and-scan-shell-scripts-sh
 # Written in bash version 5.1
 
@@ -10,7 +10,7 @@ unlisted="${d}_test5_unlisted"
 
 # Functions
 _usage(){
-cat <<-EOF
+  cat <<-EOF
     ./find-and-scan-shell-scripts-sh [-ehiw]
       -e error
       -h help
@@ -32,13 +32,13 @@ case "$#" in
       --[a-z]*)
         case "$1" in
           --python|--python2|--python3)
-                    grep python "$u" > "${u}_python";;
+                    grep python "$unlisted" > "${unlisted}_python";;
           --perl)
-                    grep perl "$u" > "${u}_perl";;
+                    grep perl "$unlisted" > "${unlisted}_perl";;
           --awk|--gawk)
-                    grep awk "$u" > "${u}_awk";;
+                    grep awk "$unlisted" > "${unlisted}_awk";;
           --ruby)
-                    grep ruby "$u" > "${u}_ruby";;
+                    grep ruby "$unlisted" > "${unlisted}_ruby";;
           #--other-lang*) # ToDo
           #         [parse '--other-language=(sed|tcsh|lua|etc)]
 	  --*)      printf '\t\nHappy Easter!\n\n'
@@ -76,7 +76,7 @@ done
 
 # In case of large log files, of the remaining 'save_dirs' take the 
 # device with the most available space and get its mountpoint. 
-# If there are no 'save_dirs' left then set 'm' to '/'.
+# If there are no 'save_dirs' left then set 'mountpoint' to '/'.
 if [[ -n "${save_dirs[*]:0:1}" ]]; then
   device="$( printf '%s\n' "${save_dirs[@]}" | 
     sort -grk2 | 
@@ -100,17 +100,13 @@ mapfile -d '' -t all_files < <(
 
 # sort out the scripts, ie, any file beginning with a crunchbang, 
 # from the rest of the files.
-for i in "${!all_files[@]}"; do
-  
-  # necc bc loop
+for i1 in "${!all_files[@]}"; do
   unset basename crunchbangs hexes nextfile extension
-	
-  # use a (sort of) <n>ameref
-  nextfile="${all_files[$i]}"
+  nextfile="${all_files[$i1]}"
   
   # filter 1: file must exist and have a size greater than zero
   if [[ ! -s "$nextfile" ]]; then
-    unset 'all_files[$i]'
+    unset 'all_files[$i1]'
     continue
   fi
 
@@ -120,7 +116,7 @@ for i in "${!all_files[@]}"; do
   # read from disk in binary the first two bytes of every file left in 
   # the list, and format it in hexadecimal.
   mapfile -d '' -t hexes < <(  
-    od -Ax0 -N2 -x "$n" |
+    od -Ax0 -N2 -x "$nextfile" |
       tr -s ' \n\t' '\0' )
 
   # compare the hexidecimal representations to find any crunchbangs
@@ -138,9 +134,8 @@ for i in "${!all_files[@]}"; do
       shell_scripts+=( "$nextfile" )
     fi
 
-    # using "namerefs," make a record of the filenames and their 
-    # crunchbangs, ie, open & append to a timestamped file somewhere
-    # off of the local hard disk
+    # make a record of the filenames and their 
+    # crunchbangs, ie, open & append to a timestamped file
     printf '%s \t\t\t %s \n' "$crunchbangs" "$nextfile" >> 
       "${mountpoint}/${time}_crunches"; 
     unset 'all_files[$i]'
@@ -148,11 +143,12 @@ for i in "${!all_files[@]}"; do
 done
 
 # array 'shell_scripts' must exist
-[[ -n "${shell_scripts[@]:0:1}" ]] || exit 3
+[[ -n "${shell_scripts[@]:0:1}" ]] || 
+  exit 3
 
 # with ShellCheck scan each script for errors
-for j in "${!shell_scripts[@]}"; do 
-  script="${shell_scripts[$j]}"
+for i2 in "${!shell_scripts[@]}"; do 
+  script="${shell_scripts[$i2]}"
 
   mapfile -t errs < <( 
     shellcheck -S "$severity" "$script" | 
@@ -165,10 +161,11 @@ for j in "${!shell_scripts[@]}"; do
   if [[ -n "${errs[*]:0:1}" ]]; then 
 		
     # open & append some prioritized work lists with indices
-    printf '%d  <%s>\n' "$j" "$s" >> \
+    printf '%d  <%s>\n' "$i2" "$script" >> \
       "${mountpoint}/${time}_found_scripts_with_indices"
-    for e in "${errs[@]}"; do
-      printf '%s : idx_%d\n' "${e//$'\n'/}" "$j" >> \
+
+    for each_error in "${errs[@]}"; do
+      printf '%s | <idx:%d>\n' "${each_error//$'\n'/}" "$i2" >> \
       "${mountpoint}/${time}_found_errors_with_indices_unsorted"
     done
   fi
