@@ -87,6 +87,7 @@ if [[ ! -d "$datadir" ]]; then
     _erx $LINENO
 fi
 
+# Label the current data as "latest."
 previous=( "${datadir}"/* )
 if [[ -n "${previous[*]:0:1}" ]]; then
   mv --verbose "${previous[@]}" "${mountpoint}/scf.d/" ||  
@@ -114,7 +115,7 @@ mapfile -d '' -t all_files < <(
 # Sort out the scripts, ie, any file beginning with a '#!',
 # from the rest of the files.
 for i_1 in "${!all_files[@]}"; do
-  unset crashbangs hexes nextfile
+  unset crashbang hexa nextfile
   nextfile="${all_files[$i_1]}"
 
   # Filter: file must exist and have a size greater than zero
@@ -125,17 +126,17 @@ for i_1 in "${!all_files[@]}"; do
 
   # Read from disk in binary the first two bytes of every remaining file in 
   # the list, and format it in hexadecimal.
-  mapfile -d '' -t hexes < <(  
+  mapfile -d '' -t hexa < <(  
     od --address-radix=x --read-bytes=2 --format=x2z "$nextfile" |
       tr --squeeze-repeats ' \n\t' '\0' )
 			
-  # If 'hexes' contains some non-zero data, as it should, compare the 
+  # If 'hexa' contains some non-zero data, as it should, compare the 
   # hexidecimal representations to find any crunchbangs.
-  if [[ -z "${hexes[*]:0:1}" ]]; then
+  if [[ -z "${hexa[*]:0:1}" ]]; then
     _erx $LINENO
 	
   elif
-    [[ "${hexes[1]}" == '2123' ]]; then
+    [[ "${hexa[1]}" == '2123' ]]; then
 
     # When a hashbang's found, use `strings` to filter out any non-
     # printable data, to protect `head` from garbage input, and to 
