@@ -7,8 +7,10 @@
 shells='(sh|bash|dash|ksh)'
 severity='error'
 
+
 # Variables
 time="$( builtin printf '%(%F_%H%M%S)T' )"
+crashbang_byte_length=32
 fstype_regexp='(binfmt_misc|bpf|cgroup2|configfs|debugfs|devpts|devtmpfs|efivarfs|fusectl|hugetlbfs|iso9660|mqueue|proc|pstore|rpc_pipefs|securityfs|selinuxfs|sysfs|tmpfs|tracefs)'
 
 # Functions
@@ -18,12 +20,10 @@ _erx(){
   return $ec ||  
     exit $ec
 }
-
 _num(){ 
   local -n array="$1" 
   echo "${#array[@]}"
 }
-
 # Usage:  _usage [exit-code]
 _usage(){
   cat <<-EOF
@@ -53,14 +53,15 @@ if [[ "$#" -gt 0 ]]; then
   esac
 fi
 
-# In case of large log files, programatically select a save directory, 
+# Create the data directories
+#   In case of large log files, programatically select a save directory, 
 # attached to the local disk, where any output can be saved; prefer USB 
 # flash drives. This particular `df` command will output three alpha-
 # numeric strings separated by whitespace on a single line. Filter out 
 # via regexp certain FS types and `sort` the output by size descending. 
 # With `awk`, take the device with the most available space and get its 
-# mountpoint with `findmnt`. If there are no 'save_dirs' left then set 
-# 'mountpoint' according to environment variables. 
+# mountpoint with `findmnt`. If there is no output, then set 'mountpoint'
+# according to environment variables. 
 #   Note: such a complex command in shell saves ~75 lines of step by steps.
 #   Bug? is '/run/media' portable to other current distros? 
 mountpoint="$( 
@@ -79,217 +80,217 @@ datadir="${mountpoint}/scf.d"
 datafile="${datadir}/${time}_crunchbangs"
 unlisted="${datafile/crunchbangs/unlisted}"
 
-# Create the data directory
 if [[ ! -d "$datadir" ]]; then
-  mkdir "$datadir" ||
+  mkdir -p -m 0700 "$datadir" "${datadir}/${time}" ||
     _erx $LINENO
+
+elif [[ -e "${datadir}/"* ]]; then
+  mv "${datadir}/"* "${mountpoint}/scf.d"
 fi
+
 
 # Gather filenames from local attached disk storage
 mapfile -d '' -t relevant_search_dirs < <(
   find / -mindepth 1 -maxdepth 1 -type d \
-    \( \! -name proc -a \! -name sys -a \! \
-    -name git \) -print0 )
+    \( \! -name proc -a \! -name sys -a \! \) -print0 )
 
 # DEBUG: "${relevant_search_dirs[@]}" OR '/usr/sbin'
 mapfile -d '' -t all_files < <( 
   find "${relevant_search_dirs[@]}" -type f -print0 2> /dev/null )
 
-# get files that are shell scripts that ShellCheck can parse
 
-# sort out the scripts, ie, any file beginning with a '#!',
+# Get files that are shell scripts that ShellCheck can parse.
+
+# Sort out the scripts, ie, any file beginning with a '#!',
 # from the rest of the files.
 for i_1 in "${!all_files[@]}"; do
   unset crashbangs hexes nextfile
   nextfile="${all_files[$i_1]}"
 
-  # filter 1: file must exist and have a size greater than zero
+  # Filter: file must exist and have a size greater than zero
   if [[ ! -s "$nextfile" ]]; then
     unset 'all_files[$i1]'
     continue
   fi
 
-  # read from disk in binary the first two bytes of every remaining file in 
+  # Read from disk in binary the first two bytes of every remaining file in 
   # the list, and format it in hexadecimal.
   mapfile -d '' -t hexes < <(  
     od --address-radix=x --read-bytes=2 --format=x2z "$nextfile" |
       tr --squeeze-repeats ' \n\t' '\0' )
 			
-  # compare the hexidecimal representations to find any crunchbangs.
-	# array 'hexes' must contain some non-zero data
-	if [[ -z "${hexes[*]:0:1}" ]]; then
-		_erx $LINENO
+  # If 'hexes' contains some non-zero data, as it should, compare the 
+  # hexidecimal representations to find any crunchbangs.
+  if [[ -z "${hexes[*]:0:1}" ]]; then
+    _erx $LINENO
 	
-	elif
-		[[ "${hexes[1]}" == '2123' ]]; then
+  elif
+    [[ "${hexes[1]}" == '2123' ]]; then
 
-    # when a hashbang's found, use `strings` to filter out any non-
+    # When a hashbang's found, use `strings` to filter out any non-
     # printable data, to protect `head` from garbage input, and to 
     # get the full "shebang" string in ASCII.
     crashbang="$( strings -n 1 "$nextfile" |
       head --lines=1 |
-      head --bytes=32 )"
+      head --bytes="$crashbang_byte_length" )"
 
-    # make a record of the filenames and their '#!'s, ie, open 
+    # Make a record of the filenames and their '#!'s, ie, open 
     # & append to a timestamped file
     printf '%s \t\t\t %s \n' "$crashbang" "$nextfile" >> "$datafile" ||
-			_erx $LINENO
-		unset 'all_files[$i]'
+      _erx $LINENO
+    unset 'all_files[$i]'
   fi
 done
 
-# backup the original
-command cp -af "$d" "${d}.orig-bak"
+# Backup the original data file, and add some brevity.
+command cp -af "$datafile" "${datafile}.orig-bak"
+f="$datafile"
 
-# test 1: in the data file, fix the hashbangs with spaces in them # works
-set -x;
-ere1='^#![[:space:]]{1,4}/'; 
-_test1(){ grep -E "$ere1" "$1"; };  
-_test1 "$d"; 
-sed -Ei "s=${ere1}=#\!/=g" "$d"; 
-_test1 "$d";
-set -; 
-cat "$d" > "${d}_post-test1"
-command cp -af "${d}_post-test1" "${d}_post-test1.bak"
-ls -l "${d}"*
-wc "${d}"*
 
-# test 2: fix the odd extra data segments in the middles of the rows # works
-set -x;
-ere2='>?[[:space:]]{3,}<?/?[[:alnum:]].*>?[[:space:]]{3,}<?';
-_test2(){ grep -nE "$ere2" "$1"; };
-_test2 "$d";
-sed -Ei "s=${ere2}=    =g" "$d";
-_test2 "$d";
-set -;
-cat "$d" > "${d}_post-test2"
-command cp -af "${d}_post-test2" "${d}_post-test2.bak"
-ls -l "$d"*
-wc "${d}"*
+# Make the data readable and useful
 
-# test 2: fix the odd extra data segments in the middles of the rows # works
-set -x;
-ere2='>?[[:space:]]{3,}<?/?[[:alnum:]].*>?[[:space:]]{3,}<?';
-_test2(){ grep -nE "$ere2" "$1"; };
-_test2 "$d";
-sed -Ei "s=${ere2}=    =g" "$d";
-_test2 "$d";
-set -;
-cat "$d" > "${d}_post-test2"
-command cp -af "${d}_post-test2" "${d}_post-test2.bak"
-ls -l "$d"*
-wc "${d}"*
+# Test 1: in the data file, fix the hashbangs with spaces in them. ## works
+set -x
+ere1='^#![[:space:]]{1,4}/'
+_test1(){
+  grep -E "$ere1" "$1"
+}
+_test1 "$f"
+sed -Ei "s=${ere1}=#\!/=g" "$f"
+_test1 "$f"
+set -
+cat "$f" > "${f}_post-test1"
+command cp -af "${f}_post-test1" "${f}_post-test1.bak"
+ls -l "$f"*
+wc "$f"*
 
-# test 3: apply the w filter to the "shebang"s list, allowing for the use 
-# of env
+# Test 2: fix the odd extra data segments in the middles of the rows. ## works
+set -x
+ere2='>?[[:space:]]{3,}<?/?[[:alnum:]].*>?[[:space:]]{3,}<?'
+_test2(){
+  grep -nE "$ere2" "$1"
+}
+_test2 "$f"
+sed -Ei "s=${ere2}=    =g" "$f"
+_test2 "$f"
+set -
+cat "$f" > "${f}_post-test2"
+command cp -af "${f}_post-test2" "${f}_post-test2.bak"
+ls -l "$f"*
+wc "$f"*
 
 # apply grep-style line numbers, ie, in-file indices. These are necc 
 # for test 5, however, can only be applied prior to the full list 
-# becoming subdivided
-grep -nE '.' "$d" > "${d}_test3_indexed"
-command cp -af "${d}_test3_indexed" "${d}_test3_indexed.bak"
+# becoming subdivided. 
+grep -nE '.' "$f" > "${f}_test3_indexed"
+command cp -af "${f}_test3_indexed" "${f}_test3_indexed.bak"
 
-set -x; 
+# Bug: put $shells into $ere3
+set -x 
 ere3=^'[0-9]{1,7}:#! ?(/usr)?/bin/(env|(sh|bash|dash|ksh)?) *<?(/usr)?(/bin/)?(sh|bash|dash|ksh) ?>? *'
-grep -E "$ere3" "${d}_test3_indexed" > "${d}_test3_list"
-command cp -af "${d}_test3_list" "${d}_test3_list.bak"
-set -; 
-ls -l "$d"*
-wc "${d}"*
+grep -E "$ere3" "${f}_test3_indexed" > "${f}_test3_list"
+command cp -af "${f}_test3_list" "${f}_test3_list.bak"
+set - 
+ls -l "$f"*
+wc "${f}"*
 
 # Test 4: NOT (sh|bash|dash|ksh) == (tclsh|zsh|tcsh) {depending on which rpms are installed}
 # ...grep acts oddly in this instance...?
-set -x;
-grep -vE "$ere3" "${d}_test3_indexed" |
+set -x
+grep -vE "$ere3" "${f}_test3_indexed" |
   sed -E 's=[<>]=---------------------------------------------------------=g' |
   sed 's=[[:space:]]==g' |
   cut -c -64 |
-  grep sh > "${d}_test4_reverse"
-command cp -af "${d}_test4_reverse" "${d}_test4_reverse.bak"
-set -;
-ls -l "$d"*
-cat "${d}_test4_reverse"
-wc "$d"*
+  grep -F 'sh' > "${f}_test4_reverse"
+command cp -af "${f}_test4_reverse" "${f}_test4_reverse.bak"
+set -
+ls -l "$f"*
+cat "${f}_test4_reverse"
+wc "$f"*
 
 # test 5: get the list of files with '#!'s that arent relevant shell scripts.
 
 # wipe the slate clean
 set -x
 unset full_index shells_subindx verify_subindx
-_erx(){ local ec=$?; echo Error: "$@"; return $ec || exit $ec; }
-_num(){ local -n array="$1"; echo "${#array[@]}"; }
 
 # create the arrays
 
 # full set of indices; a contiguous array. number of indices in full_index 
-# should equal `wc -l` of "${d}_test3_indexed"
-mapfile -t -O 1 full_index < <( cut '-d:' -f1 "${d}_test3_indexed" );
-[[ "${#full_index[@]}" == \
-    "$( wc -l "${d}_test3_indexed" | cut '-d ' -f1 )" ]] ||
+# should equal `wc -l` of "${f}_test3_indexed"
+mapfile -t -O 1 full_index < <( 
+  cut '-d:' -f1 "${f}_test3_indexed" )
+if ! [[ "${#full_index[@]}" == "$( 
+  wc -l "${f}_test3_indexed" | 
+    cut '-d ' -f1 )" ]]
+then
   _erx $LINENO
+fi
 _num full_index
 set -
-declare -p full_index | less -RN
+declare -p full_index | 
+  more -RN
 
 # partial set of indices for only relevant scripts; a sparse array. number 
-# of indices in shells_subindx should equal `wc -l` of "${d}_test3_list"
+# of indices in shells_subindx should equal `wc -l` of "${f}_test3_list"
 set -x
-mapfile -t -O 1 shells_subindx < <( cut '-d:' -f1 "${d}_test3_list" )
-[[ "${#shells_subindx[@]}" == \
-    "$( wc -l "${d}_test3_list" | cut '-d ' -f1 )" ]] ||
+mapfile -t -O 1 shells_subindx < <( 
+  cut '-d:' -f1 "${f}_test3_list" )
+if ! [[ "${#shells_subindx[@]}" == "$( 
+  wc -l "${f}_test3_list" | 
+    cut '-d ' -f1 )" ]]
+then
   _erx $LINENO
+fi
 set -
-declare -p shells_subindx | less -RN
+declare -p shells_subindx | 
+  more -RN
 _num shells_subindx
-wc "${d}"*
+wc "${f}"*
 
 # partial set of indices for only *irrelevant* scripts; also a sparse array
-reset
 set -x
 unset f b verify_subindx shells_dup
 shells_dup=( "${shells_subindx[@]}" )
 
-time for f in "${full_index[@]}"; do
+time for x in "${full_index[@]}"; do
 
   for b in "${!shells_subindx[@]}"; do
 
     if [[ $f -gt "${shells_subindx[$b]}" ]]; then
       unset 'shells_subindx[$b]'
-      continue 1;
+      continue 1
 
-    elif [[ $f = "${shells_subindx[$b]}" ]]; then
-      continue 2;
+    elif [[ $x = "${shells_subindx[$b]}" ]]; then
+      continue 2
 
     else
-      verify_subindx+=( "$f" );
-      continue 2;
-    fi;
-  done;
+      verify_subindx+=( "$x" )
+      continue 2
+    fi
+  done
 done
 
 # view the results
-declare -p full_index shells_dup verify_subindx | less -NR
-[[ $(( "$(  _num shells_dup )" + "$( _num verify_subindx )" )) -eq \
-    "$( _num full_index )" ]] ||
+declare -p full_index shells_dup verify_subindx | 
+  more -NR
+if [[ $(( "$( 
+  _num shells_dup )" + "$( 
+    _num verify_subindx )" )) -eq "$( 
+    _num full_index )" ]]
+then
   _erx $LINENO
+fi
 
 for v in "${verify_subindx[@]}"; do
-  sed -n "${v}p" "${d}_post-test2" >> "${d}_test5_unlisted";
+  sed -n "${v}p" "${f}_post-test2" >> "${f}_test5_unlisted"
 done
-command cp -af "${d}_test5_unlisted" "${d}_test5_unlisted.bak"
-
-
-
-
-
-
-
-
+command cp -af "${f}_test5_unlisted" "${f}_test5_unlisted.bak"
 
 
 # with ShellCheck scan each script for errors
-for i2 in "${!shell_scripts[@]}"; do 
-  script="${shell_scripts[$i2]}"
+for i_2 in "${!shell_scripts[@]}"; do 
+  script="${shell_scripts[$i_2]}"
 
   mapfile -t errs < <( 
     shellcheck -S "$severity" "$script" | 
@@ -302,15 +303,17 @@ for i2 in "${!shell_scripts[@]}"; do
   if [[ -n "${errs[*]:0:1}" ]]; then 
 		
     # open & append some prioritized work lists with indices
-    printf '%d  <%s>\n' "$i2" "$script" >> \
-      "${mountpoint}/${time}_found_scripts_with_indices"
+    printf '%d  <%s>\n' "$i_2" "$script" >> \
+      "${f}_found_scripts_with_indices"
 
     for each_error in "${errs[@]}"; do
-      printf '%s | <idx:%d>\n' "${each_error//$'\n'/}" "$i2" >> \
-      "${mountpoint}/${time}_found_errors_with_indices_unsorted"
+      printf '%s %% <idx:%d>\n' "${each_error//$'\n'/}" "$i_2" >> \
+      "${f}_found_errors_with_indices_unsorted"
     done
   fi
 
-  unset errors script 'shell_scripts[$j]'
+  unset errors script 'shell_scripts[$i_2]'
   wait -f
 done
+
+exit 0
