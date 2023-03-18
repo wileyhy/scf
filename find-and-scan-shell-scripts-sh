@@ -2,7 +2,6 @@
 # find-and-scan-shell-scripts-sh
 # Written in bash version 5.1
 PATH='/usr/bin:/usr/sbin'
-readonly PATH
 
 
 # Implementation-dependent arguments for options parseable by `shellcheck`.
@@ -41,7 +40,6 @@ EOF
 }
 
 # Option parsing
-# TODO: parse '--other-language=python', perl, etc
 if [[ "$#" -gt 0 ]]; then
   first_two_chars="${1:0:2}"
   case "$first_two_chars" in
@@ -82,7 +80,7 @@ datadir="${mountpoint}/scf.d/latest"
 timedir="${datadir}/t_${time}"
 datafile="${timedir}/crunchbangs"
 unlisted="${timedir}/unlisted"
-umask 7077
+umask 077
 
 if [[ ! -d "$datadir" ]]; then
   mkdir -p "$datadir" ||
@@ -92,7 +90,7 @@ fi
 # Label the current data as "latest."
 previous=( "${datadir}"/* )
 if [[ -n "${previous[*]:0:1}" ]]; then
-  mv --verbose "${previous[@]}" "${mountpoint}/scf.d/" ||  
+  mv "${previous[@]}" "${mountpoint}/scf.d/" ||  
     _erx $LINENO
 fi
 
@@ -111,13 +109,10 @@ mapfile -d '' -t relevant_search_dirs < <(
 mapfile -d '' -t all_files < <( 
   find "${relevant_search_dirs[@]}" -type f -print0 2> /dev/null )
 
-
-# Get files that are shell scripts that ShellCheck can parse.
-
-# Sort out the scripts, ie, any file beginning with a '#!',
-# from the rest of the files.
+# Sort out the scripts, ie, any file beginning with a '#!', from the
+# rest of the files.
 for i_1 in "${!all_files[@]}"; do
-  unset crashbang hexa nextfile
+  unset crashbang od_o nextfile
   nextfile="${all_files[$i_1]}"
 
   # Filter: file must exist and have a size greater than zero
@@ -128,22 +123,22 @@ for i_1 in "${!all_files[@]}"; do
 
   # Read from disk in binary the first two bytes of every remaining file in 
   # the list, and format it in hexadecimal.
-  mapfile -d '' -t hexa < <(  
+  mapfile -d '' -t od_o < <(  
     od --address-radix=x --read-bytes=2 --format=x2z "$nextfile" |
       tr --squeeze-repeats ' \n\t' '\0' )
 			
-  # If 'hexa' contains some non-zero data, as it should, compare the 
+  # If 'od_o' contains some non-zero data, as it should, compare the 
   # hexidecimal representations to find any crunchbangs.
-  if [[ -z "${hexa[*]:0:1}" ]]; then
+  if [[ -z "${od_o[*]:0:1}" ]]; then
     _erx $LINENO
 	
   elif
-    [[ "${hexa[1]}" == '2123' ]]; then
+    [[ "${od_o[1]}" == '2123' ]]; then
 
     # When a hashbang's found, use `strings` to filter out any non-
     # printable data, to protect `head` from garbage input, and to 
     # get the full "shebang" string in ASCII.
-    crashbang="$( strings -n 1 "$nextfile" |
+    crashbang="$( strings --bytes=1 "$nextfile" |
       head --lines=1 |
       head --bytes="$crashbang_byte_length" )"
 
@@ -155,81 +150,74 @@ for i_1 in "${!all_files[@]}"; do
   fi
 done
 
+
+# Make the data readable and useful
+
 # Backup the original data file, and add some brevity.
 # Note: most distros replace certain commands with aliases
 command cp -af "$datafile" "${datafile}.orig-bak"
 f="$datafile"
 
-
-# Make the data readable and useful
-
-  # <> To Do
-  # var name ere*
-  # rmv `set -`
-
-# Test 1: in the data file, fix the hashbangs with spaces in them. ## works
-set -x
+# Bug: put $shells into $ere3
+# Alterations
 ere1='^#![[:space:]]{1,4}/'
+ere2='>?[[:space:]]{3,}<?/?[[:alnum:]].*>?[[:space:]]{3,}<?'
+ere3=^'[0-9]{1,7}:#! ?(/usr)?/bin/(env|(sh|bash|dash|ksh)?) *<?(/usr)?(/bin/)?(sh|bash|dash|ksh) ?>? *'
+
 _test1(){
   grep -E "$ere1" "$1"
 }
+_test2(){
+  grep -nE "$ere2" "$1"
+} # Bug? is -n necc?
+
+# Alteration 1: in the data file, fix the hashbangs with spaces in them. ## works
 _test1 "$f"
 sed -Ei "s=${ere1}=#\!/=g" "$f"
 _test1 "$f"
-set -
 cat "$f" > "${f}_post-test1"
 command cp -af "${f}_post-test1" "${f}_post-test1.bak"
-ls -l "$f"*
-wc "$f"*
 
-# Test 2: fix the odd extra data segments in the middles of the rows. ## works
-set -x
-ere2='>?[[:space:]]{3,}<?/?[[:alnum:]].*>?[[:space:]]{3,}<?'
-_test2(){
-  grep -nE "$ere2" "$1"
-}
+# Alteration 2: fix the odd extra data segments in the middles of the rows. ## works
 _test2 "$f"
 sed -Ei "s=${ere2}=    =g" "$f"
 _test2 "$f"
-set -
 cat "$f" > "${f}_post-test2"
 command cp -af "${f}_post-test2" "${f}_post-test2.bak"
-ls -l "$f"*
-wc "$f"*
 
-# apply grep-style line numbers, ie, in-file indices. These are necc 
+  ls -l "$f"*
+  wc "$f"*
+
+# Alteration 3: Apply grep-style line numbers, ie, in-file indices. These are necc 
 # for test 5, however, can only be applied prior to the full list 
 # becoming subdivided. 
 grep -nE '.' "$f" > "${f}_test3_indexed"
 command cp -af "${f}_test3_indexed" "${f}_test3_indexed.bak"
 
-# Bug: put $shells into $ere3
-set -x 
-ere3=^'[0-9]{1,7}:#! ?(/usr)?/bin/(env|(sh|bash|dash|ksh)?) *<?(/usr)?(/bin/)?(sh|bash|dash|ksh) ?>? *'
+# Test 3: filter the list of crunchbangs with the list of shells
 grep -E "$ere3" "${f}_test3_indexed" > "${f}_test3_list"
+
 command cp -af "${f}_test3_list" "${f}_test3_list.bak"
-set - 
-ls -l "$f"*
-wc "${f}"*
+
+  ls -l "$f"*
+  wc "${f}"*
 
 # Test 4: NOT (sh|bash|dash|ksh) == (tclsh|zsh|tcsh) {depending on which rpms are installed}
 # ...grep acts oddly in this instance...?
-set -x
 grep -vE "$ere3" "${f}_test3_indexed" |
   sed -E 's=[<>]=---------------------------------------------------------=g' |
   sed 's=[[:space:]]==g' |
   cut -c -64 |
   grep -F 'sh' > "${f}_test4_reverse"
 command cp -af "${f}_test4_reverse" "${f}_test4_reverse.bak"
-set -
-ls -l "$f"*
-cat "${f}_test4_reverse"
-wc "$f"*
+
+  ls -l "$f"*
+  cat "${f}_test4_reverse"
+  wc "$f"*
 
 # test 5: get the list of files with '#!'s that arent relevant shell scripts.
 
 # wipe the slate clean
-set -x
 unset full_index shells_subindx verify_subindx
 
 # create the arrays
@@ -238,14 +226,15 @@ unset full_index shells_subindx verify_subindx
 # should equal `wc -l` of "${f}_test3_indexed"
 mapfile -t -O 1 full_index < <( 
   cut '-d:' -f1 "${f}_test3_indexed" )
+
 if ! [[ "${#full_index[@]}" == "$( 
   wc -l "${f}_test3_indexed" | 
     cut '-d ' -f1 )" ]]
 then
   _erx $LINENO
 fi
+
 _num full_index
-set -
 declare -p full_index | 
   more -RN
 
