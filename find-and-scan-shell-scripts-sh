@@ -340,11 +340,8 @@ for i_2 in "${!shell_scripts[@]}"; do
       "${f}_found_errors_with_indices_unsorted"
     done
   fi
-  tee --output-error=exit "${f}_spcs-deld-fr-shbngs"{,bak} < "$f"
-  _bak "$f" '.orig-bak'
-
-  tee --output-error=exit "${f}_spcs-deld-fr-shbngs"{,bak} < "$f
-  _bak "$f" '.orig-bak'
-
   unset errors script 'shell_scripts[$i_2]'
 done
+
+_bak "$f" '_found_scripts_with_indices'
+_bak "$f" '_found_errors_with_indices_unsorted'
