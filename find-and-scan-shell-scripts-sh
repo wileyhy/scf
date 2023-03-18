@@ -156,6 +156,7 @@ for i_1 in "${!all_files[@]}"; do
 done
 
 # Backup the original data file, and add some brevity.
+# Note: most distros replace certain commands with aliases
 command cp -af "$datafile" "${datafile}.orig-bak"
 f="$datafile"
 
