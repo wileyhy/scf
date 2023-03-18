@@ -126,11 +126,6 @@ for i1 in "${!all_files[@]}"; do
       head -n 1 |
       head -c 32 )"; 
 
-    # make a list of scripts, for use below
-    if [[ "$extension" =~ ^${shells}$ ]]; then
-      shell_scripts+=( "$nextfile" )
-    fi
-
     # make a record of the filenames and their 
     # crunchbangs, ie, open & append to a timestamped file
     printf '%s \t\t\t %s \n' "$crunchbangs" "$nextfile" >> \
