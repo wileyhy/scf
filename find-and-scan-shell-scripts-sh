@@ -9,8 +9,7 @@ severity='error'
 
 # Variables
 time="$( builtin printf '%(%F_%H%M%S)T' )"
-mountpoint="${TEMPDIR:="$HOME"}"
-regex='(binfmt_misc|bpf|cgroup2|configfs|debugfs|devpts|devtmpfs|efivarfs|fusectl|hugetlbfs|iso9660|mqueue|proc|pstore|rpc_pipefs|securityfs|selinuxfs|sysfs|tmpfs|tracefs)'
+fstype_regexp='(binfmt_misc|bpf|cgroup2|configfs|debugfs|devpts|devtmpfs|efivarfs|fusectl|hugetlbfs|iso9660|mqueue|proc|pstore|rpc_pipefs|securityfs|selinuxfs|sysfs|tmpfs|tracefs)'
 
 # Functions
 _erx(){ 
@@ -54,20 +53,21 @@ if [[ "$#" -gt 0 ]]; then
   esac
 fi
 
-# Programatically select a save directory, attached to the local disk, 
-# where any output can be saved; prefer USB flash drives. This particular 
-# `df` command will output three alphanumeric strings separated by whitespace 
-# on a single line. filter out via regex certain FS types by sorting the 
-# output of `df`. In case of large log files, of the remaining 'save_dirs' 
-# take the device with the most available space and get its mountpoint. If 
-# there are no 'save_dirs' left then leave 'mountpoint' set as above. #   Bug? is '/run/media' portable to other distros? 
+# In case of large log files, programatically select a save directory, attached to the local disk, where any output can be saved; prefer USB flash drives. This particular `df` command will output three alphanumeric strings separated by whitespace on a single line. Filter out via regexp certain FS types and `sort` the output by size descending. With `awk`, take the device with the most available space and get its mountpoint with `findmnt`. If there are no 'save_dirs' left then set 'mountpoint' according to environment variables. 
+#   Note: such a complex command in shell saves ~75 lines of step by steps.
+#   Bug? is '/run/media' portable to other current distros? 
 mountpoint="$( 
-  find /run/media "$mountpoint" -mindepth 2 -maxdepth 2 -type d |
-    df --sync -l --output=fstype,avail,source --block-size=1 |
-    grep -Ev '^Type[[:space:]]*Avail' |
-    grep -Ev ^"$regex" |
-    sort --general-numeric-sort --reverse --key=2 |
-    awk 'NR == 1 { print $3 }' )"
+  findmnt --canonicalize --output=target --noheadings "$( 
+    find /run/media -mindepth 2 -maxdepth 2 -type d |
+      df --sync --local --output='fstype,avail,source' --block-size=1 |
+      grep --extended-regexp --invert-match '^Type[[:space:]]*Avail' |
+      grep --extended-regexp --invert-match ^"$fstype_regexp" |
+      sort --general-numeric-sort --reverse --key=2 |
+      awk 'NR == 1 { print $3 }' 
+  )"
+)"
+[[ -z "$mountpoint" ]] &&
+  mountpoint="${TEMPDIR:="$HOME"}"
 datadir="${mountpoint}/scf.d"
 datafile="${datadir}/${time}_crunchbangs"
 unlisted="${datafile/crunchbangs/unlisted}"
