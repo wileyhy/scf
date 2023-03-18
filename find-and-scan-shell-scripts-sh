@@ -34,7 +34,7 @@ _usage(){
                 -h help           -w warning
         Only the first option is processed.
     SCF homepage: https://github.com/wileyhy/scf/
-	EOF
+EOF
   exit "$1"
 }
 
