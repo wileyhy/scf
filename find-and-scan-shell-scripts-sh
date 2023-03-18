@@ -53,7 +53,14 @@ if [[ "$#" -gt 0 ]]; then
   esac
 fi
 
-# In case of large log files, programatically select a save directory, attached to the local disk, where any output can be saved; prefer USB flash drives. This particular `df` command will output three alphanumeric strings separated by whitespace on a single line. Filter out via regexp certain FS types and `sort` the output by size descending. With `awk`, take the device with the most available space and get its mountpoint with `findmnt`. If there are no 'save_dirs' left then set 'mountpoint' according to environment variables. 
+# In case of large log files, programatically select a save directory, 
+# attached to the local disk, where any output can be saved; prefer USB 
+# flash drives. This particular `df` command will output three alpha-
+# numeric strings separated by whitespace on a single line. Filter out 
+# via regexp certain FS types and `sort` the output by size descending. 
+# With `awk`, take the device with the most available space and get its 
+# mountpoint with `findmnt`. If there are no 'save_dirs' left then set 
+# 'mountpoint' according to environment variables. 
 #   Note: such a complex command in shell saves ~75 lines of step by steps.
 #   Bug? is '/run/media' portable to other current distros? 
 mountpoint="$( 
