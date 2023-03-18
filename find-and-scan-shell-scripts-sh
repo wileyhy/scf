@@ -178,7 +178,8 @@ _test1 "$f"
 cat "$f" > "${f}_post-test1"
 command cp -af "${f}_post-test1" "${f}_post-test1.bak"
 
-# Alteration 2: fix the odd extra data segments in the middles of the rows. ## works
+# Alteration 2: fix the odd extra data segments in the middles of the rows. 
+# Requires using 'relevant_search_dirs' in the above `find` path. ## works
 _test2 "$f"
 sed -Ei "s=${ere2}=    =g" "$f"
 _test2 "$f"
