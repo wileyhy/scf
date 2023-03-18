@@ -125,8 +125,13 @@ for i_1 in "${!all_files[@]}"; do
     od --address-radix=x --read-bytes=2 --format=xz "$nextfile" |
       tr --squeeze-repeats ' \n\t' '\0' )
 			
-  # compare the hexidecimal representations to find any crunchbangs
-  if [[ "${hexes[1]}" == '2123' ]]; then
+  # compare the hexidecimal representations to find any crunchbangs.
+	# array 'hexes' must contain some non-zero data
+	if [[ ! -n "${hexes[*]:0:1}" ]]; then
+		_erx $LINENO
+	
+	elif
+		[[ "${hexes[1]}" == '2123' ]]; then
 
     # when a hashbang's found, use `strings` to filter out any non-
     # printable data, to protect `head` from garbage input, and to 
@@ -137,10 +142,14 @@ for i_1 in "${!all_files[@]}"; do
 
     # make a record of the filenames and their '#!'s, ie, open 
     # & append to a timestamped file
-    printf '%s \t\t\t %s \n' "$crashbang" "$nextfile" >> "$datafile"
+    printf '%s \t\t\t %s \n' "$crashbang" "$nextfile" >> "$datafile" ||
+			_erx $LINENO
 		unset 'all_files[$i]'
   fi
 done
+
+# backup the original
+command cp -af "$d" "${d}.orig-bak"
 
 # test 1: in the data file, fix the hashbangs with spaces in them # works
 set -x;
