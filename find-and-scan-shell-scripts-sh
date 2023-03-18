@@ -194,18 +194,19 @@ command cp -af "${f}_post-test2" "${f}_post-test2.bak"
 grep -nE '.' "$f" > "${f}_test3_indexed"
 command cp -af "${f}_test3_indexed" "${f}_test3_indexed.bak"
 
-# Test 3: filter the list of crunchbangs with the list of shells
-grep -E "$ere3" "${f}_test3_indexed" > "${f}_test3_list"
 
+# CENTRAL TASK, 1 OF 2: Filter the list of crunchbangs with the list 
+# of shells
+grep -E "$ere3" "${f}_test3_indexed" > "${f}_test3_list"
 command cp -af "${f}_test3_list" "${f}_test3_list.bak"
 
   ls -l "$f"*
   wc "${f}"*
 
-# Test 4: NOT (sh|bash|dash|ksh) == (tclsh|zsh|tcsh) {depending on which rpms are installed}
-# ...grep acts oddly in this instance...?
+# DEBUG: Invert the previous `grep` command, i.e.,
+#   { NOT (sh|bash|dash|ksh) == (tclsh|zsh|tcsh) }
 grep -vE "$ere3" "${f}_test3_indexed" |
-  sed -E 's=[<>]=---------------------------------------------------------=g' |
+  sed -E 's=[<>]=-----------------------------------------------------=g' |
   sed 's=[[:space:]]==g' |
   cut -c -64 |
   grep -F 'sh' > "${f}_test4_reverse"
@@ -215,15 +216,14 @@ command cp -af "${f}_test4_reverse" "${f}_test4_reverse.bak"
   cat "${f}_test4_reverse"
   wc "$f"*
 
-# test 5: get the list of files with '#!'s that arent relevant shell scripts.
 
-# wipe the slate clean
+# EXTRA: get the list of files with '#!'s that arent relevant shell scripts.
 unset full_index shells_subindx verify_subindx
 
-# create the arrays
+# create some arrays
 
-# full set of indices; a contiguous array. number of indices in full_index 
-# should equal `wc -l` of "${f}_test3_indexed"
+# Array 1: full set of indices; a contiguous array. number of indices 
+# in full_index should equal `wc -l` of "${f}_test3_indexed"
 mapfile -t -O 1 full_index < <( 
   cut '-d:' -f1 "${f}_test3_indexed" )
 
@@ -234,33 +234,34 @@ then
   _erx $LINENO
 fi
 
-_num full_index
-declare -p full_index | 
-  more -RN
+  _num full_index
+  declare -p full_index | 
+    more -RN
 
-# partial set of indices for only relevant scripts; a sparse array. number 
-# of indices in shells_subindx should equal `wc -l` of "${f}_test3_list"
-set -x
+# Array 2: partial set of indices for only relevant scripts; a sparse
+# array. number of indices in shells_subindx should equal `wc -l` of 
+# "${f}_test3_list"
 mapfile -t -O 1 shells_subindx < <( 
   cut '-d:' -f1 "${f}_test3_list" )
+
 if ! [[ "${#shells_subindx[@]}" == "$( 
   wc -l "${f}_test3_list" | 
     cut '-d ' -f1 )" ]]
 then
   _erx $LINENO
 fi
-set -
-declare -p shells_subindx | 
-  more -RN
-_num shells_subindx
-wc "${f}"*
 
-# partial set of indices for only *irrelevant* scripts; also a sparse array
-set -x
+  declare -p shells_subindx | 
+    more -RN
+  _num shells_subindx
+  wc "${f}"*
+
+# Array 3: partial set of indices for only *irrelevant* scripts; also 
+# a sparse array
 unset f b verify_subindx shells_dup
 shells_dup=( "${shells_subindx[@]}" )
 
-time for x in "${full_index[@]}"; do
+for x in "${full_index[@]}"; do
 
   for b in "${!shells_subindx[@]}"; do
 
@@ -278,9 +279,10 @@ time for x in "${full_index[@]}"; do
   done
 done
 
-# view the results
-declare -p full_index shells_dup verify_subindx | 
-  more -NR
+  declare -p full_index shells_dup verify_subindx | 
+    more -NR
+
+# the counts should equal
 if [[ $(( "$( 
   _num shells_dup )" + "$( 
     _num verify_subindx )" )) -eq "$( 
@@ -289,13 +291,14 @@ then
   _erx $LINENO
 fi
 
+# Bug: can sed do this loop in one fork?
 for v in "${verify_subindx[@]}"; do
   sed -n "${v}p" "${f}_post-test2" >> "${f}_test5_unlisted"
 done
 command cp -af "${f}_test5_unlisted" "${f}_test5_unlisted.bak"
 
 
-# with ShellCheck scan each script for errors
+# MAIN TASK, 2 of 2: with ShellCheck scan each script for errors
 for i_2 in "${!shell_scripts[@]}"; do 
   script="${shell_scripts[$i_2]}"
 
@@ -307,9 +310,12 @@ for i_2 in "${!shell_scripts[@]}"; do
       uniq -c |
       sed 's,^[[:space:]]*,,g' )
 
+  # Bug: formatting
+
+  # If shellcheck found any issues, then open & append some 
+  # prioritized work lists with indices
   if [[ -n "${errs[*]:0:1}" ]]; then 
 		
-    # open & append some prioritized work lists with indices
     printf '%d  <%s>\n' "$i_2" "$script" >> \
       "${f}_found_scripts_with_indices"
 
@@ -320,7 +326,4 @@ for i_2 in "${!shell_scripts[@]}"; do
   fi
 
   unset errors script 'shell_scripts[$i_2]'
-  wait -f
 done
-
-exit 0
