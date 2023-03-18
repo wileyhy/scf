@@ -15,17 +15,18 @@ datafile="${mountpoint}/${time}_crunches"
 unlisted="${datafile/crunches/unlisted}"
 
 # Functions
+# Usage:  _usage [exit-code]
 _usage(){
   cat <<-EOF
-    ./find-and-scan-shell-scripts-sh [-ehiw]
-      -e error
-      -h help
-      -i info
-      -w warning
-    Find and scan shell scripts depending on severity level. One
-    option only.
-	EOF
-  exit 1
+    SCF - Shell Check Find, version 1.0 (redhat-linux)
+    Find and scan shell scripts depending on severity level. 
+        Usage:  ./find-and-scan-shell-scripts-sh [-ehiw]
+                -e error          -i info
+                -h help           -w warning
+        Only the first option is processed.
+    SCF homepage: https://github.com/wileyhy/scf/
+  EOF
+  exit "$1"
 }
 
 # Option parsing
