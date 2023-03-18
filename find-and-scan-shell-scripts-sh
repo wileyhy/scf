@@ -76,23 +76,33 @@ mountpoint="$(
 )"
 [[ -z "$mountpoint" ]] &&
   mountpoint="${TEMPDIR:="$HOME"}"
-datadir="${mountpoint}/scf.d"
-datafile="${datadir}/${time}_crunchbangs"
-unlisted="${datafile/crunchbangs/unlisted}"
+datadir="${mountpoint}/scf.d/latest"
+timedir="${datadir}/t_${time}"
+datafile="${timedir}/crunchbangs"
+unlisted="${timedir}/unlisted"
+umask 7077
 
 if [[ ! -d "$datadir" ]]; then
-  mkdir -p -m 0700 "$datadir" "${datadir}/${time}" ||
+  mkdir -p "$datadir" ||
     _erx $LINENO
+fi
 
-elif [[ -e "${datadir}/"* ]]; then
-  mv "${datadir}/"* "${mountpoint}/scf.d"
+previous=( "${datadir}"/* )
+if [[ -n "${previous[*]:0:1}" ]]; then
+  mv --verbose "${previous[@]}" "${mountpoint}/scf.d/" ||  
+    _erx $LINENO
+fi
+
+if [[ ! -d "$timedir" ]]; then
+  mkdir -p "$timedir" ||
+    _erx $LINENO
 fi
 
 
 # Gather filenames from local attached disk storage
 mapfile -d '' -t relevant_search_dirs < <(
   find / -mindepth 1 -maxdepth 1 -type d \
-    \( \! -name proc -a \! -name sys -a \! \) -print0 )
+    \( \! -name proc -a \! -name sys \) -print0 )
 
 # DEBUG: "${relevant_search_dirs[@]}" OR '/usr/sbin'
 mapfile -d '' -t all_files < <( 
