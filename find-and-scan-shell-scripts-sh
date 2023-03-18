@@ -160,11 +160,10 @@ done
 # Make the data readable and useful.
 
 # Backup the original data file, and add some brevity.
-# Note: most distros replace certain commands with aliases
+# Note: most distros replace certain commands with aliases.c
 f="$datafile"
 _bak "$f" '.orig-bak'
 
-# Bug: put $shells into $ere3
 # Alterations
 ere_1='^#![[:space:]]{1,4}/'
 ere_2='>?[[:space:]]{3,}<?/?[[:alnum:]].*>?[[:space:]]{3,}<?'
@@ -174,15 +173,15 @@ ere_3=^"[0-9]{1,7}:#! ?(/usr)?/bin/(env|${shells}?) *<?(/usr)?(/bin/)?${shells} 
 _test1(){
   grep -E "$ere_1" "$1"
 }
+# Bug? is opt -n necc?
 _test2(){
   grep -nE "$ere_2" "$1"
-} # Bug? is -n necc?
+}
 
 # Alteration 1: in the data file, fix the hashbangs with spaces in them. ## works
 _test1 "$f"
 sed -Ei "s=${ere_1}=#\!/=g" "$f"
 _test1 "$f"
-cat "$f" > "${f}_spcs-deld-fr-shbngs"
 _bak "$f" '_spcs-deld-fr-shbngs'
 
 # Alteration 2: fix the odd extra data segments in the middles of the rows. 
@@ -190,7 +189,6 @@ _bak "$f" '_spcs-deld-fr-shbngs'
 _test2 "$f"
 sed -Ei "s=${ere_2}=    =g" "$f"
 _test2 "$f"
-cat "$f" > "${f}_xtra-dta-rmvd"
 _bak "$f" '_xtra-dta-rmvd'
 
   ls -l "$f"*
