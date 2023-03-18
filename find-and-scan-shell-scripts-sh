@@ -195,6 +195,7 @@ _bak "$f" '_xtra-dta-rmvd'
   ls -l "$f"*
   wc "$f"*
 
+# Bug: high disk io, slow
 # Alteration 3: Apply grep-style line numbers, ie, in-file indices. These are necc 
 # for test 5, however, can only be applied prior to the full list 
 # becoming subdivided. 
@@ -234,8 +235,8 @@ mapfile -t -O 1 full_index < <(
   cut '-d:' -f1 "${f}_all-indexed" )
 
 # Bug? cut this codeblock?
-if ! [[ "${#all_indexed [@]}" == "$( 
-  wc -l "${f}_test3_indexed" | 
+if ! [[ "${#full_index[@]}" == "$( 
+  wc -l "${f}_all-indexed" | 
     cut '-d ' -f1 )" ]]
 then
   _erx $LINENO
