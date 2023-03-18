@@ -180,19 +180,16 @@ _test2(){
 _test1 "$f"
 sed -Ei "s=${ere_1}=#\!/=g" "$f"
 _test1 "$f"
- "${f}_spcs-deld-fr-shbngs"
-tee --output-error=exit "${f}_spcs-deld-fr-shbngs"{,bak} < "$f"
-_bak "$f" '.orig-bak'
+cat "$f" > "${f}_spcs-deld-fr-shbngs"
+_bak "$f" '_spcs-deld-fr-shbngs'
 
 # Alteration 2: fix the odd extra data segments in the middles of the rows. 
 # Requires using 'relevant_search_dirs' in the above `find` path. ## works
 _test2 "$f"
 sed -Ei "s=${ere_2}=    =g" "$f"
 _test2 "$f"
-tee --output-error=exit "${f}_spcs-deld-fr-shbngs"{,bak} < "$f"
 cat "$f" > "${f}_xtra-dta-rmvd"
-command cp -af "${f}_xtra-dta-rmvd" "${f}_xtra-dta-rmvd.bak"
-_bak "$f" '.orig-bak'
+_bak "$f" '_xtra-dta-rmvd'
 
   ls -l "$f"*
   wc "$f"*
@@ -201,17 +198,13 @@ _bak "$f" '.orig-bak'
 # for test 5, however, can only be applied prior to the full list 
 # becoming subdivided. 
 grep -nE '.' "$f" > "${f}_all-indexed"
-tee --output-error=exit "${f}_spcs-deld-fr-shbngs"{,bak} < "$f"
-command cp -af "${f}_all-indexed" "${f}_all-indexed.bak"
-_bak "$f" '.orig-bak'
+_bak "$f" '_all-indexed'
 
 
 # CENTRAL TASK, 1 OF 2: Filter the list of crunchbangs with the list 
 # of shells
 grep -E "$ere_3" "${f}_all-indexed" > "${f}_SC-scrpts-list"
-tee --output-error=exit "${f}_spcs-deld-fr-shbngs"{,bak} < "$f"
-command cp -af "${f}_SC-scrpts-list" "${f}_SC-scrpts-list.bak"
-_bak "$f" '.orig-bak'
+_bak "$f" '_SC-scrpts-list'
 
   ls -l "$f"*
   wc "${f}"*
@@ -223,9 +216,7 @@ grep -vE "$ere_3" "${f}_all-indexed" |
   sed 's=[[:space:]]==g' |
   cut -c -64 |
   grep -F 'sh' > "${f}_addl-shells"
-tee --output-error=exit "${f}_spcs-deld-fr-shbngs"{,bak} < "$f"
-command cp -af "${f}_addl-shells" "${f}_addl-shells.bak"
-_bak "$f" '.orig-bak'
+_bak "$f" '_addl-shells'
 
   ls -l "$f"*
   cat "${f}_addl-shells"
@@ -308,11 +299,10 @@ fi
 
 # Bug: can sed do this loop in one fork?
 for v in "${verify_subindx[@]}"; do
-  sed -n "${v}p" "${f}_post-test2" >> "${f}_test5_unlisted"
+  sed -n "${v}p" "${f}_post-test2" >> "$unlisted"
 done
-tee --output-error=exit "${f}_spcs-deld-fr-shbngs"{,bak} < "$f"
-command cp -af "${f}_test5_unlisted" "${f}_test5_unlisted.bak"
-_bak "$f" '.orig-bak'
+_bak "$unlisted" '.bak'
+
 
 # MAIN TASK, 2 of 2: with ShellCheck scan each script for errors
 for i_2 in "${!shell_scripts[@]}"; do 
