@@ -11,10 +11,20 @@ severity='error'
 time="$( builtin printf '%(%F_%H%M%S)T' )"
 mountpoint="${TEMPDIR:="$HOME"}"
 regex='(binfmt_misc|bpf|cgroup2|configfs|debugfs|devpts|devtmpfs|efivarfs|fusectl|hugetlbfs|iso9660|mqueue|proc|pstore|rpc_pipefs|securityfs|selinuxfs|sysfs|tmpfs|tracefs)'
-datafile="${mountpoint}/${time}_crunches"
-unlisted="${datafile/crunches/unlisted}"
 
 # Functions
+_erx(){ 
+  local ec=$?; 
+  echo Error: "$@"; 
+  return $ec ||  
+    exit $ec; 
+}
+
+_num(){ 
+  local -n array="$1"; 
+  echo "${#array[@]}"; 
+}
+
 # Usage:  _usage [exit-code]
 _usage(){
   cat <<-EOF
@@ -34,47 +44,55 @@ _usage(){
 if [[ "$#" -gt 0 ]]; then
   first_two_chars="${1:0:2}"
   case "$first_two_chars" in
-    --)       printf '\n\tHappy Easter!\n\n';
-              exit 0;;
-    -e)       severity='error';;
-    -i)       severity='info';;
-    -w)       severity='warning';;
-    -h)       _usage 0;;
-    *)        _usage 1;;
+    --) printf '\n\tHappy Easter!\n\n';
+          exit 0;;
+    -e) severity='error';;
+    -i) severity='info';;
+    -w) severity='warning';;
+    -h) _usage 0;;
+    *)  _usage 1;;
   esac
 fi
 
 # Programatically select a save directory, attached 
 # to the local disk, where any output can be
-# saved; prefer USB flash drives. This `df` command 
-# will output three alnum. strings separated by whitespace 
+# saved; prefer USB flash drives. This particular `df` command 
+# will output three alphanumeric strings separated by whitespace 
 # on a single line.
 #   Bug? is '/run/media' portable to other distros? 
-mapfile -d '' -t save_dirs < <( 
-  find /run/media ~ /var/tmp /tmp -mindepth 2 -maxdepth 2 -type d \
-      -exec df --sync -l --output=fstype,avail,source \
-      --block-size=1 '{}' ';' | 
-    sort -u |
-    grep -iv avail | 
-    tr '\n' '\0' )
+mapfile -d '' -t save_dirs < <(  
+  find /run/media -mindepth 2 -maxdepth 2 -type d -print0 )
+save_dirs+=( ~ /tmp /var/tmp )
+
+mapfile -t df_o < <(  
+  df --sync -l --output=fstype,avail,source --block-size=1 | 
+    grep -Ev '^Type[[:space:]]*Avail' )
+
 
 # filter out via regex certain FS types by sorting the output of `df`
-for df_o in "${!save_dirs[@]}"; do 
-  if [[ "${save_dirs[$df_o]}" =~ ^$regex ]]; then 
-    unset 'save_dirs[$df_o]'; 
-  fi; 
+for o in "${!df_o[@]}"; do
+  if [[ "${df_o[$o]}" =~ ^$regex ]]; then
+    unset 'df_o[$o]';
+  fi;
 done
+
 
 # In case of large log files, of the remaining 'save_dirs' take the 
 # device with the most available space and get its mountpoint. 
 # If there are no 'save_dirs' left then leave 'mountpoint' set as above. 
-if [[ -n "${save_dirs[*]:0:1}" ]]; then
-  device="$( printf '%s\n' "${save_dirs[@]}" | 
-    sort -grk2 | 
-    head -n 1 |
-    awk '{ print $3 }' )"
-  mountpoint="$( mount | 
-    awk "\$1 ~ /${device##*/}/ "'{ print $3 }' )"
+device="$( printf '%s\n' "${df_o[@]}" | 
+  sort --general-numeric-sort --reverse --key=2 | 
+  awk 'NR == 1 { print $3 }' )"
+mountpoint="$( mount | 
+  awk "\$1 ~ /${device##*/}/ "'{ print $3 }' )"
+datadir="${mountpoint}/.scf.d"
+datafile="${datadir}/${time}_crunchbangs"
+unlisted="${datafile/crunchbangs/unlisted}"
+
+# Create the data directory
+if [[ ! -d "$datadir" ]]; then
+  mkdir "$datadir" ||
+    _erx $LINENO
 fi
 
 # Gather filenames from local attached disk storage
@@ -87,11 +105,14 @@ mapfile -d '' -t relevant_search_dirs < <(
 mapfile -d '' -t all_files < <( 
   find "${relevant_search_dirs[@]}" -type f -print0 2> /dev/null )
 
-# sort out the scripts, ie, any file beginning with a crunchbang, 
+# get files that are shell scripts that ShellCheck can parse
+
+# sort out the scripts, ie, any file beginning with a '#!',
 # from the rest of the files.
-for i1 in "${!all_files[@]}"; do
-  unset crunchbangs hexes nextfile extension
-  nextfile="${all_files[$i1]}"
+for i_1 in "${!all_files[@]}"; do
+  unset two_bits hexes nextfile extension
+  nextfile="${all_files[$i_1]}"
+
   
   # filter 1: file must exist and have a size greater than zero
   if [[ ! -s "$nextfile" ]]; then
@@ -102,18 +123,18 @@ for i1 in "${!all_files[@]}"; do
   # read from disk in binary the first two bytes of every file left in 
   # the list, and format it in hexadecimal.
   mapfile -d '' -t hexes < <(  
-    od -Ax0 -N2 -x "$nextfile" |
-      tr -s ' \n\t' '\0' )
-
+    od --address-radix=x --read-bytes=2 --format=x "$nextfile" |
+      tr --squeeze-repeats ' \n\t' '\0' )
+			
   # compare the hexidecimal representations to find any crunchbangs
   if [[ "${hexes[1]}" == '2123' ]]; then
  
-    # when a crunchbang's found, use `strings` to filter out any non-
+    # when a crashbang's found, use `strings` to filter out any non-
     # printable data, to protect `head` from garbage input, and to 
-    # get the full crunchbang string in ASCII.
-    crunchbangs="$( strings -n 1 "$nextfile" |
+    # get the full shebang string in ASCII.
+    two_bits="$( strings -n 1 "$nextfile" |
       head -n 1 |
-      head -c 32 )"; 
+      head -c 32 )";
 
     # make a record of the filenames and their 
     # crunchbangs, ie, open & append to a timestamped file
