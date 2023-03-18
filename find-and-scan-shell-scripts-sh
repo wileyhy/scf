@@ -30,31 +30,19 @@ _usage(){
 }
 
 # Option parsing
-case "$#" in  
-  0)         severity='error';;
-  1) case "$1" in  
-      -e)    severity='error';; 
-      -i)    severity='info';; 
-      -w)    severity='warning';;
-      --[a-z]*)
-        case "$1" in
-          --python|--python2|--python3)
-                    grep python "$unlisted" > "${unlisted}_python";;
-          --perl)
-                    grep perl "$unlisted" > "${unlisted}_perl";;
-          --awk|--gawk)
-                    grep awk "$unlisted" > "${unlisted}_awk";;
-          --ruby)
-                    grep ruby "$unlisted" > "${unlisted}_ruby";;
-          #--other-lang*) # ToDo
-          #         [parse '--other-language=(sed|tcsh|lua|etc)]
-	  --*)      printf '\t\nHappy Easter!\n\n'
-                    exit 1
-        esac;;
-      -h|*)  _usage;;
-    esac;;
-  *)         _usage;;
-esac
+# TODO: parse '--other-language=python', perl, etc
+if [[ "$#" -gt 0 ]]; then
+  first_two_chars="${1:0:2}"
+  case "$first_two_chars" in
+    --)       printf '\n\tHappy Easter!\n\n';
+              exit 0;;
+    -e)       severity='error';;
+    -i)       severity='info';;
+    -w)       severity='warning';;
+    -h)       _usage 0;;
+    *)        _usage 1;;
+  esac
+fi
 
 # Programatically select a save directory, attached 
 # to the local disk, where any output can be
