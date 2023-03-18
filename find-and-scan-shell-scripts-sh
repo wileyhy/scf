@@ -54,38 +54,21 @@ if [[ "$#" -gt 0 ]]; then
   esac
 fi
 
-# Programatically select a save directory, attached 
-# to the local disk, where any output can be
-# saved; prefer USB flash drives. This particular `df` command 
-# will output three alphanumeric strings separated by whitespace 
-# on a single line.
-#   Bug? is '/run/media' portable to other distros? 
-mapfile -d '' -t save_dirs < <(  
-  find /run/media -mindepth 2 -maxdepth 2 -type d -print0 )
-save_dirs+=( ~ /tmp /var/tmp )
-
-mapfile -t df_o < <(  
-  df --sync -l --output=fstype,avail,source --block-size=1 | 
-    grep -Ev '^Type[[:space:]]*Avail' )
-
-
-# filter out via regex certain FS types by sorting the output of `df`
-for o in "${!df_o[@]}"; do
-  if [[ "${df_o[$o]}" =~ ^$regex ]]; then
-    unset 'df_o[$o]'
-  fi
-done
-
-
-# In case of large log files, of the remaining 'save_dirs' take the 
-# device with the most available space and get its mountpoint. 
-# If there are no 'save_dirs' left then leave 'mountpoint' set as above. 
-device="$( printf '%s\n' "${df_o[@]}" | 
-  sort --general-numeric-sort --reverse --key=2 | 
-  awk 'NR == 1 { print $3 }' )"
-mountpoint="$( mount | 
-  awk "\$1 ~ /${device##*/}/ "'{ print $3 }' )"
-datadir="${mountpoint}/.scf.d"
+# Programatically select a save directory, attached to the local disk, 
+# where any output can be saved; prefer USB flash drives. This particular 
+# `df` command will output three alphanumeric strings separated by whitespace 
+# on a single line. filter out via regex certain FS types by sorting the 
+# output of `df`. In case of large log files, of the remaining 'save_dirs' 
+# take the device with the most available space and get its mountpoint. If 
+# there are no 'save_dirs' left then leave 'mountpoint' set as above. #   Bug? is '/run/media' portable to other distros? 
+mountpoint="$( 
+  find /run/media "$mountpoint" -mindepth 2 -maxdepth 2 -type d |
+    df --sync -l --output=fstype,avail,source --block-size=1 |
+    grep -Ev '^Type[[:space:]]*Avail' |
+    grep -Ev ^"$regex" |
+    sort --general-numeric-sort --reverse --key=2 |
+    awk 'NR == 1 { print $3 }' )"
+datadir="${mountpoint}/scf.d"
 datafile="${datadir}/${time}_crunchbangs"
 unlisted="${datafile/crunchbangs/unlisted}"
 
@@ -122,12 +105,12 @@ for i_1 in "${!all_files[@]}"; do
   # read from disk in binary the first two bytes of every remaining file in 
   # the list, and format it in hexadecimal.
   mapfile -d '' -t hexes < <(  
-    od --address-radix=x --read-bytes=2 --format=xz "$nextfile" |
+    od --address-radix=x --read-bytes=2 --format=x2z "$nextfile" |
       tr --squeeze-repeats ' \n\t' '\0' )
 			
   # compare the hexidecimal representations to find any crunchbangs.
 	# array 'hexes' must contain some non-zero data
-	if [[ ! -n "${hexes[*]:0:1}" ]]; then
+	if [[ -z "${hexes[*]:0:1}" ]]; then
 		_erx $LINENO
 	
 	elif
