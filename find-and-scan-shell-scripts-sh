@@ -140,11 +140,12 @@ for i_1 in "${!all_files[@]}"; do
     # get the full "shebang" string in ASCII.
     crashbang="$( strings --bytes=1 "$nextfile" |
       head --lines=1 |
-      head --bytes="$crashbang_byte_length" )"
+      head --bytes="$crashbang_byte_length" |
+      grep -Eo ^'#!.*sh[[:space:]]{4}' )"
 
     # Make a record of the filenames and their '#!'s, ie, open 
     # & append to a timestamped file
-    printf '%s \t\t\t %s \n' "$crashbang" "$nextfile" >> "$datafile" ||
+    printf '%s> \t\t\t <%s \n' "$crashbang" "$nextfile" >> "$datafile" ||
       _erx $LINENO
     unset 'all_files[$i]'
   fi
