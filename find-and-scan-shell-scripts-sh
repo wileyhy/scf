@@ -90,7 +90,7 @@ unlisted="${timedir}/unlisted"
 umask 077
 
 if [[ ! -d "$datadir" ]]; then
-  mkdir -p "$datadir" ||
+  mkdir --parents "$datadir" ||
     _erx $LINENO
 fi
 
@@ -102,7 +102,7 @@ if [[ -n "${previous[*]:0:1}" ]]; then
 fi
 
 if [[ ! -d "$timedir" ]]; then
-  mkdir -p "$timedir" ||
+  mkdir --parents "$timedir" ||
     _erx $LINENO
 fi
 
@@ -261,7 +261,7 @@ fi
 
   _num full_index
   declare -p full_index | 
-    more -RN
+    less -RN
 
 # Bug? Is printing indices really necc?
 
@@ -279,7 +279,7 @@ then
 fi
 
   declare -p shells_subindx | 
-    more -RN
+    less -RN
   _num shells_subindx
   wc "${f}"*
 
@@ -320,7 +320,7 @@ fi
 
 # Bug: can sed do this loop in one fork?
 for v in "${verify_subindx[@]}"; do
-  sed -n "${v}p" "${f}_post-test2" >> "$unlisted"
+  sed --quiet "${v}p" "${f}_post-test2" >> "$unlisted"
 done
 _bak "$unlisted" '.bak'
 
@@ -331,10 +331,10 @@ for i_2 in "${!shell_scripts[@]}"; do
 
   mapfile -t errs < <( 
     shellcheck -S "$severity" "$script" | 
-      grep -vFe 'shellcheck.net' | 
-      grep --color=never -Eo 'SC[0-9]{4}' | 
-      sort -g | 
-      uniq -c |
+      grep --fixed-strings --invert-match 'shellcheck.net' | 
+      grep --extended-regexp --only-matching 'SC[0-9]{4}' | 
+      sort --general-numeric-sort | 
+      uniq --count |
       sed 's,^[[:space:]]*,,g' )
 
   # Bug: formatting
