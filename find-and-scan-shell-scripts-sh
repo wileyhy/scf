@@ -15,7 +15,8 @@ fstype_regexp='(binfmt_misc|bpf|cgroup2|configfs|debugfs|devpts|devtmpfs|efivarf
 
 # Functions
 #   Note: cat doesn't need sudo from a regular user acct in this case,
-# for some odd reason. 
+# for some odd reason, however, using '< "$1"' into `tee` fails,  as 
+# it does also into `sudo tee`.
 _bak(){ 
   cat "$1" | tee --output-error=exit "${1}" "${1}".bak > \
       /dev/null 2>&1 ||
