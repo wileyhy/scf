@@ -176,12 +176,12 @@ for i_1 in "${!all_files[@]}"; do
     unset 'all_files[$i_1]'
 
       # <>
-      #((++z))
-      #if [[ $z == 10 ]]; then
-        #declare -p shell_scripts
-        #printf '%s\n' "${shell_scripts[@]}"
-        #exit 101
-      #fi
+      ((++z))
+      if [[ $z == 10 ]]; then
+        declare -p shell_scripts
+        printf '%s\n' "${shell_scripts[@]}"
+        exit 101
+      fi
   fi
 done
 
