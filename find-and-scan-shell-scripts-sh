@@ -209,7 +209,7 @@ ere_2='>?[[:space:]]{3,}<?/?[[:alnum:]].*>?[[:space:]]{3,}<?'
 ere_3=^"[0-9]{1,7}:#! ?(/usr)?/bin/(env|${shells}?) *<?(/usr)?(/bin/)?${shells} ?>? *"
 
 _test1(){
-  sudo grep --extended-regexp ^'#! /' "$1"
+  sudo grep --quiet --extended-regexp ^'#! /' "$1" 
 }
 # Bug? is opt -n necc?
 _test2(){
