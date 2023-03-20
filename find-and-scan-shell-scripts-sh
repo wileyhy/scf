@@ -210,19 +210,19 @@ ere_2='>?[[:space:]]{3,}<?/?[[:alnum:]].*>?[[:space:]]{3,}<?'
 # Bug likely: ere3
 ere_3=^"[0-9]{1,7}:#! ?(/usr)?/bin/(env|${shells}?) *<?(/usr)?(/bin/)?${shells} ?>? *"
 
-_test1(){
+_test_1(){
   sudo grep --quiet --extended-regexp ^'#! /' "$1" 
 }
 # Bug? is opt -n necc?
-_test2(){
+_test_2(){
   sudo grep --extended-regexp --line-number "$ere_2" "$1"
 }
 
 # Alteration 1: in the data file, fix the crashbangs that have spaces in
 # them. ## works
-if _test1 "$f"; then
+if _test_1 "$f"; then
   sudo sed --in-place 's,^#! /,#!/,g' "$f"
-  _test1 "$f" && 
+  _test_1 "$f" && 
     _erx $LINENO
 fi
 cp -a "$f" "${f}_hashbangs-spaces-deleted"
@@ -233,9 +233,9 @@ _bak "${f}_hashbangs-spaces-deleted"
 
 # Alteration 2: fix the odd extra data segments in the middles of the rows. 
 # Requires using 'relevant_search_dirs' in the above `find` path. ## works
-_test2 "$f"
+_test_2 "$f"
 sed --in-place "s=${ere_2}=    =g" "$f"
-_test2 "$f"
+_test_2 "$f"
 _bak "$f" '_xtra-dta-rmvd'
 
   # <>
