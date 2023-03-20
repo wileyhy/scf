@@ -200,7 +200,7 @@ printf '%s\n' "${shell_scripts[@]}" >> "$datafile" ||
 # Backup the original data file, and add some brevity.
 # Note: most distros replace certain commands with aliases.c
 f="$datafile"
-_bak "$f" '.orig-bak'
+_bak "${f}.orig-bak"
 
 # Alterations
 ere_1='^#![[:space:]]{1,4}/'
