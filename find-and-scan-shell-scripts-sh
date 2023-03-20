@@ -15,7 +15,8 @@ fstype_regexp='(binfmt_misc|bpf|cgroup2|configfs|debugfs|devpts|devtmpfs|efivarf
 
 # Functions
 _bak(){ 
-    cat "$1" | tee --output-error=exit "${1}" "${1}".bak > /dev/null 2>&1
+    sudo cat "$1" | tee --output-error=exit "${1}" "${1}".bak \
+      > /dev/null 2>&1
     [[ "$( stat -c%s "${1}" )" -ne "$( stat -c%s "${1}".bak )" ]] &&
       _erx '_\bak' "$1"
 }
