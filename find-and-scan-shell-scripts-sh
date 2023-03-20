@@ -173,6 +173,7 @@ for i_1 in "${!all_files[@]}"; do
     unset 'all_files[$i_1]'
 
       # <>
+      declare -p shell_scripts
       exit 101
   fi
 done
