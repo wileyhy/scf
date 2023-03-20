@@ -17,8 +17,7 @@ fstype_regexp='(binfmt_misc|bpf|cgroup2|configfs|debugfs|devpts|devtmpfs|efivarf
 #   Note: cat doesn't need sudo from a regular user acct in this case,
 # for some odd reason. 
 _bak(){ 
-  cat "$1" | tee --output-error=exit "${1}" "${1}".bak > \
-      /dev/null 2>&1 ||
+  tee --output-error=exit "${1}" "${1}".bak < "$1" > /dev/null 2>&1 ||
     _erx '_\bak' "$1"
 }
 _erx(){ 
@@ -191,7 +190,7 @@ printf '%s\n' "${shell_scripts[@]}" >> "$datafile" ||
   #declare -p shell_scripts
   #printf '%s\n' "${shell_scripts[@]}"
   #exit 101
-  #set -x
+  set -x
 
 
 # Make the data readable and useable.
@@ -202,7 +201,7 @@ f="$datafile"
 _bak "$f"
 
   # <>
-  #exit 101
+  exit 101
 
 # Alterations
 ere_2='>?[[:space:]]{3,}<?/?[[:alnum:]].*>?[[:space:]]{3,}<?'
