@@ -59,7 +59,7 @@ if [[ "$#" -gt 0 ]]; then
   esac
 fi
 
-  # <>
+  # <> Debug
   #set -x
 
 
@@ -133,8 +133,8 @@ mapfile -d '' -t all_files < <(
   #set -x
 
 
-# Sort out the scripts, ie, any file beginning with a '#!', from the
-# rest of the files.
+# Sort out the scripts, ie, any file beginning with a crashbang ('#!'), 
+# from the rest of the files.
 for i_1 in "${!all_files[@]}"; do
   unset shebang od_o nextfile
   nextfile="${all_files[$i_1]}"
@@ -167,7 +167,7 @@ for i_1 in "${!all_files[@]}"; do
       strings --bytes=1 "$nextfile" |
         head --lines=1 )"
 
-    # Make a record of the filenames and their '#!'s in RAM.
+    # Make a record of the filenames and their crashbangs in RAM.
     shell_scripts+=( [$i_1]="$(
       printf '%-50s <%s>\n' "$shebang" "$nextfile" )" )
     unset 'all_files[$i_1]'
@@ -182,8 +182,8 @@ for i_1 in "${!all_files[@]}"; do
   fi
 done
 
-# Open & append to a timestamped file the array of the filenames and 
-# their '#!'s. 
+# Open a timestamped file & append into it the list of filenames and 
+# their crashbangs. 
 printf '%s\n' "${shell_scripts[@]}" >> "$datafile" ||
       _erx $LINENO
 
@@ -285,7 +285,8 @@ _bak "$f" '_addl-shells'
   wc "$f"*
 
 
-# EXTRA: get the list of files with '#!'s that aren't relevant shell scripts.
+# EXTRA: get the list of files with crashbangs that aren't relevant 
+# shell scripts.
 unset full_index shells_subindx verify_subindx
 
 # Bug: sb?: =( {0.."$( wc --lines "${f}_all-indexed" )" )
