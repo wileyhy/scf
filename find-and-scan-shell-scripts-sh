@@ -184,6 +184,7 @@ done
 
 # Open a timestamped file & append into it the list of filenames and 
 # their crashbangs. 
+printf '# crunchbangs\n' > "$datafile"
 printf '%s\n' "${shell_scripts[@]}" >> "$datafile" ||
       _erx $LINENO
 
