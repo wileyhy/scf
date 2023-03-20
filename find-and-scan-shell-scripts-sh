@@ -340,7 +340,7 @@ fi
 for v in "${verify_subindx[@]}"; do
   sed --quiet "${v}p" "${f}_post-test2" >> "$unlisted"
 done
-_bak "${unlisted}.bak'
+_bak "${unlisted}.bak"
 
 
 # MAIN TASK, 2 of 2: with ShellCheck scan each script for errors
