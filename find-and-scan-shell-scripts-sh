@@ -108,7 +108,6 @@ if [[ -n "${previous[*]:0:1}" ]]; then
   sudo mv "${previous[@]}" "${mountpoint}/scf.d/" ||  
     _erx $LINENO
 fi
-
 if [[ ! -d "$timedir" ]]; then
   sudo mkdir --parents "$timedir" ||
     _erx $LINENO
@@ -188,7 +187,7 @@ done
 printf '%s\n' "${shell_scripts[@]}" >> "$datafile" ||
       _erx $LINENO
 
-	# <>
+  # <>
   #declare -p shell_scripts
   #printf '%s\n' "${shell_scripts[@]}"
   #exit 101
@@ -262,6 +261,7 @@ _bak "${f}_all-indexed"
 grep --extended-regexp "$ere_3" "${f}_all-indexed" > "${f}_SC-scrpts-list"
 _bak "${f}_SC-scrpts-list"
 
+  # <>
   ls -l "$f"*
   wc "${f}"*
   exit 101
@@ -278,6 +278,7 @@ grep --extended-regexp --invert-match "$ere_3" "${f}_all-indexed" |
   grep -F 'sh' > "${f}_addl-shells"
 _bak "$f" '_addl-shells'
 
+  # <>
   ls -l "$f"*
   cat "${f}_addl-shells"
   wc "$f"*
@@ -300,6 +301,7 @@ then
   _erx $LINENO
 fi
 
+  # <>
   _num full_index
   declare -p full_index | 
     less --LINE-NUMBERS --RAW-CONTROL-CHARS
@@ -319,6 +321,7 @@ then
   _erx $LINENO
 fi
 
+  # <>
   declare -p shells_subindx | 
     less --LINE-NUMBERS --RAW-CONTROL-CHARS
   _num shells_subindx
@@ -347,6 +350,7 @@ for x in "${full_index[@]}"; do
   done
 done
 
+  # <>
   declare -p full_index shells_dup verify_subindx | 
     less --LINE-NUMBERS --RAW-CONTROL-CHARS
 
