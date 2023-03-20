@@ -120,6 +120,7 @@ fi
   #set -x
 
 # Gather filenames from local attached disk storage.
+# shellcheck disable=SC2034
 mapfile -d '' -t relevant_search_dirs < <(
   find / -mindepth 1 -maxdepth 1 -type d \
     \( \! -name proc -a \! -name sys \) -print0 )
