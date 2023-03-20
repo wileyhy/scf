@@ -131,7 +131,7 @@ mapfile -d '' -t all_files < <(
   # <>
   #declare -p all_files
   #exit 101
-  set -x
+  #set -x
 
 
 # Sort out the scripts, ie, any file beginning with a '#!', from the
@@ -189,9 +189,9 @@ printf '%s\n' "${shell_scripts[@]}" >> "$datafile" ||
       _erx $LINENO
 
 	# <>
-  declare -p shell_scripts
-  printf '%s\n' "${shell_scripts[@]}"
-  exit 101
+  #declare -p shell_scripts
+  #printf '%s\n' "${shell_scripts[@]}"
+  #exit 101
   set -x
 
 
@@ -231,6 +231,7 @@ sed --extended-regexp --invert-match "s=${ere_2}=    =g" "$f"
 _test2 "$f"
 _bak "$f" '_xtra-dta-rmvd'
 
+  # <>
   ls -l "$f"*
   wc "$f"*
   exit 101
