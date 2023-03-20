@@ -176,7 +176,7 @@ for i_1 in "${!all_files[@]}"; do
       # <>
       ((++z))
       if [[ $z == 10 ]]; then
-        declare -p shell_scripts
+        declare -p shell_scripts crashbang nextfile
         printf '%s\n' "${shell_scripts[@]}"
         exit 101
       fi
