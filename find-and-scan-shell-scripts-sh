@@ -61,7 +61,7 @@ if [[ "$#" -gt 0 ]]; then
 fi
 
   # <>
-  set -x
+  #set -x
 
 
 # Create the data directories
@@ -116,7 +116,7 @@ if [[ ! -d "$timedir" ]]; then
 fi
 
   # <>
-  exit 101
+  #exit 101
   set -x
 
 # Gather filenames from local attached disk storage.
@@ -127,6 +127,11 @@ mapfile -d '' -t relevant_search_dirs < <(
 # DEBUG: "${relevant_search_dirs[@]}" OR '/usr/sbin' OR /usr/{,s}bin
 mapfile -d '' -t all_files < <( 
   find "${relevant_search_dirs[@]}" -type f -print0 2> /dev/null )
+
+  # <>
+  exit 101
+  set -x
+
 
 # Sort out the scripts, ie, any file beginning with a '#!', from the
 # rest of the files.
