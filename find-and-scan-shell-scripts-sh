@@ -224,6 +224,9 @@ sed --extended-regexp --invert-match "s=${ere_1}=#\!/=g" "$f"
 _test1 "$f"
 _bak "$f" '_spcs-deld-fr-shbngs'
 
+  # <>
+  exit 101
+
 # Alteration 2: fix the odd extra data segments in the middles of the rows. 
 # Requires using 'relevant_search_dirs' in the above `find` path. ## works
 _test2 "$f"
