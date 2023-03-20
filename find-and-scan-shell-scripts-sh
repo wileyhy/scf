@@ -104,7 +104,7 @@ fi
 # Label the current data as "latest."
 mapfile -d '' -t previous < <( 
   find "$datadir" -mindepth 1 -maxdepth 1 -type d \
-    -name "$( date +%Y )*" -print0 2> /dev/null )
+    -name "t_$( date +%Y )*" -print0 2> /dev/null )
 if [[ -n "${previous[*]:0:1}" ]]; then
   sudo mv "${previous[@]}" "${mountpoint}/scf.d/" ||  
     _erx $LINENO
