@@ -161,14 +161,12 @@ for i_1 in "${!all_files[@]}"; do
   elif
     [[ "${od_o[1]}" == '2123' ]]; then
 
-    # Bug? Does strings remove newlines? Isol. crashb. w grep?
     # When a hashbang's found, use `strings` to filter out any non-
     # printable data, to protect `head` from garbage input, and to 
     # get the full "shebang" string in ASCII. 
+    #   Note: `strings` does not remove newlines.
     crashbang="$( strings --bytes=1 "$nextfile" |
-      head --lines=1 |
-      head --bytes="$crashbang_byte_length" |
-      grep -Eo ^'#!.*sh[[:space:]]{4}' )"
+      head --lines=1 ) 
 
     # Make a record of the filenames and their '#!'s in RAM.
     shell_scripts+=( [$i_1]="$(
