@@ -234,10 +234,13 @@ _bak "${f}_hashbangs-spaces-deleted"
 
 # Alteration 2: fix the odd extra data segments in the middles of the rows. 
 # Requires using 'relevant_search_dirs' in the above `find` path. ## works
-_test_2 "$f"
-sed --in-place "s=${ere_2}=    =g" "$f"
-_test_2 "$f"
-_bak "$f" '_xtra-dta-rmvd'
+if _test_2 "$f"; then
+  sudo sed --in-place "s=${ere_2}=    =g" "$f"
+  _test_2 "$f" &&
+    _erx $LINENO
+fi
+cp -a "$f" "${f}_extra-data-removed"
+_bak "${f}_extra-data-removed"
 
   # <>
   ls -l "$f"*
