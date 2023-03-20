@@ -145,7 +145,7 @@ for i_1 in "${!all_files[@]}"; do
     continue
   fi
 
-  # Read from disk in binary the first two bytes of every remaining file in 
+  # Read from disk in binary the first two bytes of each file in 
   # the list and output it in hexadecimal.
   mapfile -d '' -t od_o < <(  
     od --address-radix=x --read-bytes=2 --format=x2z "$nextfile" |
