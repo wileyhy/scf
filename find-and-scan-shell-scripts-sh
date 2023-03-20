@@ -220,7 +220,7 @@ _test2(){
 # Alteration 1: in the data file, fix the hashbangs that have spaces in
 # them. ## works
 _test1 "$f"
-sed "s=${ere_1}=#\!/=g" "$f"
+sed --in-place "s=${ere_1}=#\!/=g" "$f"
 _test1 "$f"
 _bak "$f" '_spcs-deld-fr-shbngs'
 
@@ -230,7 +230,7 @@ _bak "$f" '_spcs-deld-fr-shbngs'
 # Alteration 2: fix the odd extra data segments in the middles of the rows. 
 # Requires using 'relevant_search_dirs' in the above `find` path. ## works
 _test2 "$f"
-sed "s=${ere_2}=    =g" "$f"
+sed --in-place "s=${ere_2}=    =g" "$f"
 _test2 "$f"
 _bak "$f" '_xtra-dta-rmvd'
 
