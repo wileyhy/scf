@@ -221,7 +221,7 @@ _test2(){
 # them. ## works
 if _test1 "$f"; then
   sudo sed --in-place "s=${ere_1}=#\!/=g" "$f"
-  _test1 "$f" || 
+  _test1 "$f" && 
     _erx $LINENO
 fi
 _bak "$f" '_spcs-deld-fr-shbngs'
