@@ -22,8 +22,7 @@ _bak(){
 _erx(){ 
   local ec=$?
   echo Error: "$@" 
-  return $ec ||  
-    exit $ec
+  return $ec 
 }
 _num(){ 
   local -n array="$1" 
