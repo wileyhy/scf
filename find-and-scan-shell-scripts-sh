@@ -126,7 +126,7 @@ mapfile -d '' -t relevant_search_dirs < <(
 
 # DEBUG: "${relevant_search_dirs[@]}" OR '/usr/sbin' OR /usr/{,s}bin
 mapfile -d '' -t all_files < <( 
-  find '/usr/sbin' -type f -print0 2> /dev/null )
+  find "${relevant_search_dirs[@]}" -type f -print0 2> /dev/null )
 
   # <>
   #declare -p all_files
