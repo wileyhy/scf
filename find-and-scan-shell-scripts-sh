@@ -164,12 +164,13 @@ for i_1 in "${!all_files[@]}"; do
     # printable data, to protect `head` from garbage input, and to 
     # get the full "shebang" string in ASCII. 
     #   Note: `strings` does not remove newlines.
-    crashbang="$( strings --bytes=1 "$nextfile" |
-      head --lines=1 )"
+    crashbangs=( [$i_1]="$( 
+      strings --bytes=1 "$nextfile" |
+        head --lines=1 )" )
 
     # Make a record of the filenames and their '#!'s in RAM.
     shell_scripts+=( [$i_1]="$(
-        printf '%s> \t\t\t\t <%s \n' "$crashbang" "$nextfile" )" )
+      printf '%s> \t\t\t\t <%s \n' "$crashbang" "$nextfile" )" )
     unset 'all_files[$i_1]'
 
       # <>
