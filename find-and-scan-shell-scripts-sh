@@ -11,7 +11,6 @@ severity='error'
 
 # Variables
 time="$( builtin printf '%(%F_%H%M%S)T' )"
-crashbang_byte_length=32
 fstype_regexp='(binfmt_misc|bpf|cgroup2|configfs|debugfs|devpts|devtmpfs|efivarfs|fusectl|hugetlbfs|iso9660|mqueue|proc|pstore|rpc_pipefs|securityfs|selinuxfs|sysfs|tmpfs|tracefs)'
 
 # Functions
