@@ -60,7 +60,13 @@ if [[ "$#" -gt 0 ]]; then
   esac
 fi
 
+  # <>
+  set -x
+
+
 # Create the data directories
+sudo -v
+
 #   In case of large log files, programatically select a save directory, 
 # attached to the local disk, where any output can be saved; prefer USB 
 # flash drives. This particular `df` command will output three alpha-
@@ -90,22 +96,25 @@ unlisted="${timedir}/unlisted"
 umask 077
 
 if [[ ! -d "$datadir" ]]; then
-  mkdir --parents "$datadir" ||
+  sudo mkdir --parents "$datadir" ||
     _erx $LINENO
 fi
 
 # Label the current data as "latest."
 previous=( "${datadir}"/* )
 if [[ -n "${previous[*]:0:1}" ]]; then
-  mv "${previous[@]}" "${mountpoint}/scf.d/" ||  
+  sudo mv "${previous[@]}" "${mountpoint}/scf.d/" ||  
     _erx $LINENO
 fi
 
 if [[ ! -d "$timedir" ]]; then
-  mkdir --parents "$timedir" ||
+  sudo mkdir --parents "$timedir" ||
     _erx $LINENO
 fi
 
+  # <>
+  exit 101
+  set -x
 
 # Gather filenames from local attached disk storage.
 mapfile -d '' -t relevant_search_dirs < <(
