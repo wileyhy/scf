@@ -90,6 +90,7 @@ mountpoint="$(
 [[ -z "$mountpoint" ]] &&
   mountpoint="${TEMPDIR:="$HOME"}"
 datadir="${mountpoint}/scf.d/latest"
+datadir="$( realpath -e "$datadir" )"
 timedir="${datadir}/t_${time}"
 datafile="${timedir}/crunchbangs"
 unlisted="${timedir}/unlisted"
