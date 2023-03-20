@@ -197,19 +197,19 @@ printf '%s\n' "${shell_scripts[@]}" >> "$datafile" ||
 # Make the data readable and useable.
 
 # Add some brevity and backup the original data file.
-# Note: most distros replace certain commands with aliases.
+#   Note: most distros replace certain commands with aliases.
 f="$datafile"
 _bak "$f"
 
   # <>
   #exit 101
 
+# Bug: hardcode these ere's
 # Alterations
 ere_2='>?[[:space:]]{3,}<?/?[[:alnum:]].*>?[[:space:]]{3,}<?'
 #ere_3=^'[0-9]{1,7}:#! ?(/usr)?/bin/(env|(sh|bash|dash|ksh)?) *<?(/usr)?(/bin/)?(sh|bash|dash|ksh) ?>? *'
 # Bug likely: ere3
 ere_3=^"[0-9]{1,7}:#! ?(/usr)?/bin/(env|${shells}?) *<?(/usr)?(/bin/)?${shells} ?>? *"
-
 _test_1(){
   sudo grep --quiet --extended-regexp ^'#! /' "$1" # ere_1
 }
