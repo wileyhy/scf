@@ -178,7 +178,7 @@ done
 
 # Open & append to a timestamped file the array of the filenames and 
 # their '#!'s. 
-printf '%s\n' "$(shell_scripts[@]}" >> "$datafile" ||
+printf '%s\n' "${shell_scripts[@]}" >> "$datafile" ||
       _erx $LINENO
 
   exit 101
