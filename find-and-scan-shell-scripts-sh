@@ -194,13 +194,13 @@ printf '%s\n' "${shell_scripts[@]}" >> "$datafile" ||
 
 # Make the data readable and useable.
 
-# Backup the original data file, and add some brevity.
-# Note: most distros replace certain commands with aliases.c
+# Add some brevity and backup the original data file.
+# Note: most distros replace certain commands with aliases.
 f="$datafile"
 _bak "$f"
 
   # <>
-  exit 101
+  #exit 101
 
 # Alterations
 ere_1='^#![[:space:]]{1,4}/'
