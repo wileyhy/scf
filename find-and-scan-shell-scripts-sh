@@ -21,8 +21,6 @@ _bak(){
         /dev/null 2>&1 ||
       _erx '_\bak' "$1"
 }
-# Bug? so if this^ fn is exec'd on cli, it doesn't end sudo-i,
-# but if script exec's, `exit` is exec'd?
 _erx(){ 
   local ec=$?
   echo Error: "$@" 
