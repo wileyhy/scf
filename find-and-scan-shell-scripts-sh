@@ -117,7 +117,7 @@ fi
 
   # <>
   #exit 101
-  set -x
+  #set -x
 
 # Gather filenames from local attached disk storage.
 mapfile -d '' -t relevant_search_dirs < <(
@@ -129,8 +129,8 @@ mapfile -d '' -t all_files < <(
   find '/usr/sbin' -type f -print0 2> /dev/null )
 
   # <>
-  declare -p all_files
-  exit 101
+  #declare -p all_files
+  #exit 101
   set -x
 
 
