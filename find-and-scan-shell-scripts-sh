@@ -169,7 +169,7 @@ for i_1 in "${!all_files[@]}"; do
 
     # Make a record of the filenames and their '#!'s in RAM.
     shell_scripts+=( [$i_1]="$(
-        printf '%s> \t\t\t <%s \n' "$crashbang" "$nextfile" )" )
+        printf '%s> \t\t\t\t <%s \n' "$crashbang" "$nextfile" )" )
     unset 'all_files[$i_1]'
 
       # <>
