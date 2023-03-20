@@ -129,6 +129,7 @@ mapfile -d '' -t all_files < <(
   find '/usr/sbin' -type f -print0 2> /dev/null )
 
   # <>
+  declare -p all_files
   exit 101
   set -x
 
