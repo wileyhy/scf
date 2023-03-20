@@ -166,7 +166,7 @@ for i_1 in "${!all_files[@]}"; do
     # get the full "shebang" string in ASCII. 
     #   Note: `strings` does not remove newlines.
     crashbang="$( strings --bytes=1 "$nextfile" |
-      head --lines=1 ) 
+      head --lines=1 )"
 
     # Make a record of the filenames and their '#!'s in RAM.
     shell_scripts+=( [$i_1]="$(
