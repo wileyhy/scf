@@ -4,7 +4,7 @@
 PATH='/usr/bin:/usr/sbin'
 
 
-# Implementation-dependent arguments for options parseable by `shellcheck`:
+# Implementation-dependent arguments for options parsable by `shellcheck`:
 shells='(sh|bash|dash|ksh)'
 severity='error'
 
