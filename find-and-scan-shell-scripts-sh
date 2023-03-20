@@ -15,7 +15,9 @@ fstype_regexp='(binfmt_misc|bpf|cgroup2|configfs|debugfs|devpts|devtmpfs|efivarf
 
 # Functions
 _bak(){ 
-    cat "$1" | tee --output-error=exit "${1}" "${1}".bak;
+    cat "$1" | tee --output-error=exit "${1}" "${1}".bak > /dev/null 2>&1
+    [[ "$( stat -c%s "${1}" )" -ne "$( stat -c%s "${1}".bak )" ]] &&
+      _erx _bak "$1"
 }
 # Bug? so if this^ fn is exec'd on cli, it doesn't end sudo-i,
 # but if script exec's, `exit` is exec'd?
