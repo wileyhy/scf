@@ -29,6 +29,7 @@ fstype_regexp='(binfmt_misc|bpf|cgroup2|configfs|debugfs|devpts|devtmpfs|efivarf
 # for some odd reason, however, using '< "$1"' into `tee` fails,  as 
 # it does also into `sudo tee`.
 _bak(){ 
+  # shellcheck disable=SC2002
   cat "$1" | tee --output-error=exit "${1}" "${1}".bak > \
       /dev/null 2>&1 ||
     _erx '_\bak' "$1"
@@ -77,7 +78,6 @@ fi
 # Create the data directories
 sudo -v
 
-# Bug: maintenance issue! Compound command
 
 #   In case of large log files, programatically select a save directory, 
 # attached to the local disk, where any output can be saved; prefer USB 
@@ -87,28 +87,36 @@ sudo -v
 # With `awk`, take the device with the most available space and get its 
 # mountpoint with `findmnt`. If there is no output, then set 'mountpoint'
 # according to environment variables. 
-#   Note: such a complex command in shell saves ~75 lines of step by steps.
 #   Bug? is '/run/media' portable to other current distros? 
-mapfile -d '' -t usb_drives < <(
-  find /run/media -mindepth 2 -maxdepth 2 -type d -print0 )
-mapfile -t df_o < <(
-  for u in "${usb_drives[@]}"; do
-    df --sync --local --output='fstype,avail,source' --block-size=1
-  done )
 
-
-  # <>
-  declare -p usb_drives df_o
+  # <> Bug work: maintenance issue! Compound command
+  #   Note: `df` isn't portable per `info df`
+  mapfile -d '' -t usb_drives < <(
+    sudo find /run/media -mindepth 2 -maxdepth 2 -type d -print0 )
+  mapfile -t df_o < <(
+    sudo df --sync --local --output='fstype,avail,source' --block-size=1 \
+        "${usb_drives[@]}" |
+      grep --extended-regexp --invert-match '^Type[[:space:]]*Avail' )
+  device="$( 
+    sort --general-numeric-sort --reverse --key=2 "${df_o[@]}" |
+      awk 'NR == 1 { print $3 }' )"
+  mountpoint="$( 
+    findmnt --canonicalize --output=target --noheadings "$device" )"
+  declare -p usb_drives df_o device
   exit 101
 
-#mountpoint="$( 
-  #findmnt --canonicalize --output=target --noheadings "$( 
-      #grep --extended-regexp --invert-match '^Type[[:space:]]*Avail' |
-      #grep --extended-regexp --invert-match ^"$fstype_regexp" |
-      #sort --general-numeric-sort --reverse --key=2 |
-      #awk 'NR == 1 { print $3 }' 
-  #)"
+# $$ works
+#mountpoint="$(
+#  findmnt --canonicalize --output=target --noheadings "$(
+#    find /run/media -mindepth 2 -maxdepth 2 -type d |
+#      df --sync --local --output='fstype,avail,source' --block-size=1 |
+#      grep --extended-regexp --invert-match '^Type[[:space:]]*Avail' |
+#      grep --extended-regexp --invert-match ^"$fstype_regexp" |
+#      sort --general-numeric-sort --reverse --key=2 |
+#      awk 'NR == 1 { print $3 }'
+#  )"
 #)"
+
 [[ -z "$mountpoint" ]] &&
   mountpoint="${TEMPDIR:="$HOME"}"
 datadir="${mountpoint}/scf.d/latest"
