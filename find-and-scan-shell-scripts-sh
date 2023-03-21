@@ -377,6 +377,7 @@ _bak "${unlisted}.bak"
 for i_2 in "${!shell_scripts[@]}"; do 
   script="${shell_scripts[$i_2]}"
 
+  # Run `shellcheck on the script and count the number of each issue's ID.
   mapfile -t errs < <( 
     shellcheck --severity "$severity" "$script" | 
       grep --fixed-strings --invert-match 'shellcheck.net' | 
