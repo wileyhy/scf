@@ -1,7 +1,7 @@
 #!/bin/bash -x
 # find-and-scan-shell-scripts-sh
 # Written in bash version 5.1
-PATH="$( getconf PATH )"':/usr/bin:/usr/sbin' || echo 'Restricted shell'
+PATH="$( getconf PATH )"':/usr/bin:/usr/sbin' || echo 'Restricted shell' # test this
 
 
 # Implementation-dependent arguments for options parsable by `shellcheck`:
@@ -220,6 +220,7 @@ _test_2(){
   sudo grep --extended-regexp --line-number "$ere_2" "$1" # ere_2
 }
 
+$ Bug: why remove spaces?
 # Alteration 1: in the data file, fix the crashbangs that have spaces in
 # them. ## works
 #   Note: most distros replace certain commands with aliases.
@@ -250,6 +251,10 @@ _bak "${f}_extra-data-removed"
   wc "$f"*
   exit 101
   set -x
+
+# Question: do all of the interpreters exist on disk?
+
+# Q: does #! accept relative paths?
 
 # Bug: high disk io, slow
 # Alteration 3: Apply grep-style line numbers, ie, in-file indices. These 
