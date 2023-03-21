@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 # find-and-scan-shell-scripts-sh
 # Written in bash version 5.1 on Fedora 37
 
@@ -98,11 +98,12 @@ device="$(
     awk 'NR == 1 { print $3 }' )"
 mountpoint="$( 
   findmnt --canonicalize --output=target --noheadings "$device" )"
-  
+unset usb_drives df_o device
+
   # <> Bug work: maintenance issue! Compound command
   #   Note: `df` isn't portable per `info df`
-  declare -p usb_drives df_o device mountpoint
-  exit 101
+  #declare -p usb_drives df_o device mountpoint
+  #exit 101
   
     # $$ works
     #mountpoint="$(
@@ -132,7 +133,7 @@ fi
 # Label the current data as "latest."
 mapfile -d '' -t previous < <( 
   find "$datadir" -mindepth 1 -maxdepth 1 -type d \
-    -name "t_$( date +%Y )*" -print0 2> /dev/null )
+    -name 't_*' -print0 2> /dev/null )
 if [[ -n "${previous[*]:0:1}" ]]; then
   sudo mv "${previous[@]}" "${mountpoint}/scf.d/" ||  
     _erx $LINENO
@@ -144,7 +145,8 @@ fi
 
   # <>
   #exit 101
-  #set -x
+  set -x
+
 
 # Gather filenames from local attached disk storage.
 # shellcheck disable=SC2034
