@@ -136,7 +136,7 @@ mapfile -d '' -t all_files < <(
 # Sort out the scripts, ie, any file beginning with a crashbang ('#!'), 
 # from the rest of the files.
 for i_1 in "${!all_files[@]}"; do
-  unset shebang od_o nextfile
+  unset shabang od_o nextfile
   nextfile="${all_files[$i_1]}"
 
   # File must exist and have a size greater than zero.
@@ -163,19 +163,19 @@ for i_1 in "${!all_files[@]}"; do
     # printable data, to protect `head` from garbage input, and to 
     # get the full crashbang string in ASCII. 
     #   Note: `strings` does not remove newlines.
-    shebang="$( 
+    shabang="$( 
       strings --bytes=1 "$nextfile" |
         head --lines=1 )"
 
     # Make a record of the filenames and their crashbangs in RAM.
     shell_scripts+=( [$i_1]="$(
-      printf '%-50s <%s>\n' "$shebang" "$nextfile" )" )
+      printf '%-50s <%s>\n' "$shabang" "$nextfile" )" )
     unset 'all_files[$i_1]'
 
       # <>
       #((++z))
       #if [[ $z == 10 ]]; then
-        #declare -p shell_scripts shebang nextfile
+        #declare -p shell_scripts shabang nextfile
         #printf '%s\n' "${shell_scripts[@]}"
         #exit 101
       #fi
