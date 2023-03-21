@@ -238,25 +238,24 @@ _bak "$f"
 
 # Alterations
 
-# Bug: why remove spaces?
-
-# Alteration 1: in the data file, fix the crashbangs that have spaces in
-# them. ## works
-_test_1(){
-  sudo grep --quiet --extended-regexp ^'#! /' "$1" # ere_1
-}
-if _test_1 "$f"; then
-  sudo sed --in-place 's,^#! /,#!/,g' "$f" # ere_1
-  _test_1 "$f" && 
-    _erx $LINENO
-fi
-# Note: most distros replace certain commands, such as `cp`, with aliases.
-command -p cp --archive "$f" "${f}_hashbangs-spaces-deleted"
-_bak "${f}_hashbangs-spaces-deleted"
+  ## Bug work: why remove spaces?
+  ## Alteration 1: in the data file, fix the crashbangs that have spaces in
+  ## them. ## works
+  #_test_1(){
+    #sudo grep --quiet --extended-regexp ^'#! /' "$1" # ere_1
+  #}
+  #if _test_1 "$f"; then
+    #sudo sed --in-place 's,^#! /,#!/,g' "$f" # ere_1
+    #_test_1 "$f" && 
+      #_erx $LINENO
+  #fi
+  ## Note: most distros replace certain commands, such as `cp`, with aliases.
+  #command -p cp --archive "$f" "${f}_hashbangs-spaces-deleted"
+  #_bak "${f}_hashbangs-spaces-deleted"
 
   # <>
-  exit 101
-  set -x
+  #exit 101
+  #set -x
 
 # Alteration 2: fix the odd extra data segments in the middles of the rows. 
 # Requires using 'relevant_search_dirs' in the above `find` path. ## works
