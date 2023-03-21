@@ -89,16 +89,26 @@ sudo -v
 # according to environment variables. 
 #   Note: such a complex command in shell saves ~75 lines of step by steps.
 #   Bug? is '/run/media' portable to other current distros? 
-mountpoint="$( 
-  findmnt --canonicalize --output=target --noheadings "$( 
-    find /run/media -mindepth 2 -maxdepth 2 -type d |
-      df --sync --local --output='fstype,avail,source' --block-size=1 |
-      grep --extended-regexp --invert-match '^Type[[:space:]]*Avail' |
-      grep --extended-regexp --invert-match ^"$fstype_regexp" |
-      sort --general-numeric-sort --reverse --key=2 |
-      awk 'NR == 1 { print $3 }' 
-  )"
-)"
+mapfile -d '' -t usb_drives < <(
+  find /run/media -mindepth 2 -maxdepth 2 -type d -print0 )
+mapfile -t df_o < <(
+  for u in "${usb_drives[@]}"; do
+    df --sync --local --output='fstype,avail,source' --block-size=1
+  done )
+
+
+  # <>
+  declare -p usb_drives df_o
+  exit 101
+
+#mountpoint="$( 
+  #findmnt --canonicalize --output=target --noheadings "$( 
+      #grep --extended-regexp --invert-match '^Type[[:space:]]*Avail' |
+      #grep --extended-regexp --invert-match ^"$fstype_regexp" |
+      #sort --general-numeric-sort --reverse --key=2 |
+      #awk 'NR == 1 { print $3 }' 
+  #)"
+#)"
 [[ -z "$mountpoint" ]] &&
   mountpoint="${TEMPDIR:="$HOME"}"
 datadir="${mountpoint}/scf.d/latest"
