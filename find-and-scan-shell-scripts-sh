@@ -33,7 +33,7 @@ _num(){
 }
 # Usage:  _usage [exit-code]
 _usage(){
-  cat <<-EOF
+  cat <<-\EOF
     SCF - Shell Check Find, version 1.0 (redhat-linux)
     Find and scan shell scripts depending on severity level. 
         Usage:  ./find-and-scan-shell-scripts-sh [-ehiw]
