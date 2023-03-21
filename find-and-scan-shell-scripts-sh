@@ -224,12 +224,14 @@ _scan_local_disks(){
 }
 
 # Bug: last line only has a crashbang
+# Open a timestamped file & append into it the list of filenames and 
+# their crashbangs. 
 _create_LT_datafile(){
   printf '# crunchbangs\n' > "$f"
   printf '%s\n' "${shell_scripts[@]}" >> "$f" ||
     _erx $LINENO
   _bak "$f"
-  printf '\n#%dnf% %d\n' "$( 
+  printf '\n#%%dnf%% %d\n' "$( 
     dnf history info 0 | awk '/^Transaction ID/ { print $4 }' )" >> \
       ~/"${f##*/}"
 }
@@ -239,7 +241,8 @@ _create_LT_datafile(){
 if [[ -f ~/"${f##*/}" ]]; then 
   
   # ...and if it has the same tx number as `dnf history` currently shows...
-  if [[ "$( awk '/^#%dnf%/ { print $2 }' ~/"${f##*/}" )" = $dnf_hist_no ]]
+  if [[ "$( awk '/^#%dnf%/ { print $2 }' ~/"${f##*/}" )" == \
+    "$dnf_hist_no" ]]
   then
 
     # ...then don't scan the HDD.
@@ -255,11 +258,8 @@ if [[ -f ~/"${f##*/}" ]]; then
     _create_LT_datafile
   fi
 
-# and if a long-tern crashbang file DNE, then, if 
-elif 
-
-
-  # do scan the HDD
+# and if a long-tern crashbang file DNE, then do scan the HDD
+else
   _scan_local_disks
 
   # and create a long-term datafile
@@ -269,8 +269,6 @@ fi
 
 
 
-# Open a timestamped file & append into it the list of filenames and 
-# their crashbangs. 
     
     
     
@@ -288,7 +286,7 @@ fi
 # copy, for speed of debugging.
 _bak "$f"
 rsync -ca "$f" ~/"${f##*/}"
-printf '#%dnf% %d\n' "$( 
+printf '#%%dnf%% %d\n' "$( 
   dnf history info 0 | awk '/^Transaction ID/ { print $4 }' )" >> \
     ~/"${f##*/}"
 
