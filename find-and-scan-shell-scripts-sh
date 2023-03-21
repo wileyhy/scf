@@ -104,7 +104,7 @@ unset usb_drives df_o device
   #declare -p usb_drives df_o device mountpoint
   #exit 101
   
-    # $$ works
+    # <> works
     #mountpoint="$(
     #  findmnt --canonicalize --output=target --noheadings "$(
     #    find /run/media -mindepth 2 -maxdepth 2 -type d |
