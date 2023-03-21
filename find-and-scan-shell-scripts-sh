@@ -1,7 +1,7 @@
 #!/bin/bash -x
 # find-and-scan-shell-scripts-sh
 # Written in bash version 5.1
-PATH='/usr/bin:/usr/sbin'
+PATH="$( getconf PATH )"':/usr/bin:/usr/sbin'
 
 
 # Implementation-dependent arguments for options parsable by `shellcheck`:
