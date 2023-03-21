@@ -66,6 +66,8 @@ fi
 # Create the data directories
 sudo -v
 
+# Bug: maintenance issue! Compound command
+
 #   In case of large log files, programatically select a save directory, 
 # attached to the local disk, where any output can be saved; prefer USB 
 # flash drives. This particular `df` command will output three alpha-
