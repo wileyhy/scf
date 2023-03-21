@@ -156,7 +156,7 @@ mapfile -d '' -t relevant_search_dirs < <(
 
 # DEBUG: "${relevant_search_dirs[@]}" OR '/usr/sbin' OR /usr/{,s}bin
 mapfile -d '' -t all_files < <( 
-  find /run/media/root/15_Mar_2023/scf.d /usr/sbin /usr/bin \
+  find "${relevant_search_dirs[@]}" \
     -type f -print0 2> /dev/null )
 
   # <>
