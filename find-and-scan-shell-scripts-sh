@@ -164,60 +164,116 @@ mapfile -d '' -t all_files < <(
   #set -x
 
 
-# Sort out the scripts, ie, any file beginning with a crashbang ('#!'), 
-# from the rest of the files.
-for i_1 in "${!all_files[@]}"; do
-  unset shabang od_o nextfile
-  nextfile="${all_files[$i_1]}"
+# Add some brevity, and get the most recent tx number from `dnf history` 
+f="$datafile"
+dnf_hist_no="$( 
+  dnf history info 0 | 
+    awk '/^Transaction ID/ { print $4 }' )"
 
-  # File must exist and have a size greater than zero.
-  if [[ ! -s "$nextfile" ]]; then
-    unset 'all_files[$i_1]'
-    continue
-  fi
+# Functions for this section
+# Note: this function can take 30-90 minutes!
+_scan_local_disks(){
+  # Sort out the scripts, ie, any file beginning with a crashbang ('#!'), 
+  # from the rest of the files.
+  for i_1 in "${!all_files[@]}"; do
+    unset shabang od_o nextfile
+    nextfile="${all_files[$i_1]}"
 
-  # Read from disk in binary the first two bytes of each file in 
-  # the list and output it in hexadecimal.
-  mapfile -d '' -t od_o < <(  
-    od --address-radix=x --read-bytes=2 --format=x2z "$nextfile" |
-      tr --squeeze-repeats ' \n\t' '\0' )
+    # File must exist and have a size greater than zero.
+    if [[ ! -s "$nextfile" ]]; then
+      unset 'all_files[$i_1]'
+      continue
+    fi
+
+    # Read from disk in binary the first two bytes of each file in 
+    # the list and output it in hexadecimal.
+    mapfile -d '' -t od_o < <(  
+      od --address-radix=x --read-bytes=2 --format=x2z "$nextfile" |
+        tr --squeeze-repeats ' \n\t' '\0' )
 			
-  # If 'od_o' contains some non-zero data, as it should, compare the 
-  # hexidecimal representations to find any crashbangs.
-  if [[ -z "${od_o[*]:0:1}" ]]; then
-    _erx $LINENO
+    # If 'od_o' contains some non-zero data, as it should, compare the 
+    # hexidecimal representations to find any crashbangs.
+    if [[ -z "${od_o[*]:0:1}" ]]; then
+      _erx $LINENO
 	
-  elif
-    [[ "${od_o[1]}" == '2123' ]]; then
+    elif
+      [[ "${od_o[1]}" == '2123' ]]; then
 
-    # When a crashbang's found, use `strings` to filter out any non-
-    # printable data, to protect `head` from garbage input, and to 
-    # get the full crashbang string in ASCII. 
-    #   Note: `strings` does not remove newlines.
-    shabang="$( 
-      strings --bytes=1 "$nextfile" |
-        head --lines=1 )"
+      # When a crashbang's found, use `strings` to filter out any non-
+      # printable data, to protect `head` from garbage input, and to 
+      # get the full crashbang string in ASCII. 
+      #   Note: `strings` does not remove newlines.
+      shabang="$( 
+        strings --bytes=1 "$nextfile" |
+          head --lines=1 )"
 
-    # Make a record of the filenames and their crashbangs in RAM.
-    shell_scripts+=( [$i_1]="$(
-      printf '%-50s <%s>\n' "$shabang" "$nextfile" )" )
-    unset 'all_files[$i_1]'
+      # Make a record of the filenames and their crashbangs in RAM.
+      shell_scripts+=( [$i_1]="$(
+        printf '%-50s <%s>\n' "$shabang" "$nextfile" )" )
+      unset 'all_files[$i_1]'
 
-      # <>
-      #((++z))
-      #if [[ $z == 10 ]]; then
-        #declare -p shell_scripts shabang nextfile
-        #printf '%s\n' "${shell_scripts[@]}"
-        #exit 101
-      #fi
+        # <>
+        #((++z))
+        #if [[ $z == 10 ]]; then
+          #declare -p shell_scripts shabang nextfile
+          #printf '%s\n' "${shell_scripts[@]}"
+          #exit 101
+        #fi
+    fi
+  done
+}
+
+# Bug: last line only has a crashbang
+_create_LT_datafile(){
+  printf '# crunchbangs\n' > "$f"
+  printf '%s\n' "${shell_scripts[@]}" >> "$f" ||
+    _erx $LINENO
+  _bak "$f"
+  printf '\n#%dnf% %d\n' "$( 
+    dnf history info 0 | awk '/^Transaction ID/ { print $4 }' )" >> \
+      ~/"${f##*/}"
+}
+
+
+# if a long-term datafile, i.e., a crashbang/filename list, exists...
+if [[ -f ~/"${f##*/}" ]]; then 
+  
+  # ...and if it has the same tx number as `dnf history` currently shows...
+  if [[ "$( awk '/^#%dnf%/ { print $2 }' ~/"${f##*/}" )" = $dnf_hist_no ]]
+  then
+
+    # ...then don't scan the HDD.
+    :
+
+  # Otherwise, erase the existing long-term datafile, do scan the HDD...
+  else
+    _bak ~/"${f##*/}"
+    rm -f ~/"${f##*/}"
+    _scan_local_disks
+
+    # ...and create a new long-term datafile
+    _create_LT_datafile
   fi
-done
+
+# and if a long-tern crashbang file DNE, then, if 
+elif 
+
+
+  # do scan the HDD
+  _scan_local_disks
+
+  # and create a long-term datafile
+  _create_LT_datafile
+fi
+
+
+
 
 # Open a timestamped file & append into it the list of filenames and 
 # their crashbangs. 
-printf '# crunchbangs\n' > "$datafile"
-printf '%s\n' "${shell_scripts[@]}" >> "$datafile" ||
-      _erx $LINENO
+    
+    
+    
 
   # <>
   #declare -p shell_scripts
@@ -228,9 +284,13 @@ printf '%s\n' "${shell_scripts[@]}" >> "$datafile" ||
 
 # Make the data readable and useable.
 
-# Add some brevity and backup the original data file.
-f="$datafile"
+# backup the original data file and make a long-term
+# copy, for speed of debugging.
 _bak "$f"
+rsync -ca "$f" ~/"${f##*/}"
+printf '#%dnf% %d\n' "$( 
+  dnf history info 0 | awk '/^Transaction ID/ { print $4 }' )" >> \
+    ~/"${f##*/}"
 
   # <>
   #exit 101
