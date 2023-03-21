@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 # find-and-scan-shell-scripts-sh
 # Written in bash version 5.1
 PATH="$( getconf PATH )"':/usr/bin:/usr/sbin' || echo 'Restricted shell' # test this
