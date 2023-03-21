@@ -198,7 +198,6 @@ printf '%s\n' "${shell_scripts[@]}" >> "$datafile" ||
 # Make the data readable and useable.
 
 # Add some brevity and backup the original data file.
-#   Note: most distros replace certain commands with aliases.
 f="$datafile"
 _bak "$f"
 
@@ -221,6 +220,7 @@ _test_2(){
 
 # Alteration 1: in the data file, fix the crashbangs that have spaces in
 # them. ## works
+#   Note: most distros replace certain commands with aliases.
 if _test_1 "$f"; then
   sudo sed --in-place 's,^#! /,#!/,g' "$f" # ere_1
   _test_1 "$f" && 
