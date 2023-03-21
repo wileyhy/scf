@@ -256,6 +256,7 @@ _bak "${f}_extra-data-removed"
 
 # Q: does #! accept relative paths?
 
+# Q: will '#! /bin/env perl -T -w' fail? env -vS
 # Bug: high disk io, slow
 # Alteration 3: Apply grep-style line numbers, ie, in-file indices. These 
 # are necessary for section 'Extra,' however, can only be applied prior 
