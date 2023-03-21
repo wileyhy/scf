@@ -81,11 +81,10 @@ sudo -v
 #   In case of large log files, programatically select a save directory, 
 # attached to the local disk, where any output can be saved; prefer USB 
 # flash drives. This particular `df` command will output three alpha-
-# numeric strings separated by whitespace on a single line. Filter out 
-# via regexp certain FS types and `sort` the output by descending size. 
-# With `awk`, take the device with the most available space and get its 
-# mountpoint with `findmnt`. If there is no output, then set 'mountpoint'
-# according to environment variables. 
+# numeric strings separated by whitespace on a single line. `sort` the 
+# output by descending size. With `awk`, take the device with the most 
+# available space and get its mountpoint with `findmnt`. If there is no 
+# output, then set 'mountpoint' according to environment variables. 
 mapfile -d '' -t usb_drives < <(
   sudo find /run/media -mindepth 2 -maxdepth 2 -type d -print0 )
 mapfile -t df_o < <(
