@@ -226,7 +226,7 @@ if _test_1 "$f"; then
   _test_1 "$f" && 
     _erx $LINENO
 fi
-command cp -a "$f" "${f}_hashbangs-spaces-deleted"
+command cp --archive "$f" "${f}_hashbangs-spaces-deleted"
 _bak "${f}_hashbangs-spaces-deleted"
 
   # <>
@@ -240,7 +240,7 @@ if _test_2 "$f"; then
   _test_2 "$f" &&
     _erx $LINENO
 fi
-command cp -a "$f" "${f}_extra-data-removed"
+command cp --archive "$f" "${f}_extra-data-removed"
 _bak "${f}_extra-data-removed"
 
   # <>
