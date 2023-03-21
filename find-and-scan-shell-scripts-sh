@@ -241,7 +241,7 @@ _bak "$f"
 # Alteration 0
 # Do all of the interpreters exist on disk?
 #mapfile -d '' -t interpreters < <(
-  
+# sudo head /run/media/root/15_Mar_2023/scf.d/latest/t_2023-03-21_102504/crunchbangs | grep ^'#!' | sed -e 's,#!,,g' -e 's,<.*,,g' -e 's,[[:space:]]*$,,g' -e 's, -.*,,g'| cat -Aen  
 
   ## Bug work: why remove spaces?
   ## Alteration 1: in the data file, fix the crashbangs that have spaces in
