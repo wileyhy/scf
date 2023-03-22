@@ -189,10 +189,12 @@ _scan_local_disks(){
     unset nextfile od_o shabang_with_interpreter tr_o 
     nextfile="${all_files[${i_1}]}"
 
+    
     # File must exist and have a size greater than zero.
-    if [[ ! -s "${nextfile}" ]]; then
-      unset 'all_files[$i_1]'
-      continue
+    #   Note: builtin `[[` fails due to lack of permissions
+    if ! sudo command test -s "${nextfile}"; then 
+      unset 'all_files[$i_1]'; 
+      continue; 
     fi
 
     # Read from disk in binary the first two bytes of each file in 
@@ -200,7 +202,7 @@ _scan_local_disks(){
     #   Note: POSIX `od` doesn't have GNU's '--strings' option, so use 
     #   the `strings` command separately.
     od_o="$( 
-      od -Ax -j0 -N2 -tx2z "${nextfile}" ||
+      sudo od -Ax -j0 -N2 -tx2z "${nextfile}" ||
         _erx "${LINENO}" )" # POSIX
 
     mapfile -d '' -t tr_o < <(
@@ -563,10 +565,4 @@ _bak "${f}_found_scripts_with_indices"
 _bak "${f}_found_errors_with_indices_unsorted"
 
 exit 0
-
-
-# End notes
-#   2. Note: GNU version: # od --address-radix=x --endian="${endianness}" 
-#       --skip-bytes=0 --read-bytes=2 --format=x2z --width=2 [FILE]
-
 
