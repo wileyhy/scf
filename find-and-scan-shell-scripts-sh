@@ -373,21 +373,20 @@ _bak "${f}_SC-scrpts-list"
   exit 101
   set -x
 
-# Bug: Why?
+  # Bug: Why?
 
-# DEBUG: Invert the previous `grep` command, i.e.,
-#   { NOT (sh|bash|dash|ksh) == (tclsh|zsh|tcsh) }
-grep --extended-regexp --invert-match "${ere_3}" "${f}_all-indexed" |
-  sed --regexp-extended 's=[<>]=-----------------------------------------------------=g' |
-  sed 's=[[:space:]]==g' |
-  cut --characters -64 |
-  grep -F 'sh' > "${f}_addl-shells" # ere_3, at 1st grep
-_bak "${f}" '_addl-shells'
-
+  ## DEBUG: Invert the previous `grep` command, i.e.,
+  ##   { NOT (sh|bash|dash|ksh) == (tclsh|zsh|tcsh) }
+  #grep --extended-regexp --invert-match "${ere_3}" "${f}_all-indexed" |
+  #sed --regexp-extended 's=[<>]=-----------------------------------------------------=g' |
+  #sed 's=[[:space:]]==g' |
+  #cut --characters -64 |
+  #grep -F 'sh' > "${f}_addl-shells" # ere_3, at 1st grep
+  #_bak "${f}" '_addl-shells'
   # <>
-  ls -l "${f}"*
-  cat "${f}_addl-shells"
-  wc "${f}"*
+  #ls -l "${f}"*
+  #cat "${f}_addl-shells"
+  #wc "${f}"*
 
 
 # EXTRA: get the list of files with crashbangs that aren't relevant 
@@ -492,7 +491,8 @@ for i_2 in "${!shell_scripts[@]}"; do
       grep --extended-regexp --only-matching 'SC[0-9]{4}' | 
       sort --general-numeric-sort | 
       uniq --count |
-      sed 's,^[[:space:]]*,,g' )
+      sed 's,^[[:space:]]*,,g' || 
+        _erx )
 
   # Bug: formatting
 
