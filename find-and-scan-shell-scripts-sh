@@ -189,7 +189,6 @@ _scan_local_disks(){
     unset nextfile od_o shabang_with_interpreter tr_o 
     nextfile="${all_files[${i_1}]}"
 
-    
     # File must exist and have a size greater than zero.
     #   Note: builtin `[[` fails due to lack of permissions
     if ! sudo command test -s "${nextfile}"; then 
@@ -197,6 +196,7 @@ _scan_local_disks(){
       continue; 
     fi
 
+    # Bug, inordinately long interpreter paths are rare, but do occur.
     # Read from disk in binary the first two bytes of each file in 
     # the list and output it in hexadecimal.
     #   Note: POSIX `od` doesn't have GNU's '--strings' option, so use 
