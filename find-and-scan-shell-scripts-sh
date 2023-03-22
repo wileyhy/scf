@@ -178,7 +178,7 @@ _scan_local_disks(){
   # Sort out the scripts, ie, any file beginning with a crashbang ('#!'), 
   # from the rest of the files.
   for i_1 in "${!all_files[@]}"; do
-    unset shabang od_o nextfile
+    unset shabang {od,tr}_o nextfile
     nextfile="${all_files[${i_1}]}"
 
     # File must exist and have a size greater than zero.
@@ -189,17 +189,20 @@ _scan_local_disks(){
 
     # Read from disk in binary the first two bytes of each file in 
     # the list and output it in hexadecimal.
-    mapfile -d '' -t od_o < <(  
-      od --address-radix=x --read-bytes=2 --format=x2z "${nextfile}" |
-        tr --squeeze-repeats ' \n\t' '\0' )
+    tr_o="$( 
+      od --address-radix=x --read-bytes=2 --format=x2z "${nextfile}" ||
+        _erx "${LINENO}" )"
+        
+    mapfile -d '' -t tr_o < <(
+        tr --squeeze-repeats ' \n\t' '\0' <<< "${tr_o}" )
 			
-    # If 'od_o' contains some non-zero data, as it should, compare the 
+    # If 'tr_o' contains some non-zero data, as it should, compare the 
     # hexidecimal representations to find any crashbangs.
-    if [[ -z "${od_o[*]:0:1}" ]]; then
+    if [[ -z "${tr_o[*]:0:1}" ]]; then
       _erx "${LINENO}"
 	
     elif
-      [[ "${od_o[1]}" == '2123' ]]; then
+      [[ "${tr_o[1]}" == '2123' ]]; then
 
       # When a crashbang's found, use `strings` to filter out any non-
       # printable data, to protect `head` from garbage input, and to 
@@ -244,8 +247,10 @@ _create_LT_datafile(){
 if [[ -f ~/"${f##*/}" ]]; then 
   
   # ...and if it has the same tx number as `dnf history` currently shows...
-  if [[ "$( awk '/^#%dnf%/ { print $2 }' ~/"${f##*/}" )" == \
-    "${dnf_hist_no}" ]]
+  tx_no="$( awk '/^#%dnf%/ { print $2 }' ~/"${f##*/}" || 
+    _erx "${LINENO}" )"
+  
+  if [[ "${tx_no}" == "${dnf_hist_no}" ]]
   then
 
     # ...then don't scan the HDD.
@@ -290,8 +295,9 @@ fi
 _bak "${f}"
 rsync -ca "${f}" ~/"${f##*/}"
 printf '#%%dnf%% %d\n' "$( 
-  dnf history info 0 | awk '/^Transaction ID/ { print $4 }' )" >> \
-    ~/"${f##*/}"
+  dnf history info 0 | 
+    awk '/^Transaction ID/ { print $4 }' )" >> ~/"${f##*/}" ||
+      _erx "${LINENO}"
 
   # <>
   #exit 101
@@ -492,7 +498,7 @@ for i_2 in "${!shell_scripts[@]}"; do
       sort --general-numeric-sort | 
       uniq --count |
       sed 's,^[[:space:]]*,,g' || 
-        _erx )
+        _erx "${LINENO}" )
 
   # Bug: formatting
 
