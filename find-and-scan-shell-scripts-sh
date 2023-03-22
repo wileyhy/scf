@@ -30,14 +30,14 @@ time="$( builtin printf '%(%F_%H%M%S)T' )"
 # it does also into `sudo tee`.
 _bak(){ 
   # shellcheck disable=SC2002
-  cat "$1" | tee --output-error=exit "${1}" "${1}".bak > \
+  cat "${1}" | tee --output-error=exit "${1}" "${1}".bak > \
       /dev/null 2>&1 ||
-    _erx '_\bak' "$1"
+    _erx '_\bak' "${1}"
 }
 _erx(){ 
-  local ec=$?
-  echo Error: "$@" 
-  return $ec 
+  local ec="${?}"
+  echo Error: "${@}" 
+  return "${ec}"
 }
 _num(){ 
   local -n array="$1" 
@@ -54,13 +54,13 @@ _usage(){
         Only the first option is processed.
     SCF homepage: https://github.com/wileyhy/scf/
 EOF
-  exit "$1"
+  exit "${1}"
 }
 
 # Option parsing
-if [[ "$#" -gt 0 ]]; then
+if [[ "${#}" -gt 0 ]]; then
   first_two_chars="${1:0:2}"
-  case "$first_two_chars" in
+  case "${first_two_chars}" in
     --) printf '\n\tHappy Easter!\n\n'
           exit 0;;
     -e) severity='error';;
@@ -96,7 +96,7 @@ device="$(
     sort --general-numeric-sort --reverse --key=2 |
     awk 'NR == 1 { print $3 }' )"
 mountpoint="$( 
-  findmnt --canonicalize --output=target --noheadings "$device" )"
+  findmnt --canonicalize --output=target --noheadings "${device}" )"
 
   # <> Bug work: maintenance issue! Compound command
   #   Note: `df` isn't portable per `info df`
@@ -115,7 +115,7 @@ mountpoint="$(
     #  )"
     #)"
 
-[[ -z "$mountpoint" ]] &&
+[[ -z "${mountpoint}" ]] &&
   mountpoint="${TEMPDIR:="$HOME"}"
 datadir="${mountpoint}/scf.d/latest"
 timedir="${datadir}/t_${time}"
@@ -123,22 +123,22 @@ datafile="${timedir}/crunchbangs"
 unlisted="${timedir}/unlisted"
 umask 077
 
-if [[ ! -d "$datadir" ]]; then
-  sudo mkdir --parents "$datadir" ||
-    _erx $LINENO
-fi
+if [[ ! -d "${datadir}" ]]; then
+  sudo mkdir --parents "${datadir}" ||
+    _erx "${LINENO}"
+  fi
 
 # Label the current data as "latest."
 mapfile -d '' -t previous < <( 
-  find "$datadir" -mindepth 1 -maxdepth 1 -type d \
+  find "${datadir}" -mindepth 1 -maxdepth 1 -type d \
     -name 't_*' -print0 2> /dev/null )
 if [[ -n "${previous[*]:0:1}" ]]; then
   sudo mv "${previous[@]}" "${mountpoint}/scf.d/" ||  
-    _erx $LINENO
+    _erx "${LINENO}"
 fi
-if [[ ! -d "$timedir" ]]; then
-  sudo mkdir --parents "$timedir" ||
-    _erx $LINENO
+if [[ ! -d "${timedir}" ]]; then
+  sudo mkdir --parents "${timedir}" ||
+    _erx "${LINENO}"
 fi
 
   # <>
@@ -167,7 +167,7 @@ mapfile -d '' -t all_files < <(
 
 
 # Add some brevity, and get the most recent tx number from `dnf history` 
-f="$datafile"
+f="${datafile}"
 dnf_hist_no="$( 
   dnf history info 0 | 
     awk '/^Transaction ID/ { print $4 }' )"
@@ -182,7 +182,7 @@ _scan_local_disks(){
     nextfile="${all_files[$i_1]}"
 
     # File must exist and have a size greater than zero.
-    if [[ ! -s "$nextfile" ]]; then
+    if [[ ! -s "${nextfile}" ]]; then
       unset 'all_files[$i_1]'
       continue
     fi
@@ -190,13 +190,13 @@ _scan_local_disks(){
     # Read from disk in binary the first two bytes of each file in 
     # the list and output it in hexadecimal.
     mapfile -d '' -t od_o < <(  
-      od --address-radix=x --read-bytes=2 --format=x2z "$nextfile" |
+      od --address-radix=x --read-bytes=2 --format=x2z "${nextfile}" |
         tr --squeeze-repeats ' \n\t' '\0' )
 			
     # If 'od_o' contains some non-zero data, as it should, compare the 
     # hexidecimal representations to find any crashbangs.
     if [[ -z "${od_o[*]:0:1}" ]]; then
-      _erx $LINENO
+      _erx "${LINENO}"
 	
     elif
       [[ "${od_o[1]}" == '2123' ]]; then
@@ -206,12 +206,12 @@ _scan_local_disks(){
       # get the full crashbang string in ASCII. 
       #   Note: `strings` does not remove newlines.
       shabang="$( 
-        strings --bytes=1 "$nextfile" |
+        strings --bytes=1 "${nextfile}" |
           head --lines=1 )"
 
       # Make a record of the filenames and their crashbangs in RAM.
       shell_scripts+=( [$i_1]="$(
-        printf '%-50s <%s>\n' "$shabang" "$nextfile" )" )
+        printf '%-50s <%s>\n' "${shabang}" "${nextfile}" )" )
       unset 'all_files[$i_1]'
 
         # <>
@@ -230,10 +230,10 @@ _scan_local_disks(){
 # Open a timestamped file & append into it the list of filenames and 
 # their crashbangs. 
 _create_LT_datafile(){
-  printf '# crunchbangs\n' > "$f"
-  printf '%s\n' "${shell_scripts[@]}" >> "$f" ||
-    _erx $LINENO
-  _bak "$f"
+  printf '# crunchbangs\n' > "${f}"
+  printf '%s\n' "${shell_scripts[@]}" >> "${f}" ||
+    _erx "${LINENO}"
+  _bak "${f}"
   printf '\n#%%dnf%% %d\n' "$( 
     dnf history info 0 | awk '/^Transaction ID/ { print $4 }' )" >> \
       ~/"${f##*/}"
@@ -245,7 +245,7 @@ if [[ -f ~/"${f##*/}" ]]; then
   
   # ...and if it has the same tx number as `dnf history` currently shows...
   if [[ "$( awk '/^#%dnf%/ { print $2 }' ~/"${f##*/}" )" == \
-    "$dnf_hist_no" ]]
+    "${dnf_hist_no}" ]]
   then
 
     # ...then don't scan the HDD.
@@ -288,7 +288,7 @@ fi
 # backup the original data file and make a long-term
 # copy, for speed of debugging.
 _bak "$f"
-rsync -ca "$f" ~/"${f##*/}"
+rsync -ca "${f}" ~/"${f##*/}"
 printf '#%%dnf%% %d\n' "$( 
   dnf history info 0 | awk '/^Transaction ID/ { print $4 }' )" >> \
     ~/"${f##*/}"
@@ -327,19 +327,19 @@ printf '#%%dnf%% %d\n' "$(
 ere_2='>?[[:space:]]{3,}<?/?[[:alnum:]].*>?[[:space:]]{3,}<?'
 # Bug? is opt -n necc?
 _test_2(){
-  sudo grep --extended-regexp --line-number "$ere_2" "$1" # ere_2
+  sudo grep --extended-regexp --line-number "${ere_2}" "${1}" # ere_2
 }
 if _test_2 "$f"; then
-  sudo sed --in-place "s=${ere_2}=    =g" "$f" # ere_2
-  _test_2 "$f" &&
-    _erx $LINENO
+  sudo sed --in-place "s=${ere_2}=    =g" "${f}" # ere_2
+  _test_2 "${f}" &&
+    _erx "${LINENO}"
 fi
-command -p cp --archive "$f" "${f}_extra-data-removed"
+command -p cp --archive "${f}" "${f}_extra-data-removed"
 _bak "${f}_extra-data-removed"
 
   # <>
-  ls -l "$f"*
-  wc "$f"*
+  ls -l "${f}"*
+  wc "${f}"*
   exit 101
   set -x
 
@@ -353,7 +353,7 @@ _bak "${f}_extra-data-removed"
 # Alteration 3: Apply grep-style line numbers, ie, in-file indices. These 
 # are necessary for section 'Extra,' however, can only be applied prior 
 # to the full list having been subdivided. 
-grep --extended-regexp --line-number '.' "$f" > "${f}_all-indexed"
+grep --extended-regexp --line-number '.' "${f}" > "${f}_all-indexed"
 _bak "${f}_all-indexed"
 
 
@@ -363,12 +363,12 @@ _bak "${f}_all-indexed"
 # Bug likely: ere3
 ere_3=^"[0-9]{1,7}:#! ?(/usr)?/bin/(env|${shells}?) *<?(/usr)?(/bin/)?${shells} ?>? *"
 
-grep --extended-regexp "$ere_3" "${f}_all-indexed" > \
+grep --extended-regexp "${ere_3}" "${f}_all-indexed" > \
   "${f}_SC-scrpts-list" # ere_3
 _bak "${f}_SC-scrpts-list"
 
   # <>
-  ls -l "$f"*
+  ls -l "${f}"*
   wc "${f}"*
   exit 101
   set -x
@@ -377,17 +377,17 @@ _bak "${f}_SC-scrpts-list"
 
 # DEBUG: Invert the previous `grep` command, i.e.,
 #   { NOT (sh|bash|dash|ksh) == (tclsh|zsh|tcsh) }
-grep --extended-regexp --invert-match "$ere_3" "${f}_all-indexed" |
+grep --extended-regexp --invert-match "${ere_3}" "${f}_all-indexed" |
   sed --regexp-extended 's=[<>]=-----------------------------------------------------=g' |
   sed 's=[[:space:]]==g' |
   cut --characters -64 |
   grep -F 'sh' > "${f}_addl-shells" # ere_3, at 1st grep
-_bak "$f" '_addl-shells'
+_bak "${f}" '_addl-shells'
 
   # <>
-  ls -l "$f"*
+  ls -l "${f}"*
   cat "${f}_addl-shells"
-  wc "$f"*
+  wc "${f}"*
 
 
 # EXTRA: get the list of files with crashbangs that aren't relevant 
@@ -405,7 +405,7 @@ if ! [[ "${#full_index[@]}" == "$(
   wc --lines "${f}_all-indexed" | 
     cut --delimiter=' ' --fields=1 )" ]]
 then
-  _erx $LINENO
+  _erx "${LINENO}"
 fi
 
   # <>
@@ -415,8 +415,9 @@ fi
 
 # Bug? Is printing indices really necc?
 
-# Array 2: get the partial set of indices, i.e., ; a sparse array, which signify
-# only the relevant scripts. number of indices in shells_subindx should equal
+# Array 2: get the partial set of indices, i.e., ; a sparse array, 
+# which signify only the relevant scripts. number of indices in 
+# shells_subindx should equal
 # `wc -l` of "${f}_SC-scrpts-list".
 mapfile -t -O 1 shells_subindx < <( 
   cut '-d:' -f1 "${f}_SC-scrpts-list" )
@@ -425,7 +426,7 @@ if ! [[ "${#shells_subindx[@]}" == "$(
   wc --lines "${f}_SC-scrpts-list" | 
     cut --delimiter=' ' --fields=1 )" ]]
 then
-  _erx $LINENO
+  _erx "${LINENO}"
 fi
 
   # <>
@@ -451,7 +452,7 @@ for x in "${full_index[@]}"; do
       continue 2
 
     else
-      verify_subindx+=( "$x" )
+      verify_subindx+=( "${x}" )
       continue 2
     fi
   done
@@ -467,12 +468,12 @@ if [[ $(( "$(
     _num verify_subindx )" )) -eq "$( 
     _num full_index )" ]]
 then
-  _erx $LINENO
+  _erx ${LINENO}
 fi
 
 # Bug: can sed do this loop in one fork?
 for v in "${verify_subindx[@]}"; do
-  sed --quiet "${v}p" "${f}_post-test2" >> "$unlisted"
+  sed --quiet "${v}p" "${f}_post-test2" >> "${unlisted}"
 done
 _bak "${unlisted}.bak"
 
@@ -483,7 +484,7 @@ for i_2 in "${!shell_scripts[@]}"; do
 
   # Run `shellcheck on the script and count the number of each issue's ID.
   mapfile -t errs < <( 
-    shellcheck --severity "$severity" "$script" | 
+    shellcheck --severity "${severity}" "${script}" | 
       grep --fixed-strings --invert-match 'shellcheck.net' | 
       grep --extended-regexp --only-matching 'SC[0-9]{4}' | 
       sort --general-numeric-sort | 
@@ -496,11 +497,11 @@ for i_2 in "${!shell_scripts[@]}"; do
   # prioritized work lists with indices
   if [[ -n "${errs[*]:0:1}" ]]; then 
 		
-    printf '<idx:%d>  %%  <%s>\n' "$i_2" "$script" >> \
+    printf '<idx:%d>  %%  <%s>\n' "$i_2" "${script}" >> \
       "${f}_found_scripts_with_indices"
 
     for each_error in "${errs[@]}"; do
-      printf '%s %% <idx:%d>\n' "${each_error//$'\n'/}" "$i_2" >> \
+      printf '%s %% <idx:%d>\n' "${each_error//$'\n'/}" "${i_2}" >> \
         "${f}_found_errors_with_indices_unsorted"
     done
   fi
