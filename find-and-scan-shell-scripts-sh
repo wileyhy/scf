@@ -207,7 +207,7 @@ _scan_local_disks(){
       tr --squeeze-repeats ' \n\t' '\0' <<< "${od_o}" )
 			
         # <>
-        declare -p {od,tr}_o 
+        #declare -p {od,tr}_o 
         exit 101
     
     # If 'tr_o' contains some non-zero data, as it should, compare the 
@@ -566,22 +566,6 @@ exit 0
 
 
 # End notes
-#   1. this endianness pipeline: possibly POSIX + AIX + HPUX compliant; 
-#         https://serverfault.com/questions/163487/how-to-tell-if-a-linux-system-is-big-endian-or-little-endian
-#endianness="$( 
-#  echo I | 
-#    tr -d '[:space:]' | 
-#    od -to2 | 
-#    head -n1 | 
-#    awk '{print $2}' | 
-#    cut -c6 || 
-#      _erx "${LINENO}" )" 
-#if [[ "${endianness}" == 1 ]]; then
-#  endianness='little'
-#else
-#  endianness='big'
-#fi
-
 #   2. Note: GNU version: # od --address-radix=x --endian="${endianness}" 
 #       --skip-bytes=0 --read-bytes=2 --format=x2z --width=2 [FILE]
 
