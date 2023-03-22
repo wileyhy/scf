@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 # find-and-scan-shell-scripts-sh
 # Written in bash version 5.1 on Fedora 37
 
@@ -97,7 +97,6 @@ device="$(
     awk 'NR == 1 { print $3 }' )"
 mountpoint="$( 
   findmnt --canonicalize --output=target --noheadings "$device" )"
-unset usb_drives df_o device
 
   # <> Bug work: maintenance issue! Compound command
   #   Note: `df` isn't portable per `info df`
@@ -159,9 +158,12 @@ mapfile -d '' -t all_files < <(
     -type f -print0 2> /dev/null )
 
   # <>
-  #declare -p all_files
-  #exit 101
-  #set -x
+  declare -p all_files relevant_search_dirs previous mountpoint \
+    {data, time}dir datafile unlisted device df_o usb_drives \
+      first_two_chars severity shells PATH
+  delcare -pf _bak _erx _num _usage
+  exit 101
+  set -x
 
 
 # Add some brevity, and get the most recent tx number from `dnf history` 
@@ -224,6 +226,7 @@ _scan_local_disks(){
 }
 
 # Bug: last line only has a crashbang
+
 # Open a timestamped file & append into it the list of filenames and 
 # their crashbangs. 
 _create_LT_datafile(){
