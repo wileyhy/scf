@@ -7,23 +7,23 @@ PATH="$( getconf PATH )"':/usr/bin:/usr/sbin'
 #   Note: if executed by a restricted shell, this assignment to PATH will 
 # fail with an error message, and will ignore all of the rest of the 
 # commands on same script line as the PATH assignment. 
-
+#
   # <>
   #ec=$?
   #: 'path assignment exit:' $ec
   #[[ $ec -ne 0 ]] && 
   #  exit 99
   #exit 101
-
+#
 # Implementation-dependent arguments for options parsable by `shellcheck`:
 shells='(sh|bash|dash|ksh)'
 severity='error'
-
-
+#
+#
 # Variables
 time="$( builtin printf '%(%F_%H%M%S)T' )"
 #fstype_regexp='(binfmt_misc|bpf|cgroup2|configfs|debugfs|devpts|devtmpfs|efivarfs|fusectl|hugetlbfs|iso9660|mqueue|proc|pstore|rpc_pipefs|securityfs|selinuxfs|sysfs|tmpfs|tracefs)'
-
+#
 # Functions
 #   Note: cat doesn't need sudo from a regular user acct in this case,
 # for some odd reason, however, using '< "$1"' into `tee` fails,  as 
@@ -56,7 +56,7 @@ _usage(){
 EOF
   exit "${1}"
 }
-
+#
 # Option parsing
 if [[ "${#}" -gt 0 ]]; then
   first_two_chars="${1:0:2}"
@@ -70,14 +70,14 @@ if [[ "${#}" -gt 0 ]]; then
     *)  _usage 1;;
   esac
 fi
-
+#
   # <> Debug
   #set -x
-
-
+#
+#
 # Create the data directories
 sudo -v
-
+#
 #   In case of large log files, programatically select a save directory, 
 # attached to the local disk, where any output can be saved; prefer USB 
 # flash drives. This particular `df` command will output three alpha-
@@ -97,12 +97,12 @@ device="$(
     awk 'NR == 1 { print $3 }' )"
 mountpoint="$( 
   findmnt --canonicalize --output=target --noheadings "${device}" )"
-
+#
   # <> Bug work: maintenance issue! Compound command
   #   Note: `df` isn't portable per `info df`
   #declare -p usb_drives df_o device mountpoint
   #exit 101
-  
+# 
     # <> works
     #mountpoint="$(
     #  findmnt --canonicalize --output=target --noheadings "$(
@@ -114,7 +114,7 @@ mountpoint="$(
     #      awk 'NR == 1 { print $3 }'
     #  )"
     #)"
-
+#
 [[ -z "${mountpoint}" ]] &&
   mountpoint="${TEMPDIR:="${HOME}"}"
 datadir="${mountpoint}/scf.d/latest"
@@ -122,12 +122,12 @@ timedir="${datadir}/t_${time}"
 datafile="${timedir}/crunchbangs"
 unlisted="${timedir}/unlisted"
 umask 077
-
+#
 if [[ ! -d "${datadir}" ]]; then
   sudo mkdir --parents "${datadir}" ||
     _erx "${LINENO}"
   fi
-
+#
 # Label the current data as "latest."
 mapfile -d '' -t previous < <( 
   find "${datadir}" -mindepth 1 -maxdepth 1 -type d \
@@ -140,23 +140,23 @@ if [[ ! -d "${timedir}" ]]; then
   sudo mkdir --parents "${timedir}" ||
     _erx "${LINENO}"
 fi
-
+#
   # <>
   #exit 101
   set -x
-
-
+#
+#
 # Gather filenames from local attached disk storage.
 # shellcheck disable=SC2034
 mapfile -d '' -t relevant_search_dirs < <(
   find / -mindepth 1 -maxdepth 1 -type d \
     \( \! -name proc -a \! -name sys \) -print0 )
-
+#
 # DEBUG: "${relevant_search_dirs[@]}" OR '/usr/sbin' OR /usr/{,s}bin
 mapfile -d '' -t all_files < <( 
   find "${relevant_search_dirs[@]}" \
     -type f -print0 2> /dev/null )
-
+#
   # <> ##############################################################
   #declare -p all_files relevant_search_dirs previous mountpoint \
   #  {data,time}dir datafile unlisted device df_o usb_drives \
