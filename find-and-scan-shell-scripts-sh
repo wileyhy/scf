@@ -178,7 +178,7 @@ dnf_hist_no="$(
 # see endnotes
 endianness="$( 
   echo I | 
-    tr -d [:space:] | 
+    tr -d '[:space:]' | 
     od -to2 | 
     head -n1 | 
     awk '{print $2}' | 
@@ -241,7 +241,7 @@ _scan_local_disks(){
       strings_o="$( 
         strings --bytes=1 --include-all-whitespace \
             --output-separator '\0' "${nextfile}" || 
-          _erx "${LINENO}" 
+            _erx "${LINENO}" )"
           
       shabang_with_interpreter="$( 
         head --lines=1 --zero-terminated \
@@ -270,17 +270,31 @@ _scan_local_disks(){
 }
 
 # Bug: last line only has a crashbang
+# Bug: restructured since last testing
 
 # Open a timestamped file & append into it the list of filenames and 
 # their crashbangs. 
 _create_LT_datafile(){
-  printf '# crunchbangs\n' > "${f}"
-  printf '%s\n' "${shell_scripts[@]}" >> "${f}" ||
-    _erx "${LINENO}"
+  local dnf_o awk_o
+  dnf_o="$( 
+    dnf history info 0 ||
+      _erx "${LINENO}" )"
+  awk_o="$( 
+    awk '/^Transaction ID/ { print $4 }' <<< "${dnf_o}" ||
+      _erx "${LINENO}" )"
+  
+  printf '# crunchbangs\n' | 
+    sudo tee "${f}" ||
+      _erx "${LINENO}"
+  printf '%s\n' "${shell_scripts[@]}" |
+    sudo tee -a "${f}" ||
+      _erx "${LINENO}"
+  
   _bak "${f}"
-  printf '\n#%%dnf%% %d\n' "$( 
-    dnf history info 0 | awk '/^Transaction ID/ { print $4 }' )" >> \
-      ~/"${f##*/}"
+  printf '\n#%%dnf%% %d\n' "${awk_o}" | 
+    sudo tee -a ~/"${f##*/}" ||
+      _erx "${LINENO}"
+  
 }
 
 
