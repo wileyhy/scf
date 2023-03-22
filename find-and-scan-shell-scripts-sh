@@ -191,8 +191,8 @@ else
 fi
 
   # <>
-  declare -p f dnf_history_number endianness
-  exit 101
+  #declare -p f dnf_history_number endianness
+  #exit 101
   set -x
 
 # Functions for this section
@@ -201,7 +201,7 @@ _scan_local_disks(){
   # Sort out the scripts, ie, any file beginning with a crashbang ('#!'), 
   # from the rest of the files.
   for i_1 in "${!all_files[@]}"; do
-    unset shabang_with_interpreter {od,tr}_o nextfile
+    unset nextfile od_o shabang_with_interpreter tr_o 
     nextfile="${all_files[${i_1}]}"
 
     # File must exist and have a size greater than zero.
@@ -212,17 +212,14 @@ _scan_local_disks(){
 
     # Read from disk in binary the first two bytes of each file in 
     # the list and output it in hexadecimal.
-    
-    # POSIX `od` doesn't have GNU's '--strings' option, so use the 
-    # `strings` command separately.
-    # Note: GNU version: # od --address-radix=x --endian="${endianness}" \
-    #   --skip-bytes=0 --read-bytes=2 --format=x2z --width=2 [FILE]
+    #   Note: POSIX `od` doesn't have GNU's '--strings' option, so use 
+    #   the `strings` command separately.
     od_o="$( 
       od -Ax -j0 -N2 -tx2z ||
-        _erx "${LINENO}" )"
+        _erx "${LINENO}" )" # POSIX
 
     mapfile -d '' -t tr_o < <(
-        tr --squeeze-repeats ' \n\t' '\0' <<< "${od_o}" )
+      tr --squeeze-repeats ' \n\t' '\0' <<< "${od_o}" )
 			
         # <>
         declare -p {od,tr}_o 
@@ -585,4 +582,5 @@ exit 0
 
 # End notes
 #   1. https://serverfault.com/questions/163487/how-to-tell-if-a-linux-system-is-big-endian-or-little-endian
-#
+#   2. Note: GNU version: # od --address-radix=x --endian="${endianness}" 
+#       --skip-bytes=0 --read-bytes=2 --format=x2z --width=2 [FILE]
