@@ -159,9 +159,9 @@ mapfile -d '' -t all_files < <(
 
   # <>
   declare -p all_files relevant_search_dirs previous mountpoint \
-    {data, time}dir datafile unlisted device df_o usb_drives \
+    {data,time}dir datafile unlisted device df_o usb_drives \
       first_two_chars severity shells PATH
-  delcare -pf _bak _erx _num _usage
+  declare -pf _bak _erx _num _usage
   exit 101
   set -x
 
