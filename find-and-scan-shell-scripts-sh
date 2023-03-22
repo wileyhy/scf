@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 # find-and-scan-shell-scripts-sh
 # Written in bash version 5.1 on Fedora 37
 
@@ -157,12 +157,12 @@ mapfile -d '' -t all_files < <(
   find "${relevant_search_dirs[@]}" \
     -type f -print0 2> /dev/null )
 
-  # <>
-  declare -p all_files relevant_search_dirs previous mountpoint \
-    {data,time}dir datafile unlisted device df_o usb_drives \
-      first_two_chars severity shells PATH
-  declare -pf _bak _erx _num _usage
-  exit 101
+  # <> ##############################################################
+  #declare -p all_files relevant_search_dirs previous mountpoint \
+  #  {data,time}dir datafile unlisted device df_o usb_drives \
+  #    first_two_chars severity shells PATH
+  #declare -pf _bak _erx _num _usage
+  #exit 101
   set -x
 
 
