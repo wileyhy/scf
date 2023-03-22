@@ -171,6 +171,7 @@ f="${datafile}"
 dnf_hist_no="$( 
   dnf history info 0 | 
     awk '/^Transaction ID/ { print $4 }' )"
+endianness="$( echo I | tr -d [:space:] | od -to2 | head -n1 | awk '{print $2}' | cut -c6 )" # POSIX + AIX + HPUX, see endnotes
 
 # Functions for this section
 # Note: this function can take 30-90 minutes!
@@ -178,7 +179,7 @@ _scan_local_disks(){
   # Sort out the scripts, ie, any file beginning with a crashbang ('#!'), 
   # from the rest of the files.
   for i_1 in "${!all_files[@]}"; do
-    unset shabang {od,tr}_o nextfile
+    unset shabang_with_interpreter {od,tr}_o nextfile
     nextfile="${all_files[${i_1}]}"
 
     # File must exist and have a size greater than zero.
@@ -189,13 +190,16 @@ _scan_local_disks(){
 
     # Read from disk in binary the first two bytes of each file in 
     # the list and output it in hexadecimal.
-    tr_o="$( 
-      od --address-radix=x --read-bytes=2 --format=x2z "${nextfile}" ||
+    od_o="$( 
+      od --address-radix=x --format=x2z --read-bytes=2 --skip-bytes=0 "${nextfile}" ||
         _erx "${LINENO}" )"
-        
     mapfile -d '' -t tr_o < <(
-        tr --squeeze-repeats ' \n\t' '\0' <<< "${tr_o}" )
+        tr --squeeze-repeats ' \n\t' '\0' <<< "${od_o}" )
 			
+        # <>
+        declare -p {od,tr}_o 
+        exit 101
+    
     # If 'tr_o' contains some non-zero data, as it should, compare the 
     # hexidecimal representations to find any crashbangs.
     if [[ -z "${tr_o[*]:0:1}" ]]; then
@@ -208,19 +212,33 @@ _scan_local_disks(){
       # printable data, to protect `head` from garbage input, and to 
       # get the full crashbang string in ASCII. 
       #   Note: `strings` does not remove newlines.
-      shabang="$( 
-        strings --bytes=1 "${nextfile}" |
-          head --lines=1 )"
+      dd_of_file="$( dd bs=1 iflag=nonblock,noatime count=$(( 2 ** 13 )) if="${nextfile}" iflag=noatime skip=0 || 
+        _erx "${LINENO}" )"
+      
+      strings_o="$( 
+        strings --bytes=1 --include-all-whitespace \
+            --output-separator '\0' "${nextfile}" || 
+          _erx "${LINENO}" 
+          
+      shabang_with_interpreter="$( 
+        head --lines=1 --zero-terminated \
+            <<< "${shabang_with_interpreter}" || 
+          _erx "${LINENO}" )"
+
+        # <>
+        echo 'dd_of_file, length of element value:' "${#dd_of_file}"
+        declare -p strings_o shabang_with_interpreter
+        exit 101
 
       # Make a record of the filenames and their crashbangs in RAM.
       shell_scripts+=( [${i_1}]="$(
-        printf '%-50s <%s>\n' "${shabang}" "${nextfile}" )" )
+        printf '%-50s <%s>\n' "${shabang_with_interpreter}" "${nextfile}" )" )
       unset 'all_files[$i_1]'
 
         # <>
         #((++z))
         #if [[ $z == 10 ]]; then
-          #declare -p shell_scripts shabang nextfile
+          #declare -p shell_scripts shabang_with_interpreter nextfile
           #printf '%s\n' "${shell_scripts[@]}"
           #exit 101
         #fi
@@ -519,3 +537,10 @@ done
 
 _bak "${f}_found_scripts_with_indices"
 _bak "${f}_found_errors_with_indices_unsorted"
+
+exit 0
+
+
+# End notes
+#   1. https://serverfault.com/questions/163487/how-to-tell-if-a-linux-system-is-big-endian-or-little-endian
+#
