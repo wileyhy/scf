@@ -116,7 +116,7 @@ mountpoint="$(
     #)"
 
 [[ -z "${mountpoint}" ]] &&
-  mountpoint="${TEMPDIR:="$HOME"}"
+  mountpoint="${TEMPDIR:="${HOME}"}"
 datadir="${mountpoint}/scf.d/latest"
 timedir="${datadir}/t_${time}"
 datafile="${timedir}/crunchbangs"
@@ -179,7 +179,7 @@ _scan_local_disks(){
   # from the rest of the files.
   for i_1 in "${!all_files[@]}"; do
     unset shabang od_o nextfile
-    nextfile="${all_files[$i_1]}"
+    nextfile="${all_files[${i_1}]}"
 
     # File must exist and have a size greater than zero.
     if [[ ! -s "${nextfile}" ]]; then
@@ -210,7 +210,7 @@ _scan_local_disks(){
           head --lines=1 )"
 
       # Make a record of the filenames and their crashbangs in RAM.
-      shell_scripts+=( [$i_1]="$(
+      shell_scripts+=( [${i_1}]="$(
         printf '%-50s <%s>\n' "${shabang}" "${nextfile}" )" )
       unset 'all_files[$i_1]'
 
@@ -287,7 +287,7 @@ fi
 
 # backup the original data file and make a long-term
 # copy, for speed of debugging.
-_bak "$f"
+_bak "${f}"
 rsync -ca "${f}" ~/"${f##*/}"
 printf '#%%dnf%% %d\n' "$( 
   dnf history info 0 | awk '/^Transaction ID/ { print $4 }' )" >> \
@@ -329,7 +329,7 @@ ere_2='>?[[:space:]]{3,}<?/?[[:alnum:]].*>?[[:space:]]{3,}<?'
 _test_2(){
   sudo grep --extended-regexp --line-number "${ere_2}" "${1}" # ere_2
 }
-if _test_2 "$f"; then
+if _test_2 "${f}"; then
   sudo sed --in-place "s=${ere_2}=    =g" "${f}" # ere_2
   _test_2 "${f}" &&
     _erx "${LINENO}"
@@ -444,11 +444,11 @@ for x in "${full_index[@]}"; do
 
   for b in "${!shells_subindx[@]}"; do
 
-    if [[ $x -gt "${shells_subindx[$b]}" ]]; then
+    if [[ "${x}" -gt "${shells_subindx[${b}]}" ]]; then
       unset 'shells_subindx[$b]'
       continue 1
 
-    elif [[ $x = "${shells_subindx[$b]}" ]]; then
+    elif [[ "${x}" = "${shells_subindx[${b}]}" ]]; then
       continue 2
 
     else
@@ -468,7 +468,7 @@ if [[ $(( "$(
     _num verify_subindx )" )) -eq "$( 
     _num full_index )" ]]
 then
-  _erx ${LINENO}
+  _erx "${LINENO}"
 fi
 
 # Bug: can sed do this loop in one fork?
@@ -480,12 +480,15 @@ _bak "${unlisted}.bak"
 
 # MAIN TASK, 2 of 2: with ShellCheck scan each script for errors
 for i_2 in "${!shell_scripts[@]}"; do 
-  script="${shell_scripts[$i_2]}"
+  script="${shell_scripts[${i_2}]}"
 
   # Run `shellcheck on the script and count the number of each issue's ID.
+  mapfile -t careful < <( 
+    shellcheck --severity "${severity}" "${script}" || 
+      _erx "${LINENO}" )
   mapfile -t errs < <( 
-    shellcheck --severity "${severity}" "${script}" | 
-      grep --fixed-strings --invert-match 'shellcheck.net' | 
+    grep --fixed-strings --invert-match 'shellcheck.net' \
+        <<< "${careful[@]}" | 
       grep --extended-regexp --only-matching 'SC[0-9]{4}' | 
       sort --general-numeric-sort | 
       uniq --count |
@@ -497,7 +500,7 @@ for i_2 in "${!shell_scripts[@]}"; do
   # prioritized work lists with indices
   if [[ -n "${errs[*]:0:1}" ]]; then 
 		
-    printf '<idx:%d>  %%  <%s>\n' "$i_2" "${script}" >> \
+    printf '<idx:%d>  %%  <%s>\n' "${i_2}" "${script}" >> \
       "${f}_found_scripts_with_indices"
 
     for each_error in "${errs[@]}"; do
