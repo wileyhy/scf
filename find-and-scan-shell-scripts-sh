@@ -144,7 +144,7 @@ fi
 #
   # <>
   #exit 101
-  set -x
+  #set -x
 #
 #
 # Gather filenames from local attached disk storage.
@@ -189,6 +189,11 @@ if [[ "${endianness}" == 1 ]]; then
 else
   endianness='big'
 fi
+
+  # <>
+  declare -p dnf_hist_no endianness
+  exit 101
+  set -x
 
 # Functions for this section
 # Note: this function can take 30-90 minutes!
