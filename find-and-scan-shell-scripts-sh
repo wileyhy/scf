@@ -174,21 +174,6 @@ dnf_history_number="$(
   dnf history info 0 | 
     awk '/^Transaction ID/ { print $4 }' ||
       _erx "${LINENO}" )"
-# Note: this endianness pipeline: possibly POSIX + AIX + HPUX compliant; 
-# see endnotes
-endianness="$( 
-  echo I | 
-    tr -d '[:space:]' | 
-    od -to2 | 
-    head -n1 | 
-    awk '{print $2}' | 
-    cut -c6 || 
-      _erx "${LINENO}" )" 
-if [[ "${endianness}" == 1 ]]; then
-  endianness='little'
-else
-  endianness='big'
-fi
 
   # <>
   #declare -p f dnf_history_number endianness
@@ -215,7 +200,7 @@ _scan_local_disks(){
     #   Note: POSIX `od` doesn't have GNU's '--strings' option, so use 
     #   the `strings` command separately.
     od_o="$( 
-      od -Ax -j0 -N2 -tx2z ||
+      od -Ax -j0 -N2 -tx2z "${nextfile}" ||
         _erx "${LINENO}" )" # POSIX
 
     mapfile -d '' -t tr_o < <(
@@ -581,6 +566,23 @@ exit 0
 
 
 # End notes
-#   1. https://serverfault.com/questions/163487/how-to-tell-if-a-linux-system-is-big-endian-or-little-endian
+#   1. this endianness pipeline: possibly POSIX + AIX + HPUX compliant; 
+#         https://serverfault.com/questions/163487/how-to-tell-if-a-linux-system-is-big-endian-or-little-endian
+#endianness="$( 
+#  echo I | 
+#    tr -d '[:space:]' | 
+#    od -to2 | 
+#    head -n1 | 
+#    awk '{print $2}' | 
+#    cut -c6 || 
+#      _erx "${LINENO}" )" 
+#if [[ "${endianness}" == 1 ]]; then
+#  endianness='little'
+#else
+#  endianness='big'
+#fi
+
 #   2. Note: GNU version: # od --address-radix=x --endian="${endianness}" 
 #       --skip-bytes=0 --read-bytes=2 --format=x2z --width=2 [FILE]
+
+
