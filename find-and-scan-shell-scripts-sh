@@ -2,16 +2,24 @@
 # find-and-scan-shell-scripts-sh
 # Written in bash version 5.1 on Fedora 37
 
+# score findings
+#   in PATH
+#   purpose
+#     security
+#     enterprise production
+#     development
+#     consumer product
+#     home use
+#   ubiquity
+#   SC "score"
+#   compgen knows of it
 
-
-
-# what about sourcable scripts without crunchbangs?  `file`
-
+# is kcov still available?
 
 
 ###  SECTION A  ###
-# Add: 'PATH=:/bin::/usr/bin:'
-PATH="$( getconf PATH )"':/usr/bin:/usr/sbin::${PATH}:' 
+# Add: 'PATH=:/bin::/usr/bin:'; don't decend subdirs of PATH
+PATH="$( getconf PATH )"':/usr/bin:/usr/sbin::${PATH}:'
 LC_ALL=C
 #   Note: if executed by a restricted shell, this assignment to PATH will 
 # fail with an error message, and will ignore all of the rest of the 
@@ -575,17 +583,4 @@ _bak "${f}_found_scripts_with_indices"
 _bak "${f}_found_errors_with_indices_unsorted"
 
 exit 0
-
-
-#stty -a | grep -i utf # output includes 'utf8'
-#echo LANG: $LANG 
-#getconf LANG # nothing
-#getconf LC_TYPE # nothing
-#getconf LANGUAGE # nothing
-#locale # output is 13/14 lines inlcude 'UTF-8'
-#(set;env) | grep -ie utf -e module # prints value of LANG var
-#find / -type f -iname 'rc.local'# refs /etc/pcp.env, source script wo #!
-#find /usr /lib -type f -executable -iname '*im?modul*' -o -iname '*scim*' -o -iname '*uim*' -o -iname '*utf*'# /usr/bin/update-gtk-immodules 
-# # all utf-8
-exit 101
 
