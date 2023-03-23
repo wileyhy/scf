@@ -15,11 +15,10 @@
 #   compgen knows of it
 
 # is kcov still available?
-
+# what about sourcable scripts wo #!'s? `file`
 
 ###  SECTION A  ###
-# Add: 'PATH=:/bin::/usr/bin:'; don't decend subdirs of PATH
-PATH="$( getconf PATH )"':/usr/bin:/usr/sbin::${PATH}:'
+PATH="$( getconf PATH )"':/usr/bin:/usr/sbin::${PATH}:' # don't decend subdirs of PATH
 LC_ALL=C
 #   Note: if executed by a restricted shell, this assignment to PATH will 
 # fail with an error message, and will ignore all of the rest of the 
