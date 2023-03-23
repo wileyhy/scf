@@ -1,7 +1,7 @@
 #!/bin/bash
 # find-and-scan-shell-scripts-sh
 # Written in bash version 5.1 on Fedora 37
-
+x="${_}"; echo 'x:' "${x}"; exit 101
 
 ###  SECTION A  ###
 PATH="$( getconf PATH )"':/usr/bin:/usr/sbin' 
@@ -227,8 +227,9 @@ _scan_local_disks(){
       dd_of_file="$( dd bs=1 iflag=nonblock,noatime count=$(( 2 ** 13 )) if="${nextfile}" iflag=noatime skip=0 || 
         _erx "${LINENO}" )"
       
+      # --print-file-name; try wo --radix
       strings_o="$( 
-        strings --bytes=1 --include-all-whitespace \
+        strings --all --bytes=1 --include-all-whitespace \
             --output-separator '\0' "${nextfile}" || 
             _erx "${LINENO}" )"
           
