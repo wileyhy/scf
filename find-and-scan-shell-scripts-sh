@@ -54,7 +54,7 @@ _bak(){
 }
 _erx(){ 
   local ec="${?}"
-  echo Error: "${@}" 
+  echo Error: "$@" 
   return "${ec}"
 }
 _num(){ 
