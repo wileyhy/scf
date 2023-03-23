@@ -21,6 +21,7 @@ exit 101
 
 
 ###  SECTION A  ###
+# Add: 'PATH=:/bin::/usr/bin:'
 PATH="$( getconf PATH )"':/usr/bin:/usr/sbin' 
 #   Note: if executed by a restricted shell, this assignment to PATH will 
 # fail with an error message, and will ignore all of the rest of the 
