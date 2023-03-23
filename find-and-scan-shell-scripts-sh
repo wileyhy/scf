@@ -2,6 +2,17 @@
 # find-and-scan-shell-scripts-sh
 # Written in bash version 5.1 on Fedora 37
 x="${_}"; echo 'x:' "${x}"; exit 101
+LC_ALL=C
+stty -a | grep -i utf
+locale charmap
+echo $LANG $LC_TYPE $LANGUAGE
+localedef
+locale -a
+(set;env) | grep -i utf
+find / -type f -iname 'rc.local'
+exit 101
+
+
 
 ###  SECTION A  ###
 PATH="$( getconf PATH )"':/usr/bin:/usr/sbin' 
