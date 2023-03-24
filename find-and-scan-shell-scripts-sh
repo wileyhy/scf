@@ -10,17 +10,13 @@ LC_ALL=C
 # Implementation-dependent arguments for options parsable by `shellcheck`:
 severity='error'
 shells='(sh|bash|dash|ksh)'
-#
-#
+
+
 # Variables
 encoding="$( locale charmap )"
 time="$( builtin printf '%(%F_%H%M%S)T' )"
-#fstype_regexp='(binfmt_misc|bpf|cgroup2|configfs|debugfs|devpts|devtmpfs|efivarfs|fusectl|hugetlbfs|iso9660|mqueue|proc|pstore|rpc_pipefs|securityfs|selinuxfs|sysfs|tmpfs|tracefs)'
-#
+
 # Functions
-#   Note: cat doesn't need sudo from a regular user acct in this case,
-# for some odd reason, however, using '< "$1"' into `tee` fails,  as 
-# it does also into `sudo tee`.
 _bak(){ 
   # shellcheck disable=SC2002
   cat "${1}" | tee --output-error=exit "${1}" "${1}".bak > \
