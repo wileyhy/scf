@@ -91,12 +91,12 @@ timedir="${datadir}/t_${time}"
 datafile="${timedir}/crunchbangs"
 unlisted="${timedir}/unlisted"
 umask 077
-#
+
 if [[ ! -d "${datadir}" ]]; then
   sudo mkdir --parents "${datadir}" ||
     _erx "${LINENO}"
   fi
-#
+
 # Label the current data as "latest."
 mapfile -d '' -t previous < <( 
   find "${datadir}" -mindepth 1 -maxdepth 1 -type d \
@@ -109,23 +109,23 @@ if [[ ! -d "${timedir}" ]]; then
   sudo mkdir --parents "${timedir}" ||
     _erx "${LINENO}"
 fi
-#
+
   # <>
   #exit 101
   #set -x
-#
-#
+
+
 # Gather filenames from local attached disk storage.
 # shellcheck disable=SC2034
 mapfile -d '' -t relevant_search_dirs < <(
   find / -mindepth 1 -maxdepth 1 -type d \
     \( \! -name proc -a \! -name sys \) -print0 )
-#
+
 # DEBUG: "${relevant_search_dirs[@]}" OR '/usr/sbin' OR /usr/{,s}bin
 mapfile -d '' -t all_files < <( 
   find "${relevant_search_dirs[@]}" \
     -type f -print0 2> /dev/null )
-#
+
   # <> ##############################################################
   #declare -p all_files relevant_search_dirs previous mountpoint \
   #  {data,time}dir datafile unlisted device df_o usb_drives \
