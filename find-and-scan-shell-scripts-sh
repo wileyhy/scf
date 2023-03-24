@@ -269,17 +269,17 @@ if [[ -f ~/"${f##*/}" ]]; then
     # ...then don't scan the HDD.
     :
 
-  # Otherwise, erase the existing long-term datafile, do scan the HDD...
+  # Otherwise, -e-r-a-s-e- the existing long-term datafile, do scan the HDD...
   else
     _bak ~/"${f##*/}"
-    rm -f ~/"${f##*/}"
+    #rm -f ~/"${f##*/}"
     _scan_local_disks
 
     # ...and create a new long-term datafile
     _create_LT_datafile
   fi
 
-# and if a long-tern crashbang file DNE, then do scan the HDD
+# and if a long-term crashbang file DNE, then do scan the HDD
 else
   _scan_local_disks
 
@@ -288,9 +288,6 @@ else
 fi
 
 
-
-
-    
     
 ###  SECTION C  ###    
 
