@@ -6,17 +6,7 @@
 ###  SECTION A  ###
 PATH="$( getconf PATH )"':/usr/bin:/usr/sbin::${PATH}:' # don't decend subdirs of PATH
 LC_ALL=C
-#   Note: if executed by a restricted shell, this assignment to PATH will 
-# fail with an error message, and will ignore all of the rest of the 
-# commands on same script line as the PATH assignment. 
-#
-  # <>
-  #ec=$?
-  #: 'path assignment exit:' $ec
-  #[[ $ec -ne 0 ]] && 
-  #  exit 99
-  #exit 101
-#
+
 # Implementation-dependent arguments for options parsable by `shellcheck`:
 severity='error'
 shells='(sh|bash|dash|ksh)'
