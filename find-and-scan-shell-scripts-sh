@@ -11,7 +11,6 @@ LC_ALL=C
 severity='error'
 shells='(sh|bash|dash|ksh)'
 
-
 # Variables
 encoding="$( locale charmap )"
 time="$( builtin printf '%(%F_%H%M%S)T' )"
@@ -45,7 +44,7 @@ _usage(){
 EOF
   exit "${1}"
 }
-#
+
 # Option parsing
 if [[ "${#}" -gt 0 ]]; then
   first_two_chars="${1:0:2}"
@@ -59,14 +58,14 @@ if [[ "${#}" -gt 0 ]]; then
     *)  _usage 1;;
   esac
 fi
-#
+
   # <> Debug
   #set -x
-#
-#
+
+
 # Create the data directories
 sudo -v
-#
+
 #   In case of large log files, programatically select a save directory, 
 # attached to the local disk, where any output can be saved; prefer USB 
 # flash drives. This particular `df` command will output three alpha-
@@ -74,36 +73,17 @@ sudo -v
 # output by descending size. With `awk`, take the device with the most 
 # available space and get its mountpoint with `findmnt`. If there is no 
 # output, then set 'mountpoint' according to environment variables. 
-mapfile -d '' -t usb_drives < <(
-  sudo find /run/media -mindepth 2 -maxdepth 2 -type d -print0 )
-mapfile -t df_o < <(
-  sudo df --sync --local --output='fstype,avail,source' --block-size=1 \
-      "${usb_drives[@]}" |
-    grep --extended-regexp --invert-match '^Type[[:space:]]*Avail' )
-device="$( 
-  printf '%s\n' "${df_o[@]}" |
-    sort --general-numeric-sort --reverse --key=2 |
-    awk 'NR == 1 { print $3 }' )"
-mountpoint="$( 
-  findmnt --canonicalize --output=target --noheadings "${device}" )"
-#
-  # <> Bug work: maintenance issue! Compound command
-  #   Note: `df` isn't portable per `info df`
-  #declare -p usb_drives df_o device mountpoint
-  #exit 101
-# 
-    # <> works
-    #mountpoint="$(
-    #  findmnt --canonicalize --output=target --noheadings "$(
-    #    find /run/media -mindepth 2 -maxdepth 2 -type d |
-    #      df --sync --local --output='fstype,avail,source' --block-size=1 |
-    #      grep --extended-regexp --invert-match '^Type[[:space:]]*Avail' |
-    #      grep --extended-regexp --invert-match ^"$fstype_regexp" |
-    #      sort --general-numeric-sort --reverse --key=2 |
-    #      awk 'NR == 1 { print $3 }'
-    #  )"
-    #)"
-#
+mountpoint="$(
+  findmnt --canonicalize --output=target --noheadings "$(
+    find /run/media -mindepth 2 -maxdepth 2 -type d |
+      df --sync --local --output='fstype,avail,source' --block-size=1 |
+      grep --extended-regexp --invert-match '^Type[[:space:]]*Avail' |
+      grep --extended-regexp --invert-match ^"$fstype_regexp" |
+      sort --general-numeric-sort --reverse --key=2 |
+      awk 'NR == 1 { print $3 }'
+  )"
+)"
+
 [[ -z "${mountpoint}" ]] &&
   mountpoint="${TEMPDIR:="${HOME}"}"
 datadir="${mountpoint}/scf.d/latest"
