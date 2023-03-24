@@ -2,20 +2,6 @@
 # find-and-scan-shell-scripts-sh
 # Written in bash version 5.1 on Fedora 37
 
-# score findings
-#   in PATH
-#   purpose
-#     security
-#     enterprise production
-#     development
-#     consumer product
-#     home use
-#   ubiquity
-#   SC "score"
-#   compgen knows of it
-
-# is kcov still available?
-# what about sourcable scripts wo #!'s? `file`
 
 ###  SECTION A  ###
 PATH="$( getconf PATH )"':/usr/bin:/usr/sbin::${PATH}:' # don't decend subdirs of PATH
