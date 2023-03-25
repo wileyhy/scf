@@ -39,8 +39,7 @@ _usage(){
         Usage:  ./find-and-scan-shell-scripts-sh [-ehiw]
                 -e error          -i info
                 -h help           -w warning
-        Only the first option is processed.
-    SCF homepage: https://github.com/wileyhy/scf/
+    Only the first option is processed.
 EOF
   exit "${1}"
 }
@@ -107,20 +106,21 @@ if ! sudo command test -d "${timedir}"; then
     _erx "${LINENO}"
 fi
 
-# Gather filenames from local attached disk storage.
+# Gather filenames from local attached disk storage, of files with 
+# size not equal to 0 bytes.
 # shellcheck disable=SC2034
-#mapfile -d '' -t relevant_search_dirs < <(
-  #find / -mindepth 1 -maxdepth 1 -type d \
-    #\( \! -name proc -a \! -name sys -a \! -iname 'scf.d' \) -print0 )
+mapfile -d '' -t relevant_search_dirs < <(
+  find / -mindepth 1 -maxdepth 1 -type d \
+    \( \! -name proc -a \! -name sys -a \! -iname 'scf.d' \) -print0 )
 
 # DEBUG: "${relevant_search_dirs[@]}" OR '/usr/sbin' OR /usr/{,s}bin
 mapfile -d '' -t all_files < <( 
-  sudo find /proc \
-    -type f -print0 2> /dev/null )
+  sudo find /usr/sbin \
+    -type f \! -size 0c -print0 2> /dev/null )
   #"${relevant_search_dirs[@]}" \
 
   # <> ##############################################################
-  sudo touch "${timedir}/A_vars" "${f}_a-all_files" ||
+  sudo touch "${timedir}/A_vars" "${datafile}_a-all_files" ||
     _erx "${LINENO}"
   {
     declare -p PATH LC_ALL severity shells fstype_regexp time
@@ -131,7 +131,11 @@ mapfile -d '' -t all_files < <(
   } | 
     sudo tee -a "${timedir}/A_vars"
   declare -p all_files | 
-    sudo tee -a ~/"${f##*/}_a-all_files" "${f}_a-all_files"
+    sudo tee -a ~/"${datafile##*/}_a-all_files" "${datafile}_a-all_files"
+  _bak "${timedir}/A_vars"
+  _bak "${datafile}_a-all_files"
+  _bak ~/"${datafile##*/}_a-all_files"
+
   #exit 101
   set -x
 
@@ -151,16 +155,6 @@ _scan_local_disks(){
   for i_1 in "${!all_files[@]}"; do
     unset nextfile od_o tr_o strings_o
     nextfile="${all_files[${i_1}]}"
-
-    # File must exist and have a size greater than zero.
-    #   Note: builtin `[[` fails due to lack of permissions
-    if ! sudo command test -s "${nextfile}"; then 
-      
-      files_with_no_size+=( "${nextfile}" )
-      
-      unset 'all_files[$i_1]'; 
-      continue; 
-    fi
 
     # Bug, inordinately long interpreter paths are rare, but do occur.
     # Read from disk in binary the first two bytes of each file in 
@@ -195,12 +189,12 @@ _scan_local_disks(){
 
       # Make a record of the filenames and their crashbangs in RAM.
       shell_scripts+=( [${i_1}]="$(
-        printf '%-50s <%s>\n' "${strings_o}" "${nextfile}" )" )
+        printf '%-50s%% <%s>\n' "${strings_o}" "${nextfile}" )" )
       unset 'all_files[$i_1]'
       printf '+'
 
     else
-      all_other_files+=( "${nextfile}" )
+      all_other_files+=( [${i_1}]="${nextfile}" )
       unset 'all_files[$i_1]'
       if [[ "$j" = 16 ]]; then printf '.'; unset j; j=0; else ((j++)); fi
     fi
@@ -215,15 +209,10 @@ _create_datafile(){
     sudo tee "${f}" ||
       _erx "${LINENO}"
   printf '%s\n' "${shell_scripts[@]}" |
-    sudo tee -a "${f}" ||
+    sudo tee -a "${f}" ~/"${f##*/}" ||
       _erx "${LINENO}"
-
-  # back it up
   _bak "${f}"
-
-  # and make a long-term copy, for speed of debugging.
-  rsync -ca "${f}" ~/"${f##*/}" ||
-    _erx "${LINENO}"
+  _bak ~/"${f##*/}"
 }
 
 # run the functions 
@@ -246,6 +235,9 @@ _create_datafile
     sudo tee -a "${f}_a-files_with_no_size"
   declare -p all_other_files | 
     sudo tee -a "${f}_a-all_other_files"
+  _bak "${timedir}/B_vars"
+  _bak "${f}_a-files_with_no_size"
+  _bak "${f}_a-all_other_files"
 
   exit 101
   set -x
