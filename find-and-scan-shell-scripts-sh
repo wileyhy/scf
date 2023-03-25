@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 # find-and-scan-shell-scripts-sh
 # Written in bash version 5.1 on Fedora 37
 
@@ -115,9 +115,10 @@ mapfile -d '' -t relevant_search_dirs < <(
 
 # DEBUG: "${relevant_search_dirs[@]}" OR '/usr/sbin' OR /usr/{,s}bin
 mapfile -d '' -t all_files < <( 
-  sudo find /usr/sbin \
-    -type f \! -size 0c -print0 2> /dev/null )
-  #"${relevant_search_dirs[@]}" \
+  sudo find \
+    "${relevant_search_dirs[@]}" \
+      -type f \! -empty -print0 2> /dev/null )
+    #/usr/sbin /usr/bin \
 
   # <> ##############################################################
   sudo touch "${timedir}/A_vars" "${datafile}_a-all_files" ||
@@ -129,15 +130,16 @@ mapfile -d '' -t all_files < <(
     declare -p previous relevant_search_dirs 
     declare -p all_files
   } | 
-    sudo tee -a "${timedir}/A_vars"
+    sudo tee -a "${timedir}/A_vars" > /dev/null 2>&1
   declare -p all_files | 
-    sudo tee -a ~/"${datafile##*/}_a-all_files" "${datafile}_a-all_files"
+    sudo tee -a ~/"${datafile##*/}_a-all_files" \
+      "${datafile}_a-all_files" > /dev/null 2>&1
   _bak "${timedir}/A_vars"
   _bak "${datafile}_a-all_files"
   _bak ~/"${datafile##*/}_a-all_files"
 
   #exit 101
-  set -x
+  #set -x
 
 
 
@@ -189,14 +191,14 @@ _scan_local_disks(){
 
       # Make a record of the filenames and their crashbangs in RAM.
       shell_scripts+=( [${i_1}]="$(
-        printf '%-50s%% <%s>\n' "${strings_o}" "${nextfile}" )" )
+        printf '%-50s <%s>\n' "${strings_o}" "${nextfile}" )" )
       unset 'all_files[$i_1]'
-      printf '+'
+      if [[ "$k" = 32 ]]; then printf '+';  unset k; k=0; else ((k++)); fi
 
     else
       all_other_files+=( [${i_1}]="${nextfile}" )
       unset 'all_files[$i_1]'
-      if [[ "$j" = 16 ]]; then printf '.'; unset j; j=0; else ((j++)); fi
+      if [[ "$j" = 32 ]]; then printf '.';  unset j; j=0; else ((j++)); fi
     fi
   done
 }
@@ -205,11 +207,11 @@ _scan_local_disks(){
 # their crashbangs. 
 _create_datafile(){
   # create the original datafile
-  printf '# crunchbangs\n' | 
-    sudo tee "${f}" ||
+  printf '# crunchbangs -- %s \n' "${time}" | 
+    sudo tee "${f}" > /dev/null 2>&1 ||
       _erx "${LINENO}"
   printf '%s\n' "${shell_scripts[@]}" |
-    sudo tee -a "${f}" ~/"${f##*/}" ||
+    sudo tee -a "${f}" ~/"${f##*/}" > /dev/null 2>&1 ||
       _erx "${LINENO}"
   _bak "${f}"
   _bak ~/"${f##*/}"
@@ -222,24 +224,20 @@ _scan_local_disks
 _create_datafile
 
   # <> ##############################################################
-  sudo touch "${timedir}/B_vars" "${f}_a-files_with_no_size" \
-      "${f}_a-all_other_files" ||
+  sudo touch "${timedir}/B_vars" "${f}_a-all_other_files" ||
     _erx "${LINENO}"
   {
   declare -p f i_1 nextfile od_o strings_o j
   declare -pf _scan_local_disks _create_datafile
-  declare -p files_with_no_size tr_o shell_scripts all_other_files
+  declare -p tr_o shell_scripts all_other_files
   } |
-    sudo tee -a "${timedir}/B_vars"
-  declare -p files_with_no_size | 
-    sudo tee -a "${f}_a-files_with_no_size"
+    sudo tee -a "${timedir}/B_vars" > /dev/null 2>&1
   declare -p all_other_files | 
-    sudo tee -a "${f}_a-all_other_files"
+    sudo tee -a "${f}_a-all_other_files" > /dev/null 2>&1
   _bak "${timedir}/B_vars"
-  _bak "${f}_a-files_with_no_size"
   _bak "${f}_a-all_other_files"
 
-  exit 101
+  #exit 101
   set -x
 
 
@@ -270,6 +268,8 @@ _bak "${f}_extra-data-removed"
   # <>
   ls -l "${f}"*
   wc "${f}"*
+  sudo sha256sum "${f}.bak" "${f}_extra-data-removed"
+  
   exit 101
   set -x
 
