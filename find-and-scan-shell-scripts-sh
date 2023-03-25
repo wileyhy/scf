@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 # find-and-scan-shell-scripts-sh
 # Written in bash version 5.1 on Fedora 37
 
@@ -19,7 +19,7 @@ time="$( builtin printf '%(%F_%H%M%S)T' )"
 _bak(){ 
   # shellcheck disable=SC2002
   cat "${1}" |
-    tee --output-error=exit "${1}" "${1}".bak > /dev/null 2>&1 ||
+    tee --output-error='exit' "${1}" "${1}".bak > /dev/null 2>&1 ||
       _erx '_\bak' "${1}"
 }
 _erx(){ 
@@ -130,16 +130,18 @@ mapfile -d '' -t all_files < <(
     declare -p previous relevant_search_dirs 
     declare -p all_files
   } | 
-    sudo tee -a "${timedir}/A_vars" > /dev/null 2>&1
+    sudo tee --append --output-error='exit' "${timedir}/A_vars" \
+      > /dev/null 2>&1
   declare -p all_files | 
-    sudo tee -a ~/"${datafile##*/}_a-all_files" \
-      "${datafile}_a-all_files" > /dev/null 2>&1
+    sudo tee --append --output-error='exit' \
+      ~/"${datafile##*/}_a-all_files" "${datafile}_a-all_files" \
+        > /dev/null 2>&1
   _bak "${timedir}/A_vars"
   _bak "${datafile}_a-all_files"
   _bak ~/"${datafile##*/}_a-all_files"
 
-  #exit 101
-  #set -x
+  exit 101
+  set -x
 
 
 
@@ -208,10 +210,11 @@ _scan_local_disks(){
 _create_datafile(){
   # create the original datafile
   printf '# crunchbangs -- %s \n' "${time}" | 
-    sudo tee "${f}" > /dev/null 2>&1 ||
+    sudo tee --output-error='exit' "${f}" > /dev/null 2>&1 ||
       _erx "${LINENO}"
   printf '%s\n' "${shell_scripts[@]}" |
-    sudo tee -a "${f}" ~/"${f##*/}" > /dev/null 2>&1 ||
+    sudo tee --append --output-error='exit' "${f}" ~/"${f##*/}" \
+        > /dev/null 2>&1 ||
       _erx "${LINENO}"
   _bak "${f}"
   _bak ~/"${f##*/}"
@@ -231,13 +234,15 @@ _create_datafile
   declare -pf _scan_local_disks _create_datafile
   declare -p tr_o shell_scripts all_other_files
   } |
-    sudo tee -a "${timedir}/B_vars" > /dev/null 2>&1
+    sudo tee --append "--output-error='exit' ${timedir}/B_vars" \
+      > /dev/null 2>&1
   declare -p all_other_files | 
-    sudo tee -a "${f}_a-all_other_files" > /dev/null 2>&1
+    sudo tee --append "--output-error='exit' ${f}_a-all_other_files" \
+      > /dev/null 2>&1
   _bak "${timedir}/B_vars"
   _bak "${f}_a-all_other_files"
 
-  #exit 101
+  exit 101
   set -x
 
 
