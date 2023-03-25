@@ -210,13 +210,20 @@ _scan_local_disks(){
 # Open a timestamped file & append into it the list of filenames and 
 # their crashbangs. 
 _create_datafile(){
+  # create the original datafile
   printf '# crunchbangs\n' | 
     sudo tee "${f}" ||
       _erx "${LINENO}"
   printf '%s\n' "${shell_scripts[@]}" |
     sudo tee -a "${f}" ||
       _erx "${LINENO}"
+
+  # back it up
   _bak "${f}"
+
+  # and make a long-term copy, for speed of debugging.
+  rsync -ca "${f}" ~/"${f##*/}" ||
+    _erx "${LINENO}"
 }
 
 # run the functions 
@@ -239,6 +246,7 @@ _create_datafile
     sudo tee -a "${f}_a-files_with_no_size"
   declare -p all_other_files | 
     sudo tee -a "${f}_a-all_other_files"
+
   exit 101
   set -x
 
@@ -250,43 +258,7 @@ _create_datafile
 
 # Make the data readable and useable.
 
-# backup the original data file and make a long-term
-# copy, for speed of debugging.
-_bak "${f}"
-rsync -ca "${f}" ~/"${f##*/}"
-printf '#%%dnf%% %d\n' "$( 
-  dnf history info 0 | 
-    awk '/^Transaction ID/ { print $4 }' )" >> ~/"${f##*/}" ||
-      _erx "${LINENO}"
-
-  # <>
-  #exit 101
-
 # Alterations
-
-# Alteration 0
-# Do all of the interpreters exist on disk?
-#mapfile -d '' -t interpreters < <(
-# sudo head /run/media/root/15_Mar_2023/scf.d/latest/t_2023-03-21_102504/crunchbangs | grep ^'#!' | sed -e 's,#!,,g' -e 's,<.*,,g' -e 's,[[:space:]]*$,,g' -e 's, -.*,,g'| cat -Aen  
-
-  ## Bug work: why remove spaces?
-  ## Alteration 1: in the data file, fix the crashbangs that have spaces in
-  ## them. ## works
-  #_test_1(){
-  #  sudo grep --quiet --extended-regexp ^'#! /' "$1" # ere_1
-  #}
-  #if _test_1 "$f"; then
-  #  sudo sed --in-place 's,^#! /,#!/,g' "$f" # ere_1
-  #  _test_1 "$f" && 
-  #    _erx $LINENO
-  #fi
-  ## Note: most distros replace certain commands, such as `cp`, with 
-  ## aliases.
-  #command -p cp --archive "$f" "${f}_hashbangs-spaces-deleted"
-  #_bak "${f}_hashbangs-spaces-deleted"
-  # <>
-  #exit 101
-  #set -x
 
 # Alteration 2: fix the odd extra data segments in the middles of the rows. 
 # Requires using 'relevant_search_dirs' in the above `find` path. ## works
@@ -309,11 +281,7 @@ _bak "${f}_extra-data-removed"
   exit 101
   set -x
 
-# Question: do all of the interpreters exist on disk?
 
-# Q: does #! accept relative paths?
-
-# Q: will '#! /bin/env perl -T -w' fail? env -vS
 # Bug: high disk io, slow
 
 # Alteration 3: Apply grep-style line numbers, ie, in-file indices. These 
@@ -339,108 +307,6 @@ _bak "${f}_SC-scrpts-list"
   exit 101
   set -x
 
-  # Bug: Why?
-
-  ## DEBUG: Invert the previous `grep` command, i.e.,
-  ##   { NOT (sh|bash|dash|ksh) == (tclsh|zsh|tcsh) }
-  #grep --extended-regexp --invert-match "${ere_3}" "${f}_all-indexed" |
-  #sed --regexp-extended 's=[<>]=-----------------------------------------------------=g' |
-  #sed 's=[[:space:]]==g' |
-  #cut --characters -64 |
-  #grep -F 'sh' > "${f}_addl-shells" # ere_3, at 1st grep
-  #_bak "${f}" '_addl-shells'
-  # <>
-  #ls -l "${f}"*
-  #cat "${f}_addl-shells"
-  #wc "${f}"*
-
-
-# EXTRA: get the list of files with crashbangs that aren't relevant 
-# shell scripts.
-unset full_index shells_subindx verify_subindx
-
-# Bug: sb?: =( {0.."$( wc --lines "${f}_all-indexed" )" )
-# Extra, array 1: get the full set of indices as a contiguous array. The number of indices 
-# in full_index should equal `wc --lines` of "${f}_all-indexed"
-mapfile -t -O 1 full_index < <( 
-  cut --delimiter=':' --fields=1 "${f}_all-indexed" )
-
-# Bug? cut this codeblock?
-if ! [[ "${#full_index[@]}" == "$( 
-  wc --lines "${f}_all-indexed" | 
-    cut --delimiter=' ' --fields=1 )" ]]
-then
-  _erx "${LINENO}"
-fi
-
-  # <>
-  _num full_index
-  declare -p full_index | 
-    less --LINE-NUMBERS --RAW-CONTROL-CHARS
-
-# Bug? Is printing indices really necc?
-
-# Array 2: get the partial set of indices, i.e., ; a sparse array, 
-# which signify only the relevant scripts. number of indices in 
-# shells_subindx should equal
-# `wc -l` of "${f}_SC-scrpts-list".
-mapfile -t -O 1 shells_subindx < <( 
-  cut '-d:' -f1 "${f}_SC-scrpts-list" )
-
-if ! [[ "${#shells_subindx[@]}" == "$( 
-  wc --lines "${f}_SC-scrpts-list" | 
-    cut --delimiter=' ' --fields=1 )" ]]
-then
-  _erx "${LINENO}"
-fi
-
-  # <>
-  declare -p shells_subindx | 
-    less --LINE-NUMBERS --RAW-CONTROL-CHARS
-  _num shells_subindx
-  wc "${f}"*
-
-# Array 3: partial set of indices for only *irrelevant* scripts; also 
-# a sparse array.
-unset f b verify_subindx shells_dup
-shells_dup=( "${shells_subindx[@]}" )
-
-for x in "${full_index[@]}"; do
-
-  for b in "${!shells_subindx[@]}"; do
-
-    if [[ "${x}" -gt "${shells_subindx[${b}]}" ]]; then
-      unset 'shells_subindx[$b]'
-      continue 1
-
-    elif [[ "${x}" = "${shells_subindx[${b}]}" ]]; then
-      continue 2
-
-    else
-      verify_subindx+=( "${x}" )
-      continue 2
-    fi
-  done
-done
-
-  # <>
-  declare -p full_index shells_dup verify_subindx | 
-    less --LINE-NUMBERS --RAW-CONTROL-CHARS
-
-# the counts should equal
-if [[ $(( "$( 
-  _num shells_dup )" + "$( 
-    _num verify_subindx )" )) -eq "$( 
-    _num full_index )" ]]
-then
-  _erx "${LINENO}"
-fi
-
-# Bug: can sed do this loop in one fork?
-for v in "${verify_subindx[@]}"; do
-  sed --quiet "${v}p" "${f}_post-test2" >> "${unlisted}"
-done
-_bak "${unlisted}.bak"
 
 
 # MAIN TASK, 2 of 2: with ShellCheck scan each script for errors
