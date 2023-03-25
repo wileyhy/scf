@@ -12,15 +12,15 @@ severity='error'
 shells='(sh|bash|dash|ksh)'
 
 # Variables
-encoding="$( locale charmap )"
+fstype_regexp='(autofs|binfmt_misc|bpf|cgroup2|configfs|debugfs|devpts|devtmpfs|efivarfs|fusectl|fuse.portal|hugetlbfs|iso9660|mqueue|proc|pstore|rpc_pipefs|securityfs|selinuxfs|sysfs|tmpfs|tracefs)'
 time="$( builtin printf '%(%F_%H%M%S)T' )"
 
 # Functions
 _bak(){ 
   # shellcheck disable=SC2002
-  cat "${1}" | tee --output-error=exit "${1}" "${1}".bak > \
-      /dev/null 2>&1 ||
-    _erx '_\bak' "${1}"
+  cat "${1}" |
+    tee --output-error=exit "${1}" "${1}".bak > /dev/null 2>&1 ||
+      _erx '_\bak' "${1}"
 }
 _erx(){ 
   local ec="${?}"
@@ -59,9 +59,6 @@ if [[ "${#}" -gt 0 ]]; then
   esac
 fi
 
-  # <> Debug
-  #set -x
-
 
 # Create the data directories
 sudo -v
@@ -73,9 +70,9 @@ sudo -v
 # output by descending size. With `awk`, take the device with the most 
 # available space and get its mountpoint with `findmnt`. If there is no 
 # output, then set 'mountpoint' according to environment variables. 
-mountpoint="$(
-  findmnt --canonicalize --output=target --noheadings "$(
-    find /run/media -mindepth 2 -maxdepth 2 -type d |
+mountpoint="$( 
+  findmnt --canonicalize --output=target --noheadings "$( 
+    sudo find /run/media -mindepth 2 -maxdepth 2 -type d |
       df --sync --local --output='fstype,avail,source' --block-size=1 |
       grep --extended-regexp --invert-match '^Type[[:space:]]*Avail' |
       grep --extended-regexp --invert-match ^"$fstype_regexp" |
@@ -92,74 +89,75 @@ datafile="${timedir}/crunchbangs"
 unlisted="${timedir}/unlisted"
 umask 077
 
-if [[ ! -d "${datadir}" ]]; then
+if ! sudo command test -d "${datadir}"; then
   sudo mkdir --parents "${datadir}" ||
     _erx "${LINENO}"
-  fi
+fi
 
 # Label the current data as "latest."
 mapfile -d '' -t previous < <( 
-  find "${datadir}" -mindepth 1 -maxdepth 1 -type d \
+  sudo find "${datadir}" -mindepth 1 -maxdepth 1 -type d \
     -name 't_*' -print0 2> /dev/null )
 if [[ -n "${previous[*]:0:1}" ]]; then
   sudo mv "${previous[@]}" "${mountpoint}/scf.d/" ||  
     _erx "${LINENO}"
 fi
-if [[ ! -d "${timedir}" ]]; then
+if ! sudo command test -d "${timedir}"; then
   sudo mkdir --parents "${timedir}" ||
     _erx "${LINENO}"
 fi
 
-  # <>
-  #exit 101
-  #set -x
-
-
 # Gather filenames from local attached disk storage.
 # shellcheck disable=SC2034
-mapfile -d '' -t relevant_search_dirs < <(
-  find / -mindepth 1 -maxdepth 1 -type d \
-    \( \! -name proc -a \! -name sys \) -print0 )
+#mapfile -d '' -t relevant_search_dirs < <(
+  #find / -mindepth 1 -maxdepth 1 -type d \
+    #\( \! -name proc -a \! -name sys -a \! -iname 'scf.d' \) -print0 )
 
 # DEBUG: "${relevant_search_dirs[@]}" OR '/usr/sbin' OR /usr/{,s}bin
 mapfile -d '' -t all_files < <( 
-  find "${relevant_search_dirs[@]}" \
+  sudo find /proc \
     -type f -print0 2> /dev/null )
+  #"${relevant_search_dirs[@]}" \
 
   # <> ##############################################################
-  #declare -p all_files relevant_search_dirs previous mountpoint \
-  #  {data,time}dir datafile unlisted device df_o usb_drives \
-  #    first_two_chars severity shells PATH
-  #declare -pf _bak _erx _num _usage
+  sudo touch "${timedir}/A_vars" "${f}_a-all_files" ||
+    _erx "${LINENO}"
+  {
+    declare -p PATH LC_ALL severity shells fstype_regexp time
+    declare -pf _bak _erx _num _usage
+    declare -p first_two_chars mountpoint datadir timedir datafile unlisted 
+    declare -p previous relevant_search_dirs 
+    declare -p all_files
+  } | 
+    sudo tee -a "${timedir}/A_vars"
+  declare -p all_files | 
+    sudo tee -a ~/"${f##*/}_a-all_files" "${f}_a-all_files"
   #exit 101
   set -x
+
+
+
 
 
 ###  SECTION B  ###
-# Add some brevity, and get the most recent tx number from `dnf history` 
+# Add some brevity, and write the completed arrays to disk
 f="${datafile}"
-dnf_history_number="$( 
-  dnf history info 0 | 
-    awk '/^Transaction ID/ { print $4 }' ||
-      _erx "${LINENO}" )"
-
-  # <>
-  #declare -p f dnf_history_number endianness
-  #exit 101
-  set -x
 
 # Functions for this section
-# Note: this function can take 30-90 minutes!
+#   Note: this function can take 30-90 minutes!
 _scan_local_disks(){
   # Sort out the scripts, ie, any file beginning with a crashbang ('#!'), 
   # from the rest of the files.
   for i_1 in "${!all_files[@]}"; do
-    unset nextfile od_o shabang_with_interpreter tr_o 
+    unset nextfile od_o tr_o strings_o
     nextfile="${all_files[${i_1}]}"
 
     # File must exist and have a size greater than zero.
     #   Note: builtin `[[` fails due to lack of permissions
     if ! sudo command test -s "${nextfile}"; then 
+      
+      files_with_no_size+=( "${nextfile}" )
+      
       unset 'all_files[$i_1]'; 
       continue; 
     fi
@@ -177,126 +175,78 @@ _scan_local_disks(){
       tr --squeeze-repeats ' \n\t' '\0' <<< "${od_o}" )
 			
         # <>
-        #declare -p {od,tr}_o 
-        exit 101
+        #declare -p {od,tr}_o
+        #exit 102
     
     # If 'tr_o' contains some non-zero data, as it should, compare the 
     # hexidecimal representations to find any crashbangs.
     if [[ -z "${tr_o[*]:0:1}" ]]; then
       _erx "${LINENO}"
 	
-    elif
-      [[ "${tr_o[1]}" == '2123' ]]; then
-
-      # When a crashbang's found, use `strings` to filter out any non-
-      # printable data, to protect `head` from garbage input, and to 
-      # get the full crashbang string in ASCII. 
-      #   Note: `strings` does not remove newlines.
-      dd_of_file="$( dd bs=1 iflag=nonblock,noatime count=$(( 2 ** 13 )) if="${nextfile}" iflag=noatime skip=0 || 
-        _erx "${LINENO}" )"
-      
-      # --print-file-name; try wo --radix
+    # When a crashbang's found, use `strings` to filter out any non-
+    # printable data, to protect `head` from garbage input, and to 
+    # get the full crashbang string in ASCII. 
+    #   Note: `strings` does not remove newlines.
+    elif [[ "${tr_o[1]}" == '2123' ]]; then
       strings_o="$( 
-        strings --all --bytes=1 --include-all-whitespace \
-            --output-separator '\0' "${nextfile}" || 
+        strings --all --bytes=1 --include-all-whitespace "${nextfile}" |
+          head --lines=1 ||
             _erx "${LINENO}" )"
-          
-      shabang_with_interpreter="$( 
-        head --lines=1 --zero-terminated \
-            <<< "${shabang_with_interpreter}" || 
-          _erx "${LINENO}" )"
-
-        # <>
-        echo 'dd_of_file, length of element value:' "${#dd_of_file}"
-        declare -p strings_o shabang_with_interpreter
-        exit 101
 
       # Make a record of the filenames and their crashbangs in RAM.
       shell_scripts+=( [${i_1}]="$(
-        printf '%-50s <%s>\n' "${shabang_with_interpreter}" "${nextfile}" )" )
+        printf '%-50s <%s>\n' "${strings_o}" "${nextfile}" )" )
       unset 'all_files[$i_1]'
+      printf '+'
 
-        # <>
-        #((++z))
-        #if [[ $z == 10 ]]; then
-          #declare -p shell_scripts shabang_with_interpreter nextfile
-          #printf '%s\n' "${shell_scripts[@]}"
-          #exit 101
-        #fi
+    else
+      all_other_files+=( "${nextfile}" )
+      unset 'all_files[$i_1]'
+      if [[ "$j" = 16 ]]; then printf '.'; unset j; j=0; else ((j++)); fi
     fi
   done
 }
 
-# Bug: last line only has a crashbang
-# Bug: restructured since last testing
-
 # Open a timestamped file & append into it the list of filenames and 
 # their crashbangs. 
-_create_LT_datafile(){
-  local dnf_o awk_o
-  dnf_o="$( 
-    dnf history info 0 ||
-      _erx "${LINENO}" )"
-  awk_o="$( 
-    awk '/^Transaction ID/ { print $4 }' <<< "${dnf_o}" ||
-      _erx "${LINENO}" )"
-  
+_create_datafile(){
   printf '# crunchbangs\n' | 
     sudo tee "${f}" ||
       _erx "${LINENO}"
   printf '%s\n' "${shell_scripts[@]}" |
     sudo tee -a "${f}" ||
       _erx "${LINENO}"
-  
   _bak "${f}"
-  printf '\n#%%dnf%% %d\n' "${awk_o}" | 
-    sudo tee -a ~/"${f##*/}" ||
-      _erx "${LINENO}"
-  
 }
 
+# run the functions 
+: _scan_local_disks
+_scan_local_disks
+: _create_datafile
+_create_datafile
 
-# if a long-term datafile, i.e., a crashbang/filename list, exists...
-if [[ -f ~/"${f##*/}" ]]; then 
-  
-  # ...and if it has the same tx number as `dnf history` currently shows...
-  tx_no="$( awk '/^#%dnf%/ { print $2 }' ~/"${f##*/}" || 
-    _erx "${LINENO}" )"
-  
-  if [[ "${tx_no}" == "${dnf_history_number}" ]]
-  then
+  # <> ##############################################################
+  sudo touch "${timedir}/B_vars" "${f}_a-files_with_no_size" \
+      "${f}_a-all_other_files" ||
+    _erx "${LINENO}"
+  {
+  declare -p f i_1 nextfile od_o strings_o j
+  declare -pf _scan_local_disks _create_datafile
+  declare -p files_with_no_size tr_o shell_scripts all_other_files
+  } |
+    sudo tee -a "${timedir}/B_vars"
+  declare -p files_with_no_size | 
+    sudo tee -a "${f}_a-files_with_no_size"
+  declare -p all_other_files | 
+    sudo tee -a "${f}_a-all_other_files"
+  exit 101
+  set -x
 
-    # ...then don't scan the HDD.
-    :
 
-  # Otherwise, -e-r-a-s-e- the existing long-term datafile, do scan the HDD...
-  else
-    _bak ~/"${f##*/}"
-    #rm -f ~/"${f##*/}"
-    _scan_local_disks
-
-    # ...and create a new long-term datafile
-    _create_LT_datafile
-  fi
-
-# and if a long-term crashbang file DNE, then do scan the HDD
-else
-  _scan_local_disks
-
-  # and create a long-term datafile
-  _create_LT_datafile
-fi
 
 
     
 ###  SECTION C  ###    
-
-  # <>
-  #declare -p shell_scripts
-  #printf '%s\n' "${shell_scripts[@]}"
-  #exit 101
-  #set -x
-
 
 # Make the data readable and useable.
 
