@@ -123,12 +123,17 @@ mapfile -d '' -t all_files < <(
     #/usr/sbin \
     #"${relevant_search_dirs[@]}" \
 
+  # <>
+  rm -f /tmp/wtf_*
+
 # sort the original array with mapfile
-n0="$( _num      all_files )"
-mapfile -d '' -t all_files_sorted_00 < <(
-  printf '%s\0' "${all_files[@]}" |
+n0="$( _num         all_files )"
+printf '%s\n'    "${all_files[@]}" > /tmp/wtf_0
+mapfile -d '' -t    all_files_sorted_00 < <(
+  printf '%s\0'  "${all_files[@]}" |
     sort -z )
-n7="$( _num      all_files_sorted_00)"
+n7="$( _num         all_files_sorted_00)"
+printf '%s\n'    "${all_files_sorted_00[@]}" > /tmp/wtf_7
 [[ "${n0}" -eq "${n7}" ]] ||
   _erx "${LINENO}"
 
@@ -153,7 +158,7 @@ n7="$( _num      all_files_sorted_00)"
   _bak "${timedir}/A_vars"
   _bak "${datafile}_a-all_files"
   _bak /tmp/"${datafile##*/}_a-all_files"
-  #exit 101
+  exit 101
   #set -x
 
 
@@ -197,6 +202,20 @@ _scan_local_disks(){
       IFS= builtin read -r line_1 < "${all_files[${i_1}]}" ||
           _erx "${LINENO}"
 
+      # Issue: the files with '#!comment' as the initial bytes
+      if [[ "${line_1}" =~ ^#!comment ]]; then
+        files_with_hashbang_comments+=( "${all_files[${i_1}]}" )
+        unset 'all_files[$i_1]'
+        continue
+      fi
+
+      # Issue: files originating outside of rpm package manager
+      if ! rpm -qf /etc/ppp/ip-down.ipv6to4 2> /dev/null 1>&2; then
+        files_from_outside_rpm+=( "${all_files[${i_1}]}" )
+        unset 'all_files[$i_1]'
+        continue
+      fi
+
       # Make a record of the filenames and their crashbangs in RAM.
       shell_scripts+=( [${i_1}]="$( 
         printf '%-50s   %% %% %% %%   %s\n' "${line_1}" \
@@ -238,12 +257,25 @@ _create_datafile
   {
   declare -p f i_1 od_o X line_1 c 2> /dev/null
   declare -pf _scan_local_disks _create_datafile
-  declare -p shell_scripts all_other_files
+  declare -p shell_scripts all_other_files files_with_hashbang_comments \
+    files_from_outside_rpm
   } |
     sudo tee --append --output-error='exit' "${timedir}/B_vars" \
         > /dev/null 2>&1 ||
       _erx "${LINENO}"
   
+  declare -p all_other_files | 
+    sudo tee --append --output-error='exit' \
+          "${f}_a-files_with_hashbang_comments" \
+        > /dev/null 2>&1 ||
+      _erx "${LINENO}"
+
+  declare -p all_other_files | 
+    sudo tee --append --output-error='exit' \
+          "${f}_a-files_from_outside_rpm" \
+        > /dev/null 2>&1 ||
+      _erx "${LINENO}"
+
   declare -p all_other_files | 
     sudo tee --append --output-error='exit' "${f}_a-all_other_files" \
         > /dev/null 2>&1 ||
@@ -256,6 +288,8 @@ _create_datafile
 
   _bak "${timedir}/B_vars"
   _bak "${f}_a-all_other_files"
+  _bak "${f}_a-files_with_hashbang_comments"
+  _bak "${f}_a-files_from_outside_rpm"
 
   exit 101
   set -x
