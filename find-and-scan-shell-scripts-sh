@@ -174,7 +174,7 @@ mapfile -d '' -t    all_files_sorted < <(
 
 ###  SECTION B  ###
 # Add some brevity, and write the completed arrays to disk
-c="${#all_files[@]}"
+c="${#all_files_sorted[@]}"
 f="${datafile}"
 unset IFS
 
@@ -183,9 +183,10 @@ unset IFS
 _scan_local_disks(){
   # Sort out the scripts, ie, any file beginning with a crashbang ('#!'), 
   # from the rest of the files.
-  for i_1 in "${!all_files[@]}"; do
+  for i_1 in "${!all_files_sorted[@]}"; do
     
-    unset X od_o line_1
+    unset f X od_o line_1 
+    f="${all_files_sorted[${i_1}]}"
 
     # Bug, inordinately long interpreter paths are rare, but do occur.
     # Read from disk in binary the first two bytes of each file in 
@@ -195,7 +196,7 @@ _scan_local_disks(){
     #   Note: `od` command is POSIX compliant
     # shellcheck disable=SC2034
     builtin read -r X od_o X < <( 
-      sudo od -N2 -x "${all_files[${i_1}]}" ||
+      sudo od -N2 -x "${f}" ||
         _erx "${LINENO}" ) 
    
     # If 'od_o' contains some non-zero data, as it should, 
@@ -206,31 +207,30 @@ _scan_local_disks(){
     elif [[ "${od_o}" == '2123' ]]; then
       
       # Use 'read', and hope there won't be any non-printable characters.
-      IFS= builtin read -r line_1 < "${all_files[${i_1}]}" ||
+      IFS= builtin read -r line_1 < "${f}" ||
           _erx "${LINENO}"
 
       # Issue: the files with '#!comment' as the initial bytes
       if [[ "${line_1}" =~ ^#!comment ]]; then
-        files_with_hashbang_comments+=( "${all_files[${i_1}]}" )
-        unset 'all_files[$i_1]'
+        files_with_hashbang_comments+=( "${f}" )
+        unset 'all_files_sorted[$i_1]'
         continue
       fi
 
       # Issue: files originating outside of rpm package manager
       if ! rpm -qf /etc/ppp/ip-down.ipv6to4 2> /dev/null 1>&2; then
-        files_from_outside_rpm+=( "${all_files[${i_1}]}" )
-        unset 'all_files[$i_1]'
+        files_from_outside_rpm+=( "${f}" )
+        unset 'all_files_sorted[$i_1]'
         continue
       fi
 
       # Make a record of the filenames and their crashbangs in RAM.
       shell_scripts+=( [${i_1}]="$( 
-        printf '%-50s   %% %% %% %%   %s\n' "${line_1}" \
-          "${all_files[${i_1}]}" )" )
-      unset 'all_files[$i_1]'
+        printf '%-50s   %% %% %% %%   %s\n' "${line_1}" "${f}" )" )
+      unset 'all_files_sorted[$i_1]'
     else
-      all_other_files+=( [${i_1}]="${all_files[${i_1}]}" )
-      unset 'all_files[$i_1]'
+      all_other_files+=( [${i_1}]="${f}" )
+      unset 'all_files_sorted[$i_1]'
     fi
 
     printf '%d of %d\r' "${i_1}" "${c}"
