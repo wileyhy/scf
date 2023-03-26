@@ -31,6 +31,28 @@ _num(){
   local -n array="$1" 
   echo "${#array[@]}"
 }
+_record_arrays(){
+  local a
+  for a in "$@"; do 
+    declare -p "$a" | 
+      sudo tee --append --output-error='exit' "${timedir}/scf_${a}" \
+          > /dev/null 2>&1 ||
+        _erx "_record_arrays $a" 
+    _bak "$a"
+  done
+}
+# Usage: _record_vars [section] [raw variable names]
+_record_vars(){
+  local section target_f
+        section="$1"
+        target_f="${timedir}/${section}_vars"
+  shift
+  declare -p "$@" 2> /dev/null |
+    sudo tee --output-error='exit' "$target_f" > /dev/null 2>&1 ||
+      _erx "_record_vars, section $section"
+  _bak "$target_f"
+}
+
 # Usage:  _usage [exit-code]
 _usage(){
   cat <<-\EOF
@@ -85,7 +107,7 @@ mountpoint="$(
 datadir="${mountpoint}/scf.d/latest"
 timedir="${datadir}/t_${time}"
 datafile="${timedir}/crunchbangs"
-unlisted="${timedir}/unlisted"
+#unlisted="${timedir}/unlisted"
 umask 077
 
 if ! sudo command test -d "${datadir}"; then
@@ -132,32 +154,17 @@ printf '%s\n'    "${all_files[@]}" > /tmp/wtf_0
 mapfile -d '' -t    all_files_sorted_00 < <(
   printf '%s\0'  "${all_files[@]}" |
     sort -z )
-n7="$( _num         all_files_sorted_00)"
+n7="$( _num         all_files_sorted_00 )"
 printf '%s\n'    "${all_files_sorted_00[@]}" > /tmp/wtf_7
 [[ "${n0}" -eq "${n7}" ]] ||
   _erx "${LINENO}"
 
   # <> ##############################################################
-  sudo touch "${timedir}/A_vars" "${datafile}_a-all_files" ||
-    _erx "${LINENO}"
-  {
-    declare -p PATH LC_ALL severity shells fstype_regexp time
-    declare -pf _bak _erx _num _usage
-    declare -p first_two_chars mountpoint datadir timedir datafile unlisted 
-    declare -p previous relevant_search_dirs 
-    declare -p all_files
-  } | 
-    sudo tee --output-error='exit' "${timedir}/A_vars" \
-        > /dev/null 2>&1 ||
-      _erx "${LINENO}"
-  declare -p all_files | 
-    sudo tee --output-error='exit' \
-        /tmp/"${datafile##*/}_a-all_files" "${datafile}_a-all_files" \
-          > /dev/null 2>&1 ||
-      _erx "${LINENO}"
-  _bak "${timedir}/A_vars"
-  _bak "${datafile}_a-all_files"
-  _bak /tmp/"${datafile##*/}_a-all_files"
+  _record_arrays all_files all_files_sorted_00
+  _record_vars 'A' PATH LC_ALL severity shells fstype_regexp time \
+    first_two_chars mountpoint datadir timedir datafile \
+    previous relevant_search_dirs n0 n7
+
   exit 101
   #set -x
 
@@ -251,45 +258,9 @@ _scan_local_disks
 _create_datafile
 
   # <> ##############################################################
-  sudo touch "${timedir}/B_vars" "${f}_a-all_other_files" ||
-    _erx "${LINENO}"
-  
-  {
-  declare -p f i_1 od_o X line_1 c 2> /dev/null
-  declare -pf _scan_local_disks _create_datafile
-  declare -p shell_scripts all_other_files files_with_hashbang_comments \
-    files_from_outside_rpm
-  } |
-    sudo tee --append --output-error='exit' "${timedir}/B_vars" \
-        > /dev/null 2>&1 ||
-      _erx "${LINENO}"
-  
-  declare -p all_other_files | 
-    sudo tee --append --output-error='exit' \
-          "${f}_a-files_with_hashbang_comments" \
-        > /dev/null 2>&1 ||
-      _erx "${LINENO}"
-
-  declare -p all_other_files | 
-    sudo tee --append --output-error='exit' \
-          "${f}_a-files_from_outside_rpm" \
-        > /dev/null 2>&1 ||
-      _erx "${LINENO}"
-
-  declare -p all_other_files | 
-    sudo tee --append --output-error='exit' "${f}_a-all_other_files" \
-        > /dev/null 2>&1 ||
-      _erx "${LINENO}"
-
-  #printf '\n' |
-    #sudo tee --append --output-error='exit' "${timedir}/B_vars" \
-        #"${f}_a-all_other_files" > /dev/null 2>&1 ||
-      #_erx "${LINENO}"
-
-  _bak "${timedir}/B_vars"
-  _bak "${f}_a-all_other_files"
-  _bak "${f}_a-files_with_hashbang_comments"
-  _bak "${f}_a-files_from_outside_rpm"
+  _record_arrays shell_scripts files_with_hashbang_comments \
+    files_from_outside_rpm all_other_files
+  _record_vars 'B' f i_1 od_o X line_1 c 
 
   exit 101
   set -x
