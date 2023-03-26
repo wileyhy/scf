@@ -122,6 +122,19 @@ mapfile -d '' -t all_files < <(
     #/usr/sbin \
     #"${relevant_search_dirs[@]}" \
 
+  # <>
+  n1="$( _num all_files )"
+
+# sort the array  
+mapfile -d '' -t all_files < <(
+  printf '%s\0' "${all_files[@]}" |
+    sort -uz )
+  
+  # <>
+  n2="$( _num all_files )"
+  [[ "${n1}" -eq "${n2}" ]] ||
+    _erx "${LINENO}"
+
   # <> ##############################################################
   sudo touch "${timedir}/A_vars" "${datafile}_a-all_files" ||
     _erx "${LINENO}"
