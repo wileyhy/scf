@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 # find-and-scan-shell-scripts-sh
 # Written in bash version 5.1 on Fedora 37
 
@@ -153,14 +153,10 @@ mapfile -d '' -t all_files < <(
     #"${relevant_search_dirs[@]}" \
 
 # sort the original array with mapfile and test it
-n0="$( _num         all_files )"
-printf '%s\n'    "${all_files[@]}" > "${timedir}/wtf_0"
 mapfile -d '' -t    all_files_sorted_00 < <(
   printf '%s\0'  "${all_files[@]}" |
     sort -z )
-n7="$( _num         all_files_sorted_00 )"
-printf '%s\n'    "${all_files_sorted_00[@]}" > "${timedir}/wtf_7"
-[[ "${n0}" -eq "${n7}" ]] ||
+[[ "$( _num all_files )" -eq "$( _num all_files_sorted_00 )" ]] ||
   _erx "${LINENO}"
 
   # <> ##############################################################
@@ -169,8 +165,8 @@ printf '%s\n'    "${all_files_sorted_00[@]}" > "${timedir}/wtf_7"
     first_two_chars mountpoint datadir timedir datafile \
     previous relevant_search_dirs n0 n7
 
-  exit 101
-  #set -x
+  #exit 101
+  set -x
 
 
 
@@ -369,8 +365,8 @@ for i_2 in "${!shell_scripts[@]}"; do
   unset errors script 'shell_scripts[$i_2]'
 done
 
-_bak "${f}_found_scripts_with_indices"
-_bak "${f}_found_errors_with_indices_unsorted"
+_bak "${f}_found_scripts_with_indices" \
+  "${f}_found_errors_with_indices_unsorted"
 
 exit 0
 
