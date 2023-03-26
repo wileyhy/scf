@@ -21,7 +21,7 @@ _bak(){
   for o in "$@"; do 
     # shellcheck disable=SC2002
     cat "${o}" |
-      tee --output-error='exit' "${0}".bak > /dev/null 2>&1 ||
+      tee --output-error='exit' "${o}".bak > /dev/null 2>&1 ||
         _erx '_\bak' "${o}"
   done
 }
@@ -41,7 +41,7 @@ _record_arrays(){
   local a 
   for a in "$@"; do 
     local target_f
-          target_f="${timedir}/scf_${a}"
+          target_f="${timedir}/a_${a}"
     declare -p "$a" | 
       sudo tee --output-error='exit' "$target_f" > /dev/null 2>&1 ||
         _erx "_record_arrays $a" 
@@ -166,7 +166,7 @@ mapfile -d '' -t    all_files_sorted < <(
     previous relevant_search_dirs n0 n7
 
   #exit 101
-  set -x
+  #set -x
 
 
 
@@ -212,15 +212,27 @@ _scan_local_disks(){
 
       # Issue: the files with '#!comment' as the initial bytes
       if [[ "${line_1}" =~ ^#!comment ]]; then
+        
+          set -x
+
         files_with_hashbang_comments+=( "${f}" )
         unset 'all_files_sorted[$i_1]'
+        
+          set -
+
         continue
       fi
 
       # Issue: files originating outside of rpm package manager
       if ! rpm -qf /etc/ppp/ip-down.ipv6to4 2> /dev/null 1>&2; then
+        
+          set -x
+
         files_from_outside_rpm+=( "${f}" )
         unset 'all_files_sorted[$i_1]'
+        
+          set -
+
         continue
       fi
 
@@ -234,6 +246,7 @@ _scan_local_disks(){
     fi
 
     printf '%d of %d\r' "${i_1}" "${c}"
+    wait -f
   done
 }
 
