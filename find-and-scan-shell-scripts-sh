@@ -106,15 +106,13 @@ if ! sudo command test -d "${timedir}"; then
     _erx "${LINENO}"
 fi
 
+
 # Gather filenames from local attached disk storage, of files with 
 # size not equal to 0 bytes.
 # shellcheck disable=SC2034
 mapfile -d '' -t relevant_search_dirs < <(
   find / -mindepth 1 -maxdepth 1 -type d \! -empty \
     \( \! -name proc -a \! -name sys -a \! -iname 'scf*' \) -print0 )
-
-  # <>
-  declare -p relevant_search_dirs
 
 # DEBUG: "${relevant_search_dirs[@]}" OR '/usr/sbin' OR /usr/{,s}bin
 mapfile -d '' -t all_files < <( 
@@ -125,8 +123,6 @@ mapfile -d '' -t all_files < <(
     #/usr/sbin \
     #"${relevant_search_dirs[@]}" \
 
-
-
 # sort the original array with mapfile
 n0="$( _num      all_files )"
 mapfile -d '' -t all_files_sorted_00 < <(
@@ -135,7 +131,6 @@ mapfile -d '' -t all_files_sorted_00 < <(
 n7="$( _num      all_files_sorted_00)"
 [[ "${n0}" -eq "${n7}" ]] ||
   _erx "${LINENO}"
-exit 103
 
   # <> ##############################################################
   sudo touch "${timedir}/A_vars" "${datafile}_a-all_files" ||
