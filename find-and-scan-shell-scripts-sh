@@ -36,7 +36,7 @@ _record_arrays(){
   for a in "$@"; do 
     local target_f
           target_f="${timedir}/scf_${a}"
-    local -p "$a" | 
+    declare -p "$a" | 
       sudo tee --output-error='exit' "$target_f" > /dev/null 2>&1 ||
         _erx "_record_arrays $a" 
     _bak "$target_f"
@@ -48,7 +48,7 @@ _record_vars(){
         section="$1"
         target_f="${timedir}/${section}_vars"
   shift
-  local -p "$@" 2> /dev/null |
+  declare -p "$@" 2> /dev/null |
     sudo tee --output-error='exit' "$target_f" > /dev/null 2>&1 ||
       _erx "_record_vars, section $section"
   _bak "$target_f"
