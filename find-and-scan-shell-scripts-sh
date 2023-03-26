@@ -256,7 +256,7 @@ _create_datafile(){
   # create the original datafile
   for x in "${f}" /tmp/"${f##*/}"; do
     if [[ -f "$x" ]] && [[ ! -L "$x" ]]; then
-      rm -f "$x"
+      mv "$x" "${x}.${RANDOM}"
     fi
   done
   wait -f
