@@ -20,15 +20,15 @@ _bak(){
   local o
   for o in "$@"; do 
     # shellcheck disable=SC2002
-    cat "${o}" |
-      tee --output-error='exit' "${o}".bak > /dev/null 2>&1 ||
-        _erx '_\bak' "${o}"
+    cat "$o" |
+      tee --output-error='exit' "${o}.bak" > /dev/null 2>&1 ||
+        _erx '_\bak' "$o"
   done
 }
 _erx(){ 
-  local ec="${?}"
+  local ec="$?"
   echo Error: "$@" 
-  return "${ec}"
+  return "$ec"
 }
 _num(){ 
   local a
@@ -271,9 +271,14 @@ _create_datafile(){
   _bak "${f}" /tmp/"${f##*/}"
 }
 
-# run the functions 
-_scan_local_disks
-_create_datafile
+# if the full list exists (of files on disk which begin with crash-
+# bangs), then skip the 30-90 minute search phase.
+if [[ -f /tmp/"${f##*/}" ]] && [[ ! -L /tmp/"${f##*/}" ]]; then
+  :
+else
+  _scan_local_disks
+  _create_datafile
+fi
 
   # <> ##############################################################
   _record_arrays shell_scripts files_with_hashbang_comments \
