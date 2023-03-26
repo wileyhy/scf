@@ -153,14 +153,14 @@ mapfile -d '' -t all_files < <(
     #"${relevant_search_dirs[@]}" \
 
 # sort the original array with mapfile and test it
-mapfile -d '' -t    all_files_sorted_00 < <(
+mapfile -d '' -t    all_files_sorted < <(
   printf '%s\0'  "${all_files[@]}" |
     sort -z )
-[[ "$( _num all_files )" -eq "$( _num all_files_sorted_00 )" ]] ||
+[[ "$( _num all_files )" -eq "$( _num all_files_sorted )" ]] ||
   _erx "${LINENO}"
 
   # <> ##############################################################
-  _record_arrays all_files all_files_sorted_00
+  _record_arrays all_files all_files_sorted
   _record_vars 'A' PATH LC_ALL severity shells fstype_regexp time \
     first_two_chars mountpoint datadir timedir datafile \
     previous relevant_search_dirs n0 n7
