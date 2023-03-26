@@ -143,7 +143,7 @@ mapfile -d '' -t all_files < <(
   _bak "${datafile}_a-all_files"
   _bak /tmp/"${datafile##*/}_a-all_files"
   #exit 101
-  set -x
+  #set -x
 
 
 
@@ -151,6 +151,7 @@ mapfile -d '' -t all_files < <(
 
 ###  SECTION B  ###
 # Add some brevity, and write the completed arrays to disk
+c="${#all_files[@]}"
 f="${datafile}"
 unset IFS
 
@@ -173,7 +174,7 @@ _scan_local_disks(){
     builtin read -r X od_o X < <( 
       sudo od -N2 -x "${all_files[${i_1}]}" ||
         _erx "${LINENO}" ) 
-    
+   
     # If 'od_o' contains some non-zero data, as it should, 
     if [[ -z "${od_o}" ]]; then
       _erx "${LINENO}"
@@ -188,15 +189,13 @@ _scan_local_disks(){
       # Make a record of the filenames and their crashbangs in RAM.
       shell_scripts+=( [${i_1}]="$(
         printf '%-50s <%s>\n' "${line_1}" "${all_files[${i_1}]}" )" )
-      if [[ "$k" = 32 ]]; then printf '+';  unset k; k=0; else ((k++)); fi
       unset 'all_files[$i_1]'
-
     else
       all_other_files+=( [${i_1}]="${all_files[${i_1}]}" )
-      if [[ "$j" = 32 ]]; then printf '.';  unset j; j=0; else ((j++)); fi
       unset 'all_files[$i_1]'
     fi
-    exit 101
+
+    printf '%d of %d\r' "${i_1}" "${c}"
   done
 }
 
@@ -225,7 +224,7 @@ _create_datafile
     _erx "${LINENO}"
   
   {
-  declare -p f i_1 nextfile od_o line_1 j
+  declare -p f i_1 od_o X line_1 c
   declare -pf _scan_local_disks _create_datafile
   declare -p shell_scripts all_other_files
   } |
