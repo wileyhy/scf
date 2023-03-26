@@ -245,6 +245,12 @@ _scan_local_disks(){
 # their crashbangs. 
 _create_datafile(){
   # create the original datafile
+  for x in "${f}" /tmp/"${f##*/}"; do
+    if [[ -f "$x" ]] && [[ ~ -l "$x" ]]; then
+      rm -f "$x"
+    fi
+  done
+  wait -f
   printf '# crunchbangs -- %s \n' "${time}" | 
     sudo tee --output-error='exit' "${f}" /tmp/"${f##*/}" \
         > /dev/null 2>&1 ||
@@ -253,8 +259,7 @@ _create_datafile(){
     sudo tee --append --output-error='exit' "${f}" /tmp/"${f##*/}" \
         > /dev/null 2>&1 ||
       _erx "${LINENO}"
-  _bak "${f}"
-  _bak /tmp/"${f##*/}"
+  _bak "${f}" /tmp/"${f##*/}"
 }
 
 # run the functions 
