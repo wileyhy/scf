@@ -146,17 +146,14 @@ mapfile -d '' -t all_files < <(
     #/usr/sbin \
     #"${relevant_search_dirs[@]}" \
 
-  # <>
-  rm -f /tmp/wtf_*
-
-# sort the original array with mapfile
+# sort the original array with mapfile and test it
 n0="$( _num         all_files )"
-printf '%s\n'    "${all_files[@]}" > /tmp/wtf_0
+printf '%s\n'    "${all_files[@]}" > "${timedir}/wtf_0"
 mapfile -d '' -t    all_files_sorted_00 < <(
   printf '%s\0'  "${all_files[@]}" |
     sort -z )
 n7="$( _num         all_files_sorted_00 )"
-printf '%s\n'    "${all_files_sorted_00[@]}" > /tmp/wtf_7
+printf '%s\n'    "${all_files_sorted_00[@]}" > "${timedir}/wtf_7"
 [[ "${n0}" -eq "${n7}" ]] ||
   _erx "${LINENO}"
 
