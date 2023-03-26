@@ -111,29 +111,31 @@ fi
 # shellcheck disable=SC2034
 mapfile -d '' -t relevant_search_dirs < <(
   find / -mindepth 1 -maxdepth 1 -type d \! -empty \
-    \( \! -name proc -a \! -name sys -a \! -iname 'scf.d' \) -print0 )
+    \( \! -name proc -a \! -name sys -a \! -iname 'scf*' \) -print0 )
+
+  # <>
+  declare -p relevant_search_dirs
 
 # DEBUG: "${relevant_search_dirs[@]}" OR '/usr/sbin' OR /usr/{,s}bin
 mapfile -d '' -t all_files < <( 
   sudo find \
-    /usr/sbin \
+    "${relevant_search_dirs[@]}" \
       -type f \! -empty -print0 2> /dev/null )
     #/usr/sbin /usr/bin \
     #/usr/sbin \
     #"${relevant_search_dirs[@]}" \
 
-  # <>
-  n1="$( _num all_files )"
 
-# sort the array  
-mapfile -d '' -t all_files < <(
+
+# sort the original array with mapfile
+n0="$( _num      all_files )"
+mapfile -d '' -t all_files_sorted_00 < <(
   printf '%s\0' "${all_files[@]}" |
-    sort -uz )
-  
-  # <>
-  n2="$( _num all_files )"
-  [[ "${n1}" -eq "${n2}" ]] ||
-    _erx "${LINENO}"
+    sort -z )
+n7="$( _num      all_files_sorted_00)"
+[[ "${n0}" -eq "${n7}" ]] ||
+  _erx "${LINENO}"
+exit 103
 
   # <> ##############################################################
   sudo touch "${timedir}/A_vars" "${datafile}_a-all_files" ||
@@ -239,7 +241,7 @@ _create_datafile
     _erx "${LINENO}"
   
   {
-  declare -p f i_1 od_o X line_1 c
+  declare -p f i_1 od_o X line_1 c 2> /dev/null
   declare -pf _scan_local_disks _create_datafile
   declare -p shell_scripts all_other_files
   } |
