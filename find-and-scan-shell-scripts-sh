@@ -17,10 +17,13 @@ time="$( builtin printf '%(%F_%H%M%S)T' )"
 
 # Functions
 _bak(){ 
-  # shellcheck disable=SC2002
-  cat "${1}" |
-    tee --output-error='exit' "${1}".bak > /dev/null 2>&1 ||
-      _erx '_\bak' "${1}"
+  local o
+  for o in "$@"; do 
+    # shellcheck disable=SC2002
+    cat "${o}" |
+      tee --output-error='exit' "${0}".bak > /dev/null 2>&1 ||
+        _erx '_\bak' "${o}"
+  done
 }
 _erx(){ 
   local ec="${?}"
@@ -28,8 +31,11 @@ _erx(){
   return "${ec}"
 }
 _num(){ 
-  local -n array="$1" 
-  echo "${#array[@]}"
+  local a
+  for a in "$@"; do
+    local -n array="$a" 
+    echo "${#array[@]}"
+  done
 }
 _record_arrays(){
   local a 
