@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 # find-and-scan-shell-scripts-sh
 # Written in bash version 5.1 on Fedora 37
 
@@ -19,7 +19,7 @@ time="$( builtin printf '%(%F_%H%M%S)T' )"
 _bak(){ 
   # shellcheck disable=SC2002
   cat "${1}" |
-    tee --output-error='exit' "${1}" "${1}".bak > /dev/null 2>&1 ||
+    tee --output-error='exit' "${1}".bak > /dev/null 2>&1 ||
       _erx '_\bak' "${1}"
 }
 _erx(){ 
@@ -110,15 +110,16 @@ fi
 # size not equal to 0 bytes.
 # shellcheck disable=SC2034
 mapfile -d '' -t relevant_search_dirs < <(
-  find / -mindepth 1 -maxdepth 1 -type d \
+  find / -mindepth 1 -maxdepth 1 -type d \! -empty \
     \( \! -name proc -a \! -name sys -a \! -iname 'scf.d' \) -print0 )
 
 # DEBUG: "${relevant_search_dirs[@]}" OR '/usr/sbin' OR /usr/{,s}bin
 mapfile -d '' -t all_files < <( 
   sudo find \
-    "${relevant_search_dirs[@]}" \
+    /usr/sbin /usr/bin \
       -type f \! -empty -print0 2> /dev/null )
     #/usr/sbin /usr/bin \
+    #"${relevant_search_dirs[@]}" \
 
   # <> ##############################################################
   sudo touch "${timedir}/A_vars" "${datafile}_a-all_files" ||
@@ -130,17 +131,18 @@ mapfile -d '' -t all_files < <(
     declare -p previous relevant_search_dirs 
     declare -p all_files
   } | 
-    sudo tee --append --output-error='exit' "${timedir}/A_vars" \
-      > /dev/null 2>&1
+    sudo tee --output-error='exit' "${timedir}/A_vars" \
+        > /dev/null 2>&1 ||
+      _erx "${LINENO}"
   declare -p all_files | 
-    sudo tee --append --output-error='exit' \
-      ~/"${datafile##*/}_a-all_files" "${datafile}_a-all_files" \
-        > /dev/null 2>&1
+    sudo tee --output-error='exit' \
+        /tmp/"${datafile##*/}_a-all_files" "${datafile}_a-all_files" \
+          > /dev/null 2>&1 ||
+      _erx "${LINENO}"
   _bak "${timedir}/A_vars"
   _bak "${datafile}_a-all_files"
-  _bak ~/"${datafile##*/}_a-all_files"
-
-  exit 101
+  _bak /tmp/"${datafile##*/}_a-all_files"
+  #exit 101
   set -x
 
 
@@ -150,6 +152,7 @@ mapfile -d '' -t all_files < <(
 ###  SECTION B  ###
 # Add some brevity, and write the completed arrays to disk
 f="${datafile}"
+unset IFS
 
 # Functions for this section
 #   Note: this function can take 30-90 minutes!
@@ -157,51 +160,43 @@ _scan_local_disks(){
   # Sort out the scripts, ie, any file beginning with a crashbang ('#!'), 
   # from the rest of the files.
   for i_1 in "${!all_files[@]}"; do
-    unset nextfile od_o tr_o strings_o
-    nextfile="${all_files[${i_1}]}"
+    
+    unset X od_o line_1
 
     # Bug, inordinately long interpreter paths are rare, but do occur.
     # Read from disk in binary the first two bytes of each file in 
     # the list and output it in hexadecimal.
     #   Note: POSIX `od` doesn't have GNU's '--strings' option, so use 
-    #   the `strings` command separately.
-    od_o="$( 
-      sudo od -Ax -j0 -N2 -tx2z "${nextfile}" ||
-        _erx "${LINENO}" )" # POSIX
-
-    mapfile -d '' -t tr_o < <(
-      tr --squeeze-repeats ' \n\t' '\0' <<< "${od_o}" )
-			
-        # <>
-        #declare -p {od,tr}_o
-        #exit 102
+    # the `strings` command separately, if necessary.
+    #   Note: `od` command is POSIX compliant
+    # shellcheck disable=SC2034
+    builtin read -r X od_o X < <( 
+      sudo od -N2 -x "${all_files[${i_1}]}" ||
+        _erx "${LINENO}" ) 
     
-    # If 'tr_o' contains some non-zero data, as it should, compare the 
-    # hexidecimal representations to find any crashbangs.
-    if [[ -z "${tr_o[*]:0:1}" ]]; then
+    # If 'od_o' contains some non-zero data, as it should, 
+    if [[ -z "${od_o}" ]]; then
       _erx "${LINENO}"
 	
-    # When a crashbang's found, use `strings` to filter out any non-
-    # printable data, to protect `head` from garbage input, and to 
-    # get the full crashbang string in ASCII. 
-    #   Note: `strings` does not remove newlines.
-    elif [[ "${tr_o[1]}" == '2123' ]]; then
-      strings_o="$( 
-        strings --all --bytes=1 --include-all-whitespace "${nextfile}" |
-          head --lines=1 ||
-            _erx "${LINENO}" )"
+    # compare the hexidecimal representations to find any crashbangs.
+    elif [[ "${od_o}" == '2123' ]]; then
+      
+      # Use 'read', and hope there won't be any non-printable characters.
+      IFS= read -r line_1 < "${all_files[${i_1}]}" ||
+          _erx "${LINENO}"
 
       # Make a record of the filenames and their crashbangs in RAM.
       shell_scripts+=( [${i_1}]="$(
-        printf '%-50s <%s>\n' "${strings_o}" "${nextfile}" )" )
-      unset 'all_files[$i_1]'
+        printf '%-50s <%s>\n' "${line_1}" "${all_files[${i_1}]}" )" )
       if [[ "$k" = 32 ]]; then printf '+';  unset k; k=0; else ((k++)); fi
+      unset 'all_files[$i_1]'
 
     else
-      all_other_files+=( [${i_1}]="${nextfile}" )
-      unset 'all_files[$i_1]'
+      all_other_files+=( [${i_1}]="${all_files[${i_1}]}" )
       if [[ "$j" = 32 ]]; then printf '.';  unset j; j=0; else ((j++)); fi
+      unset 'all_files[$i_1]'
     fi
+    exit 101
   done
 }
 
@@ -210,35 +205,44 @@ _scan_local_disks(){
 _create_datafile(){
   # create the original datafile
   printf '# crunchbangs -- %s \n' "${time}" | 
-    sudo tee --output-error='exit' "${f}" > /dev/null 2>&1 ||
+    sudo tee --output-error='exit' "${f}" /tmp/"${f##*/}" \
+        > /dev/null 2>&1 ||
       _erx "${LINENO}"
   printf '%s\n' "${shell_scripts[@]}" |
-    sudo tee --append --output-error='exit' "${f}" ~/"${f##*/}" \
+    sudo tee --append --output-error='exit' "${f}" /tmp/"${f##*/}" \
         > /dev/null 2>&1 ||
       _erx "${LINENO}"
   _bak "${f}"
-  _bak ~/"${f##*/}"
+  _bak /tmp/"${f##*/}"
 }
 
 # run the functions 
-: _scan_local_disks
 _scan_local_disks
-: _create_datafile
 _create_datafile
 
   # <> ##############################################################
   sudo touch "${timedir}/B_vars" "${f}_a-all_other_files" ||
     _erx "${LINENO}"
+  
   {
-  declare -p f i_1 nextfile od_o strings_o j
+  declare -p f i_1 nextfile od_o line_1 j
   declare -pf _scan_local_disks _create_datafile
-  declare -p tr_o shell_scripts all_other_files
+  declare -p shell_scripts all_other_files
   } |
-    sudo tee --append "--output-error='exit' ${timedir}/B_vars" \
-      > /dev/null 2>&1
+    sudo tee --append --output-error='exit' "${timedir}/B_vars" \
+        > /dev/null 2>&1 ||
+      _erx "${LINENO}"
+  
   declare -p all_other_files | 
-    sudo tee --append "--output-error='exit' ${f}_a-all_other_files" \
-      > /dev/null 2>&1
+    sudo tee --append --output-error='exit' "${f}_a-all_other_files" \
+        > /dev/null 2>&1 ||
+      _erx "${LINENO}"
+
+  #printf '\n' |
+    #sudo tee --append --output-error='exit' "${timedir}/B_vars" \
+        #"${f}_a-all_other_files" > /dev/null 2>&1 ||
+      #_erx "${LINENO}"
+
   _bak "${timedir}/B_vars"
   _bak "${f}_a-all_other_files"
 
