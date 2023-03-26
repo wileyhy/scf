@@ -183,7 +183,7 @@ _scan_local_disks(){
     elif [[ "${od_o}" == '2123' ]]; then
       
       # Use 'read', and hope there won't be any non-printable characters.
-      IFS= read -r line_1 < "${all_files[${i_1}]}" ||
+      IFS= builtin read -r line_1 < "${all_files[${i_1}]}" ||
           _erx "${LINENO}"
 
       # Make a record of the filenames and their crashbangs in RAM.
@@ -245,7 +245,7 @@ _create_datafile
   _bak "${timedir}/B_vars"
   _bak "${f}_a-all_other_files"
 
-  exit 101
+  #exit 101
   set -x
 
 
