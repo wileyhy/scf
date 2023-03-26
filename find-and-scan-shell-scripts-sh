@@ -224,7 +224,7 @@ _scan_local_disks(){
       fi
 
       # Issue: files originating outside of rpm package manager
-      if ! rpm -qf /etc/ppp/ip-down.ipv6to4 2> /dev/null 1>&2; then
+      if ! rpm -qf "${f}" 2> /dev/null 1>&2; then
         
           set -x
 
