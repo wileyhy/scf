@@ -116,9 +116,10 @@ mapfile -d '' -t relevant_search_dirs < <(
 # DEBUG: "${relevant_search_dirs[@]}" OR '/usr/sbin' OR /usr/{,s}bin
 mapfile -d '' -t all_files < <( 
   sudo find \
-    "${relevant_search_dirs[@]}" \
+    /usr/sbin \
       -type f \! -empty -print0 2> /dev/null )
     #/usr/sbin /usr/bin \
+    #/usr/sbin \
     #"${relevant_search_dirs[@]}" \
 
   # <> ##############################################################
@@ -188,7 +189,7 @@ _scan_local_disks(){
 
       # Make a record of the filenames and their crashbangs in RAM.
       shell_scripts+=( [${i_1}]="$( 
-        printf '%-50s   <%Xee4nahz%>   <%s>\n' "${line_1}" \
+        printf '%-50s   %% %% %% %%   %s\n' "${line_1}" \
           "${all_files[${i_1}]}" )" )
       unset 'all_files[$i_1]'
     else
@@ -246,7 +247,7 @@ _create_datafile
   _bak "${timedir}/B_vars"
   _bak "${f}_a-all_other_files"
 
-  #exit 101
+  exit 101
   set -x
 
 
