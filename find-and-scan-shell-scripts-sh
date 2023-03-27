@@ -218,11 +218,8 @@ _scan_local_disks(){
     # shellcheck disable=SC2034
     wait -f
     builtin read -r X od_o X < <( 
-      wait -f
-      if ! sudo od -N2 -x "$file"; then 
-        wait -f
-        _erx "$LINENO" "$i_1" "$file";
-      fi )
+      sudo od -N2 -x "$file" || 
+        _erx "$LINENO" "$i_1" "$file" )
 
     # If 'od_o' contains some non-zero data, as it should, 
     if [[ -z "$od_o" ]]; then
