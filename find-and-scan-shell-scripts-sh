@@ -197,7 +197,7 @@ _scan_local_disks(){
   # from the rest of the files.
   for i_1 in "${!all_files_sorted[@]}"; do
     
-    unset f X od_o line_1 
+    unset file X od_o line_1 
     file="${all_files_sorted[${i_1}]}"
 
     ##  GOOD CODE  ##
@@ -220,14 +220,15 @@ _scan_local_disks(){
       # why aren't `od`s errors triggering '_erx'?
       set -x
 
+    # shellcheck disable=SC2034
     builtin read -r X od_o X < <( 
-      if ! sudo od -N2 -x "$file" then 
+      if ! sudo od -N2 -x "$file"; then 
         set -x;
         echo od failed;
         false;
         _erx "${LINENO}" ;
         set -;
-      fi; );
+      fi )
 
     # If 'od_o' contains some non-zero data, as it should, 
     if [[ -z "$od_o" ]]; then
