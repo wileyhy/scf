@@ -217,12 +217,12 @@ _scan_local_disks(){
     #   Note: `od` command is POSIX compliant
     # shellcheck disable=SC2034
 
-      # why aren't `od`s errors triggering '_erx'?
-      set -x
 
     # shellcheck disable=SC2034
     builtin read -r X od_o X < <( 
       if ! sudo od -N2 -x "$file"; then 
+      
+        # why aren't `od`s errors triggering '_erx'?
         set -x;
         echo od failed;
         false;
