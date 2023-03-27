@@ -230,7 +230,7 @@ _scan_local_disks(){
       _erx "$LINENO" "$i_1" "$file";
 
     # compare the hexidecimal representations to find any crashbangs.
-    elif [[ "$od_o" == '2123' ]]; then
+    elif [[ "$od_o" == '2321' ]]; then
 
       # Use 'read', and hope there won't be any non-printable characters.
       IFS= builtin read -r line_1 < "$file" ||
