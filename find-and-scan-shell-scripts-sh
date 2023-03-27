@@ -216,13 +216,12 @@ _scan_local_disks(){
     # the `strings` command separately, if necessary.
     #   Note: `od` command is POSIX compliant
     # shellcheck disable=SC2034
+    wait -f
     builtin read -r X od_o X < <( 
+      wait -f
       if ! sudo od -N2 -x "$file"; then 
-        set -x;
-        echo od failed;
-        false;
+        wait -f
         _erx "$LINENO" "$i_1" "$file";
-        set -;
       fi )
 
     # If 'od_o' contains some non-zero data, as it should, 
