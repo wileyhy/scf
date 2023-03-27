@@ -271,7 +271,7 @@ _scan_local_disks(){
         printf '%-50s   %% %% %% %%   %s\n' "$line_1" "$file" )" )
       unset 'all_files_sorted[$i_1]'
     
-    # Issue: 
+    # Issue: a big endian file format, possibly DB file? not very likely.
     elif [[ "$od_o" == '2123' ]]; then
       endian_wtf+=( [$i_1]="$file" )
       unset 'all_files_sorted[$i_1]'
