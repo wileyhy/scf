@@ -209,7 +209,6 @@ _scan_local_disks(){
       # Use 'read', and hope there won't be any non-printable characters.
       IFS= builtin read -r line_1 < "${f}" ||
           _erx "${LINENO}"
-      crunchbangs+=( [${i_1}]="${line_1}" )
 
       # Issue: the files with '#!comment' as the initial bytes
       if [[ "${line_1}" =~ ^#!comment ]]; then
@@ -289,7 +288,7 @@ fi
 
   # <> ##############################################################
   _record_arrays shell_scripts files_with_hashbang_comments \
-    files_from_outside_rpm all_other_files crunchbangs
+    files_from_outside_rpm all_other_files 
   _record_vars 'B' f i_1 od_o X line_1 c 
 
   exit 101
