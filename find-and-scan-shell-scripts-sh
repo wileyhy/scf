@@ -252,9 +252,16 @@ _scan_local_disks(){
       # package manager
       if ! rpm -qf "$file" 2> /dev/null 1>&2; then
 
-        # double counting these scripts, both in this array as well as
-        # in 'shell_scripts' just below
-        files_from_outside_rpm+=( [${i_1}]="$file" )
+        # user and system files from outside rpm
+        if [[ "$file" = /@(root|home|run/media)/* ]]; then
+          user_files+=( [${i_1}]="$file" )
+          unset 'all_files_sorted[$i_1]'
+          continue
+        else
+          system_files_from_outside_rpm+=( [${i_1}]="$file" )
+          unset 'all_files_sorted[$i_1]'
+          continue
+        fi
       fi
 
       # Make a record of the filenames and their crashbangs in RAM.
