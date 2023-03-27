@@ -197,7 +197,7 @@ _scan_local_disks(){
   # from the rest of the files.
   for i_1 in "${!all_files_sorted[@]}"; do
 
-    printf '%d of %d\r' "$i_1" "$count"
+    printf '%d of %d files\r' "$i_1" "$count"
     unset file X od_o line_1 
     file="${all_files_sorted[${i_1}]}"
 
