@@ -209,13 +209,14 @@ _scan_local_disks(){
       # Use 'read', and hope there won't be any non-printable characters.
       IFS= builtin read -r line_1 < "${f}" ||
           _erx "${LINENO}"
+      crunchbangs+=( [${i_1}]="${line_1}" )
 
       # Issue: the files with '#!comment' as the initial bytes
       if [[ "${line_1}" =~ ^#!comment ]]; then
         
           set -x
 
-        files_with_hashbang_comments+=( "${f}" )
+        files_with_hashbang_comments+=( [${i_1}]="${f}" )
         unset 'all_files_sorted[$i_1]'
         
           set -
@@ -228,7 +229,7 @@ _scan_local_disks(){
         
           set -x
 
-        files_from_outside_rpm+=( "${f}" )
+        files_from_outside_rpm+=( [${i_1}]="${f}" )
         unset 'all_files_sorted[$i_1]'
         
           set -
@@ -253,7 +254,13 @@ _scan_local_disks(){
 # Open a timestamped file & append into it the list of filenames and 
 # their crashbangs. 
 _create_datafile(){
+  
+    # <>
+    set -x
+
   # create the original datafile
+  touch "${f}" /tmp/"${f##*/}"
+  wait -f
   for x in "${f}" /tmp/"${f##*/}"; do
     if [[ -f "$x" ]] && [[ ! -L "$x" ]]; then
       mv "$x" "${x}.${RANDOM}"
@@ -282,7 +289,7 @@ fi
 
   # <> ##############################################################
   _record_arrays shell_scripts files_with_hashbang_comments \
-    files_from_outside_rpm all_other_files
+    files_from_outside_rpm all_other_files crunchbangs
   _record_vars 'B' f i_1 od_o X line_1 c 
 
   exit 101
