@@ -221,10 +221,13 @@ _scan_local_disks(){
       set -x
 
     builtin read -r X od_o X < <( 
-      sudo od -N2 -x "$file" ||
-        _erx "${LINENO}" ) 
-
-      set -
+      if ! sudo od -N2 -x "$file" then 
+        set -x;
+        echo od failed;
+        false;
+        _erx "${LINENO}" ;
+        set -;
+      fi; );
 
     # If 'od_o' contains some non-zero data, as it should, 
     if [[ -z "$od_o" ]]; then
