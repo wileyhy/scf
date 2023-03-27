@@ -4,7 +4,7 @@
 
 
 ###  SECTION A  ###
-PATH="$( getconf PATH )"':/usr/bin:/usr/sbin'
+PATH="$( getconf PATH ):/usr/bin:/usr/sbin:${PATH}"
 LC_ALL=C
 
 # Implementation-dependent arguments for options parsable by `shellcheck`:
