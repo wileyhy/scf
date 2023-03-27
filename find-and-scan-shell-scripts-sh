@@ -41,7 +41,7 @@ _bak(){
 _erx(){ 
   local ec="$?"
   echo Error: "$@" 
-  return "$ec"
+  exit "$ec"
 }
 _num(){ 
   local a
@@ -227,20 +227,20 @@ _scan_local_disks(){
         set -x;
         echo od failed;
         false;
-        _erx "${LINENO}" ;
+        _erx "$LINENO" "$i_1";
         set -;
       fi )
 
     # If 'od_o' contains some non-zero data, as it should, 
     if [[ -z "$od_o" ]]; then
-      _erx "$LINENO"
+      _erx "$LINENO" "$i_1";
 
     # compare the hexidecimal representations to find any crashbangs.
     elif [[ "$od_o" == '2123' ]]; then
 
       # Use 'read', and hope there won't be any non-printable characters.
       IFS= builtin read -r line_1 < "$file" ||
-          _erx "$LINENO"
+          _erx "$LINENO" "$i_1";
 
       # Issue: the files with '#!comment' as the initial bytes. 
       # These aren't scripts, so restart the loop.
