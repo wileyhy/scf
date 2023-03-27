@@ -204,11 +204,8 @@ _scan_local_disks(){
     ## file must exist
     #if [[ ! -e "$file" ]]; then
       #set -x
-      ## double counting these scripts, both in this array as well as
-      ## in '' just below. Absent files were causing `od` to print some 
-      ## errors. 
-      #disapeared_files+=( [${i_1}]="$file" )
       #unset 'all_files_sorted[$i_1]'
+      #continue
       #set -
     #fi
 
