@@ -12,11 +12,11 @@ shells='(sh|bash|dash|ksh)'
 # Process lock
 PATH="$( getconf PATH ):/usr/bin:/usr/sbin:${PATH}"
 LC_ALL=C
-lockdir=/tmp/scf.lock
-if mkdir -- "$lockdir"; then
-  printf '\nSuccessfully acquired lock: %s\n\n' "$lockdir" 1>&2
+lock_d=/tmp/scf.lock
+if mkdir -- "$lock_d"; then
+  printf '\nSuccessfully acquired lock: %s\n\n' "$lock_d" 1>&2
   trap '
-    rm -rf -- "$lockdir"
+    rm -rf -- "$lock_d"
     trap - EXIT TERM INT
     kill -s INT "$$"' EXIT TERM INT
 else
