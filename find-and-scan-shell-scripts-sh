@@ -9,7 +9,7 @@
 severity='error'
 shells='(sh|bash|dash|ksh)'
 
-# Process lock
+# Process lock & environment variables
 PATH="$( getconf PATH ):/usr/bin:/usr/sbin:${PATH}"
 LC_ALL=C
 lock_d=/tmp/scf.lock
@@ -50,26 +50,26 @@ _num(){
     echo "${#array[@]}"
   done
 }
-_record_arrays(){
+_write_arrays(){
   local a 
   for a in "$@"; do 
     local target_f
           target_f="${timedir}/a_${a}"
     declare -p "$a" | 
       sudo tee --output-error='exit' "$target_f" > /dev/null 2>&1 ||
-        _erx "_record_arrays $a" 
+        _erx "_write_arrays $a" 
     _bak "$target_f"
   done
 }
-# Usage: _record_vars [section] [raw variable names]
-_record_vars(){
+# Usage: _write_vars [section] [raw variable names]
+_write_vars(){
   local section target_f
         section="$1"
         target_f="${timedir}/${section}_vars"
   shift
   declare -p "$@" 2> /dev/null |
     sudo tee --output-error='exit' "$target_f" > /dev/null 2>&1 ||
-      _erx "_record_vars, section $section"
+      _erx "_write_vars, section $section"
   _bak "$target_f"
 }
 
@@ -173,8 +173,8 @@ mapfile -d '' -t    all_files_sorted < <(
   _erx "${LINENO}"
 
   # <> ##############################################################
-  _record_arrays all_files all_files_sorted
-  _record_vars 'A' PATH LC_ALL severity shells fstype_regexp time \
+  _write_arrays all_files all_files_sorted
+  _write_vars 'A' PATH LC_ALL severity shells fstype_regexp time \
     first_two_chars mountpoint datadir timedir datafile \
     previous relevant_search_dirs n0 n7
 
@@ -321,10 +321,10 @@ else
 fi
 
   # <> ##############################################################
-  _record_arrays shell_scripts files_with_hashbang_comments \
+  _write_arrays shell_scripts files_with_hashbang_comments \
     files_from_outside_rpm all_other_files endian_wtf user_files \
     system_files_from_outside_rpm
-  _record_vars 'B' file datafile i_1 od_o X line_1 count
+  _write_vars 'B' file datafile i_1 od_o X line_1 count
 
   exit 101
   set -x
