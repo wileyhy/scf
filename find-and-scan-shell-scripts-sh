@@ -4,12 +4,25 @@
 
 
 ###  SECTION A  ###
-PATH="$( getconf PATH ):/usr/bin:/usr/sbin:${PATH}"
-LC_ALL=C
 
 # Implementation-dependent arguments for options parsable by `shellcheck`:
 severity='error'
 shells='(sh|bash|dash|ksh)'
+
+# Process lock
+PATH="$( getconf PATH ):/usr/bin:/usr/sbin:${PATH}"
+LC_ALL=C
+lockdir=/tmp/scf.lock
+if mkdir -- "$lockdir"; then
+  printf '\nSuccessfully acquired lock: %s\n\n' "$lockdir" 1>&2
+  trap '
+    rm -rf -- "$lockdir"
+    trap - EXIT TERM INT
+    kill -s INT "$$"' EXIT TERM INT
+else
+  printf '\n\tCannot acquire lock: exiting.\n\n' 1>&2
+  exit 2
+fi
 
 # Variables
 fstype_regexp='(autofs|binfmt_misc|bpf|cgroup2|configfs|debugfs|devpts|devtmpfs|efivarfs|fusectl|fuse.portal|hugetlbfs|iso9660|mqueue|proc|pstore|rpc_pipefs|securityfs|selinuxfs|sysfs|tmpfs|tracefs)'
