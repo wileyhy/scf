@@ -240,16 +240,11 @@ _scan_local_disks(){
       IFS= builtin read -r line_1 < "$file" ||
           _erx "$LINENO"
 
-      # Issue: the files with '#!comment' as the initial bytes
+      # Issue: the files with '#!comment' as the initial bytes. 
+      # These aren't scripts, so restart the loop.
       if [[ "$line_1" =~ ^'#!comment' ]]; then
-        
-          set -x
-
         files_with_hashbang_comments+=( [${i_1}]="$file" )
         unset 'all_files_sorted[$i_1]'
-        
-          set -
-
         continue
       fi
 
@@ -310,7 +305,13 @@ then
   :
 else
   _scan_local_disks
+  
+    set -x
+
   _create_datafile
+
+    set -
+
 fi
 
   # <> ##############################################################
