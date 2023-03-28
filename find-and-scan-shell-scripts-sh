@@ -44,6 +44,40 @@ _bak(){
         _erx '_\bak' "$o"
   done
 }
+_create_datafile(){
+  # Open a timestamped file & append into it the list of filenames and 
+  # their crashbangs. 
+    # <>
+    set -x
+
+  # datafiles
+  data=( "$datafile" /tmp/"${datafile##*/}" )
+  # if any data files already exist, keep them
+  random="$RANDOM"
+  wait -f
+  for x in "${data[@]}"; do
+    if [[ -f "$x" ]] && [[ ! -L "$x" ]]; then
+      mv "$x" "${x}.p${$}.r${random}"
+    fi
+  done
+  wait -f
+
+  # create the original datafile
+  touch "${data[@]}"
+  wait -f
+
+  # header
+  printf '# crunchbangs -- %s \n' "$time" | 
+    sudo tee --output-error='exit' "${data[@]}" > /dev/null 2>&1 ||
+      _erx "${LINENO}"
+  
+  # content
+  printf '%s\n' "${shell_scripts[@]}" |
+    sudo tee --append --output-error='exit' "${data[@]}" \
+        > /dev/null 2>&1 ||
+      _erx "${LINENO}"
+  _bak "${data[@]}"
+}
 _erx(){ 
   local ec="$?"
   echo Error: "$@" 
@@ -54,6 +88,86 @@ _num(){
   for a in "$@"; do
     local -n array="$a" 
     echo "${#array[@]}"
+  done
+}
+_scan_local_disks(){
+  # Sort out the scripts, ie, any file beginning with a crashbang ('#!'), 
+  # from the rest of the files.
+  #   Note: this function can take 30-90 minutes!
+  for i_1 in "${!all_files_sorted[@]}"; do
+
+    printf '%d of %d files\r' "$i_1" "$count"
+    unset file X od_o line_1 
+    file="${all_files_sorted[${i_1}]}"
+
+    ## file must exist
+    #if [[ ! -e "$file" ]]; then
+      #set -x
+      #unset 'all_files_sorted[$i_1]'
+      #continue
+      #set -
+    #fi
+
+    # Bug, inordinately long interpreter paths are rare, but do occur.
+    # Read from disk in binary the first two bytes of each file in 
+    # the list and output it in hexadecimal.
+    #   Note: POSIX `od` doesn't have GNU's '--strings' option, so use 
+    # the `strings` command separately, if necessary.
+    #   Note: `od` command is POSIX compliant
+    # shellcheck disable=SC2034
+    wait -f
+    builtin read -r X od_o X < <( 
+      sudo od -N2 -x "$file" || 
+        _erx "$LINENO" "$i_1" "$file" )
+    # If 'od_o' contains some non-zero data, as it should, 
+    if [[ -z "$od_o" ]]; then
+      _erx "$LINENO" "$i_1" "$file";
+
+    # compare the hexidecimal representations to find any crashbangs.
+    elif [[ "$od_o" == '2321' ]]; then
+
+      # Use 'read', and hope there won't be any non-printable characters.
+      IFS= builtin read -r line_1 < "$file" ||
+          _erx "$LINENO" "$i_1" "$file";
+
+      # Issue: the files with '#!comment' as the initial bytes. 
+      # These aren't scripts, so restart the loop.
+      if [[ "$line_1" =~ ^'#!comment' ]]; then
+        files_with_hashbang_comments+=( [${i_1}]="$file" )
+        unset 'all_files_sorted[$i_1]'
+        continue
+      fi
+
+      # Issue: crashbang files which originate outside of the rpm 
+      # package manager
+      if ! rpm -qf "$file" 2> /dev/null 1>&2; then
+
+        # user and system files from outside rpm
+        if [[ "$file" = /@(root|home|run/media)/* ]]; then
+          user_files+=( [${i_1}]="$file" )
+          unset 'all_files_sorted[$i_1]'
+          continue
+        else
+          system_files_from_outside_rpm+=( [${i_1}]="$file" )
+          unset 'all_files_sorted[$i_1]'
+          continue
+        fi
+      fi
+
+      # Make a record of the filenames and their crashbangs in RAM.
+      shell_scripts+=( [$i_1]="$( 
+        printf '%-50s   %% %% %% %%   %s\n' "$line_1" "$file" )" )
+      unset 'all_files_sorted[$i_1]'
+    
+    # Issue: a big endian file format, possibly DB file? not very likely.
+    elif [[ "$od_o" == '2123' ]]; then
+      endian_wtf+=( [$i_1]="$file" )
+      unset 'all_files_sorted[$i_1]'
+    
+    else
+      all_other_files+=( [$i_1]="$file" )
+      unset 'all_files_sorted[$i_1]'
+    fi
   done
 }
 _write_arrays(){
@@ -201,126 +315,6 @@ mapfile -d '' -t    all_files_sorted < <(
 # Add some brevity, and write the completed arrays to disk
 count="${#all_files_sorted[@]}"
 unset IFS
-
-# Functions for this section
-#   Note: this function can take 30-90 minutes!
-_scan_local_disks(){
-  # Sort out the scripts, ie, any file beginning with a crashbang ('#!'), 
-  # from the rest of the files.
-  for i_1 in "${!all_files_sorted[@]}"; do
-
-    printf '%d of %d files\r' "$i_1" "$count"
-    unset file X od_o line_1 
-    file="${all_files_sorted[${i_1}]}"
-
-    ## file must exist
-    #if [[ ! -e "$file" ]]; then
-      #set -x
-      #unset 'all_files_sorted[$i_1]'
-      #continue
-      #set -
-    #fi
-
-    # Bug, inordinately long interpreter paths are rare, but do occur.
-    # Read from disk in binary the first two bytes of each file in 
-    # the list and output it in hexadecimal.
-    #   Note: POSIX `od` doesn't have GNU's '--strings' option, so use 
-    # the `strings` command separately, if necessary.
-    #   Note: `od` command is POSIX compliant
-    # shellcheck disable=SC2034
-    wait -f
-    builtin read -r X od_o X < <( 
-      sudo od -N2 -x "$file" || 
-        _erx "$LINENO" "$i_1" "$file" )
-
-    # If 'od_o' contains some non-zero data, as it should, 
-    if [[ -z "$od_o" ]]; then
-      _erx "$LINENO" "$i_1" "$file";
-
-    # compare the hexidecimal representations to find any crashbangs.
-    elif [[ "$od_o" == '2321' ]]; then
-
-      # Use 'read', and hope there won't be any non-printable characters.
-      IFS= builtin read -r line_1 < "$file" ||
-          _erx "$LINENO" "$i_1" "$file";
-
-      # Issue: the files with '#!comment' as the initial bytes. 
-      # These aren't scripts, so restart the loop.
-      if [[ "$line_1" =~ ^'#!comment' ]]; then
-        files_with_hashbang_comments+=( [${i_1}]="$file" )
-        unset 'all_files_sorted[$i_1]'
-        continue
-      fi
-
-      # Issue: crashbang files which originate outside of the rpm 
-      # package manager
-      if ! rpm -qf "$file" 2> /dev/null 1>&2; then
-
-        # user and system files from outside rpm
-        if [[ "$file" = /@(root|home|run/media)/* ]]; then
-          user_files+=( [${i_1}]="$file" )
-          unset 'all_files_sorted[$i_1]'
-          continue
-        else
-          system_files_from_outside_rpm+=( [${i_1}]="$file" )
-          unset 'all_files_sorted[$i_1]'
-          continue
-        fi
-      fi
-
-      # Make a record of the filenames and their crashbangs in RAM.
-      shell_scripts+=( [$i_1]="$( 
-        printf '%-50s   %% %% %% %%   %s\n' "$line_1" "$file" )" )
-      unset 'all_files_sorted[$i_1]'
-    
-    # Issue: a big endian file format, possibly DB file? not very likely.
-    elif [[ "$od_o" == '2123' ]]; then
-      endian_wtf+=( [$i_1]="$file" )
-      unset 'all_files_sorted[$i_1]'
-    
-    else
-      all_other_files+=( [$i_1]="$file" )
-      unset 'all_files_sorted[$i_1]'
-    fi
-  done
-}
-
-# Open a timestamped file & append into it the list of filenames and 
-# their crashbangs. 
-_create_datafile(){
-    # <>
-    set -x
-
-  # datafiles
-  data=( "$datafile" /tmp/"${datafile##*/}" )
-  
-
-  # if any data files already exist, keep them
-  random="$RANDOM"
-  wait -f
-  for x in "${data[@]}"; do
-    if [[ -f "$x" ]] && [[ ! -L "$x" ]]; then
-      mv "$x" "${x}.p${$}.r${random}"
-    fi
-  done
-  wait -f
-
-  # create the original datafile
-  touch "${data[@]}"
-  wait -f
-
-  # header
-  printf '# crunchbangs -- %s \n' "$time" | 
-    sudo tee --output-error='exit' "${data[@]}" > /dev/null 2>&1 ||
-      _erx "${LINENO}"
-  
-  # content
-  printf '%s\n' "${shell_scripts[@]}" |
-    sudo tee --append --output-error='exit' "${data[@]}" \
-        > /dev/null 2>&1 ||
-      _erx "${LINENO}"
-  _bak "${data[@]}"
-}
 
 # if the full list exists (of files on disk which begin with crash-
 # bangs), then skip the 30-90 minute search phase.
