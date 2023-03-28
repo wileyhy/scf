@@ -29,10 +29,41 @@ fstype_regexp='(autofs|binfmt_misc|bpf|cgroup2|configfs|debugfs|devpts|devtmpfs|
 time="$( builtin printf '%(%F_%H%M%S)T' )"
 
 #   : arrays
-export all_files all_files_sorted shell_scripts files_with_hashbang_comments files_from_outside_rpm all_other_files endian_wtf user_files system_files_from_outside_rpm
+export \
+  all_files \
+  all_files_sorted \
+  all_other_files \
+  endian_wtf \
+  files_from_outside_rpm \
+  files_with_hashbang_comments \
+  shell_scripts \
+  system_files_from_outside_rpm \
+  user_files
 
 #   : variables
-export file datafile i_1 od_o X line_1 count PATH LC_ALL severity shells fstype_regexp time first_two_chars mountpoint datadir timedir datafile previous relevant_search_dirs n0 n7
+export \
+  count \
+  datadir \
+  datafile \
+  datafile \
+  file \
+  first_two_chars \
+  fstype_regexp \
+  i_1 \
+  LC_ALL \
+  line_1 \
+  mountpoint \
+  n0 \
+  n7 \
+  od_o \
+  PATH \
+  previous \
+  relevant_search_dirs \
+  severity \
+  shells \
+  time \
+  timedir \
+  X
 
 # Functions
 _bak(){ 
@@ -210,7 +241,15 @@ EOF
 }
 
 #   : functions
-export _bak _erx _num _write_arrays _write_vars _usage
+export \
+  _bak \
+  _create_datafile \
+  _erx \
+  _num \
+  _scan_local_disks \
+  _usage \
+  _write_arrays \
+  _write_vars
 
 # Option parsing
 if [[ "${#}" -gt 0 ]]; then
