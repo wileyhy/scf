@@ -201,6 +201,18 @@ _scan_local_disks(){
     fi
   done
 }
+_usage(){
+  # Usage:  _usage [exit-code]
+  cat <<-\EOF
+    SCF - Shell Check Find, version 1.0 (redhat-linux)
+    Find and scan shell scripts depending on severity level. 
+        Usage:  ./find-and-scan-shell-scripts-sh [-ehiw]
+                -e error          -i info
+                -h help           -w warning
+    Only the first option is processed.
+EOF
+  exit "${1}"
+}
 _write_arrays(){
     # <>
     set -x
@@ -226,18 +238,6 @@ _write_vars(){
     sudo tee --output-error='exit' "$target_f" > /dev/null 2>&1 ||
       _erx "_write_vars, section $section"
   _bak "$target_f"
-}
-# Usage:  _usage [exit-code]
-_usage(){
-  cat <<-\EOF
-    SCF - Shell Check Find, version 1.0 (redhat-linux)
-    Find and scan shell scripts depending on severity level. 
-        Usage:  ./find-and-scan-shell-scripts-sh [-ehiw]
-                -e error          -i info
-                -h help           -w warning
-    Only the first option is processed.
-EOF
-  exit "${1}"
 }
 
 #   : functions
