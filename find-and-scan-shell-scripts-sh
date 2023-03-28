@@ -279,25 +279,35 @@ _create_datafile(){
     # <>
     set -x
 
-  # create the original datafile
-  touch "$datafile" /tmp/"${datafile##*/}"
+  # datafiles
+  data=( "$datafile" /tmp/"${datafile##*/}" )
+  
+
+  # if any data files already exist, keep them
+  random="$RANDOM"
   wait -f
-  for x in "$datafile" /tmp/"${datafile##*/}"; do
+  for x in "${data[@]}"; do
     if [[ -f "$x" ]] && [[ ! -L "$x" ]]; then
-      mv "$x" "${x}.${RANDOM}"
+      mv "$x" "${x}.p${$}.r${random}"
     fi
   done
   wait -f
+
+  # create the original datafile
+  touch "${data[@]}"
+  wait -f
+
+  # header
   printf '# crunchbangs -- %s \n' "$time" | 
-    sudo tee --output-error='exit' "$datafile" /tmp/"${datafile##*/}" \
-        > /dev/null 2>&1 ||
+    sudo tee --output-error='exit' "${data[@]}" > /dev/null 2>&1 ||
       _erx "${LINENO}"
+  
+  # content
   printf '%s\n' "${shell_scripts[@]}" |
-    sudo tee --append --output-error='exit' "$datafile" \
-      /tmp/"${datafile##*/}" \
+    sudo tee --append --output-error='exit' "${data[@]}" \
         > /dev/null 2>&1 ||
       _erx "${LINENO}"
-  _bak "$datafile" /tmp/"${datafile##*/}"
+  _bak "${data[@]}"
 }
 
 # if the full list exists (of files on disk which begin with crash-
