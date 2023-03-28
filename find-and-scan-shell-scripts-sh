@@ -28,6 +28,12 @@ fi
 fstype_regexp='(autofs|binfmt_misc|bpf|cgroup2|configfs|debugfs|devpts|devtmpfs|efivarfs|fusectl|fuse.portal|hugetlbfs|iso9660|mqueue|proc|pstore|rpc_pipefs|securityfs|selinuxfs|sysfs|tmpfs|tracefs)'
 time="$( builtin printf '%(%F_%H%M%S)T' )"
 
+#   : arrays
+export all_files all_files_sorted shell_scripts files_with_hashbang_comments files_from_outside_rpm all_other_files endian_wtf user_files system_files_from_outside_rpm
+
+#   : variables
+export file datafile i_1 od_o X line_1 count PATH LC_ALL severity shells fstype_regexp time first_two_chars mountpoint datadir timedir datafile previous relevant_search_dirs n0 n7
+
 # Functions
 _bak(){ 
   local o
@@ -51,6 +57,9 @@ _num(){
   done
 }
 _write_arrays(){
+    # <>
+    set -x
+
   local a 
   for a in "$@"; do 
     local target_f
@@ -59,6 +68,7 @@ _write_arrays(){
       sudo tee --output-error='exit' "$target_f" > /dev/null 2>&1 ||
         _erx "_write_arrays $a" 
     _bak "$target_f"
+    unset -v target_f
   done
 }
 # Usage: _write_vars [section] [raw variable names]
@@ -72,7 +82,6 @@ _write_vars(){
       _erx "_write_vars, section $section"
   _bak "$target_f"
 }
-
 # Usage:  _usage [exit-code]
 _usage(){
   cat <<-\EOF
@@ -85,6 +94,9 @@ _usage(){
 EOF
   exit "${1}"
 }
+
+#   : functions
+export _bak _erx _num _write_arrays _write_vars _usage
 
 # Option parsing
 if [[ "${#}" -gt 0 ]]; then
