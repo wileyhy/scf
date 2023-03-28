@@ -45,7 +45,6 @@ export \
   count \
   datadir \
   datafile \
-  datafile \
   file \
   first_two_chars \
   fstype_regexp \
@@ -239,7 +238,6 @@ _write_vars(){
       _erx "_write_vars, section $section"
   _bak "$target_f"
 }
-
 #   : functions
 export \
   _bak \
@@ -250,6 +248,7 @@ export \
   _usage \
   _write_arrays \
   _write_vars
+
 
 # Option parsing
 if [[ "${#}" -gt 0 ]]; then
