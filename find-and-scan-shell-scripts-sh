@@ -239,7 +239,7 @@ _write_vars(){
   _bak "$target_f"
 }
 #   : functions
-export \
+export -f \
   _bak \
   _create_datafile \
   _erx \
