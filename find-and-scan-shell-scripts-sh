@@ -154,33 +154,40 @@ _scan_local_disks(){
       _erx "$LINENO" "$i_1" "$file";
 
     # compare the hexidecimal representations to find any crashbangs.
-    elif [[ "$od_o" == '2321' ]]; then
+    elif [[ "$od_o" == @(2321|2123) ]]; then
 
+      # Issue: a big endian file format, possibly DB file? not very likely.
+      if [[ "$od_o" == '2123' ]]; then
+        endian_wtf+=( [$i_1]="$file" )
+        unset 'all_files_sorted[$i_1]'
+    
       # Use 'read', and hope there won't be any non-printable characters.
-      IFS= builtin read -r line_1 < "$file" ||
+      else
+        IFS= builtin read -r line_1 < "$file" ||
           _erx "$LINENO" "$i_1" "$file";
 
-      # Issue: the files with '#!comment' as the initial bytes. 
-      # These aren't scripts, so restart the loop.
-      if [[ "$line_1" =~ ^'#!comment' ]]; then
-        files_with_hashbang_comments+=( [${i_1}]="$file" )
-        unset 'all_files_sorted[$i_1]'
-        continue
-      fi
-
-      # Issue: crashbang files which originate outside of the rpm 
-      # package manager
-      if ! rpm -qf "$file" 2> /dev/null 1>&2; then
-
-        # user and system files from outside rpm
-        if [[ "$file" = /@(root|home|run/media)/* ]]; then
-          user_files+=( [${i_1}]="$file" )
+        # Issue: the files with '#!comment' as the initial bytes. 
+        # These aren't scripts, so restart the loop.
+        if [[ "$line_1" =~ ^'#!comment' ]]; then
+          files_with_hashbang_comments+=( [${i_1}]="$file" )
           unset 'all_files_sorted[$i_1]'
           continue
-        else
-          system_files_from_outside_rpm+=( [${i_1}]="$file" )
-          unset 'all_files_sorted[$i_1]'
-          continue
+        fi
+
+        # Issue: crashbang files which originate outside of the rpm 
+        # package manager
+        if ! rpm -qf "$file" 2> /dev/null 1>&2; then
+
+          # user and system files from outside rpm
+          if [[ "$file" = /@(root|home|run/media)/* ]]; then
+            user_files+=( [${i_1}]="$file" )
+            unset 'all_files_sorted[$i_1]'
+            continue
+          else
+            system_files_from_outside_rpm+=( [${i_1}]="$file" )
+            unset 'all_files_sorted[$i_1]'
+            continue
+          fi
         fi
       fi
 
@@ -188,12 +195,7 @@ _scan_local_disks(){
       shell_scripts+=( [$i_1]="$( 
         printf '%-50s   %% %% %% %%   %s\n' "$line_1" "$file" )" )
       unset 'all_files_sorted[$i_1]'
-    
-    # Issue: a big endian file format, possibly DB file? not very likely.
-    elif [[ "$od_o" == '2123' ]]; then
-      endian_wtf+=( [$i_1]="$file" )
-      unset 'all_files_sorted[$i_1]'
-    
+
     else
       all_other_files+=( [$i_1]="$file" )
       unset 'all_files_sorted[$i_1]'
