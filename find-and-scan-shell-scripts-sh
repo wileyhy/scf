@@ -351,7 +351,7 @@ mapfile -d '' -t all_files < <(
 
 # sort the original array with mapfile and test it
   # <>
-  set -; echo 'printf $array'
+  set -; echo 'printf \x24array'
 
 mapfile -d '' -t    all_files_sorted < <(
   printf '%s\0'  "${all_files[@]}" |
