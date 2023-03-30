@@ -377,21 +377,38 @@ fi
 # Gather filenames from local attached disk storage, of files with 
 # size not equal to 0 bytes.
 # shellcheck disable=SC2034
+
+rst_f="${metadir}/a_relevant_search_dirs"
+
+if sudo command test -f "$rst_f" &&
+  ! sudo command test -L "$rst_f"
+then
+  hash_1="$( sudo sha256sum "$rst_f" )"
+  sudo rm -f "$rst_f" ||
+    _erx "$LINENO"
+fi
+
 mapfile -d '' -t relevant_search_dirs < <(
+  # DO NOT CHANGE THIS FIND COMMAND, or the repeat-search-test will fail
   sudo find / -mindepth 1 -maxdepth 1 -type d \! -empty \
     \( \! -name proc -a \! -name sys -a \! -iname 'scf*' \) -print0 )
 _write_arrays "$metadir" relevant_search_dirs
 
-  exit 103
+# repeat search test (rst)
+[[ -v hash_1 ]] &&
+  hash_2="$( sha256sum "${metadir}/a_relevant_search_dirs" )"
 
 # DEBUG: "${relevant_search_dirs[@]}" OR '/usr/sbin' OR /usr/{,s}bin
 mapfile -d '' -t all_files < <( 
+  # DO NOT CHANGE THIS FIND COMMAND, or the repeat-search-test will fail
   sudo find \
     "${relevant_search_dirs[@]}" \
       -type f \! -empty -print0 2> /dev/null )
     #/usr/sbin /usr/bin \
     #/usr/sbin \
     #"${relevant_search_dirs[@]}" \
+
+  exit 103
 
 # sort the original array with mapfile and test it
   # <>
