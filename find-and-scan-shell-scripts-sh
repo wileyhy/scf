@@ -396,18 +396,26 @@ _write_arrays "$metadir" relevant_search_dirs
 
 # repeat search test (rst)
 [[ -v hash_1 ]] &&
-  hash_2="$( sha256sum "${metadir}/a_relevant_search_dirs" )"
+  hash_2="$( sudo sha256sum "${metadir}/a_relevant_search_dirs" )"
 
-# DEBUG: "${relevant_search_dirs[@]}" OR '/usr/sbin' OR /usr/{,s}bin
-mapfile -d '' -t all_files < <( 
+if [[ ! -v hash_2 ]] ||
+  [[ "${hash_1%% *}" != "${hash_2%% *}" ]]
+then
+
   # DO NOT CHANGE THIS FIND COMMAND, or the repeat-search-test will fail
-  sudo find \
-    "${relevant_search_dirs[@]}" \
-      -type f \! -empty -print0 2> /dev/null )
-    #/usr/sbin /usr/bin \
-    #/usr/sbin \
-    #"${relevant_search_dirs[@]}" \
+  
+  # find all relevant files on disk
+  # DEBUG: "${relevant_search_dirs[@]}" OR '/usr/sbin' OR /usr/{,s}bin
+  mapfile -d '' -t all_files < <( 
+    sudo find \
+      "${relevant_search_dirs[@]}" \
+        -type f \! -empty -print0 2> /dev/null )
+      #/usr/sbin /usr/bin \
+      #/usr/sbin \
+      #"${relevant_search_dirs[@]}" \
+fi
 
+  echo 'number, all_files:' "${#all_files[@]}"
   exit 103
 
 # sort the original array with mapfile and test it
