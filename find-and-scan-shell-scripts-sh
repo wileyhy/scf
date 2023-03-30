@@ -394,12 +394,14 @@ then
   if sudo command test -f "${rst_old}.bak"; then
     
     # TODO
-    mv "${rst_old}.bak" "${rst_old}.bak.$( echo PUT STAT OUTPUT OF MTIME PRINTF DATE STRING HERE )" ||
+    echo sudo mv "${rst_old}.bak" "${rst_old}.bak.$( echo PUT STAT OUTPUT OF MTIME PRINTF DATE STRING HERE )" ||
       _erx "$LINENO"
   else
     _bak "${rst_old}"
   fi
-  
+ 
+    exit 105
+
   sudo rm -f "$rst_old" ||
     _erx "$LINENO"
 fi
