@@ -55,7 +55,7 @@ export \
   relevant_search_dirs \
   severity \
   shells \
-  time \
+  \time \
   timedir \
   X # vars
 
