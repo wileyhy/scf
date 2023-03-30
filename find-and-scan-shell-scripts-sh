@@ -274,7 +274,11 @@ fi
 
 
 # Create the data directories
-sudo -v
+if ! sudo -v; then
+  printf '\n\tValidation failed of user\x27s `sudo` timestamp; ' 
+  printf 'exiting.\n\n' 
+  exit 1
+fi
 
 #   In case of large log files, programatically select a save directory, 
 # attached to the local disk, where any output can be saved; prefer USB 
@@ -347,9 +351,16 @@ mapfile -d '' -t all_files < <(
     #"${relevant_search_dirs[@]}" \
 
 # sort the original array with mapfile and test it
+  # <>
+  set -
+
 mapfile -d '' -t    all_files_sorted < <(
   printf '%s\0'  "${all_files[@]}" |
     sort -z )
+
+  # <>
+  set -x
+  
 [[ "$( _num all_files )" -eq "$( _num all_files_sorted )" ]] ||
   _erx "${LINENO}"
 
