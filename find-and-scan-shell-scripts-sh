@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 # find-and-scan-shell-scripts-sh
 # Written in bash version 5.1 on Fedora 37
 
@@ -25,7 +25,7 @@ else
 fi
 
 # Variables
-fstype_regexp='(autofs|binfmt_misc|bpf|cgroup2|configfs|debugfs|devpts|devtmpfs|efivarfs|fusectl|fuse.portal|hugetlbfs|iso9660|mqueue|proc|pstore|rpc_pipefs|securityfs|selinuxfs|sysfs|tmpfs|tracefs)'
+fstype_regexp='(autofs|binfmt_misc|bpf|cgroup2|configfs|debugfs|devpts|devtmpfs|efivarfs|fusectl|fuse.portal|hugetlbfs|iso9660|mqueue|proc|pstore|rpc_pipefs|securityfs|selinuxfs|sysfs|tmpfs|tracefs|live)'
 time="$( builtin printf '%(%F_%H%M%S)T' )"
 
 #   : arrays
@@ -267,6 +267,10 @@ if [[ "${#}" -gt 0 ]]; then
 fi
 
 
+# Bug: you can't pipe anything to `df`
+# sudo df --sync --local --output='fstype,avail,source' --block-size=1 -- $( sudo find /run/media -mindepth 2 -maxdepth 2 -type d ) | grep --extended-regexp --invert-match '^Type[[:space:]]*Avail'
+
+
 # Create the data directories
 sudo -v
 
@@ -287,6 +291,10 @@ mountpoint="$(
       awk 'NR == 1 { print $3 }'
   )"
 )"
+
+# BUG: needs a test for whether or not there are any unmounted USB drives. 
+# automatically using '/' as mountpoint is, in this case, ie, on a live usb,
+# not so good of an idea.
 
 [[ -z "${mountpoint}" ]] &&
   mountpoint="${TEMPDIR:="${HOME}"}"
@@ -314,12 +322,17 @@ if ! sudo command test -d "${timedir}"; then
     _erx "${LINENO}"
 fi
 
+#set -o xtrace 
+#exec 2>3 >&3
+#sudo exec 3> "${timedir}"/xtrace.log
+#exit 101
+	
 
 # Gather filenames from local attached disk storage, of files with 
 # size not equal to 0 bytes.
 # shellcheck disable=SC2034
 mapfile -d '' -t relevant_search_dirs < <(
-  find / -mindepth 1 -maxdepth 1 -type d \! -empty \
+  sudo find / -mindepth 1 -maxdepth 1 -type d \! -empty \
     \( \! -name proc -a \! -name sys -a \! -iname 'scf*' \) -print0 )
 
 # DEBUG: "${relevant_search_dirs[@]}" OR '/usr/sbin' OR /usr/{,s}bin
