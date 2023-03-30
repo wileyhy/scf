@@ -14,8 +14,6 @@ PATH="$( getconf PATH ):/usr/bin:/usr/sbin:${PATH}"
 LC_ALL=C
 
 # Process lock
-PATH="$( getconf PATH ):/usr/bin:/usr/sbin:${PATH}"
-LC_ALL=C
 lock_d=/tmp/scf.lock
 trap 'if [[ -d "$lock_d" ]] && [[ ! -L "$lock_d" ]]; then sudo rm -rf -- "$lock_d"; fi; trap - EXIT TERM INT; kill -s INT "$$"' EXIT TERM INT
 if mkdir -- "$lock_d"; then
