@@ -275,7 +275,7 @@ fi
 
 # Create the data directories
 if ! sudo -v; then
-  printf '\n\tValidation failed of user\x27s `sudo` timestamp; ' 
+  printf '\n\tValidation failed of user\x27s \x60sudo\x60 timestamp; ' 
   printf 'exiting.\n\n' 
   exit 1
 fi
