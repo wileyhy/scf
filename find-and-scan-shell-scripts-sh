@@ -13,11 +13,7 @@ shells='(sh|bash|dash|ksh)'
 PATH="$( getconf PATH ):/usr/bin:/usr/sbin:${PATH}"
 LC_ALL=C
 lock_d=/tmp/scf.lock
-trap '
-  [[ -d "$lock_d" ]] && 
-    rm -rf -- "$lock_d"
-  trap - EXIT TERM INT
-  kill -s INT "$$"' EXIT TERM INT
+trap 'if [[ -d "$lock_d" ]] && [[ ! -L "$lock_d" ]]; then rm -rf -- "$lock_d"; fi; trap - EXIT TERM INT; kill -s INT "$$"' EXIT TERM INT
 if mkdir -- "$lock_d"; then
   printf '\nSuccessfully acquired lock: %s\n\n' "$lock_d" 1>&2
 else
@@ -70,7 +66,7 @@ _bak(){
   local o
   for o in "$@"; do 
     # shellcheck disable=SC2002
-    cat "$o" |
+    sudo cat "$o" |
       sudo tee --output-error='exit' "${o}.bak" > /dev/null 2>&1 ||
         _erx '_\bak' "$o"
   done
@@ -194,7 +190,7 @@ _scan_local_disks(){
       fi
 
       # Make a record of the filenames and their crashbangs in RAM.
-      shell_scripts+=( [$i_1]="$( 
+      shell_scripts+=( [$i_1]="$( \
         printf '%-50s   %% %% %% %%   %s\n' "$line_1" "$file" )" )
       unset 'all_files_sorted[$i_1]'
 
@@ -305,15 +301,18 @@ mountpoint="$(
 [[ -z "${mountpoint}" ]] &&
   mountpoint="${TEMPDIR:="${HOME}"}"
 datadir="${mountpoint}/scf.d/latest"
+metadir="${mountpoint}/scf.d/current"
 timedir="${datadir}/t_${time}"
 datafile="${timedir}/crunchbangs"
 #unlisted="${timedir}/unlisted"
 umask 077
 
-if ! sudo command test -d "${datadir}"; then
-  sudo mkdir --parents "${datadir}" ||
-    _erx "${LINENO}"
-fi
+for conf_d in "$datadir" "$metadir"; do
+  if ! sudo command test -d "$conf_d"; then
+    sudo mkdir --parents "$conf_d" ||
+      _erx "$LINENO"
+  fi
+done
 
 # Label the current data as "latest."
 mapfile -d '' -t previous < <( 
@@ -352,14 +351,14 @@ mapfile -d '' -t all_files < <(
 
 # sort the original array with mapfile and test it
   # <>
-  set -
+  set -; echo 'printf $array'
 
 mapfile -d '' -t    all_files_sorted < <(
   printf '%s\0'  "${all_files[@]}" |
     sort -z )
 
   # <>
-  set -x
+  set -x; : 'set -x'
   
 [[ "$( _num all_files )" -eq "$( _num all_files_sorted )" ]] ||
   _erx "${LINENO}"
@@ -384,10 +383,9 @@ unset IFS
 
 # if the full list exists (of files on disk which begin with crash-
 # bangs), then skip the 30-90 minute search phase.
-if [[ -f /tmp/"${datafile##*/}" ]] && [[ ! -L /tmp/"${datafile##*/}" ]]; 
+if [[ ! -f /tmp/"${datafile##*/}" ]] || 
+  [[ -L /tmp/"${datafile##*/}" ]]; 
 then
-  :
-else
   _scan_local_disks
   
     set -x
