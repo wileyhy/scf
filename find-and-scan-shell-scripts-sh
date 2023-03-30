@@ -25,7 +25,7 @@ else
 fi
 
 # Variables
-fstype_regexp='(autofs|binfmt_misc|bpf|cgroup2|configfs|debugfs|devpts|devtmpfs|efivarfs|fusectl|fuse.portal|hugetlbfs|iso9660|mqueue|proc|pstore|rpc_pipefs|securityfs|selinuxfs|sysfs|tmpfs|tracefs|live)'
+fstype_regexp='(autofs|binfmt_misc|bpf|cgroup2|configfs|debugfs|devpts|devtmpfs|efivarfs|fusectl|fuse.portal|hugetlbfs|iso9660|mqueue|proc|pstore|rpc_pipefs|securityfs|selinuxfs|sysfs|tmpfs|tracefs)'
 time="$( builtin printf '%(%F_%H%M%S)T' )"
 
 #   : arrays
@@ -283,11 +283,11 @@ sudo -v
 # output, then set 'mountpoint' according to environment variables. 
 mountpoint="$( 
   findmnt --canonicalize --output=target --noheadings "$( 
-    sudo find /run/media -mindepth 2 -maxdepth 2 -type d |
-      df --sync --local --output='fstype,avail,source' --block-size=1 |
-      grep --extended-regexp --invert-match '^Type[[:space:]]*Avail' |
-      grep --extended-regexp --invert-match ^"$fstype_regexp" |
-      sort --general-numeric-sort --reverse --key=2 |
+    sudo df --sync --local --output='fstype,avail,source' --block-size=1 | 
+      grep --extended-regexp --invert-match '^Type[[:space:]]*Avail' | 
+      grep --extended-regexp --invert-match -e ^"$fstype_regexp" \
+        -e 'live-rw'$ | 
+      sort --general-numeric-sort --reverse --key=2 | 
       awk 'NR == 1 { print $3 }'
   )"
 )"
