@@ -13,7 +13,7 @@ shells='(sh|bash|dash|ksh)'
 PATH="$( getconf PATH ):/usr/bin:/usr/sbin:${PATH}"
 LC_ALL=C
 lock_d=/tmp/scf.lock
-trap 'if [[ -d "$lock_d" ]] && [[ ! -L "$lock_d" ]]; then rm -rf -- "$lock_d"; fi; trap - EXIT TERM INT; kill -s INT "$$"' EXIT TERM INT
+trap 'if [[ -d "$lock_d" ]] && [[ ! -L "$lock_d" ]]; then sudo rm -rf -- "$lock_d"; fi; trap - EXIT TERM INT; kill -s INT "$$"' EXIT TERM INT
 if mkdir -- "$lock_d"; then
   printf '\nSuccessfully acquired lock: %s\n\n' "$lock_d" 1>&2
 else
@@ -125,6 +125,9 @@ _scan_local_disks(){
 
     printf '%d of %d files\r' "$i_1" "$count"
     unset file X od_o line_1 
+    
+      exit 101
+
     file="${all_files_sorted[${i_1}]}"
 
     ## file must exist
@@ -213,16 +216,24 @@ EOF
   exit "${1}"
 }
 _write_arrays(){
+  # Usage: _write_arrays [one target-dir] [arrays]
+  # Default directory is "$timedir".
     # <>
     set -x
 
-  local a 
+  local a d
+  : 'is function pos-parm "$1" a directory?'
+  if sudo command test -d "$1"; then
+    d="$1"
+    shift
+  fi
+
   for a in "$@"; do 
     local target_f
-          target_f="${timedir}/a_${a}"
+          target_f="${d:-"${timedir}"}/a_${a}"
     declare -p "$a" | 
       sudo tee --output-error='exit' "$target_f" > /dev/null 2>&1 ||
-        _erx "_write_arrays $a" 
+        _erx "_write_arrays $d $a"
     _bak "$target_f"
     unset -v target_f
   done
@@ -300,32 +311,62 @@ mountpoint="$(
 
 [[ -z "${mountpoint}" ]] &&
   mountpoint="${TEMPDIR:="${HOME}"}"
-datadir="${mountpoint}/scf.d/latest"
-metadir="${mountpoint}/scf.d/current"
+datadir="${mountpoint}/scf.d/latest_data"
+metadir="${mountpoint}/scf.d/current_meta"
 timedir="${datadir}/t_${time}"
 datafile="${timedir}/crunchbangs"
 #unlisted="${timedir}/unlisted"
 umask 077
 
+# test for whether the "$datadir" is writeable
+if ! sudo mkdir "${mountpoint}/write-test"; then
+  _erx "$LINENO"
+else 
+  sudo rm -fd "${mountpoint}/write-test"
+fi
+
+# make sure "$conf_d" is a directory OR create the "$conf_d" dir 
+# if necessary
 for conf_d in "$datadir" "$metadir"; do
-  if ! sudo command test -d "$conf_d"; then
-    sudo mkdir --parents "$conf_d" ||
-      _erx "$LINENO"
-  fi
+  sudo command test -d "$conf_d" ||
+    sudo mkdir --parents "$conf_d"
 done
 
 # Label the current data as "latest."
+#   Note: `find` sees dirs and symlinks as separate things 
 mapfile -d '' -t previous < <( 
-  sudo find "${datadir}" -mindepth 1 -maxdepth 1 -type d \
-    -name 't_*' -print0 2> /dev/null )
-if [[ -n "${previous[*]:0:1}" ]]; then
-  sudo mv "${previous[@]}" "${mountpoint}/scf.d/" ||  
-    _erx "${LINENO}"
-fi
+  sudo find "${datadir}" -mindepth 1 -maxdepth 1 -type d -a \! -type l \
+    -name 't_*' -print0 )
+
+  declare -p previous
+
+# if "$t_dir" is empty, then delete it; otherwise `mv` it out
+# of the `latest` dir
+for t_dir in "${previous[@]}"; do 
+  sudo rmdir --ignore-fail-on-non-empty "$t_dir" 
+  
+  : 'of previous timedir' 
+  #   Note: with `test`, dirs and symlinks can refer to the same inode
+  if sudo command test -e "$t_dir" &&
+    ! sudo command test -L "$t_dir"; 
+  then
+    sudo mv "${previous[@]}" /run/media/root/15_Mar_2023/scf.d #"${mountpoint}/scf.d/"
+  else
+    continue
+  fi
+
+    exit 101
+
+done
+
+: 'of current timedir'
 if ! sudo command test -d "${timedir}"; then
-  sudo mkdir --parents "${timedir}" ||
+  sudo mkdir "${timedir}" ||
     _erx "${LINENO}"
 fi
+
+
+  #exit 102
 
 #set -o xtrace 
 #exec 2>3 >&3
@@ -339,6 +380,9 @@ fi
 mapfile -d '' -t relevant_search_dirs < <(
   sudo find / -mindepth 1 -maxdepth 1 -type d \! -empty \
     \( \! -name proc -a \! -name sys -a \! -iname 'scf*' \) -print0 )
+_write_arrays "$metadir" relevant_search_dirs
+
+  exit 103
 
 # DEBUG: "${relevant_search_dirs[@]}" OR '/usr/sbin' OR /usr/{,s}bin
 mapfile -d '' -t all_files < <( 
@@ -351,7 +395,7 @@ mapfile -d '' -t all_files < <(
 
 # sort the original array with mapfile and test it
   # <>
-  set -; echo 'printf \x24array'
+  set -; printf 'printf \x24array\n'
 
 mapfile -d '' -t    all_files_sorted < <(
   printf '%s\0'  "${all_files[@]}" |
