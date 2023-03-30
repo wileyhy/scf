@@ -23,11 +23,9 @@ else
   exit 2
 fi
 
-# Variables
+# Uset variables
 fstype_regexp='(autofs|binfmt_misc|bpf|cgroup2|configfs|debugfs|devpts|devtmpfs|efivarfs|fusectl|fuse.portal|hugetlbfs|iso9660|mqueue|proc|pstore|rpc_pipefs|securityfs|selinuxfs|sysfs|tmpfs|tracefs)'
 time="$( builtin printf '%(%F_%H%M%S)T' )"
-
-#   : arrays
 export \
   all_files \
   all_files_sorted \
@@ -37,9 +35,7 @@ export \
   files_with_hashbang_comments \
   shell_scripts \
   system_files_from_outside_rpm \
-  user_files
-
-#   : variables
+  user_files # arrays
 export \
   count \
   datadir \
@@ -61,7 +57,7 @@ export \
   shells \
   time \
   timedir \
-  X
+  X # vars
 
 # Functions
 _bak(){ 
