@@ -222,7 +222,7 @@ _write_arrays(){
     set -x
 
   local a d
-  : 'is function pos-parm "$1" a directory?'
+  : 'is function pos-parm $1 a directory?'
   if sudo command test -d "$1"; then
     d="$1"
     shift
