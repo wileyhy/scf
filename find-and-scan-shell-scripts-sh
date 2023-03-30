@@ -70,7 +70,7 @@ _bak(){
   for o in "$@"; do 
     # shellcheck disable=SC2002
     cat "$o" |
-      tee --output-error='exit' "${o}.bak" > /dev/null 2>&1 ||
+      sudo tee --output-error='exit' "${o}.bak" > /dev/null 2>&1 ||
         _erx '_\bak' "$o"
   done
 }
@@ -149,6 +149,7 @@ _scan_local_disks(){
     builtin read -r X od_o X < <( 
       sudo od -N2 -x "$file" || 
         _erx "$LINENO" "$i_1" "$file" )
+    
     # If 'od_o' contains some non-zero data, as it should, 
     if [[ -z "$od_o" ]]; then
       _erx "$LINENO" "$i_1" "$file";
