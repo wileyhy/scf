@@ -378,28 +378,39 @@ fi
 # size not equal to 0 bytes.
 # shellcheck disable=SC2034
 
-rst_f="${metadir}/a_relevant_search_dirs"
+# if a prior record of the relevant_search_dirs array exists, then
+rst_f="${metadir}/a_relevant_search_dirs" # var value recreated in 
+  # _write_arrays FN
+rst_old="$rst_f" # there's an `rm` between the two uses
+rst_new="$rst_f"
 
-if sudo command test -f "$rst_f" &&
-  ! sudo command test -L "$rst_f"
+if sudo command test -f "$rst_old" &&
+  ! sudo command test -L "$rst_old"
 then
-  hash_1="$( sudo sha256sum "$rst_f" )"
-  sudo rm -f "$rst_f" ||
+
+  # get the hash of the prior array, and delete the record
+  hash_old="$( sudo sha256sum "$rst_old" )"
+  sudo rm -f "$rst_old" ||
     _erx "$LINENO"
 fi
 
+# then create a new record and 
+# DO NOT CHANGE THIS FIND COMMAND, or the repeat-search-test will fail
 mapfile -d '' -t relevant_search_dirs < <(
-  # DO NOT CHANGE THIS FIND COMMAND, or the repeat-search-test will fail
   sudo find / -mindepth 1 -maxdepth 1 -type d \! -empty \
     \( \! -name proc -a \! -name sys -a \! -iname 'scf*' \) -print0 )
 _write_arrays "$metadir" relevant_search_dirs
 
-# repeat search test (rst)
-[[ -v hash_1 ]] &&
-  hash_2="$( sudo sha256sum "${metadir}/a_relevant_search_dirs" )"
+  [[ -v hash_old ]]
+  echo $?
 
-if [[ ! -v hash_2 ]] ||
-  [[ "${hash_1%% *}" != "${hash_2%% *}" ]]
+# repeat search test (rst)
+hash_new="$( sudo sha256sum "$rst_new" )"
+
+if [[ ! -v hash_old ]] ||
+  [[ "${hash_old%% *}" != "${hash_new%% *}" ]] ||
+  [[ ! -f "${metadir}/a_all_files" ]] ||
+  [[ -L "${metadir}/a_all_files" ]]
 then
 
   # DO NOT CHANGE THIS FIND COMMAND, or the repeat-search-test will fail
@@ -408,11 +419,12 @@ then
   # DEBUG: "${relevant_search_dirs[@]}" OR '/usr/sbin' OR /usr/{,s}bin
   mapfile -d '' -t all_files < <( 
     sudo find \
-      "${relevant_search_dirs[@]}" \
+      /usr/sbin \
         -type f \! -empty -print0 2> /dev/null )
       #/usr/sbin /usr/bin \
       #/usr/sbin \
       #"${relevant_search_dirs[@]}" \
+  _write_arrays "$metadir" all_files
 fi
 
   echo 'number, all_files:' "${#all_files[@]}"
