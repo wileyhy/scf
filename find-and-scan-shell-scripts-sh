@@ -9,7 +9,11 @@
 severity='error'
 shells='(sh|bash|dash|ksh)'
 
-# Process lock & environment variables
+# Environment variables
+PATH="$( getconf PATH ):/usr/bin:/usr/sbin:${PATH}"
+LC_ALL=C
+
+# Process lock
 PATH="$( getconf PATH ):/usr/bin:/usr/sbin:${PATH}"
 LC_ALL=C
 lock_d=/tmp/scf.lock
