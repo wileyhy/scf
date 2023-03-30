@@ -13,12 +13,13 @@ shells='(sh|bash|dash|ksh)'
 PATH="$( getconf PATH ):/usr/bin:/usr/sbin:${PATH}"
 LC_ALL=C
 lock_d=/tmp/scf.lock
+trap '
+  [[ -d "$lock_d" ]] && 
+    rm -rf -- "$lock_d"
+  trap - EXIT TERM INT
+  kill -s INT "$$"' EXIT TERM INT
 if mkdir -- "$lock_d"; then
   printf '\nSuccessfully acquired lock: %s\n\n' "$lock_d" 1>&2
-  trap '
-    rm -rf -- "$lock_d"
-    trap - EXIT TERM INT
-    kill -s INT "$$"' EXIT TERM INT
 else
   printf '\n\tCannot acquire lock: exiting.\n\n' 1>&2
   exit 2
