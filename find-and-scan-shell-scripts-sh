@@ -51,7 +51,7 @@ export \
   n_{0..9} \
   od_o \
   PATH \
-  previous \
+  previous_timedirs \
   read_var \
   relevant_search_dirs \
   severity \
@@ -334,17 +334,20 @@ done
 
 # Label the current data as "latest."
 #   Note: `find` sees dirs and symlinks as separate things 
-mapfile -d '' -t previous < <( 
+mapfile -d '' -t previous_timedirs < <( 
   sudo find "${datadir}" -mindepth 1 -maxdepth 1 -type d -a \! -type l \
     -name 't_*' -print0 )
 
-  declare -p previous
+  declare -p previous_timedirs
 
 # if "$t_dir" is empty, then delete it; otherwise `mv` it out
 # of the `latest` dir
-for t_dir in "${previous[@]}"; do 
+for t_dir in "${previous_timedirs[@]}"; do 
   sudo rmdir --ignore-fail-on-non-empty "$t_dir" 
   
+    sudo test ! -e "$t_dir" &&
+      : 't_dir DNE' 
+
   # BUG: hardcoded dir path
 
   : 'of previous timedir' 
@@ -352,7 +355,7 @@ for t_dir in "${previous[@]}"; do
   if sudo command -p test -e "$t_dir" &&
     ! sudo command -p test -L "$t_dir"; 
   then
-    sudo mv "${previous[@]}" /run/media/root/15_Mar_2023/scf.d #"${mountpoint}/scf.d/"
+    sudo mv "${previous_timedirs[@]}" /run/media/root/15_Mar_2023/scf.d #"${mountpoint}/scf.d/"
   else
     continue
   fi
@@ -462,7 +465,7 @@ mapfile -d '' -t all_files_sorted < <(
   _write_arrays all_files all_files_sorted
   _write_vars 'A' PATH LC_ALL severity shells fstype_regexp time \
     first_two_chars mountpoint datadir timedir datafile \
-    previous relevant_search_dirs n_0 n_7
+    previous_timedirs relevant_search_dirs n_0 n_7
 
   #exit 101
   #set -x
