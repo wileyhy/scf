@@ -302,23 +302,28 @@ fi
 # output by descending size. With `awk`, take the device with the most 
 # available space and get its mountpoint with `findmnt`. If there is no 
 # output, then set 'mountpoint' according to environment variables. 
+mapfile -t df_o < <( 
+  sudo df --sync --local --output='fstype,avail,source' --block-size=1 | grep --extended-regexp --invert-match '^Type[[:space:]]*Avail' | grep --extended-regexp --invert-match -e ^"$fstype_regexp" -e 'live-rw'$ | sort --general-numeric-sort --reverse --key=2 )
+
+  declare -p df_o
+  #exit 111
+
+read -r fstype read_var device < <( 
+  printf '%s\n' "${df_o[@]}" | head -n 1 )
+unset read_var
+
+  declare -p fstype device
+  exit 112
+
 mountpoint="$( 
-  findmnt --canonicalize --output=target --noheadings "$( 
-    sudo df --sync --local --output='fstype,avail,source' --block-size=1 | 
-      grep --extended-regexp --invert-match '^Type[[:space:]]*Avail' | 
-      grep --extended-regexp --invert-match -e ^"$fstype_regexp" \
-        -e 'live-rw'$ | 
-      sort --general-numeric-sort --reverse --key=2 | 
-      awk 'NR == 1 { print $3 }'
-  )"
-)"
+  findmnt --canonicalize --output=target --noheadings "$device" )"
 
 # BUG: needs a test for whether or not there are any unmounted USB drives. 
 # automatically using '/' as mountpoint is, in this case, ie, on a live usb,
 # not so good of an idea.
 
 [[ -z "${mountpoint}" ]] &&
-  mountpoint="${TEMPDIR:="${HOME}"}"
+  mountpoint="${lock_d:-"${TMPDIR:-/tmp}"}"
 datadir="${mountpoint}/scf.d/latest_data"
 metadir="${mountpoint}/scf.d/current_meta"
 timedir="${datadir}/t_${timedate}"
@@ -341,10 +346,20 @@ then
     exit 1
   sudo visudo -cs /etc/sudoers ||
     exit 1
-  # get device of FS root, '/'
-  fs_root_device="$( findmnt -ace -n -o source --real -M / )"
-  # do default 
-  sudo tune2fs -l /dev/mapper/live-rw | grep -qiE '\<acl\>'
+  
+
+  # set up ACL's
+  
+    # get ACL's enabled on FS
+    case "$fstype" in
+      'xfs')      :;;
+      ext[2-4])   tune2fs -l "$device" | 
+                    grep -i 'acl'
+                  _erx "$LINENO" TODO;;
+      *)          _erx "$LINENO" TODO;;
+    esac
+  
+    #  
 fi
   exit 110
 
