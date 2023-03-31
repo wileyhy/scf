@@ -223,7 +223,7 @@ _write_arrays(){
 
   local a d_1
   : 'is function-pos-parm number 1 a directory?'
-  if sudo command test -d "$1"; then
+  if sudo command -p test -d "$1"; then
     d_1="$1"
     shift
   fi
@@ -249,7 +249,6 @@ _write_vars(){
       _erx "_write_vars, section $section"
   _bak "$target_f"
 }
-#   : functions
 export -f \
   _bak \
   _create_datafile \
@@ -262,7 +261,7 @@ export -f \
 
 
 # Option parsing
-if [[ "${#}" -gt 0 ]]; then
+if [[ "$#" -gt 0 ]]; then
   first_two_chars="${1:0:2}"
 
   case "${first_two_chars}" in
@@ -325,7 +324,7 @@ fi
 # make sure "$conf_d" is a directory OR create the "$conf_d" dir 
 # if necessary
 for conf_d in "$datadir" "$metadir"; do
-  sudo command test -d "$conf_d" ||
+  sudo command -p test -d "$conf_d" ||
     sudo mkdir --parents "$conf_d"
 done
 
@@ -342,10 +341,12 @@ mapfile -d '' -t previous < <(
 for t_dir in "${previous[@]}"; do 
   sudo rmdir --ignore-fail-on-non-empty "$t_dir" 
   
+  # BUG: hardcoded dir path
+
   : 'of previous timedir' 
   #   Note: with `test`, dirs and symlinks can refer to the same inode
-  if sudo command test -e "$t_dir" &&
-    ! sudo command test -L "$t_dir"; 
+  if sudo command -p test -e "$t_dir" &&
+    ! sudo command -p test -L "$t_dir"; 
   then
     sudo mv "${previous[@]}" /run/media/root/15_Mar_2023/scf.d #"${mountpoint}/scf.d/"
   else
@@ -357,7 +358,7 @@ for t_dir in "${previous[@]}"; do
 done
 
 : 'of current timedir'
-if ! sudo command test -d "${timedir}"; then
+if ! sudo command -p test -d "${timedir}"; then
   sudo mkdir "${timedir}" ||
     _erx "${LINENO}"
 fi
@@ -381,14 +382,14 @@ rst_f="${metadir}/a_relevant_search_dirs" # var value recreated in
 rst_old="$rst_f" # there's an `rm` between the two uses
 rst_new="$rst_f"
 
-if sudo command test -f "$rst_old" &&
-  sudo command test ! -L "$rst_old"
+if sudo command -p test -f "$rst_old" &&
+  sudo command -p test ! -L "$rst_old"
 then
 
   # get the hash of the prior array, and delete the record
   hash_old="$( sudo sha256sum "$rst_old" )"
   
-  if sudo command test -f "${rst_old}.bak"; then
+  if sudo command -p test -f "${rst_old}.bak"; then
     
     # TODO
     echo sudo mv "${rst_old}.bak" "${rst_old}.bak.$( echo PUT STAT OUTPUT OF MTIME PRINTF DATE STRING HERE )" ||
@@ -413,7 +414,7 @@ _write_arrays "$metadir" relevant_search_dirs
   [[ -v hash_old ]]
   echo $?
 
-# repeat search test (rst)
+# 'repeat search' test (rst)
 hash_new="$( sudo sha256sum "$rst_new" )"
 
 if [[ ! -v hash_old ]] ||
@@ -443,9 +444,9 @@ fi
   # <>
   set -; printf 'printf \x24array\n'
 
-mapfile -d '' -t    all_files_sorted < <(
-  printf '%s\0'  "${all_files[@]}" |
-    sort -z )
+mapfile -d '' -t all_files_sorted < <(
+  printf '%s\0' "${all_files[@]}" |
+    sort --zero-terminated )
 
   # <>
   set -x; : 'set -x'
