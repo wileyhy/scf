@@ -17,13 +17,25 @@ LC_COLLATE=C
 # Process lock
 random="$RANDOM"
 lock_d="${XDG_RUNTIME_DIR:-"${HOME:-/tmp}"}/.${$}.${random}.lock"
-trap 'if [[ -d "$lock_d" ]] && [[ ! -L "$lock_d" ]]; then sudo rm -rf -- "$lock_d"; fi; trap - EXIT TERM INT; kill -s INT "$$"' EXIT TERM INT # on one line for cleaner xtrace output
+# for cleaner xtrace output, put on one line 
+trap '
+  if [[ -d "$lock_d" ]] && 
+    [[ ! -L "$lock_d" ]]; 
+  then 
+    sudo rm -rf -- "$lock_d"; 
+  fi; 
+  trap - EXIT TERM INT; 
+  kill -s INT "$$"
+  ' EXIT TERM INT 
 
 if ! mkdir "$lock_d" 2> /dev/null; then
   #printf '\nSuccessfully acquired lock: %s\n\n' "$lock_d" 1>&2
 #else
-  printf '\n\tCannot acquire process lock: <%s>.\n\tExiting.\n\n' \
-    "$lock_d" 1>&2
+  {
+    printf '\n\tCannot acquire process lock: <%s>.\n' "$lock_d"
+    printf '\tID: %s\n' "$( whoami )"
+    printf 'Exiting.\n\n' 
+  } 1>&2
   exit 2
 fi
 
@@ -280,11 +292,8 @@ fi
 
 
 # Create the data directories
-if ! sudo -v; then
-  printf '\n\tValidation failed of user\x27s \x60sudo\x60 timestamp; ' 
-  printf 'exiting.\n\n' 
-  exit 1
-fi
+
+# BUG? `findmnt` has a '--df' option
 
 #   In case of large log files, programatically select a save directory, 
 # attached to the local disk, where any output can be saved; prefer USB 
@@ -316,6 +325,30 @@ timedir="${datadir}/t_${timedate}"
 datafile="${timedir}/crunchbangs"
 #unlisted="${timedir}/unlisted"
 umask 077
+
+
+# reduce use of `sudo` in this script
+if ! sudo -v; then
+  printf '\n\tValidation failed of user\x27s \x60sudo\x60 timestamp; ' 
+  printf 'exiting.\n\n' 
+  exit 1
+fi
+
+if set | grep -iq fedora &&
+  grep -qE ^"wheel:x:[0-9]{2,8}:$( whoami )"$ /etc/group; 
+then
+  sudo -v ||
+    exit 1
+  sudo visudo -cs /etc/sudoers ||
+    exit 1
+  # get device of FS root, '/'
+  fs_root_device="$( findmnt -ace -n -o source --real -M / )"
+  # do default 
+  sudo tune2fs -l /dev/mapper/live-rw | grep -qiE '\<acl\>'
+fi
+  exit 110
+
+
 
 # test for whether the "$datadir" is writeable
 if ! sudo mkdir "${mountpoint}/write-test"; then
@@ -579,7 +612,7 @@ for i_2 in "${!shell_scripts[@]}"; do
       grep --extended-regexp --only-matching 'SC[0-9]{4}' | 
       sort --general-numeric-sort | 
       uniq --count |
-      sed 's,^[[:space:]]*,,g' || 
+      sed 's,^[[:space:]]*,,' || 
         _erx "$LINENO" )
 
   # Bug: formatting
