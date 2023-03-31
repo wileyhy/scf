@@ -9,8 +9,6 @@
 severity='error'
 shells='(sh|bash|dash|ksh)'
 
-command(){ echo foo;}
-
 # Environment variables
 PATH="$( /usr/bin/command -p getconf PATH ):/usr/bin:/usr/sbin:${PATH}"
 LC_ALL=C.UTF-8
