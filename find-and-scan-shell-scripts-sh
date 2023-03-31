@@ -15,8 +15,10 @@ LC_ALL=C.UTF-8
 LC_COLLATE=C
 
 # Process lock
-lock_d="${XDG_RUNTIME_DIR:-"${HOME:-/tmp}"}/.scd.d"
+random="$RANDOM"
+lock_d="${XDG_RUNTIME_DIR:-"${HOME:-/tmp}"}/.${$}.${random}.lock"
 trap 'if [[ -d "$lock_d" ]] && [[ ! -L "$lock_d" ]]; then sudo rm -rf -- "$lock_d"; fi; trap - EXIT TERM INT; kill -s INT "$$"' EXIT TERM INT # on one line for cleaner xtrace output
+
 if ! mkdir "$lock_d" 2> /dev/null; then
   #printf '\nSuccessfully acquired lock: %s\n\n' "$lock_d" 1>&2
 #else
@@ -80,12 +82,9 @@ _create_datafile(){
   data=( "${datafile:=crunchbangs}" /tmp/"${datafile##*/}" )
   
   # if any data files already exist, keep them
-  random="$RANDOM"
-  wait -f
-
   for i_6 in "${data[@]}"; do
     if [[ -f "$i_6" ]] && [[ ! -L "$i_6" ]]; then
-      sudo mv "$i_6" "${i_6}.p${$}.r${random}" ||
+      sudo mv "$i_6" "${i_6}.${$}.${random}" ||
         _erx "$LINENO"
     fi
   done
