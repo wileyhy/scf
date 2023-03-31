@@ -65,7 +65,6 @@ export \
 _bak(){ 
   local i_4
   for i_4 in "$@"; do 
-    # hellcheck disable=SC2002
     sudo cat "$i_4" |
       sudo tee --output-error='exit' "${i_4}.bak" > /dev/null 2>&1 ||
         _erx _bak "$i_4"
@@ -145,7 +144,6 @@ _scan_local_disks(){
     # Read from disk in binary the first two bytes of each file in 
     # the list and output it in hexadecimal.
     #   Note: `od` command is POSIX compliant
-    # hellcheck disable=SC2034
     wait -f
     builtin read -r read_var od_o read_var < <( 
       sudo od -N2 -x "$file" || 
@@ -383,7 +381,7 @@ fi
 
 # Gather filenames from local attached disk storage, of files with 
 # size not equal to 0 bytes.
-# hellcheck disable=SC2034
+# hellcheck isable=SC2034
 
 # if a prior record of the relevant_search_dirs array exists, then
 rst_f="${metadir}/a_relevant_search_dirs" # var value recreated in 
