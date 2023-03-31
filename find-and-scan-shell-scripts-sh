@@ -63,7 +63,7 @@ export \
 _bak(){ 
   local o
   for o in "$@"; do 
-    # shellcheck disable=SC2002
+    # hellcheck disable=SC2002
     sudo cat "$o" |
       sudo tee --output-error='exit' "${o}.bak" > /dev/null 2>&1 ||
         _erx '_\bak' "$o"
@@ -76,19 +76,21 @@ _create_datafile(){
     set -x
 
   # datafiles
-  data=( "$datafile" /tmp/"${datafile##*/}" )
+  data=( "${datafile:=crunchbangs}" /tmp/"${datafile##*/}" )
+  
   # if any data files already exist, keep them
   random="$RANDOM"
   wait -f
   for x in "${data[@]}"; do
     if [[ -f "$x" ]] && [[ ! -L "$x" ]]; then
-      mv "$x" "${x}.p${$}.r${random}"
+      sudo mv "$x" "${x}.p${$}.r${random}" ||
+        _erx "$LINENO"
     fi
   done
   wait -f
 
   # create the original datafile
-  touch "${data[@]}"
+  sudo touch "${data[@]}"
   wait -f
 
   # header
