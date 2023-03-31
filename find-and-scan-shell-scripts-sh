@@ -19,13 +19,14 @@ trap 'if [[ -d "$lock_d" ]] && [[ ! -L "$lock_d" ]]; then sudo rm -rf -- "$lock_
 if ! mkdir "$lock_d"; then
   #printf '\nSuccessfully acquired lock: %s\n\n' "$lock_d" 1>&2
 #else
-  printf '\n\tCannot acquire process lock: <%s>.\n\tExiting.\n\n' 1>&2
+  printf '\n\tCannot acquire process lock: <%s>.\n\tExiting.\n\n' \
+    "$lock_d" 1>&2
   exit 2
 fi
 
 # Uset variables
 fstype_regexp='(autofs|binfmt_misc|bpf|cgroup2|configfs|debugfs|devpts|devtmpfs|efivarfs|fusectl|fuse.portal|hugetlbfs|iso9660|mqueue|proc|pstore|rpc_pipefs|securityfs|selinuxfs|sysfs|tmpfs|tracefs)'
-time="$( builtin printf '%(%F_%H%M%S)T' )"
+timedate="$( builtin printf '%(%F_%H%M%S)T' )"
 export \
   all_files \
   all_files_sorted \
@@ -56,7 +57,7 @@ export \
   relevant_search_dirs \
   severity \
   shells \
-  \time \
+  timedate \
   timedir # vars
 
 # Functions
@@ -66,7 +67,7 @@ _bak(){
     # hellcheck disable=SC2002
     sudo cat "$i_4" |
       sudo tee --output-error='exit' "${i_4}.bak" > /dev/null 2>&1 ||
-        _erx \_bak "$i_4"
+        _erx _bak "$i_4"
   done
 }
 _create_datafile(){
@@ -95,7 +96,7 @@ _create_datafile(){
   wait -f
 
   # header
-  printf '# crunchbangs -- %s \n' "$time" | 
+  printf '# crunchbangs -- %s \n' "$timedate" | 
     sudo tee --output-error='exit' "${data[@]}" > /dev/null 2>&1 ||
       _erx "${LINENO}"
   
@@ -108,7 +109,7 @@ _create_datafile(){
 }
 _erx(){ 
   local ec="$?"
-  echo Error: "$@" 
+  echo -e Error: "$@" 
   exit "$ec"
 }
 _num(){ 
@@ -225,7 +226,7 @@ _write_arrays(){
     # <>
     set -x
 
-  local a d_1
+  local d_1
   : 'is function-pos-parm number 1 a directory?'
   if sudo command -p test -d "$1"; then
     d_1="$1"
@@ -313,7 +314,7 @@ mountpoint="$(
   mountpoint="${TEMPDIR:="${HOME}"}"
 datadir="${mountpoint}/scf.d/latest_data"
 metadir="${mountpoint}/scf.d/current_meta"
-timedir="${datadir}/t_${time}"
+timedir="${datadir}/t_${timedate}"
 datafile="${timedir}/crunchbangs"
 #unlisted="${timedir}/unlisted"
 umask 077
@@ -463,7 +464,7 @@ mapfile -d '' -t all_files_sorted < <(
 
   # <> ##############################################################
   _write_arrays all_files all_files_sorted
-  _write_vars 'A' PATH LC_ALL severity shells fstype_regexp time \
+  _write_vars 'A' PATH LC_ALL severity shells fstype_regexp timedate \
     first_two_chars mountpoint datadir timedir datafile \
     previous_timedirs relevant_search_dirs n_0 n_7
 
