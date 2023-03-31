@@ -44,6 +44,7 @@ export \
   first_two_chars \
   fstype_regexp \
   i_1 \
+  i_2 \
   LC_ALL \
   line_1 \
   mountpoint \
@@ -52,12 +53,12 @@ export \
   od_o \
   PATH \
   previous \
+  read_var \
   relevant_search_dirs \
   severity \
   shells \
   \time \
-  timedir \
-  X # vars
+  timedir # vars
 
 # Functions
 _bak(){ 
@@ -124,7 +125,7 @@ _scan_local_disks(){
   for i_1 in "${!all_files_sorted[@]}"; do
 
     printf '%d of %d files\r' "$i_1" "$count"
-    unset file X od_o line_1 
+    unset file read_var od_o line_1 
     
       exit 101
 
@@ -144,9 +145,9 @@ _scan_local_disks(){
     #   Note: POSIX `od` doesn't have GNU's '--strings' option, so use 
     # the `strings` command separately, if necessary.
     #   Note: `od` command is POSIX compliant
-    # shellcheck disable=SC2034
+    # hellcheck disable=SC2034
     wait -f
-    builtin read -r X od_o X < <( 
+    builtin read -r read_var od_o read_var < <( 
       sudo od -N2 -x "$file" || 
         _erx "$LINENO" "$i_1" "$file" )
     
@@ -376,7 +377,7 @@ fi
 
 # Gather filenames from local attached disk storage, of files with 
 # size not equal to 0 bytes.
-# shellcheck disable=SC2034
+# hellcheck disable=SC2034
 
 # if a prior record of the relevant_search_dirs array exists, then
 rst_f="${metadir}/a_relevant_search_dirs" # var value recreated in 
