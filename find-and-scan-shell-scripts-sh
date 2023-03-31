@@ -10,7 +10,7 @@ severity='error'
 shells='(sh|bash|dash|ksh)'
 
 # Environment variables
-PATH="$( command -p getconf PATH ):/usr/bin:/usr/sbin:${PATH}"
+PATH="$( \command -p getconf PATH ):/usr/bin:/usr/sbin:${PATH}"
 LC_ALL=C
 
 # Process lock
