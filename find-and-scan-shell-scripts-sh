@@ -48,8 +48,8 @@ export \
   LC_ALL \
   line_1 \
   mountpoint \
-  n0 \
-  n7 \
+  n_0 \
+  n_7 \
   od_o \
   PATH \
   previous \
@@ -62,12 +62,12 @@ export \
 
 # Functions
 _bak(){ 
-  local o
-  for o in "$@"; do 
+  local i_4
+  for i_4 in "$@"; do 
     # hellcheck disable=SC2002
-    sudo cat "$o" |
-      sudo tee --output-error='exit' "${o}.bak" > /dev/null 2>&1 ||
-        _erx '_\bak' "$o"
+    sudo cat "$i_4" |
+      sudo tee --output-error='exit' "${i_4}.bak" > /dev/null 2>&1 ||
+        _erx \_bak "$i_4"
   done
 }
 _create_datafile(){
@@ -82,9 +82,10 @@ _create_datafile(){
   # if any data files already exist, keep them
   random="$RANDOM"
   wait -f
-  for x in "${data[@]}"; do
-    if [[ -f "$x" ]] && [[ ! -L "$x" ]]; then
-      sudo mv "$x" "${x}.p${$}.r${random}" ||
+
+  for i_6 in "${data[@]}"; do
+    if [[ -f "$i_6" ]] && [[ ! -L "$i_6" ]]; then
+      sudo mv "$i_6" "${i_6}.p${$}.r${random}" ||
         _erx "$LINENO"
     fi
   done
@@ -112,9 +113,9 @@ _erx(){
   exit "$ec"
 }
 _num(){ 
-  local a
-  for a in "$@"; do
-    local -n array="$a" 
+  local i_7
+  for i_7 in "$@"; do
+    local -n array="$i_7" 
     echo "${#array[@]}"
   done
 }
@@ -142,8 +143,6 @@ _scan_local_disks(){
     # Bug, inordinately long interpreter paths are rare, but do occur.
     # Read from disk in binary the first two bytes of each file in 
     # the list and output it in hexadecimal.
-    #   Note: POSIX `od` doesn't have GNU's '--strings' option, so use 
-    # the `strings` command separately, if necessary.
     #   Note: `od` command is POSIX compliant
     # hellcheck disable=SC2034
     wait -f
@@ -222,19 +221,19 @@ _write_arrays(){
     # <>
     set -x
 
-  local a d
+  local a d_1
   : 'is function-pos-parm number 1 a directory?'
   if sudo command test -d "$1"; then
-    d="$1"
+    d_1="$1"
     shift
   fi
 
-  for a in "$@"; do 
+  for i_8 in "$@"; do 
     local target_f
-          target_f="${d:-"${timedir}"}/a_${a}"
-    declare -p "$a" | 
+          target_f="${d_1:-"${timedir}"}/a_${i_8}"
+    declare -p "$i_8" | 
       sudo tee --output-error='exit' "$target_f" > /dev/null 2>&1 ||
-        _erx "_write_arrays $d $a"
+        _erx "_write_arrays $d_1 $i_8"
     _bak "$target_f"
     unset -v target_f
   done
@@ -265,6 +264,7 @@ export -f \
 # Option parsing
 if [[ "${#}" -gt 0 ]]; then
   first_two_chars="${1:0:2}"
+
   case "${first_two_chars}" in
     --) printf '\n\tHappy Easter!\n\n'
           exit 0;;
@@ -275,10 +275,6 @@ if [[ "${#}" -gt 0 ]]; then
     *)  _usage 1;;
   esac
 fi
-
-
-# Bug: you can't pipe anything to `df`
-# sudo df --sync --local --output='fstype,avail,source' --block-size=1 -- $( sudo find /run/media -mindepth 2 -maxdepth 2 -type d ) | grep --extended-regexp --invert-match '^Type[[:space:]]*Avail'
 
 
 # Create the data directories
@@ -461,7 +457,7 @@ mapfile -d '' -t    all_files_sorted < <(
   _write_arrays all_files all_files_sorted
   _write_vars 'A' PATH LC_ALL severity shells fstype_regexp time \
     first_two_chars mountpoint datadir timedir datafile \
-    previous relevant_search_dirs n0 n7
+    previous relevant_search_dirs n_0 n_7
 
   #exit 101
   #set -x
