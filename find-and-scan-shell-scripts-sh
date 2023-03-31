@@ -14,7 +14,7 @@ PATH="$( \command -p getconf PATH ):/usr/bin:/usr/sbin:${PATH}"
 LC_ALL=C
 
 # Process lock
-lock_d=/tmp/scf.lock
+lock_d="${XDG_RUNTIME_DIR:-"${HOME}"}/.scd.d"
 trap 'if [[ -d "$lock_d" ]] && [[ ! -L "$lock_d" ]]; then sudo rm -rf -- "$lock_d"; fi; trap - EXIT TERM INT; kill -s INT "$$"' EXIT TERM INT # on one line for cleaner xtrace output
 if ! mkdir "$lock_d"; then
   #printf '\nSuccessfully acquired lock: %s\n\n' "$lock_d" 1>&2
