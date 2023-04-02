@@ -47,7 +47,7 @@ fi
 
 # User variables
 fstype_regexp='(autofs|binfmt_misc|bpf|cgroup2|configfs|debugfs|devpts|devtmpfs|efivarfs|fusectl|fuse.portal|hugetlbfs|iso9660|mqueue|proc|pstore|rpc_pipefs|securityfs|selinuxfs|sysfs|tmpfs|tracefs)'
-timedate="$( builtin printf '%(%F_%H%M%S)T' )"
+time_date="$( builtin printf '%(%F_%H%M%S)T' )"
 export \
   all_files \
   all_files_sorted \
@@ -60,8 +60,8 @@ export \
   shell_scripts # arrays
 export \
   count \
-  datadir \
-  datafile \
+  data_d \
+  data_f \
   d_1 \
   file \
   first_two_chars \
@@ -73,13 +73,13 @@ export \
   n_{0..9} \
   od_o{0,1} \
   PATH \
-  previous_timedirs \
+  previous_time_dirs \
   read_var \
   relevant_search_dirs \
   severity \
   shells \
-  timedate \
-  timedir # vars
+  time_date \
+  time_d # vars
 
 # Functions
 _age_file(){
@@ -125,14 +125,14 @@ _bak(){
       #_erx _bak $LINENO "$i_4"
   done
 }
-_create_datafile(){
+_create_data_f(){
   # Open a timestamped file & append into it the list of filenames and 
   # their crashbangs. 
     # <>
     set -x
 
-  # datafiles
-  data=( "${datafile:=crunchbangs}" /tmp/"${datafile##*/}" )
+  # data_fs
+  data=( "${data_f:=crunchbangs}" /tmp/"${data_f##*/}" )
   
   # if any data files already exist, keep them
   for i_6 in "${data[@]}"; do
@@ -143,20 +143,23 @@ _create_datafile(){
   done
   #wait -f
 
-  # create the original datafile
+  # create the original data_f
   touch "${data[@]}"
   #wait -f
 
   # header
-  printf '# crunchbangs -- %s \n' "$timedate" | 
-    tee --output-error='exit' "${data[@]}" ||
+  printf '# crunchbangs -- %s \n' "$time_date" | 
+    tee --output-error='exit' "${data[@]}" > /dev/null 2>&1 ||
       _erx "${LINENO}"
   
   # content
+  : 'printing contents of \x22shell_scripts\x22 array'
+  set -
   printf '%s\n' "${shell_scripts[@]}" |
     tee --append --output-error='exit' "${data[@]}" \
         > /dev/null 2>&1 ||
       _erx "${LINENO}"
+  set -x
   _bak "${data[@]}"
 }
 _erx(){ 
@@ -184,8 +187,8 @@ _scan_local_disks(){
       #exit 101
 
     file="${all_files_sorted[${i_1}]}"
-    { printf '+ '; file -pk "$file";} | tee -a "${timedir}/file_out"
-    { printf '+ '; stat -t "$file";} | tee -a "${timedir}/stat_out"
+    { printf '+ '; file -pk "$file";} | tee -a "${time_d}/file_out"
+    { printf '+ '; stat -t "$file";} | tee -a "${time_d}/stat_out"
 
     ## file must exist
     #if [[ ! -e "$file" ]]; then
@@ -200,7 +203,7 @@ _scan_local_disks(){
     # the list and output it in hexadecimal.
     #   Note: `od` command is POSIX compliant
     #wait -f
-    builtin read -r read_var od_o0 od_o1 read_var < <( 
+    read -r read_var od_o0 od_o1 read_var < <( 
       sudo od -j 0 -N 2 -t x1z -v "$file" || 
         _erx "$LINENO" "$i_1" "$file" )
     unset read_var
@@ -221,7 +224,7 @@ _scan_local_disks(){
 
       # Crunchbang found. Use 'read', and hope there won't be any non-printable characters.
       else
-        IFS= builtin read -r line_1 < "$file" ||
+        IFS= read -r line_1 < "$file" ||
           _erx "$LINENO" "$i_1" "$file";
 
         # Issue: the files with '#!comment' as the initial bytes. 
@@ -263,7 +266,7 @@ _scan_local_disks(){
       unset 'all_files_sorted[$i_1]'
     fi
   done
-  _bak "${timedir}"/{file,stat}_out
+  _bak "${time_d}"/{file,stat}_out
 }
 _usage(){
   # Usage:  _usage [exit-code]
@@ -279,7 +282,7 @@ EOF
 }
 _write_arrays(){
   # Usage: _write_arrays [one target-dir] [arrays]
-  # Default directory is "$timedir".
+  # Default directory is "$time_d".
     # <>
     #set -x
 
@@ -292,7 +295,7 @@ _write_arrays(){
 
   for i_8 in "$@"; do 
     local target_f
-          target_f="${d_1:-"${timedir}"}/a_${i_8}"
+          target_f="${d_1:-"${time_d}"}/a_${i_8}"
     # Note: `tee` without '-a' will overwrite an existing file
     declare -p "$i_8" | 
       tee --output-error='exit' "$target_f" > /dev/null 2>&1 ||
@@ -307,7 +310,7 @@ _write_arrays(){
 _write_vars(){
   local section target_f
         section="$1"
-        target_f="${timedir}/${section}_vars"
+        target_f="${time_d}/${section}_vars"
   shift
   declare -p "$@" 2> /dev/null |
     tee --output-error='exit' "$target_f" > /dev/null 2>&1 ||
@@ -315,7 +318,7 @@ _write_vars(){
   _bak "$target_f"
 }
 export -f \
-  _create_datafile \
+  _create_data_f \
   _erx \
   _num \
   _scan_local_disks \
@@ -378,11 +381,11 @@ mountpoint="$(
 [[ -z "${mountpoint}" ]] &&
   mountpoint="${lock_d:-"${TMPDIR:-/tmp}"}"
 scriptdir="${mountpoint}/scf.d"
-datadir="${scriptdir}/latest_data"
-metadir="${scriptdir}/current_meta"
-timedir="${datadir}/t_${timedate}"
-datafile="${timedir}/crunchbangs"
-#unlisted="${timedir}/unlisted"
+data_d="${scriptdir}/latest_data"
+meta_d="${scriptdir}/current_meta"
+time_d="${data_d}/t_${time_date}"
+data_f="${time_d}/crunchbangs"
+#unlisted="${time_d}/unlisted"
 umask 077
 
   set -x
@@ -404,7 +407,7 @@ esac
   #sudo setfacl -R -k "${mountpoint%/*}"
 
 # Nearly all of the `sudo` commands below are allowing rw access, of  
-# this script's datadir, so simply using ACL's will reduce the overuse 
+# this script's data_d, so simply using ACL's will reduce the overuse 
 # of `sudo`. This section takes the "$mountpoint" variable, portions
 # each subdirectory name into an array index, and tests each subdi-
 # rectory from the FS root up for readability by the user running
@@ -439,42 +442,42 @@ fi
 
 # make sure "$conf_d" is a directory OR create the "$conf_d" dir 
 # if necessary
-for conf_d in "$datadir" "$metadir"; do
+for conf_d in "$data_d" "$meta_d"; do
   [[ -d "$conf_d" ]] ||
     mkdir --parents "$conf_d" 
 done
 
 # Label the current data as "latest."
 #   Note: `find` sees dirs and symlinks as separate things 
-mapfile -d '' -t previous_timedirs < <( 
-  find "${datadir}" -mindepth 1 -maxdepth 1 -type d -a \! -type l \
+mapfile -d '' -t previous_time_dirs < <( 
+  find "${data_d}" -mindepth 1 -maxdepth 1 -type d -a \! -type l \
     -name 't_*' -print0 )
-export previous_timedirs
+export previous_time_dirs
 
-  declare -p previous_timedirs
+  declare -p previous_time_dirs
 
 # if "$t_dir" is empty, then delete it; otherwise `mv` it out
 # of the `latest` dir
-for t_dir in "${previous_timedirs[@]}"; do 
+for t_dir in "${previous_time_dirs[@]}"; do 
   rmdir --ignore-fail-on-non-empty "$t_dir" 
   
     test ! -e "$t_dir" &&
       : 't_dir DNE' 
 
-  : 'of previous timedir' 
+  : 'of previous time_d' 
   #   Note: with `test`, dirs and symlinks can refer to the same inode
   if [[ -e "$t_dir" ]] &&
     [[ ! -L "$t_dir" ]]; 
   then
-    mv "${previous_timedirs[@]}" "$scriptdir"
+    mv "${previous_time_dirs[@]}" "$scriptdir"
   else
     continue
   fi
 done
 
-: 'of current timedir'
-if [[ ! -d "${timedir}" ]]; then
-  mkdir "${timedir}" ||
+: 'of current time_d'
+if [[ ! -d "${time_d}" ]]; then
+  mkdir "${time_d}" ||
     _erx "${LINENO}"
 fi
 
@@ -492,7 +495,7 @@ fi
 
 # 
 array='relevant_search_dirs'
-rst="${metadir}/a_${array}" 
+rst="${meta_d}/a_${array}" 
 
   if [[ -f "$rst" ]]; then : ok; else : no; fi
 
@@ -522,7 +525,7 @@ mapfile -d '' -t relevant_search_dirs < <(
   sudo find / -mindepth 1 -maxdepth 1 -type d \! -empty \
     \( \! -name proc -a \! -name sys -a \! -iname 'scf*' \) -print0 )
 export relevant_search_dirs
-_write_arrays "$metadir" relevant_search_dirs
+_write_arrays "$meta_d" relevant_search_dirs
 
 if [[ -v array_count_old ]]; then 
   _age_file "${rst}".bak
@@ -546,7 +549,7 @@ fi
 
 # 
 array='all_files'
-rst="${metadir}/a_${array}" 
+rst="${meta_d}/a_${array}" 
   
   if [[ -f "$rst" ]]; then : ok; else : na; fi
 
@@ -599,7 +602,7 @@ then
     sudo find "${relevant_search_dirs[@]}" -type f \! -empty \
       -print0 2> /dev/null )
   export all_files
-  _write_arrays "$metadir" all_files
+  _write_arrays "$meta_d" all_files
 fi
 
   echo 'number, all_files:' "${#all_files[@]}"
@@ -611,7 +614,7 @@ fi
 
 # Then sort the original array with mapfile and test it.
   # <>
-  set -; printf 'printf \x24array\n'
+  set -; printf 'printf \x22all_files_sorted\x22 array\n'
 
 mapfile -d '' -t all_files_sorted < <(
   printf '%s\0' "${all_files[@]}" |
@@ -625,9 +628,9 @@ mapfile -d '' -t all_files_sorted < <(
 
   # <> ##############################################################
   _write_arrays all_files all_files_sorted
-  _write_vars 'A' PATH LC_ALL severity shells fstype_regexp timedate \
-    first_two_chars mountpoint datadir timedir datafile \
-    previous_timedirs relevant_search_dirs n_0 n_7
+  _write_vars 'A' PATH LC_ALL severity shells fstype_regexp time_date \
+    first_two_chars mountpoint data_d time_d data_f \
+    previous_time_dirs relevant_search_dirs n_0 n_7
 
   #exit 101
   #set -x
@@ -645,14 +648,14 @@ unset IFS
 
 # if the full list exists (of files on disk which begin with crash-
 # bangs), then skip the 30-90 minute search phase.
-if [[ ! -f /tmp/"${datafile##*/}" ]] || 
-  [[ -L /tmp/"${datafile##*/}" ]]; 
+if [[ ! -f /tmp/"${data_f##*/}" ]] || 
+  [[ -L /tmp/"${data_f##*/}" ]]; 
 then
   _scan_local_disks
   
     set -x
 
-  _create_datafile
+  _create_data_f
 
     set -
 
@@ -663,7 +666,7 @@ fi
     files_from_outside_rpm all_other_files endian_wtf \
     non_rpm_system_crunches non_rpm_user_crunches 
 
-  _write_vars 'B' file datafile i_1 od_o{0,1} X line_1 count
+  _write_vars 'B' file data_f i_1 od_o{0,1} X line_1 count
 
   exit 101
   set -x
@@ -685,18 +688,18 @@ ere_2='>?[[:space:]]{3,}<?/?[[:alnum:]].*>?[[:space:]]{3,}<?'
 _test_2(){
   grep --extended-regexp --line-number "${ere_2}" "${1}" # ere_2
 }
-if _test_2 "$datafile"; then
-  sed --in-place "s=${ere_2}=    =g" "$datafile" # ere_2
-  \_test_2 "$datafile" &&
+if _test_2 "$data_f"; then
+  sed --in-place "s=${ere_2}=    =g" "$data_f" # ere_2
+  \_test_2 "$data_f" &&
     _erx "${LINENO}"
 fi
-command -p cp --archive "$datafile" "${datafile}_extra-data-removed"
-_bak "${datafile}_extra-data-removed"
+command -p cp --archive "$data_f" "${data_f}_extra-data-removed"
+_bak "${data_f}_extra-data-removed"
 
   # <>
-  ls -l "${datafile}"*
-  wc "${datafile}"*
-  md5sum "${datafile}.bak" "${datafile}_extra-data-removed"
+  ls -l "${data_f}"*
+  wc "${data_f}"*
+  md5sum "${data_f}.bak" "${data_f}_extra-data-removed"
   
   exit 101
   set -x
@@ -707,9 +710,9 @@ _bak "${datafile}_extra-data-removed"
 # Alteration 3: Apply grep-style line numbers, ie, in-file indices. These 
 # are necessary for section 'Extra,' however, can only be applied prior 
 # to the full list having been subdivided. 
-grep --extended-regexp --line-number '.' "${datafile}" > \
-  "${datafile}_all-indexed"
-_bak "${datafile}_all-indexed"
+grep --extended-regexp --line-number '.' "${data_f}" > \
+  "${data_f}_all-indexed"
+_bak "${data_f}_all-indexed"
 
 
 # CENTRAL TASK, 1 OF 2: Filter the list of crashbangs with the list 
@@ -718,13 +721,13 @@ _bak "${datafile}_all-indexed"
 # Bug likely: ere3
 ere_3=^"[0-9]{1,7}:#! ?(/usr)?/bin/(env|${shells}?) *<?(/usr)?(/bin/)?${shells} ?>? *"
 
-grep --extended-regexp "${ere_3}" "${datafile}_all-indexed" > \
-  "${datafile}_SC-scrpts-list" # ere_3
-_bak "${datafile}_SC-scrpts-list"
+grep --extended-regexp "${ere_3}" "${data_f}_all-indexed" > \
+  "${data_f}_SC-scrpts-list" # ere_3
+_bak "${data_f}_SC-scrpts-list"
 
   # <>
-  ls -l "${datafile}"*
-  wc "${datafile}"*
+  ls -l "${data_f}"*
+  wc "${data_f}"*
   exit 101
   set -x
 
@@ -754,18 +757,18 @@ for i_2 in "${!shell_scripts[@]}"; do
   if [[ -n "${errs[*]:0:1}" ]]; then 
 		
     printf '<idx:%d>  %%  <%s>\n' "$i_2" "$script" >> \
-      "${datafile}_found_scripts_with_indices"
+      "${data_f}_found_scripts_with_indices"
 
     for each_error in "${errs[@]}"; do
       printf '%s %% <idx:%d>\n' "${each_error//$'\n'/}" "$i_2" >> \
-        "${datafile}_found_errors_with_indices_unsorted"
+        "${data_f}_found_errors_with_indices_unsorted"
     done
   fi
   unset errors script 'shell_scripts[$i_2]'
 done
 
-_bak "${datafile}_found_scripts_with_indices" \
-  "${datafile}_found_errors_with_indices_unsorted"
+_bak "${data_f}_found_scripts_with_indices" \
+  "${data_f}_found_errors_with_indices_unsorted"
 
 exit 0
 
