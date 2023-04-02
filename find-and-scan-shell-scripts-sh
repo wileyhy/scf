@@ -6,7 +6,6 @@
 ###  SECTION A  ###
 
 # Implementation-dependent arguments for options parsable by `shellcheck`:
-: 'defaults:'
 severity='error'
 shells='(sh|bash|dash|ksh)'
 
@@ -16,6 +15,9 @@ LC_ALL=C.UTF-8
 LC_COLLATE=C
 
 # Use `sudo`
+
+  date
+
 if ! sudo -v; then
   printf '\n\tValidation failed of user\x27s \x60sudo\x60 timestamp; ' 
   printf 'exiting.\n\n' 
@@ -29,7 +31,7 @@ trap '
   if [[ -d "$lock_d" ]] && 
     [[ ! -L "$lock_d" ]]; 
   then 
-    sudo rm -rf -- "$lock_d"; 
+    rm -rf -- "$lock_d"; 
   fi; 
   trap - EXIT TERM INT; 
   kill -s INT "$$"
@@ -80,12 +82,47 @@ export \
   timedir # vars
 
 # Functions
+_age_file(){
+  [[ -f "$1" ]] ||
+    return 1
+  local previous_aged_files new_hash
+  local -A paf_hashes
+  previous_aged_files=( "${1}"*[0-9] )
+  declare -p previous_aged_files
+
+  for paf in "${previous_aged_files[@]}"; do 
+    if [[ -f "$paf" ]]; then
+      paf_hashes["$( md5sum "$paf" | cut -d ' ' -f1 )"]="$paf" 
+      new_hash="$( md5sum "$1"  | cut -d ' ' -f1 )"
+      [[ -n "${paf_hashes["$new_hash"]}" ]] && 
+        return 0
+    fi
+  done
+
+  local old_mtime
+  old_mtime="$( stat -c%Y "$1" )"
+  mv "${1}" "${1}.${old_mtime}" ||
+    _erx _age_file "$1";
+}
 _bak(){ 
+  [[ "$#" -eq 0 ]] &&
+    return 1
   local i_4
   for i_4 in "$@"; do 
-    sudo cat "$i_4" |
-      sudo tee --output-error='exit' "${i_4}.bak" > /dev/null 2>&1 ||
+    if [[ ! -f "${i_4}" ]]; then 
+      : "File <${i_4}>> DNE"
+      continue
+    else 
+      : 'File exists'
+    fi
+    
+    #md5sum "$i_4" ||
+      #_erx _bak $LINENO "$i_4"
+    #cat "$i_4" |
+      tee --output-error='exit' "${i_4}.bak" < "$i_4" > /dev/null 2>&1 ||
         _erx _bak "$i_4"
+    #md5sum "${i_4}.bak" ||
+      #_erx _bak $LINENO "$i_4"
   done
 }
 _create_datafile(){
@@ -100,24 +137,24 @@ _create_datafile(){
   # if any data files already exist, keep them
   for i_6 in "${data[@]}"; do
     if [[ -f "$i_6" ]] && [[ ! -L "$i_6" ]]; then
-      sudo mv "$i_6" "${i_6}.${$}.${random}" ||
+      mv "$i_6" "${i_6}.${$}.${random}" ||
         _erx "$LINENO"
     fi
   done
   wait -f
 
   # create the original datafile
-  sudo touch "${data[@]}"
+  touch "${data[@]}"
   wait -f
 
   # header
   printf '# crunchbangs -- %s \n' "$timedate" | 
-    sudo tee --output-error='exit' "${data[@]}" > /dev/null 2>&1 ||
+    tee --output-error='exit' "${data[@]}" ||
       _erx "${LINENO}"
   
   # content
   printf '%s\n' "${shell_scripts[@]}" |
-    sudo tee --append --output-error='exit' "${data[@]}" \
+    tee --append --output-error='exit' "${data[@]}" \
         > /dev/null 2>&1 ||
       _erx "${LINENO}"
   _bak "${data[@]}"
@@ -143,7 +180,7 @@ _scan_local_disks(){
     printf '%d of %d files\r' "$i_1" "$count"
     unset file read_var od_o line_1 
     
-      exit 101
+      #exit 101
 
     file="${all_files_sorted[${i_1}]}"
 
@@ -238,11 +275,11 @@ _write_arrays(){
   # Usage: _write_arrays [one target-dir] [arrays]
   # Default directory is "$timedir".
     # <>
-    set -x
+    #set -x
 
   local d_1
   : 'is function-pos-parm number 1 a directory?'
-  if sudo command -p test -d "$1"; then
+  if [[ -d "$1" ]]; then
     d_1="$1"
     shift
   fi
@@ -250,9 +287,12 @@ _write_arrays(){
   for i_8 in "$@"; do 
     local target_f
           target_f="${d_1:-"${timedir}"}/a_${i_8}"
+    # Note: `tee` without '-a' will overwrite an existing file
     declare -p "$i_8" | 
-      sudo tee --output-error='exit' "$target_f" > /dev/null 2>&1 ||
+      tee --output-error='exit' "$target_f" > /dev/null 2>&1 ||
         _erx "_write_arrays $d_1 $i_8"
+      [[ -f "$target_f" ]] ||
+        _erx $LINENO: "$target_f"
     _bak "$target_f"
     unset -v target_f
   done
@@ -264,12 +304,11 @@ _write_vars(){
         target_f="${timedir}/${section}_vars"
   shift
   declare -p "$@" 2> /dev/null |
-    sudo tee --output-error='exit' "$target_f" > /dev/null 2>&1 ||
+    tee --output-error='exit' "$target_f" > /dev/null 2>&1 ||
       _erx "_write_vars, section $section"
   _bak "$target_f"
 }
 export -f \
-  _bak \
   _create_datafile \
   _erx \
   _num \
@@ -277,6 +316,8 @@ export -f \
   _usage \
   _write_arrays \
   _write_vars
+  #_age_file \
+  _bak \
 
 
 # Option parsing
@@ -295,7 +336,7 @@ if [[ "$#" -gt 0 ]]; then
 fi
 
 
-# Create the data directories
+# Assign varnames and paths for the data directories
 
 # BUG? `findmnt` has a '--df' option
 
@@ -308,6 +349,7 @@ fi
 # output, then set 'mountpoint' according to environment variables. 
 mapfile -t df_o < <( 
   sudo df --sync --local --output='fstype,avail,source' --block-size=1 | grep --extended-regexp --invert-match '^Type[[:space:]]*Avail' | grep --extended-regexp --invert-match -e ^"$fstype_regexp" -e 'live-rw'$ | sort --general-numeric-sort --reverse --key=2 )
+export df_o
 
   declare -p df_o
   #exit 111
@@ -339,9 +381,8 @@ umask 077
 
   set -x
 
+
 # reduce use of `sudo` in this script by setting up ACL's
-  
-# get ACL's enabled on FS
 case "$fstype" in
   'xfs')      :;;
   ext[2-4])   tune2fs -l "$device" | 
@@ -367,6 +408,7 @@ esac
 # "$scriptdir". 
 if [[ ! -r "$scriptdir" ]]; then
   mapfile -d '/' -t a <<< "${mountpoint}"; 
+  export a
   a[0]='/'
   a[-1]="${a[-1]//$'\n'}"
   d=${#a[@]}; 
@@ -382,149 +424,186 @@ if [[ ! -r "$scriptdir" ]]; then
         break
       sudo setfacl -R -m "$USER":rwx "$scriptdir" || 
         break; 
-
-        # <>
-        ls "${scriptdir}"/* &&
-          echo SUDO NO LONGER NECESSARY
-
       break
     fi ; 
   done; 
 fi
 
-  exit 110
-
-
-# test for whether the "$datadir" is writeable
-if ! sudo mkdir "${mountpoint}/write-test"; then
-  _erx "$LINENO"
-else 
-  sudo rm -fd "${mountpoint}/write-test"
-fi
+  #exit 110
 
 # make sure "$conf_d" is a directory OR create the "$conf_d" dir 
 # if necessary
 for conf_d in "$datadir" "$metadir"; do
-  sudo command -p test -d "$conf_d" ||
-    sudo mkdir --parents "$conf_d"
+  [[ -d "$conf_d" ]] ||
+    mkdir --parents "$conf_d" 
 done
 
 # Label the current data as "latest."
 #   Note: `find` sees dirs and symlinks as separate things 
 mapfile -d '' -t previous_timedirs < <( 
-  sudo find "${datadir}" -mindepth 1 -maxdepth 1 -type d -a \! -type l \
+  find "${datadir}" -mindepth 1 -maxdepth 1 -type d -a \! -type l \
     -name 't_*' -print0 )
+export previous_timedirs
 
   declare -p previous_timedirs
 
 # if "$t_dir" is empty, then delete it; otherwise `mv` it out
 # of the `latest` dir
 for t_dir in "${previous_timedirs[@]}"; do 
-  sudo rmdir --ignore-fail-on-non-empty "$t_dir" 
+  rmdir --ignore-fail-on-non-empty "$t_dir" 
   
-    sudo test ! -e "$t_dir" &&
+    test ! -e "$t_dir" &&
       : 't_dir DNE' 
-
-  # BUG: hardcoded dir path
 
   : 'of previous timedir' 
   #   Note: with `test`, dirs and symlinks can refer to the same inode
-  if sudo command -p test -e "$t_dir" &&
-    ! sudo command -p test -L "$t_dir"; 
+  if [[ -e "$t_dir" ]] &&
+    [[ ! -L "$t_dir" ]]; 
   then
-    sudo mv "${previous_timedirs[@]}" /run/media/root/15_Mar_2023/scf.d #"${mountpoint}/scf.d/"
+    mv "${previous_timedirs[@]}" "$scriptdir"
   else
     continue
   fi
-
-    exit 101
-
 done
 
 : 'of current timedir'
-if ! sudo command -p test -d "${timedir}"; then
-  sudo mkdir "${timedir}" ||
+if [[ ! -d "${timedir}" ]]; then
+  mkdir "${timedir}" ||
     _erx "${LINENO}"
 fi
 
 
-  #exit 102
+# BUG:  Reduce Search Time  ==  RST
 
-#set -o xtrace 
-#exec 2>3 >&3
-#sudo exec 3> "${timedir}"/xtrace.log
-#exit 101
-	
+#   Gather filenames from local attached disk storage
 
-# Gather filenames from local attached disk storage, of files with 
-# size not equal to 0 bytes.
-# hellcheck isable=SC2034
+# If a prior record of the relevant_search_dirs array exists, and 
+# if that prior record matches the new record, then it's possible the 
+# all_files list would be the same, too. So if the new relevant_\
+# search_dirs list is new, then do the full all_files search again.
+# But if they're the same, then ...
+#
 
-# if a prior record of the relevant_search_dirs array exists, then
-rst_f="${metadir}/a_relevant_search_dirs" # var value recreated in 
-  # _write_arrays FN
-rst_old="$rst_f" # there's an `rm` between the two uses
-rst_new="$rst_f"
+# 
+array='relevant_search_dirs'
+rst="${metadir}/a_${array}" 
 
-if sudo command -p test -f "$rst_old" &&
-  sudo command -p test ! -L "$rst_old"
+  if [[ -f "$rst" ]]; then : ok; else : no; fi
+
+if [[ -f "$rst" ]] &&
+  [[ ! -L "$rst" ]];
 then
 
-  # get the hash of the prior array, and delete the record
-  hash_old="$( sudo sha256sum "$rst_old" )"
-  
-  if sudo command -p test -f "${rst_old}.bak"; then
-    
-    # TODO
-    echo sudo mv "${rst_old}.bak" "${rst_old}.bak.$( echo PUT STAT OUTPUT OF MTIME PRINTF DATE STRING HERE )" ||
-      _erx "$LINENO"
-  else
-    _bak "${rst_old}"
-  fi
- 
-    exit 105
+  _age_file "${rst}".bak
+  _bak "$rst"
 
-  sudo rm -f "$rst_old" ||
-    _erx "$LINENO"
+  # get the hash of the prior array, and 
+  hash_old="$( md5sum "$rst" )"
+
+  # get the prior count of indices
+  # shellcheck disable=SC1090
+  source "$rst"
+  array_count_old="$( _num "$array" )"
+  unset "$array"
+
+  # delete the record
+  rm -f "$rst"
 fi
 
-# then create a new record and 
-# DO NOT CHANGE THIS FIND COMMAND, or the repeat-search-test will fail
+
+# ...then create a new record and...
 mapfile -d '' -t relevant_search_dirs < <(
   sudo find / -mindepth 1 -maxdepth 1 -type d \! -empty \
     \( \! -name proc -a \! -name sys -a \! -iname 'scf*' \) -print0 )
+export relevant_search_dirs
 _write_arrays "$metadir" relevant_search_dirs
 
-  [[ -v hash_old ]]
-  echo $?
+if [[ -v array_count_old ]]; then 
+  _age_file "${rst}".bak
+  _bak "$rst"
 
-# 'repeat search' test (rst)
-hash_new="$( sudo sha256sum "$rst_new" )"
+  # get the hash of the new array, and 
+  hash_new="$( md5sum "$rst" )"
 
-if [[ ! -v hash_old ]] ||
-  [[ "${hash_old%% *}" != "${hash_new%% *}" ]] ||
-  sudo command -p test ! -f "${metadir}/a_all_files" ||
-  sudo command -p test -L "${metadir}/a_all_files"
+  # get the new count of indices
+  array_count_new="$( _num "$array" )"
+
+  if [[ "${hash_old%% *}" != "${hash_new%% *}" ]] ||
+    [[ "$array_count_old" != "$array_count_new" ]]; 
+  then 
+    must_find_all_files='y'
+  fi
+fi
+  
+  #exit $LINENO
+
+
+# 
+array='all_files'
+rst="${metadir}/a_${array}" 
+  
+  if [[ -f "$rst" ]]; then : ok; else : na; fi
+
+if [[ "$must_find_all_files" != 'y' ]] &&
+  [[ -f "$rst" ]] &&
+  [[ ! -L "$rst" ]];
 then
 
-  # DO NOT CHANGE THIS FIND COMMAND, or the repeat-search-test will fail
+  _age_file "${rst}".bak
+  _bak "$rst"
+
+  # WHY?
+  ## get the hash of the prior array, and 
+  #hash_old="$( md5sum "$rst" )"
+
+  # WHY?
+  ## get the prior count of indices
+  #source "$rst"
+  #array_count_old="$( _num "$array" )"
+  #unset "$array"
+
+  # get byte count of record file
+  byte_count="$( wc -c "$rst" )"
+  [[ "$byte_count" -lt 500 ]] && 
+    must_find_all_files='y'
+
   
-  # find all relevant files on disk
+  # get delta of mtime to now
+  mtime_age_in_hours=$(( $(( $( date +%s ) - \
+    $( stat -c%Y "$rst" ) )) / 60 / 60 ))
+  [[ "$mtime_age_in_hours" -gt 72 ]] &&
+    must_find_all_files='y'
+
+fi
+  
+
+
+if [[ "$must_find_all_files" != 'y' ]]; 
+then
+
+  # ...find all relevant files on disk....
   # DEBUG: "${relevant_search_dirs[@]}" OR '/usr/sbin' OR /usr/{,s}bin
+
+    date
+    relevant_search_dirs=( /usr/sbin )
+    #relevant_search_dirs=( /usr/sbin /usr/bin )
+    declare -p relevant_search_dirs
+
   mapfile -d '' -t all_files < <( 
-    sudo find \
-      /usr/sbin \
-        -type f \! -empty -print0 2> /dev/null )
-      #/usr/sbin /usr/bin \
-      #/usr/sbin \
-      #"${relevant_search_dirs[@]}" \
+    sudo find "${relevant_search_dirs[@]}" -type f \! -empty \
+      -print0 2> /dev/null )
+  export all_files
   _write_arrays "$metadir" all_files
 fi
 
   echo 'number, all_files:' "${#all_files[@]}"
-  exit 103
+  #exit 103
 
-# sort the original array with mapfile and test it
+
+
+
+
+# Then sort the original array with mapfile and test it.
   # <>
   set -; printf 'printf \x24array\n'
 
@@ -596,10 +675,10 @@ fi
 ere_2='>?[[:space:]]{3,}<?/?[[:alnum:]].*>?[[:space:]]{3,}<?'
 # Bug? is opt -n necc?
 _test_2(){
-  sudo grep --extended-regexp --line-number "${ere_2}" "${1}" # ere_2
+  grep --extended-regexp --line-number "${ere_2}" "${1}" # ere_2
 }
 if _test_2 "$datafile"; then
-  sudo sed --in-place "s=${ere_2}=    =g" "$datafile" # ere_2
+  sed --in-place "s=${ere_2}=    =g" "$datafile" # ere_2
   \_test_2 "$datafile" &&
     _erx "${LINENO}"
 fi
@@ -609,7 +688,7 @@ _bak "${datafile}_extra-data-removed"
   # <>
   ls -l "${datafile}"*
   wc "${datafile}"*
-  sudo sha256sum "${datafile}.bak" "${datafile}_extra-data-removed"
+  md5sum "${datafile}.bak" "${datafile}_extra-data-removed"
   
   exit 101
   set -x
@@ -681,4 +760,8 @@ _bak "${datafile}_found_scripts_with_indices" \
   "${datafile}_found_errors_with_indices_unsorted"
 
 exit 0
+
+  # get `dnf history` transaction number
+  #dnf_tx_number="$( dnf history | 
+    #awk '$1 ~ /[0-9]+/ { print $1; exit }' )"
 
