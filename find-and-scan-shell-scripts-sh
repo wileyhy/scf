@@ -606,7 +606,7 @@ fi
   #declare -p relevant_search_dirs
 
 
-for search_dir in "${relevant_search_dirs[@]}"; do
+#for search_dir in "${relevant_search_dirs[@]}"; do
 
 
 :;: 'Variables for array -all_files-'
@@ -719,7 +719,7 @@ mapfile -d '' -t all_files_sorted < <(
 [[ "$( _num all_files )" -eq "$( _num all_files_sorted )" ]] ||
   _erx "${LINENO}"
 
-done
+#done
 
   # <> ##############################################################
   _write_arrays all_files_sorted #all_files 
@@ -764,7 +764,7 @@ fi
 
   _write_vars 'B' file data_f i_1 od_o{0,1} X line_1 count
 
-  exit "$LINENO"
+  #exit "$LINENO"
   set -x
 
 
@@ -797,7 +797,7 @@ _bak "${data_f}_extra-data-removed"
   wc "${data_f}"*
   md5sum "${data_f}.bak" "${data_f}_extra-data-removed"
   
-  exit "$LINENO"
+  #exit "$LINENO"
   set -x
 
 
@@ -824,7 +824,7 @@ _bak "${data_f}_SC-scrpts-list"
   : '<>'
   ls -l "${data_f}"*
   wc "${data_f}"*
-  exit "$LINENO"
+  #exit "$LINENO"
   set -x
 
 
