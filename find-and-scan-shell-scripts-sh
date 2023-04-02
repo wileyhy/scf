@@ -54,9 +54,9 @@ export \
   all_other_files \
   endian_wtf \
   files_from_outside_rpm \
-  files_with_hashbang_comments \
-  non_rpm_system_files \
-  non_rpm_user_files \
+  crunches_with_hashbang_comments \
+  non_rpm_system_crunches \
+  non_rpm_user_crunches \
   shell_scripts # arrays
 export \
   count \
@@ -141,11 +141,11 @@ _create_datafile(){
         _erx "$LINENO"
     fi
   done
-  wait -f
+  #wait -f
 
   # create the original datafile
   touch "${data[@]}"
-  wait -f
+  #wait -f
 
   # header
   printf '# crunchbangs -- %s \n' "$timedate" | 
@@ -177,12 +177,15 @@ _scan_local_disks(){
   #   Note: this function can take 30-90 minutes!
   for i_1 in "${!all_files_sorted[@]}"; do
 
+    :;: 'LOOP';:
     printf '%d of %d files\r' "$i_1" "$count"
     unset file read_var od_o{0,1} line_1 
     
       #exit 101
 
     file="${all_files_sorted[${i_1}]}"
+    { printf '+ '; file -pk "$file";} | tee -a "${timedir}/file_out"
+    { printf '+ '; stat -t "$file";} | tee -a "${timedir}/stat_out"
 
     ## file must exist
     #if [[ ! -e "$file" ]]; then
@@ -196,7 +199,7 @@ _scan_local_disks(){
     # Read from disk in binary the first two bytes of each file in 
     # the list and output it in hexadecimal.
     #   Note: `od` command is POSIX compliant
-    wait -f
+    #wait -f
     builtin read -r read_var od_o0 od_o1 read_var < <( 
       sudo od -j 0 -N 2 -t x1z -v "$file" || 
         _erx "$LINENO" "$i_1" "$file" )
@@ -211,8 +214,6 @@ _scan_local_disks(){
 
       # Issue: a big endian file format, possibly DB file? not very likely.
       if [[ "${od_o0}${od_o1}" == '2123' ]]; then
-        file -pk "$file" | tee -a "${timedir}/file_out"
-        stat -t "$file" | tee -a "${timedir}/stat_out"
         endian_wtf+=( [$i_1]="$file" )
         unset 'all_files_sorted[$i_1]'
 
@@ -226,50 +227,43 @@ _scan_local_disks(){
         # Issue: the files with '#!comment' as the initial bytes. 
         # These aren't scripts, so restart the loop.
         if [[ "$line_1" =~ ^'#!comment' ]]; then
-          file -pk "$file" | tee -a "${timedir}/file_out"
-          stat -t "$file" | tee -a "${timedir}/stat_out"
-          files_with_hashbang_comments+=( [${i_1}]="$file" )
+          crunches_with_hashbang_comments+=( [${i_1}]="$file" )
           unset 'all_files_sorted[$i_1]'
           continue
         fi
 
         # Issue: crashbang files which originate outside of the rpm 
         # package manager
+        #   Note: with only /sbin, this if-fi block doesn't execute
         if ! rpm -qf "$file" 2> /dev/null 1>&2; then
 
           # user and system files from outside `rpm`
 
           if [[ "$file" = /@(root|home|run/media)/* ]]; then
-            file -pk "$file" | tee -a "${timedir}/file_out"
-            stat -t "$file" | tee -a "${timedir}/stat_out"
-            non_rpm_user_files+=( [${i_1}]="$file" )
+            non_rpm_user_crunches+=( [${i_1}]="$file" )
             unset 'all_files_sorted[$i_1]'
             continue
 
           else
-            file -pk "$file" | tee -a "${timedir}/file_out"
-            stat -t "$file" | tee -a "${timedir}/stat_out"
-            non_rpm_system_files+=( [${i_1}]="$file" )
+            non_rpm_system_crunches+=( [${i_1}]="$file" )
             unset 'all_files_sorted[$i_1]'
             continue
           fi
         fi
       fi
 
+      
       # Make a record in RAM of the relevant filenames and their crashbangs.
-      file -pk "$file" | tee -a "${timedir}/file_out"
-      stat -t "$file" | tee -a "${timedir}/stat_out"
       shell_scripts+=( [$i_1]="$( \
         printf '%-50s   %% %% %% %%   %s\n' "$line_1" "$file" )" )
       unset 'all_files_sorted[$i_1]'
 
     else
-      file -pk "$file" | tee -a "${timedir}/file_out"
-      stat -t "$file" | tee -a "${timedir}/stat_out"
       all_other_files+=( [$i_1]="$file" )
       unset 'all_files_sorted[$i_1]'
     fi
   done
+  _bak "${timedir}"/{file,stat}_out
 }
 _usage(){
   # Usage:  _usage [exit-code]
@@ -303,8 +297,8 @@ _write_arrays(){
     declare -p "$i_8" | 
       tee --output-error='exit' "$target_f" > /dev/null 2>&1 ||
         _erx "_write_arrays $d_1 $i_8"
-      [[ -f "$target_f" ]] ||
-        _erx $LINENO: "$target_f"
+      #[[ -f "$target_f" ]] ||
+        #_erx $LINENO: "$target_f"
     _bak "$target_f"
     unset -v target_f
   done
@@ -406,8 +400,8 @@ esac
 # on XFS
 
   # <>
-  sudo setfacl -R -b "${mountpoint%/*}"
-  sudo setfacl -R -k "${mountpoint%/*}"
+  #sudo setfacl -R -b "${mountpoint%/*}"
+  #sudo setfacl -R -k "${mountpoint%/*}"
 
 # Nearly all of the `sudo` commands below are allowing rw access, of  
 # this script's datadir, so simply using ACL's will reduce the overuse 
@@ -576,7 +570,7 @@ then
 
   # get byte count of record file
   byte_count="$( wc -c "$rst" )"
-  [[ "$byte_count" -lt 500 ]] && 
+  [[ "${byte_count%% *}" -lt 500 ]] && 
     must_find_all_files='y'
 
   
@@ -665,9 +659,9 @@ then
 fi
 
   # <> ##############################################################
-  _write_arrays shell_scripts files_with_hashbang_comments \
+  _write_arrays shell_scripts crunches_with_hashbang_comments \
     files_from_outside_rpm all_other_files endian_wtf \
-    non_rpm_system_files non_rpm_user_files 
+    non_rpm_system_crunches non_rpm_user_crunches 
 
   _write_vars 'B' file datafile i_1 od_o{0,1} X line_1 count
 
