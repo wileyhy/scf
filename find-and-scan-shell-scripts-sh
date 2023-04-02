@@ -5,26 +5,27 @@
 
 ###  SECTION A  ###
 
-# Implementation-dependent arguments for options parsable by `shellcheck`:
+:;: 'Implementation-dependent arguments for opts parsable by -shellcheck-'
 severity='error'
 shells='(sh|bash|dash|ksh)'
 
-# Environment variables
+:;: 'Environment variables'
 PATH="$( /usr/bin/command -p getconf PATH ):/usr/bin:/usr/sbin:${PATH}"
 LC_ALL=C.UTF-8
 LC_COLLATE=C
 
-# Use `sudo`
+:;: 'Use -sudo-'
 
+  : '<>'
   date
 
 if ! sudo -v; then
-  printf '\n\tValidation failed of user\x27s \x60sudo\x60 timestamp; ' 
+  printf '\n\tValidation failed of user-s -sudo- timestamp; ' 
   printf 'exiting.\n\n' 
-  exit 1
+  exit "$LINENO"
 fi
 
-# Process lock
+:;: 'Process lock'
 random="$RANDOM"
 lock_d="${XDG_RUNTIME_DIR:-"${HOME:-/tmp}"}/.${$}.${random}.lock"
 trap '
@@ -42,10 +43,10 @@ if ! mkdir "$lock_d" 2> /dev/null; then
     printf '\tID: %s\n' "$( whoami )"
     printf 'Exiting.\n\n' 
   } 1>&2
-  exit 2
+  exit "$LINENO"
 fi
 
-# User variables
+:;: 'User variables'
 fstype_regexp='(autofs|binfmt_misc|bpf|cgroup2|configfs|debugfs|devpts|devtmpfs|efivarfs|fusectl|fuse.portal|hugetlbfs|iso9660|mqueue|proc|pstore|rpc_pipefs|securityfs|selinuxfs|sysfs|tmpfs|tracefs)'
 time_date="$( builtin printf '%(%F_%H%M%S)T' )"
 export \
@@ -81,20 +82,22 @@ export \
   time_date \
   time_d # vars
 
-# Functions
+:;: 'Functions'
 _age_file(){
+  :;: '_age_file'
   [[ -f "$1" ]] ||
     return 1
-  local previous_aged_files new_hash
+  local previous_aged_files new_hash paf new_hash
   local -A paf_hashes
   previous_aged_files=( "${1}"*[0-9] )
-  declare -p previous_aged_files
+  #declare -p previous_aged_files
 
   for paf in "${previous_aged_files[@]}"; do 
     if [[ -f "$paf" ]]; then
       paf_hashes["$( md5sum "$paf" | cut -d ' ' -f1 )"]="$paf" 
       new_hash="$( md5sum "$1"  | cut -d ' ' -f1 )"
       [[ -n "${paf_hashes["$new_hash"]}" ]] && 
+        : 'END OF _age_file'
         return 0
     fi
   done
@@ -103,38 +106,42 @@ _age_file(){
   old_mtime="$( stat -c%Y "$1" )"
   mv "${1}" "${1}.${old_mtime}" ||
     _erx _age_file "$1";
+  : 'END OF _age_file'
 }
 _bak(){ 
+  :;: '_bak'
   [[ "$#" -eq 0 ]] &&
     return 1
   local i_4
   for i_4 in "$@"; do 
     if [[ ! -f "${i_4}" ]]; then 
-      : "File <${i_4}>> DNE"
+      : "_bak: target file <${i_4}>> DNE"
       continue
     else 
-      : 'File exists'
+      : '_bak: target file exists'
     fi
     
     #md5sum "$i_4" ||
       #_erx _bak $LINENO "$i_4"
     #cat "$i_4" |
-      tee --output-error='exit' "${i_4}.bak" < "$i_4" > /dev/null 2>&1 ||
-        _erx _bak "$i_4"
+      tee --output-error='exit' "${i_4}.bak" < "$i_4" > /dev/null 2>&1 #||
+        #_erx _bak "$i_4"
     #md5sum "${i_4}.bak" ||
       #_erx _bak $LINENO "$i_4"
   done
+  : 'END OF _bak'
 }
 _create_data_f(){
-  # Open a timestamped file & append into it the list of filenames and 
-  # their crashbangs. 
-    # <>
+  :;: '_create_data_f'
+  :;: '_create_data_f: Open a timestamped file & append into it the list' 
+  :   'of filenames and their crashbangs.' 
+    : '<>'
     set -x
 
-  # data_fs
+  :;: '_create_data_f: data_files'
   data=( "${data_f:=crunchbangs}" /tmp/"${data_f##*/}" )
   
-  # if any data files already exist, keep them
+  :;: '_create_data_f: if any data files already exist, keep them'
   for i_6 in "${data[@]}"; do
     if [[ -f "$i_6" ]] && [[ ! -L "$i_6" ]]; then
       mv "$i_6" "${i_6}.${$}.${random}" ||
@@ -143,64 +150,69 @@ _create_data_f(){
   done
   #wait -f
 
-  # create the original data_f
+  :;: '_create_data_f: create the original data_f'
   touch "${data[@]}"
   #wait -f
 
-  # header
+  :;: '_create_data_f: header'
   printf '# crunchbangs -- %s \n' "$time_date" | 
     tee --output-error='exit' "${data[@]}" > /dev/null 2>&1 ||
       _erx "${LINENO}"
   
-  # content
-  : 'printing contents of \x22shell_scripts\x22 array'
+  :;: '_create_data_f: printing contents of shell_scripts array'
   set -
   printf '%s\n' "${shell_scripts[@]}" |
-    tee --append --output-error='exit' "${data[@]}" \
-        > /dev/null 2>&1 ||
-      _erx "${LINENO}"
+    tee --append --output-error='exit' "${data[@]}" > /dev/null 2>&1 #||
+      #_erx "${LINENO}"
   set -x
   _bak "${data[@]}"
+  : 'END OF _create_data_f'
 }
 _erx(){ 
+  :;: '_erx'
   local ec="$?"
   echo -e Error: "$@" 
+  : 'END OF _erx'
   exit "$ec"
 }
 _num(){ 
+  :;: '_num'
   local i_7
   for i_7 in "$@"; do
     local -n array="$i_7" 
     echo "${#array[@]}"
   done
+  : 'END OF _num'
 }
 _scan_local_disks(){
-  # Sort out the scripts, ie, any file beginning with a crashbang ('#!'), 
-  # from the rest of the files.
+  :;: '_scan_local_disks'
+  :;: '_scan_local_disks: Sort out the scripts, ie, any file beginning' 
+  :   'with a crashbang from the rest of the files'
   #   Note: this function can take 30-90 minutes!
   for i_1 in "${!all_files_sorted[@]}"; do
 
-    :;: 'LOOP';:
+    :;: '_scan_local_disks: LOOP';:
     printf '%d of %d files\r' "$i_1" "$count"
     unset file read_var od_o{0,1} line_1 
-    
-      #exit 101
-
     file="${all_files_sorted[${i_1}]}"
+    
+      #exit "$LINENO"
+
+    :;: '_scan_local_disks: file must exist'
+    if [[ ! -e "$file" ]]; then
+      set -x
+      unset 'all_files_sorted[$i_1]'
+      continue
+      set -
+    fi
+
+    :;: '_scan_local_disks: run -file- and -stat- on each file'
     { printf '+ '; file -pk "$file";} | tee -a "${time_d}/file_out"
     { printf '+ '; stat -t "$file";} | tee -a "${time_d}/stat_out"
 
-    ## file must exist
-    #if [[ ! -e "$file" ]]; then
-      #set -x
-      #unset 'all_files_sorted[$i_1]'
-      #continue
-      #set -
-    #fi
-
-    # Bug, inordinately long interpreter paths are rare, but do occur.
-    # Read from disk in binary the first two bytes of each file in 
-    # the list and output it in hexadecimal.
+    :;: '_scan_local_disks: Read from disk in binary the first two bytes' 
+    :   'of each file in the list and output it in hexadecimal.'
+    #   Note: inordinately long interpreter paths are rare, but do occur.
     #   Note: `od` command is POSIX compliant
     #wait -f
     read -r read_var od_o0 od_o1 read_var < <( 
@@ -208,40 +220,43 @@ _scan_local_disks(){
         _erx "$LINENO" "$i_1" "$file" )
     unset read_var
     
-    # If 'od_o' contains some non-zero data, as it should, 
+    :;: '_scan_local_disks: If -od_o- contains some non-zero data, as it'
+    :   ' should,'
     if [[ -z "$od_o0" ]]; then
       _erx "$LINENO" "$i_1" "$file";
 
-    # compare the hexidecimal representations to find any crashbangs.
+    :;: '_scan_local_disks: compare the hexidecimal representations to' 
+    :   'find any crashbangs.'
     elif [[ "${od_o0}${od_o1}" == @(2321|2123) ]]; then
 
-      # Issue: a big endian file format, possibly DB file? not very likely.
+      :;: '_scan_local_disks: Issue: a big endian file format, possibly'
+      :   'DB file? not likely.'
       if [[ "${od_o0}${od_o1}" == '2123' ]]; then
         endian_wtf+=( [$i_1]="$file" )
         unset 'all_files_sorted[$i_1]'
 
       # BUG: expect non-printable characters
 
-      # Crunchbang found. Use 'read', and hope there won't be any non-printable characters.
+      :;: '_scan_local_disks: Crunchbang found. Use -read-, and hope'
+      :   'there won`t be any non-printable characters.'
       else
         IFS= read -r line_1 < "$file" ||
           _erx "$LINENO" "$i_1" "$file";
 
-        # Issue: the files with '#!comment' as the initial bytes. 
-        # These aren't scripts, so restart the loop.
+        :;: '_scan_local_disks: Issue: the files with -#!comment- as the'
+        :   'initial bytes. These aren-t scripts, so restart the loop.'
         if [[ "$line_1" =~ ^'#!comment' ]]; then
           crunches_with_hashbang_comments+=( [${i_1}]="$file" )
           unset 'all_files_sorted[$i_1]'
           continue
         fi
 
-        # Issue: crashbang files which originate outside of the rpm 
-        # package manager
+        :;: '_scan_local_disks: Issue: crashbang files which originate'
+        :   'outside of the rpm package manager'
         #   Note: with only /sbin, this if-fi block doesn't execute
         if ! rpm -qf "$file" 2> /dev/null 1>&2; then
 
-          # user and system files from outside `rpm`
-
+          :;: '_scan_local_disks: user and system files from outside -rpm-'
           if [[ "$file" = /@(root|home|run/media)/* ]]; then
             non_rpm_user_crunches+=( [${i_1}]="$file" )
             unset 'all_files_sorted[$i_1]'
@@ -256,7 +271,8 @@ _scan_local_disks(){
       fi
 
       
-      # Make a record in RAM of the relevant filenames and their crashbangs.
+      :;: '_scan_local_disks: Make a record in RAM of the relevant'
+      :   'filenames and their crashbangs.'
       shell_scripts+=( [$i_1]="$( \
         printf '%-50s   %% %% %% %%   %s\n' "$line_1" "$file" )" )
       unset 'all_files_sorted[$i_1]'
@@ -267,8 +283,10 @@ _scan_local_disks(){
     fi
   done
   _bak "${time_d}"/{file,stat}_out
+  : 'END OF _scan_local_disks'
 }
 _usage(){
+  :;: '_usage'
   # Usage:  _usage [exit-code]
   cat <<-\EOF
     SCF - Shell Check Find, version 1.0 (redhat-linux)
@@ -279,45 +297,53 @@ _usage(){
     Only the first option is processed.
 EOF
   exit "${1}"
+  : 'END OF _usage'
 }
 _write_arrays(){
+  :;: '_write_arrays'
   # Usage: _write_arrays [one target-dir] [arrays]
-  # Default directory is "$time_d".
-    # <>
+    #: '<>'
     #set -x
 
-  local d_1
-  : 'is function-pos-parm number 1 a directory?'
+  :;: '_write_arrays: Default directory is -time_d-.'
+  local d_1 i_8 target_f
+  : '_write_arrays: is function-pos-parm number 1 a directory?'
   if [[ -d "$1" ]]; then
     d_1="$1"
     shift
   fi
 
+  :;: '_write_arrays: Write each array to disk.'
+  #   Note: `tee` without '-a' will overwrite an existing file
   for i_8 in "$@"; do 
     local target_f
           target_f="${d_1:-"${time_d}"}/a_${i_8}"
-    # Note: `tee` without '-a' will overwrite an existing file
     declare -p "$i_8" | 
-      tee --output-error='exit' "$target_f" > /dev/null 2>&1 ||
-        _erx "_write_arrays $d_1 $i_8"
+      tee --output-error='exit' "$target_f" > /dev/null 2>&1 #||
+        #_erx "_write_arrays $d_1 $i_8"
       #[[ -f "$target_f" ]] ||
         #_erx $LINENO: "$target_f"
     _bak "$target_f"
-    unset -v target_f
+    unset target_f
   done
+  : 'END OF _write_arrays'
 }
 # Usage: _write_vars [section] [raw variable names]
 _write_vars(){
+  :;: '_write_vars'
   local section target_f
         section="$1"
         target_f="${time_d}/${section}_vars"
   shift
   declare -p "$@" 2> /dev/null |
-    tee --output-error='exit' "$target_f" > /dev/null 2>&1 ||
-      _erx "_write_vars, section $section"
+    tee --output-error='exit' "$target_f" > /dev/null 2>&1 #||
+      #_erx "_write_vars, section $section"
   _bak "$target_f"
+  : 'END OF _write_vars'
 }
 export -f \
+  _age_file \
+  _bak \
   _create_data_f \
   _erx \
   _num \
@@ -325,17 +351,15 @@ export -f \
   _usage \
   _write_arrays \
   _write_vars
-  #_age_file \
-  _bak \
 
 
-# Option parsing
+:;: 'Option parsing'
 if [[ "$#" -gt 0 ]]; then
   first_two_chars="${1:0:2}"
 
   case "${first_two_chars}" in
     --) printf '\n\tHappy Easter!\n\n'
-          exit 0;;
+          exit "$LINENO";;
     -e) severity='error';;
     -i) severity='info';;
     -w) severity='warning';;
@@ -345,14 +369,14 @@ if [[ "$#" -gt 0 ]]; then
 fi
 
 
-# Assign varnames and paths for the data directories
+:;: 'Assign varnames and paths for the data directories'
 
 # BUG? `findmnt` has a '--df' option
 
-#   In case of large log files, programatically select a save directory, 
-# attached to the local disk, where any output can be saved; prefer USB 
-# flash drives. This particular `df` command will output three alpha-
-# numeric strings separated by whitespace on a single line. `sort` the 
+#   Note: In case of large log files, programatically select a save di-
+# rectory, attached to the local disk, where any output can be saved; 
+# prefer USB flash drives. This particular `df` command will output three 
+# alphanumeric strings separated by whitespace on a single line. `sort` the 
 # output by descending size. With `awk`, take the device with the most 
 # available space and get its mountpoint with `findmnt`. If there is no 
 # output, then set 'mountpoint' according to environment variables. 
@@ -360,19 +384,22 @@ mapfile -t df_o < <(
   sudo df --sync --local --output='fstype,avail,source' --block-size=1 | grep --extended-regexp --invert-match '^Type[[:space:]]*Avail' | grep --extended-regexp --invert-match -e ^"$fstype_regexp" -e 'live-rw'$ | sort --general-numeric-sort --reverse --key=2 )
 export df_o
 
-  declare -p df_o
-  #exit 111
+  #: '<>'
+  #declare -p df_o
+  #exit "$LINENO"
 
 read -r fstype read_var device < <( 
   printf '%s\n' "${df_o[@]}" | head -n 1 )
 unset read_var
 
-  declare -p fstype device
+  #: '<>'
+  #declare -p fstype device
 
 mountpoint="$( 
   findmnt --canonicalize --output=target --noheadings "$device" )"
 
-  #exit 112
+  #: '<>'
+  #exit "$LINENO"
 
 # BUG: needs a test for whether or not there are any unmounted USB drives. 
 # automatically using '/' as mountpoint is, in this case, ie, on a live usb,
@@ -380,9 +407,9 @@ mountpoint="$(
 
 [[ -z "${mountpoint}" ]] &&
   mountpoint="${lock_d:-"${TMPDIR:-/tmp}"}"
-scriptdir="${mountpoint}/scf.d"
-data_d="${scriptdir}/latest_data"
-meta_d="${scriptdir}/current_meta"
+scripts_d="${mountpoint}/scf.d"
+data_d="${scripts_d}/latest_data"
+meta_d="${scripts_d}/current_meta"
 time_d="${data_d}/t_${time_date}"
 data_f="${time_d}/crunchbangs"
 #unlisted="${time_d}/unlisted"
@@ -391,18 +418,18 @@ umask 077
   set -x
 
 
-# reduce use of `sudo` in this script by setting up ACL's
+:;: 'reduce use of -sudo- in this script by setting up ACL-s'
 case "$fstype" in
-  'xfs')      :;;
+  'xfs')      true;;
   ext[2-4])   tune2fs -l "$device" | 
                 grep -i 'acl'
               _erx "$LINENO" TODO;;
   *)          _erx "$LINENO" TODO;;
 esac
   
-# on XFS
+:;: 'on XFS'
 
-  # <>
+  : '<>'
   #sudo setfacl -R -b "${mountpoint%/*}"
   #sudo setfacl -R -k "${mountpoint%/*}"
 
@@ -414,8 +441,8 @@ esac
 # this script (ie, a regular user). As the absolute path is recon-
 # structed, when a non-readable directory is found, a recursive "r-x" 
 # ACL is written, and then a recursive "rwx" is written for the 
-# "$scriptdir". 
-if [[ ! -r "$scriptdir" ]]; then
+# "$scripts_d". 
+if [[ ! -r "$scripts_d" ]]; then
   mapfile -d '/' -t a <<< "${mountpoint}"; 
   export a
   a[0]='/'
@@ -431,36 +458,42 @@ if [[ ! -r "$scriptdir" ]]; then
       #printf '\n\tUnreadable:\t%s\n' "$b"; 
       sudo setfacl -R -m "$USER":r-x "$b" || 
         break
-      sudo setfacl -R -m "$USER":rwx "$scriptdir" || 
+      sudo setfacl -R -m "$USER":rwx "$scripts_d" || 
         break; 
       break
     fi ; 
   done; 
 fi
 
-  #exit 110
+  #exit "$LINENO"
 
-# make sure "$conf_d" is a directory OR create the "$conf_d" dir 
-# if necessary
+:;: 'make sure -conf_d- is a directory OR create the -conf_d- dir '
+: 'if necessary'
 for conf_d in "$data_d" "$meta_d"; do
   [[ -d "$conf_d" ]] ||
     mkdir --parents "$conf_d" 
 done
 
-# Label the current data as "latest."
+:;: 'Label the current data as -latest.-'
 #   Note: `find` sees dirs and symlinks as separate things 
 mapfile -d '' -t previous_time_dirs < <( 
   find "${data_d}" -mindepth 1 -maxdepth 1 -type d -a \! -type l \
     -name 't_*' -print0 )
 export previous_time_dirs
 
-  declare -p previous_time_dirs
+  #: '<>'
+  #declare -p previous_time_dirs
 
-# if "$t_dir" is empty, then delete it; otherwise `mv` it out
-# of the `latest` dir
+:;: 'if -t_dir- is empty, then delete it; otherwise -mv- it out'
+:   'of the -latest- dir'
 for t_dir in "${previous_time_dirs[@]}"; do 
-  rmdir --ignore-fail-on-non-empty "$t_dir" 
+  if rmdir --ignore-fail-on-non-empty "$t_dir"; then
+    : '-rmdir- succeeded'
+  else
+    : '-rmdir- failed'
+  fi
   
+    : '<>'
     test ! -e "$t_dir" &&
       : 't_dir DNE' 
 
@@ -469,7 +502,7 @@ for t_dir in "${previous_time_dirs[@]}"; do
   if [[ -e "$t_dir" ]] &&
     [[ ! -L "$t_dir" ]]; 
   then
-    mv "${previous_time_dirs[@]}" "$scriptdir"
+    mv "${previous_time_dirs[@]}" "$scripts_d"
   else
     continue
   fi
@@ -484,7 +517,7 @@ fi
 
 # BUG:  Reduce Search Time  ==  RST
 
-#   Gather filenames from local attached disk storage
+:;: 'Gather filenames from local attached disk storage'
 
 # If a prior record of the relevant_search_dirs array exists, and 
 # if that prior record matches the new record, then it's possible the 
@@ -493,136 +526,171 @@ fi
 # But if they're the same, then ...
 #
 
-# 
+:;: 'Variables for array -relevant_search_dirs-'
 array='relevant_search_dirs'
 rst="${meta_d}/a_${array}" 
 
-  if [[ -f "$rst" ]]; then : ok; else : no; fi
+  : '<>'
+  #if [[ -f "$rst" ]]; then : ok; else : no; fi
 
+:;: 'if the relevant_search_dirs record file exists and is not a symlink'
 if [[ -f "$rst" ]] &&
   [[ ! -L "$rst" ]];
 then
 
+  :;: 'Keep existing data'
   _age_file "${rst}".bak
   _bak "$rst"
 
-  # get the hash of the prior array, and 
-  hash_old="$( md5sum "$rst" )"
+  :;: 'For whether or not to run -find- for relevant_search_dirs'
+    : 'get the hash of the prior array'
+    hash_old="$( md5sum "$rst" )"
 
-  # get the prior count of indices
-  # shellcheck disable=SC1090
-  source "$rst"
-  array_count_old="$( _num "$array" )"
-  unset "$array"
-
-  # delete the record
-  rm -f "$rst"
+    :;: 'get the prior count of indices'
+    # shellcheck disable=SC1090
+    source "$rst"
+    array_count_old="$( _num "$array" )"
+    unset "$array"
 fi
 
-
-# ...then create a new record and...
-mapfile -d '' -t relevant_search_dirs < <(
+:;: 'then create a new record for array relevant_search_dirs and.'
+mapfile -d '' -t "$array" < <(
   sudo find / -mindepth 1 -maxdepth 1 -type d \! -empty \
     \( \! -name proc -a \! -name sys -a \! -iname 'scf*' \) -print0 )
-export relevant_search_dirs
-_write_arrays "$meta_d" relevant_search_dirs
+export "${array?}"
+_write_arrays "$meta_d" "$array"
 
+:;: 'if the pre-processing block ran, then exec this block also'
 if [[ -v array_count_old ]]; then 
+  : '<>: variable -array_count_old- exists'
+
+  :;: 'these newer files were written just milliseconds ago'
   _age_file "${rst}".bak
   _bak "$rst"
 
-  # get the hash of the new array, and 
-  hash_new="$( md5sum "$rst" )"
+  :;: 'For whether or not to run -find- for the all_files array'
+    : 'get the hash of the new array' 
+    hash_new="$( md5sum "$rst" )"
 
-  # get the new count of indices
-  array_count_new="$( _num "$array" )"
+    :;: 'get the new count of indices'
+    array_count_new="$( _num "$array" )"
 
-  if [[ "${hash_old%% *}" != "${hash_new%% *}" ]] ||
-    [[ "$array_count_old" != "$array_count_new" ]]; 
-  then 
-    must_find_all_files='y'
-  fi
+    if [[ "${hash_old%% *}" != "${hash_new%% *}" ]] ||
+      [[ "$array_count_old" != "$array_count_new" ]]; 
+    then 
+      must_find_all_files='y'
+    fi
 fi
   
-  #exit $LINENO
+  #exit "$LINENO"
 
 
-# 
+:;: 'Variables for array -all_files-'
+unset array rst hash_old hash_new array_count_old array_count_new
 array='all_files'
 rst="${meta_d}/a_${array}" 
   
-  if [[ -f "$rst" ]]; then : ok; else : na; fi
+  : '<>'
+  #if [[ -f "$rst" ]]; then : ok; else : na; fi
 
-if [[ "$must_find_all_files" != 'y' ]] &&
-  [[ -f "$rst" ]] &&
+:;: 'if the array record for the array all_files exists and isnt a symlnk'
+if [[ -f "$rst" ]] &&
   [[ ! -L "$rst" ]];
 then
 
+  :;: 'Keep existing data'
   _age_file "${rst}".bak
   _bak "$rst"
 
-  # WHY?
-  ## get the hash of the prior array, and 
-  #hash_old="$( md5sum "$rst" )"
+  :;: 'For whether or not to do the full scan of relevant_search_dirs'
+    : 'get the hash of the prior array'
+    hash_old="$( md5sum "$rst" )"
 
-  # WHY?
-  ## get the prior count of indices
-  #source "$rst"
-  #array_count_old="$( _num "$array" )"
-  #unset "$array"
+    :;: 'get the prior count of indices'
+    
+    : 'set -; source -rst-'; 
+    set -
+    source "$rst"
+    set -x
+    array_count_old="$( _num "$array" )"
+    unset "$array"
 
-  # get byte count of record file
-  byte_count="$( wc -c "$rst" )"
-  [[ "${byte_count%% *}" -lt 500 ]] && 
-    must_find_all_files='y'
+  :;: 'For whether or not to run -find- for the all_files array'
+  if [[ "$must_find_all_files" != 'y' ]]; then
 
-  
-  # get delta of mtime to now
-  mtime_age_in_hours=$(( $(( $( date +%s ) - \
-    $( stat -c%Y "$rst" ) )) / 60 / 60 ))
-  [[ "$mtime_age_in_hours" -gt 72 ]] &&
-    must_find_all_files='y'
+    :;: 'get byte count of record file'
+    byte_count="$( wc -c "$rst" )"
+    [[ "${byte_count%% *}" -lt 500 ]] && 
+      must_find_all_files='y'
 
+    :;: 'get delta of mtime to now'
+    mtime_age_in_hours=$(( $(( $( date +%s ) - \
+      $( stat -c%Y "$rst" ) )) / 60 / 60 ))
+    [[ "$mtime_age_in_hours" -gt 72 ]] &&
+      must_find_all_files='y'
+  fi
 fi
-  
 
-
-if [[ "$must_find_all_files" != 'y' ]]; 
+:;: 'If we must run -find- for array all_files.'
+if [[ ! -v all_files ]] ||
+  [[ "$must_find_all_files" = 'y' ]]; 
 then
-
-  # ...find all relevant files on disk....
-  # DEBUG: "${relevant_search_dirs[@]}" OR '/usr/sbin' OR /usr/{,s}bin
-
+  
+    : '<>'
     date
     relevant_search_dirs=( /usr/sbin )
     #relevant_search_dirs=( /usr/sbin /usr/bin )
-    declare -p relevant_search_dirs
+    #declare -p relevant_search_dirs
 
-  mapfile -d '' -t all_files < <( 
+  :;: 'Find all relevant files on disk.'
+  mapfile -d '' -t "$array" < <( 
     sudo find "${relevant_search_dirs[@]}" -type f \! -empty \
       -print0 2> /dev/null )
-  export all_files
-  _write_arrays "$meta_d" all_files
+  export "${array?}"
+  _write_arrays "$meta_d" "$array"
+  
+  :;: 'these newer files were written just milliseconds ago'
+  _age_file "${rst}".bak
+  _bak "$rst"
 fi
 
-  echo 'number, all_files:' "${#all_files[@]}"
-  #exit 103
+:;: 'For whether or not to do the full scan for all_files'
+if [[ -v hash_old ]]; then
+  : '<>: variable -hash_old- exists'
 
+  :;: 'get the hash of the new array'
+  hash_new="$( md5sum "$rst" )"
 
+  :;: 'get the prior count of indices; this array was re-assigned'
+  : 'a few milliseconds ago'
+  array_count_new="$( _num "$array" )"
 
+  :;: 'Do the comparisons' 
+  if [[ "${hash_old%% *}" != "${hash_new%% *}" ]] ||
+    [[ "$array_count_old" != "$array_count_new" ]]; 
+  then 
+    must_scan_relevant_dirs='y'
+  fi
+fi
 
+  #: '<>'
+  #echo 'number, all_files:' "${#all_files[@]}"
+  #exit "$LINENO"
 
-# Then sort the original array with mapfile and test it.
-  # <>
-  set -; printf 'printf \x22all_files_sorted\x22 array\n'
+:;: 'Sort the original array and test it.'
+  : '<>'
+  set -; 
 
+printf 'printf \x22all_files_sorted\x22 array\n'
 mapfile -d '' -t all_files_sorted < <(
   printf '%s\0' "${all_files[@]}" |
     sort --zero-terminated )
 
-  # <>
-  set -x; : 'set -x'
-  
+  : '<>'
+  set -x; 
+  : 'set -x'
+
+:;: 'Do the second comparison.' 
 [[ "$( _num all_files )" -eq "$( _num all_files_sorted )" ]] ||
   _erx "${LINENO}"
 
@@ -632,7 +700,8 @@ mapfile -d '' -t all_files_sorted < <(
     first_two_chars mountpoint data_d time_d data_f \
     previous_time_dirs relevant_search_dirs n_0 n_7
 
-  #exit 101
+  : '<>'
+  exit "$LINENO"
   #set -x
 
 
@@ -668,7 +737,7 @@ fi
 
   _write_vars 'B' file data_f i_1 od_o{0,1} X line_1 count
 
-  exit 101
+  exit "$LINENO"
   set -x
 
 
@@ -696,12 +765,12 @@ fi
 command -p cp --archive "$data_f" "${data_f}_extra-data-removed"
 _bak "${data_f}_extra-data-removed"
 
-  # <>
+  : '<>'
   ls -l "${data_f}"*
   wc "${data_f}"*
   md5sum "${data_f}.bak" "${data_f}_extra-data-removed"
   
-  exit 101
+  exit "$LINENO"
   set -x
 
 
@@ -725,10 +794,10 @@ grep --extended-regexp "${ere_3}" "${data_f}_all-indexed" > \
   "${data_f}_SC-scrpts-list" # ere_3
 _bak "${data_f}_SC-scrpts-list"
 
-  # <>
+  : '<>'
   ls -l "${data_f}"*
   wc "${data_f}"*
-  exit 101
+  exit "$LINENO"
   set -x
 
 
@@ -770,7 +839,7 @@ done
 _bak "${data_f}_found_scripts_with_indices" \
   "${data_f}_found_errors_with_indices_unsorted"
 
-exit 0
+exit "$LINENO"
 
   # get `dnf history` transaction number
   #dnf_tx_number="$( dnf history | 
