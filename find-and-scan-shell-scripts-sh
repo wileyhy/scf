@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 # find-and-scan-shell-scripts-sh
 # Written in bash version 5.1 on Fedora 37
 
@@ -45,6 +45,8 @@ if ! mkdir "$lock_d" 2> /dev/null; then
   } 1>&2
   exit "$LINENO"
 fi
+
+# BUG: this regex is totally slow. use a whitelist.
 
 :;: 'User variables'
 fstype_regexp='(autofs|binfmt_misc|bpf|cgroup2|configfs|debugfs|devpts|devtmpfs|efivarfs|fusectl|fuse.portal|hugetlbfs|iso9660|mqueue|proc|pstore|rpc_pipefs|securityfs|selinuxfs|sysfs|tmpfs|tracefs)'
@@ -135,8 +137,8 @@ _create_data_f(){
   :;: '_create_data_f'
   :;: '_create_data_f: Open a timestamped file & append into it the list' 
   :   'of filenames and their crashbangs.' 
-    : '<>'
-    set -x
+    #: '<>'
+    #set -x
 
   :;: '_create_data_f: data_files'
   data=( "${data_f:=crunchbangs}" /tmp/"${data_f##*/}" )
@@ -415,7 +417,8 @@ data_f="${time_d}/crunchbangs"
 #unlisted="${time_d}/unlisted"
 umask 077
 
-  set -x
+  #: '<>'
+  #set -x
 
 
 :;: 'reduce use of -sudo- in this script by setting up ACL-s'
@@ -430,8 +433,7 @@ esac
 :;: 'on XFS'
 
   : '<>'
-  #sudo setfacl -R -b "${mountpoint%/*}"
-  #sudo setfacl -R -k "${mountpoint%/*}"
+  #sudo setfacl -R -b "${mountpoint%/*}"; sudo setfacl -R -k "${mountpoint%/*}"
 
 # Nearly all of the `sudo` commands below are allowing rw access, of  
 # this script's data_d, so simply using ACL's will reduce the overuse 
@@ -449,29 +451,43 @@ if [[ ! -r "$scripts_d" ]]; then
   a[-1]="${a[-1]//$'\n'}"
   d=${#a[@]}; 
   for ((i=0;i<d;i++)); do 
-    #printf '\n\t%d\n\n' $i; 
-    #c="$b"; 
+    
+      #: '<>'
+      #printf '\n\t%d\n\n' $i; 
+      #c="$b"; 
+    
     b+="/${a[$i]}"; 
     b="$( realpath -e "$b" )"; 
     if [[ ! -r "$b" ]]; then 
-      #printf '\n\tReadable:\t%s\n' "$c"; 
-      #printf '\n\tUnreadable:\t%s\n' "$b"; 
+      
+        #: '<>'
+        #printf '\n\tReadable:\t%s\n' "$c"; 
+        #printf '\n\tUnreadable:\t%s\n' "$b"; 
+      
       sudo setfacl -R -m "$USER":r-x "$b" || 
         break
+      sudo mkdir --parents "$scripts_d" ||
+        _erx "$LINENO"
       sudo setfacl -R -m "$USER":rwx "$scripts_d" || 
-        break; 
+        { 
+          : 'setfacl failed'
+          break 
+        }
+      : 'setfacl succeeded'
       break
     fi ; 
   done; 
 fi
 
+  : '<>'
   #exit "$LINENO"
+  set -x
 
 :;: 'make sure -conf_d- is a directory OR create the -conf_d- dir '
 : 'if necessary'
 for conf_d in "$data_d" "$meta_d"; do
   [[ -d "$conf_d" ]] ||
-    mkdir --parents "$conf_d" 
+    mkdir "$conf_d" 
 done
 
 :;: 'Label the current data as -latest.-'
@@ -530,7 +546,7 @@ fi
 array='relevant_search_dirs'
 rst="${meta_d}/a_${array}" 
 
-  : '<>'
+  #: '<>'
   #if [[ -f "$rst" ]]; then : ok; else : no; fi
 
 :;: 'if the relevant_search_dirs record file exists and is not a symlink'
@@ -542,7 +558,7 @@ then
   _age_file "${rst}".bak
   _bak "$rst"
 
-  :;: 'For whether or not to run -find- for relevant_search_dirs'
+  :;: 'For whether or not to do the full scan of relevant_search_dirs'
     : 'get the hash of the prior array'
     hash_old="$( md5sum "$rst" )"
 
@@ -553,7 +569,7 @@ then
     unset "$array"
 fi
 
-:;: 'then create a new record for array relevant_search_dirs and.'
+:;: 'then create a new record for array relevant_search_dirs and...'
 mapfile -d '' -t "$array" < <(
   sudo find / -mindepth 1 -maxdepth 1 -type d \! -empty \
     \( \! -name proc -a \! -name sys -a \! -iname 'scf*' \) -print0 )
@@ -582,18 +598,30 @@ if [[ -v array_count_old ]]; then
     fi
 fi
   
+  : '<>'
   #exit "$LINENO"
+  date
+  #relevant_search_dirs=( /sbin )
+  relevant_search_dirs=( /sbin /bin )
+  #declare -p relevant_search_dirs
+
+
+for search_dir in "${relevant_search_dirs[@]}"; do
 
 
 :;: 'Variables for array -all_files-'
-unset array rst hash_old hash_new array_count_old array_count_new
+unset array rst rst_d hash_old hash_new array_count_old array_count_new
 array='all_files'
-rst="${meta_d}/a_${array}" 
-  
-  : '<>'
-  #if [[ -f "$rst" ]]; then : ok; else : na; fi
+rst_d="${meta_d}/${search_dir#/}" # directory
+rst="${rst_d}/a_${array}" # file
 
-:;: 'if the array record for the array all_files exists and isnt a symlnk'
+:;: 'Make each per-search-dir data-dir'
+if [[ ! -d "$rst_d" ]]; then
+  mkdir "$rst_d" ||
+    _erx "$LINENO"
+fi
+  
+:;: 'if the record for the array all_files exists and isnt a symlnk'
 if [[ -f "$rst" ]] &&
   [[ ! -L "$rst" ]];
 then
@@ -631,17 +659,14 @@ then
   fi
 fi
 
+
+
+
 :;: 'If we must run -find- for array all_files.'
 if [[ ! -v all_files ]] ||
   [[ "$must_find_all_files" = 'y' ]]; 
 then
   
-    : '<>'
-    date
-    relevant_search_dirs=( /usr/sbin )
-    #relevant_search_dirs=( /usr/sbin /usr/bin )
-    #declare -p relevant_search_dirs
-
   :;: 'Find all relevant files on disk.'
   mapfile -d '' -t "$array" < <( 
     sudo find "${relevant_search_dirs[@]}" -type f \! -empty \
@@ -694,15 +719,17 @@ mapfile -d '' -t all_files_sorted < <(
 [[ "$( _num all_files )" -eq "$( _num all_files_sorted )" ]] ||
   _erx "${LINENO}"
 
+done
+
   # <> ##############################################################
-  _write_arrays all_files all_files_sorted
+  _write_arrays all_files_sorted #all_files 
   _write_vars 'A' PATH LC_ALL severity shells fstype_regexp time_date \
     first_two_chars mountpoint data_d time_d data_f \
     previous_time_dirs relevant_search_dirs n_0 n_7
 
   : '<>'
-  exit "$LINENO"
-  #set -x
+  #exit "$LINENO"
+  set -x
 
 
 
@@ -726,7 +753,7 @@ then
 
   _create_data_f
 
-    set -
+    #set -
 
 fi
 
