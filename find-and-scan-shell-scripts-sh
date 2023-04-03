@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 # find-and-scan-shell-scripts-sh
 # Written in bash version 5.1 on Fedora 37
 
@@ -207,6 +207,8 @@ _scan_local_disks(){
       continue
       set -
     fi
+
+    # TODO: check for empty files, make a list of them
 
     :;: '_scan_local_disks: run -file- and -stat- on each file'
     { printf '+ '; file -pk "$file";} | tee -a "${time_d}/file_out"
@@ -501,7 +503,7 @@ export previous_time_dirs
   #declare -p previous_time_dirs
 
 :;: 'if -t_dir- is empty, then delete it; otherwise -mv- it out'
-:   'of the -latest- dir'
+:   ' of the -latest- dir'
 for t_dir in "${previous_time_dirs[@]}"; do 
   if rmdir --ignore-fail-on-non-empty "$t_dir"; then
     : '-rmdir- succeeded'
@@ -571,8 +573,7 @@ fi
 
 :;: 'then create a new record for array relevant_search_dirs and...'
 mapfile -d '' -t "$array" < <(
-  sudo find / -mindepth 1 -maxdepth 1 -type d \! -empty \
-    \( \! -name proc -a \! -name sys -a \! -iname 'scf*' \) -print0 )
+  sudo find / -mindepth 1 -maxdepth 1 -type d \! -empty \( \! -name proc -a \! -name sys -a \! -iname 'scf*' \) -print0 )
 export "${array?}"
 _write_arrays "$meta_d" "$array"
 
@@ -598,28 +599,25 @@ if [[ -v array_count_old ]]; then
     fi
 fi
   
-  : '<>'
+  #: '<>'
   #exit "$LINENO"
-  date
-  #relevant_search_dirs=( /sbin )
-  relevant_search_dirs=( /sbin /bin )
-  #declare -p relevant_search_dirs
-
+  
 
 #for search_dir in "${relevant_search_dirs[@]}"; do
 
 
 :;: 'Variables for array -all_files-'
-unset array rst rst_d hash_old hash_new array_count_old array_count_new
+unset array rst hash_old hash_new array_count_old array_count_new
 array='all_files'
-rst_d="${meta_d}/${search_dir#/}" # directory
-rst="${rst_d}/a_${array}" # file
+rst="${meta_d}/a_${array}" 
 
-:;: 'Make each per-search-dir data-dir'
-if [[ ! -d "$rst_d" ]]; then
-  mkdir "$rst_d" ||
-    _erx "$LINENO"
-fi
+#rst_d="${meta_d}/${search_dir#/}" # directory
+#rst="${rst_d}/a_${array}" # file
+#:;: 'Make each per-search-dir data-dir'
+#if [[ ! -d "$rst_d" ]]; then
+  #mkdir "$rst_d" ||
+    #_erx "$LINENO"
+#fi
   
 :;: 'if the record for the array all_files exists and isnt a symlnk'
 if [[ -f "$rst" ]] &&
@@ -667,10 +665,17 @@ if [[ ! -v all_files ]] ||
   [[ "$must_find_all_files" = 'y' ]]; 
 then
   
+    : '<>'
+    date
+    #relevant_search_dirs=( /usr/sbin )
+    relevant_search_dirs=( /usr/sbin /usr/bin )
+    #declare -p relevant_search_dirs
+
+  
   :;: 'Find all relevant files on disk.'
   mapfile -d '' -t "$array" < <( 
-    sudo find "${relevant_search_dirs[@]}" -type f \! -empty \
-      -print0 2> /dev/null )
+    sudo find "${relevant_search_dirs[@]}" -mindepth 1 -type f -print0 \
+      2> /dev/null )
   export "${array?}"
   _write_arrays "$meta_d" "$array"
   
@@ -722,7 +727,7 @@ mapfile -d '' -t all_files_sorted < <(
 #done
 
   # <> ##############################################################
-  _write_arrays all_files_sorted #all_files 
+  _write_arrays all_files_sorted all_files 
   _write_vars 'A' PATH LC_ALL severity shells fstype_regexp time_date \
     first_two_chars mountpoint data_d time_d data_f \
     previous_time_dirs relevant_search_dirs n_0 n_7
@@ -777,25 +782,27 @@ fi
 
 # Alterations
 
-# Alteration 2: fix the odd extra data segments in the middles of the rows. 
-# Requires using 'relevant_search_dirs' in the above `find` path. ## works
-ere_2='>?[[:space:]]{3,}<?/?[[:alnum:]].*>?[[:space:]]{3,}<?'
-# Bug? is opt -n necc?
-_test_2(){
-  grep --extended-regexp --line-number "${ere_2}" "${1}" # ere_2
-}
-if _test_2 "$data_f"; then
-  sed --in-place "s=${ere_2}=    =g" "$data_f" # ere_2
-  \_test_2 "$data_f" &&
-    _erx "${LINENO}"
-fi
-command -p cp --archive "$data_f" "${data_f}_extra-data-removed"
-_bak "${data_f}_extra-data-removed"
-
-  : '<>'
-  ls -l "${data_f}"*
-  wc "${data_f}"*
-  md5sum "${data_f}.bak" "${data_f}_extra-data-removed"
+  # <>
+  ## Alteration 2: fix the odd extra data segments in the middles of the 
+  #rows. 
+  ## Requires using 'relevant_search_dirs' in the above `find` path. 
+  ### works
+  #ere_2='>?[[:space:]]{3,}<?/?[[:alnum:]].*>?[[:space:]]{3,}<?'
+  ## Bug? is opt -n necc?
+  #_test_2(){
+  #  #grep --extended-regexp --line-number "${ere_2}" "${1}" # ere_2
+  #}
+  #if _test_2 "$data_f"; then
+  #  #sed --in-place "s=${ere_2}=    =g" "$data_f" # ere_2
+  #  #\_test_2 "$data_f" &&
+  #    #_erx "${LINENO}"
+  #fi
+  #cp --archive "$data_f" "${data_f}_extra-data-removed"
+  #_bak "${data_f}_extra-data-removed"
+  #  #: '<>'
+  #  #ls -l "${data_f}"*
+  #  #wc "${data_f}"*
+  #  #md5sum "${data_f}.bak" "${data_f}_extra-data-removed"
   
   #exit "$LINENO"
   set -x
@@ -811,10 +818,13 @@ grep --extended-regexp --line-number '.' "${data_f}" > \
 _bak "${data_f}_all-indexed"
 
 
+
+
 # CENTRAL TASK, 1 OF 2: Filter the list of crashbangs with the list 
 # of shells.
 #ere_3=^'[0-9]{1,7}:#! ?(/usr)?/bin/(env|(sh|bash|dash|ksh)?) *<?(/usr)?(/bin/)?(sh|bash|dash|ksh) ?>? *'
 # Bug likely: ere3
+
 ere_3=^"[0-9]{1,7}:#! ?(/usr)?/bin/(env|${shells}?) *<?(/usr)?(/bin/)?${shells} ?>? *"
 
 grep --extended-regexp "${ere_3}" "${data_f}_all-indexed" > \
@@ -824,27 +834,32 @@ _bak "${data_f}_SC-scrpts-list"
   : '<>'
   ls -l "${data_f}"*
   wc "${data_f}"*
-  #exit "$LINENO"
+  exit "$LINENO"
   set -x
+
+
+
 
 
 
 # MAIN TASK, 2 of 2: with ShellCheck scan each script for errors
 for i_2 in "${!shell_scripts[@]}"; do 
   script="${shell_scripts[${i_2}]}"
+  script="${script##*% % % %}"
+  script="${script##* }"
 
   # Run `shellcheck on the script and count the number of each issue's ID.
   mapfile -t careful < <( 
-    shellcheck --severity "$severity" "$script" || 
-      _erx "$LINENO" )
+    shellcheck --severity "$severity" "$script" ) || 
+      _erx "$LINENO"
   mapfile -t errs < <( 
     grep --fixed-strings --invert-match 'shellcheck.net' \
         <<< "${careful[@]}" | 
       grep --extended-regexp --only-matching 'SC[0-9]{4}' | 
       sort --general-numeric-sort | 
       uniq --count |
-      sed 's,^[[:space:]]*,,' || 
-        _erx "$LINENO" )
+      sed 's,^[[:space:]]*,,' ) || 
+        _erx "$LINENO"
 
   # Bug: formatting
 
