@@ -35,8 +35,8 @@ trap '
     rm -rf -- "$lock_d"; 
   fi;
   if [[ -v b ]]; then 
-    setfacl -R -b "${mountpoint%/*}"; 
-    setfacl -R -k "${mountpoint%/*}"
+    sudo setfacl -R -x "$USER":rwx "$scripts_d"
+    sudo setfacl -R -x "$USER":r-x "$b" 
   fi
   trap - EXIT TERM INT; 
   kill -s INT "$$"
