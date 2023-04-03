@@ -103,7 +103,7 @@ _age_file(){
       paf_hashes["$( md5sum "$paf" | cut -d ' ' -f1 )"]="$paf" 
       new_hash="$( md5sum "$1"  | cut -d ' ' -f1 )"
       [[ -n "${paf_hashes["$new_hash"]}" ]] && 
-        : 'END OF _age_file'
+        : 'END OF _age_file';:
         return 0
     fi
   done
@@ -112,7 +112,7 @@ _age_file(){
   old_mtime="$( stat -c%Y "$1" )"
   mv "${1}" "${1}.${old_mtime}" ||
     _erx _age_file "$1";
-  : 'END OF _age_file'
+  : 'END OF _age_file';:
 }
 _bak(){ 
   :;: '_bak'
@@ -135,7 +135,7 @@ _bak(){
     #md5sum "${i_4}.bak" ||
       #_erx _bak $LINENO "$i_4"
   done
-  : 'END OF _bak'
+  : 'END OF _bak';:
 }
 _create_data_f(){
   :;: '_create_data_f'
@@ -172,13 +172,13 @@ _create_data_f(){
       #_erx "${LINENO}"
   set -x
   _bak "${data[@]}"
-  : 'END OF _create_data_f'
+  : 'END OF _create_data_f';:
 }
 _erx(){ 
   :;: '_erx'
   local ec="$?"
   echo -e Error: "$@" 
-  : 'END OF _erx'
+  : 'END OF _erx';:
   exit "$ec"
 }
 _num(){ 
@@ -188,7 +188,7 @@ _num(){
     local -n array="$i_7" 
     echo "${#array[@]}"
   done
-  : 'END OF _num'
+  : 'END OF _num';:
 }
 _scan_local_disks(){
   :;: '_scan_local_disks'
@@ -297,7 +297,7 @@ _scan_local_disks(){
     fi
   done
   _bak "${time_d}"/{file,stat}_out
-  : 'END OF _scan_local_disks'
+  : 'END OF _scan_local_disks';:
 }
 _usage(){
   :;: '_usage'
@@ -311,7 +311,7 @@ _usage(){
     Only the first option is processed.
 EOF
   exit "${1}"
-  : 'END OF _usage'
+  : 'END OF _usage';:
 }
 _write_arrays(){
   :;: '_write_arrays'
@@ -340,7 +340,7 @@ _write_arrays(){
     _bak "$target_f"
     unset target_f
   done
-  : 'END OF _write_arrays'
+  : 'END OF _write_arrays';:
 }
 # Usage: _write_vars [section] [raw variable names]
 _write_vars(){
@@ -353,7 +353,7 @@ _write_vars(){
     tee --output-error='exit' "$target_f" > /dev/null 2>&1 #||
       #_erx "_write_vars, section $section"
   _bak "$target_f"
-  : 'END OF _write_vars'
+  : 'END OF _write_vars';:
 }
 export -f \
   _age_file \
@@ -723,7 +723,7 @@ fi
   : '<>'
   set -; 
 
-printf 'printf \x22all_files_sorted\x22 array\n'
+printf 'printf -all_files_sorted- array\n'
 mapfile -d '' -t all_files_sorted < <(
   printf '%s\0' "${all_files[@]}" |
     sort --zero-terminated )
@@ -745,14 +745,15 @@ mapfile -d '' -t all_files_sorted < <(
     previous_time_dirs relevant_search_dirs n_0 n_7
 
   : '<>'
-  #exit "$LINENO"
+  exit "$LINENO"
   set -x
 
 
 
 
 
-###  SECTION B  ###
+###  SECTION B  ::  SCANNING  ###
+
 # Add some brevity, and write the completed arrays to disk
 count="${#all_files_sorted[@]}"
 unset IFS
@@ -773,7 +774,7 @@ fi
   _write_vars 'B' file data_f i_1 od_o{0,1} X line_1 count
 
   #: '<>'
-  #exit "$LINENO"
+  exit "$LINENO"
   #set -x
 
     
@@ -823,14 +824,14 @@ fi
 # CENTRAL TASK, 1 OF 2: Filter the list of crashbangs with the list 
 # of shells.
 grep --extended-regexp '/bin/'"${shells}"'.*% % % %' \
-  "${data_f}_all-indexed" > "${data_f}_SC-scrpts-list"
+  "${data_f}" > "${data_f}_SC-scrpts-list"
 _bak "${data_f}_SC-scrpts-list"
 rsync -ca "${data_f}_SC-scrpts-list" /tmp
 
-  #: '<>'
-  #ls -l "${data_f}"*
-  #wc "${data_f}"*
-  #exit "$LINENO"
+  : '<>'
+  ls -l "${data_f}"*
+  wc "${data_f}"*
+  exit "$LINENO"
   #set -x
 
 
@@ -850,12 +851,20 @@ mapfile -d '' -t cut_sed_o < <(
     sed 's,^ *,,' | 
     tr '\n' '\0' )
 
+  : '<>'
+  exit "$LINENO"
+  #set -x
+
 mapfile -t wc_sort_o < <( 
   for c in "${cut_sed_o[@]}"; do 
     wc -l "$c"; 
   done | 
     sort -gr | 
     awk '{ print $2 }' )
+
+  : '<>'
+  exit "$LINENO"
+  #set -x
 
 i=0; 
 {
@@ -874,8 +883,13 @@ i=0;
     fi; 
   done;
 } | tee -a "${data_f}_found_scripts_with_indices"
+
+  : '<>'
+  exit "$LINENO"
+  #set -x
+
 _bak "${data_f}_found_scripts_with_indices"
-rsync -ca "${data_f}_found_scripts_with_indices" "$mountpoint" 
+rsync -ca "${data_f}_found_scripts_with_indices" "$scripts_d" 
 rsync -ca "${data_f}_found_scripts_with_indices" /tmp
 
     # <> Bug: formatting
