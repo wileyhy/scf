@@ -807,15 +807,14 @@ fi
   #exit "$LINENO"
   set -x
 
-
-# Bug: high disk io, slow
-
-# Alteration 3: Apply grep-style line numbers, ie, in-file indices. These 
-# are necessary for section 'Extra,' however, can only be applied prior 
-# to the full list having been subdivided. 
-grep --extended-regexp --line-number '.' "${data_f}" > \
-  "${data_f}_all-indexed"
-_bak "${data_f}_all-indexed"
+  # <>
+  ## Alteration 3: Apply grep-style line numbers, ie, in-file indices. 
+  #These 
+  ## are necessary for section 'Extra,' however, can only be applied prior 
+  ## to the full list having been subdivided. 
+  #grep --extended-regexp --line-number '.' "${data_f}" > \
+  #  #"${data_f}_all-indexed"
+  #_bak "${data_f}_all-indexed"
 
 
 
