@@ -33,7 +33,11 @@ trap '
     [[ ! -L "$lock_d" ]]; 
   then 
     rm -rf -- "$lock_d"; 
-  fi; 
+  fi;
+  if [[ -v b ]]; then 
+    setfacl -R -b "${mountpoint%/*}"; 
+    setfacl -R -k "${mountpoint%/*}"
+  fi
   trap - EXIT TERM INT; 
   kill -s INT "$$"
   ' EXIT TERM INT # for cleaner xtrace output, put on one line 
@@ -49,9 +53,6 @@ fi
 # BUG: this regex is totally slow. use a whitelist.
 
 :;: 'User variables'
-fstype_regexp='(autofs|binfmt_misc|bpf|cgroup2|configfs|debugfs|devpts|devtmpfs|efivarfs|fusectl|fuse.portal|hugetlbfs|iso9660|mqueue|proc|pstore|rpc_pipefs|securityfs|selinuxfs|sysfs|tmpfs|tracefs)'
-
-#fstype_regexp_2='(btrfs|exfat|ext2|ext3|ext4|fat16|fat32|minix|ntfs|xfs)'
 fstype_regexp_2='(btrfs|exfat|ext3|ext4|fat32|ntfs|xfs)'
 
 time_date="$( builtin printf '%(%F_%H%M%S)T' )"
@@ -86,7 +87,7 @@ export \
   severity \
   shells \
   time_date \
-  time_d # vars
+  time_d
 
 :;: 'Functions'
 _age_file(){
@@ -96,7 +97,6 @@ _age_file(){
   local previous_aged_files new_hash paf new_hash
   local -A paf_hashes
   previous_aged_files=( "${1}"*[0-9] )
-  #declare -p previous_aged_files
 
   for paf in "${previous_aged_files[@]}"; do 
     if [[ -f "$paf" ]]; then
@@ -126,14 +126,7 @@ _bak(){
     else 
       : '_bak: target file exists'
     fi
-    
-    #md5sum "$i_4" ||
-      #_erx _bak $LINENO "$i_4"
-    #cat "$i_4" |
-      tee --output-error='exit' "${i_4}.bak" < "$i_4" > /dev/null 2>&1 #||
-        #_erx _bak "$i_4"
-    #md5sum "${i_4}.bak" ||
-      #_erx _bak $LINENO "$i_4"
+    tee --output-error='exit' "${i_4}.bak" < "$i_4" > /dev/null 2>&1
   done
   : 'END OF _bak';:
 }
@@ -141,8 +134,6 @@ _create_data_f(){
   :;: '_create_data_f'
   :;: '_create_data_f: Open a timestamped file & append into it the list' 
   :   'of filenames and their crashbangs.' 
-    #: '<>'
-    #set -x
 
   :;: '_create_data_f: data_files'
   data=( "${data_f:=crunchbangs}" /tmp/"${data_f##*/}" )
@@ -154,22 +145,18 @@ _create_data_f(){
         _erx "$LINENO"
     fi
   done
-  #wait -f
 
   :;: '_create_data_f: create the original data_f'
   touch "${data[@]}"
-  #wait -f
 
   :;: '_create_data_f: header'
   printf '# crunchbangs -- %s \n' "$time_date" | 
-    tee --output-error='exit' "${data[@]}" > /dev/null 2>&1 ||
-      _erx "${LINENO}"
+    tee --output-error='exit' "${data[@]}" > /dev/null 2>&1
   
   :;: '_create_data_f: printing contents of shell_scripts array'
   set -
   printf '%s\n' "${shell_scripts[@]}" |
-    tee --append --output-error='exit' "${data[@]}" > /dev/null 2>&1 #||
-      #_erx "${LINENO}"
+    tee --append --output-error='exit' "${data[@]}" > /dev/null 2>&1
   set -x
   _bak "${data[@]}"
   : 'END OF _create_data_f';:
@@ -202,8 +189,6 @@ _scan_local_disks(){
     unset file read_var od_o{0,1} line_1 
     file="${all_files_sorted[${i_1}]}"
     
-      #exit "$LINENO"
-
     :;: '_scan_local_disks: file must exist'
     if [[ ! -e "$file" ]]; then
       set -x
@@ -221,14 +206,10 @@ _scan_local_disks(){
     } | 
       tee -a "${time_d}/file_out"
     
-      # <>
-      #{ printf '+ '; stat -t "$file";} | tee -a "${time_d}/stat_out"
-
     :;: '_scan_local_disks: Read from disk in binary the first two bytes' 
     :   'of each file in the list and output it in hexadecimal.'
     #   Note: inordinately long interpreter paths are rare, but do occur.
     #   Note: `od` command is POSIX compliant
-    #wait -f
     read -r read_var od_o0 od_o1 read_var < <( 
       sudo od -j 0 -N 2 -t x1z -v "$file" || 
         _erx "$LINENO" "$i_1" "$file" )
@@ -267,7 +248,7 @@ _scan_local_disks(){
 
         :;: '_scan_local_disks: Issue: crashbang files which originate'
         :   'outside of the rpm package manager'
-        #   Note: with only /sbin, this if-fi block doesn't execute
+        #   Note: with only /bin/sbin, this if-fi block doesn't execute
         if ! rpm -qf "$file" 2> /dev/null 1>&2; then
 
           :;: '_scan_local_disks: user and system files from outside -rpm-'
@@ -316,9 +297,6 @@ EOF
 _write_arrays(){
   :;: '_write_arrays'
   # Usage: _write_arrays [one target-dir] [arrays]
-    #: '<>'
-    #set -x
-
   :;: '_write_arrays: Default directory is -time_d-.'
   local d_1 i_8 target_f
   : '_write_arrays: is function-pos-parm number 1 a directory?'
@@ -333,10 +311,7 @@ _write_arrays(){
     local target_f
           target_f="${d_1:-"${time_d}"}/a_${i_8}"
     declare -p "$i_8" | 
-      tee --output-error='exit' "$target_f" > /dev/null 2>&1 #||
-        #_erx "_write_arrays $d_1 $i_8"
-      #[[ -f "$target_f" ]] ||
-        #_erx $LINENO: "$target_f"
+      tee --output-error='exit' "$target_f" > /dev/null 2>&1
     _bak "$target_f"
     unset target_f
   done
@@ -350,8 +325,7 @@ _write_vars(){
         target_f="${time_d}/${section}_vars"
   shift
   declare -p "$@" 2> /dev/null |
-    tee --output-error='exit' "$target_f" > /dev/null 2>&1 #||
-      #_erx "_write_vars, section $section"
+    tee --output-error='exit' "$target_f" > /dev/null 2>&1
   _bak "$target_f"
   : 'END OF _write_vars';:
 }
@@ -394,28 +368,16 @@ fi
 # output by descending size. With `awk`, take the device with the most 
 # available space and get its mountpoint with `findmnt`. If there is no 
 # output, then set 'mountpoint' according to environment variables. 
-#mapfile -t df_o < <( 
-  #sudo df --sync --local --output='fstype,avail,source' --block-size=1 | grep --extended-regexp --invert-match '^Type[[:space:]]*Avail' | grep --extended-regexp --invert-match -e ^"$fstype_regexp" -e 'live-rw'$ | sort --general-numeric-sort --reverse --key=2 )
 mapfile -t df_o < <( 
   sudo df --sync --local --output='fstype,avail,source' --block-size=1 | grep --extended-regexp --invert-match '^Type[[:space:]]*Avail' | grep --extended-regexp -e ^"$fstype_regexp_2" -e 'live-rw'$ | sort --general-numeric-sort --reverse --key=2 )
 export df_o
-
-  #: '<>'
-  #declare -p df_o
-  #exit "$LINENO"
 
 read -r fstype read_var device < <( 
   printf '%s\n' "${df_o[@]}" | head -n 1 )
 unset read_var
 
-  #: '<>'
-  #declare -p fstype device
-
 mountpoint="$( 
   findmnt --canonicalize --output=target --noheadings "$device" )"
-
-  #: '<>'
-  #exit "$LINENO"
 
 # BUG: needs a test for whether or not there are any unmounted USB drives. 
 # automatically using '/' as mountpoint is, in this case, ie, on a live usb,
@@ -428,12 +390,7 @@ data_d="${scripts_d}/latest_data"
 meta_d="${scripts_d}/current_meta"
 time_d="${data_d}/t_${time_date}"
 data_f="${time_d}/crunchbangs"
-#unlisted="${time_d}/unlisted"
 umask 077
-
-  #: '<>'
-  #set -x
-
 
 :;: 'reduce use of -sudo- in this script by setting up ACL-s'
 case "$fstype" in
@@ -446,8 +403,6 @@ esac
   
 :;: 'on XFS'
 
-  : '<>'
-  #sudo setfacl -R -b "${mountpoint%/*}"; sudo setfacl -R -k "${mountpoint%/*}"
 
 # Nearly all of the `sudo` commands below are allowing rw access, of  
 # this script's data_d, so simply using ACL's will reduce the overuse 
@@ -465,19 +420,9 @@ if [[ ! -r "$scripts_d" ]]; then
   a[-1]="${a[-1]//$'\n'}"
   d=${#a[@]}; 
   for ((i=0;i<d;i++)); do 
-    
-      #: '<>'
-      #printf '\n\t%d\n\n' $i; 
-      #c="$b"; 
-    
     b+="/${a[$i]}"; 
     b="$( realpath -e "$b" )"; 
     if [[ ! -r "$b" ]]; then 
-      
-        #: '<>'
-        #printf '\n\tReadable:\t%s\n' "$c"; 
-        #printf '\n\tUnreadable:\t%s\n' "$b"; 
-      
       sudo setfacl -R -m "$USER":r-x "$b" || 
         break
       sudo mkdir --parents "$scripts_d" ||
@@ -493,10 +438,6 @@ if [[ ! -r "$scripts_d" ]]; then
   done; 
 fi
 
-  : '<>'
-  #exit "$LINENO"
-  set -x
-
 :;: 'make sure -conf_d- is a directory OR create the -conf_d- dir '
 : 'if necessary'
 for conf_d in "$data_d" "$meta_d"; do
@@ -510,9 +451,6 @@ mapfile -d '' -t previous_time_dirs < <(
   find "${data_d}" -mindepth 1 -maxdepth 1 -type d -a \! -type l \
     -name 't_*' -print0 )
 export previous_time_dirs
-
-  #: '<>'
-  #declare -p previous_time_dirs
 
 :;: 'if -t_dir- is empty, then delete it; otherwise -mv- it out'
 :   ' of the -latest- dir'
@@ -554,14 +492,10 @@ fi
 # all_files list would be the same, too. So if the new relevant_\
 # search_dirs list is new, then do the full all_files search again.
 # But if they're the same, then ...
-#
 
 :;: 'Variables for array -relevant_search_dirs-'
 array='relevant_search_dirs'
 rst="${meta_d}/a_${array}" 
-
-  #: '<>'
-  #if [[ -f "$rst" ]]; then : ok; else : no; fi
 
 :;: 'if the relevant_search_dirs record file exists and is not a symlink'
 if [[ -f "$rst" ]] &&
@@ -611,26 +545,11 @@ if [[ -v array_count_old ]]; then
     fi
 fi
   
-  #: '<>'
-  #exit "$LINENO"
-  
-
-#for search_dir in "${relevant_search_dirs[@]}"; do
-
-
 :;: 'Variables for array -all_files-'
 unset array rst hash_old hash_new array_count_old array_count_new
 array='all_files'
 rst="${meta_d}/a_${array}" 
 
-#rst_d="${meta_d}/${search_dir#/}" # directory
-#rst="${rst_d}/a_${array}" # file
-#:;: 'Make each per-search-dir data-dir'
-#if [[ ! -d "$rst_d" ]]; then
-  #mkdir "$rst_d" ||
-    #_erx "$LINENO"
-#fi
-  
 :;: 'if the record for the array all_files exists and isnt a symlnk'
 if [[ -f "$rst" ]] &&
   [[ ! -L "$rst" ]];
@@ -681,8 +600,7 @@ then
     date
     #relevant_search_dirs=( /usr/sbin )
     relevant_search_dirs=( /usr/sbin /usr/bin )
-    #declare -p relevant_search_dirs
-
+    #relevant_search_dirs=( /usr/sbin /usr/bin /etc )
   
   :;: 'Find all relevant files on disk.'
   mapfile -d '' -t "$array" < <( 
@@ -715,10 +633,6 @@ if [[ -v hash_old ]]; then
   fi
 fi
 
-  #: '<>'
-  #echo 'number, all_files:' "${#all_files[@]}"
-  #exit "$LINENO"
-
 :;: 'Sort the original array and test it.'
   : '<>'
   set -; 
@@ -736,9 +650,7 @@ mapfile -d '' -t all_files_sorted < <(
 [[ "$( _num all_files )" -eq "$( _num all_files_sorted )" ]] ||
   _erx "${LINENO}"
 
-#done
-
-  # <> ##############################################################
+  # <> 
   _write_arrays all_files_sorted all_files 
   _write_vars 'A' PATH LC_ALL severity shells fstype_regexp time_date \
     first_two_chars mountpoint data_d time_d data_f \
@@ -754,12 +666,12 @@ mapfile -d '' -t all_files_sorted < <(
 
 ###  SECTION B  ::  SCANNING  ###
 
-# Add some brevity, and write the completed arrays to disk
+:;: 'Add some brevity, and write the completed arrays to disk'
 count="${#all_files_sorted[@]}"
 unset IFS
 
-# if the full list exists (of files on disk which begin with crash-
-# bangs), then skip the 30-90 minute search phase.
+:;: 'if the full list exists (of files on disk which begin with crash-'
+:   ' bangs), then skip the 30-90 minute search phase.'
 if [[ ! -f /tmp/"${data_f##*/}" ]] || 
   [[ -L /tmp/"${data_f##*/}" ]]; 
 then
@@ -767,13 +679,13 @@ then
   _create_data_f
 fi
 
-  # <> ##############################################################
+  # <>
   _write_arrays shell_scripts crunches_with_hashbang_comments \
     files_from_outside_rpm all_other_files endian_wtf \
     non_rpm_system_crunches non_rpm_user_crunches 
   _write_vars 'B' file data_f i_1 od_o{0,1} X line_1 count
 
-  #: '<>'
+  : '<>'
   exit "$LINENO"
   #set -x
 
@@ -782,47 +694,8 @@ fi
 
 # Make the data readable and useable.
 
-    # Alterations
-    # <>
-    ## Alteration 2: fix the odd extra data segments in the middles of the 
-    #rows. 
-    ## Requires using 'relevant_search_dirs' in the above `find` path. 
-    ### works
-    #ere_2='>?[[:space:]]{3,}<?/?[[:alnum:]].*>?[[:space:]]{3,}<?'
-    ## Bug? is opt -n necc?
-    #_test_2(){
-    #  #grep --extended-regexp --line-number "${ere_2}" "${1}" # ere_2
-    #}
-    #if _test_2 "$data_f"; then
-    #  #sed --in-place "s=${ere_2}=    =g" "$data_f" # ere_2
-    #  #\_test_2 "$data_f" &&
-    #    #_erx "${LINENO}"
-    #fi
-    #cp --archive "$data_f" "${data_f}_extra-data-removed"
-    #_bak "${data_f}_extra-data-removed"
-    #  #: '<>'
-    #  #ls -l "${data_f}"*
-    #  #wc "${data_f}"*
-    #  #md5sum "${data_f}.bak" "${data_f}_extra-data-removed"
-    #: '<>'
-    #exit "$LINENO"
-    #set -x
-    ## Bug? probably comment this section out
-    ## Alteration 3: Apply grep-style line numbers, ie, in-file indices. 
-    #These 
-    ## are necessary for section 'Extra,' however, can only be applied 
-    #prior 
-    ## to the full list having been subdivided. 
-    #grep --extended-regexp --line-number '.' "${data_f}" > \
-    #  #"${data_f}_all-indexed"
-    #_bak "${data_f}_all-indexed"
-    #: '<>'
-    #exit "$LINENO"
-    #set -x
-
-
-# CENTRAL TASK, 1 OF 2: Filter the list of crashbangs with the list 
-# of shells.
+:;: 'CENTRAL TASK, 1 OF 2: Filter the list of crashbangs with the list' 
+:   '  of shells.'
 grep --extended-regexp '/bin/'"${shells}"'.*% % % %' \
   "${data_f}" > "${data_f}_SC-scrpts-list"
 _bak "${data_f}_SC-scrpts-list"
@@ -834,18 +707,9 @@ rsync -ca "${data_f}_SC-scrpts-list" /tmp
   exit "$LINENO"
   #set -x
 
-
-# MAIN TASK, 2 of 2: with ShellCheck scan each script for errors
+:;: 'MAIN TASK, 2 of 2: with ShellCheck scan each script for errors'
   
-    # <>
-    #for i_2 in "${!shell_scripts[@]}"; do 
-    #unset script careful errs
-    #script="${shell_scripts[${i_2}]}"
-    #script="${script##*% % % %}"
-    #script="${script##* }"
-
-
-# A hell world of pipelines: 
+:;: 'A hell world of pipelines:'
 mapfile -d '' -t cut_sed_o < <( 
   cut -d '%' -f5- "${data_f}_SC-scrpts-list" | 
     sed 's,^ *,,' | 
@@ -853,7 +717,7 @@ mapfile -d '' -t cut_sed_o < <(
 
   : '<>'
   exit "$LINENO"
-  #set -x
+  set -x
 
 mapfile -t wc_sort_o < <( 
   for c in "${cut_sed_o[@]}"; do 
@@ -864,7 +728,7 @@ mapfile -t wc_sort_o < <(
 
   : '<>'
   exit "$LINENO"
-  #set -x
+  set -x
 
 i=0; 
 {
@@ -886,49 +750,10 @@ i=0;
 
   : '<>'
   exit "$LINENO"
-  #set -x
+  set -x
 
 _bak "${data_f}_found_scripts_with_indices"
 rsync -ca "${data_f}_found_scripts_with_indices" "$scripts_d" 
 rsync -ca "${data_f}_found_scripts_with_indices" /tmp
 
-    # <> Bug: formatting
-    ## Run `shellcheck on the script and count the number of each issue's 
-    #ID.
-    #mapfile -t careful < <( 
-    #  #shellcheck --severity "$severity" "$script" ) || 
-    #    #_erx "$LINENO"
-    #mapfile -t errs < <( 
-    #  #grep --fixed-strings --invert-match 'shellcheck.net' \
-    #      #<<< "${careful[@]}" | 
-    #    #grep --extended-regexp --only-matching 'SC[0-9]{4}' | 
-    #    #sort --general-numeric-sort | 
-    #    #uniq --count |
-    #    #sed 's,^[[:space:]]*,,' ) || 
-    #      #_erx "$LINENO"
-    ## If shellcheck found any issues, then open & append some 
-    ## prioritized work lists with indices
-    #if [[ -n "${errs[*]:0:1}" ]]; then 
-    #  #printf '<idx:%d>  %%  <%s>\n' "$i_2" "$script" >> \
-    #    #"${data_f}_found_scripts_with_indices"
-    #  #for each_error in "${errs[@]}"; do
-    #    #printf '%s %% <idx:%d>\n' "${each_error//$'\n'/}" "$i_2" >> \
-    #      #"${data_f}_found_errors_with_indices_unsorted"
-    #  #done
-    #fi
-    #_bak "${data_f}_found_scripts_with_indices" \
-    #  "${data_f}_found_errors_with_indices_unsorted"
-
-
-  unset errors script 'shell_scripts[$i_2]'
-#done
-
-
 exit "$LINENO"
-
-  # get `dnf history` transaction number
-  #dnf_tx_number="$( dnf history | 
-    #awk '$1 ~ /[0-9]+/ { print $1; exit }' )"
-
-# i=0; for s in "${!sortd[@]}"; do unset output; mapfile output < <( shellcheck -S error "${sortd[$s]}" | grep --fixed-strings --invert-match 'shellcheck.net' | grep --extended-regexp -o "SC[0-9a-zA-Z\ \t():,.'-$&#\!]*" | cut -b -64 | sort --general-numeric-sort | uniq --count ); if [[ -n "${output[*]:0:1}" ]]; then printf '\n%-4d%s\n' $((i++)) "${sortd[$s]}"; printf '%s' "${output[@]}"; fi; done
-
