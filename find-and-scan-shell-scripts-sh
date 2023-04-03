@@ -34,10 +34,18 @@ trap '
   then 
     rm -rf -- "$lock_d"; 
   fi;
-  if [[ -v b ]]; then 
-    sudo setfacl -R -x "$USER":rwx "$scripts_d"
-    sudo setfacl -R -x "$USER":r-x "$b" 
-  fi
+  
+  # Good code, for final versions
+  #if [[ -v execd_setfacl ]]; then 
+    #if [[ -v b ]]; then 
+      #sudo setfacl -R -x u:"$UID" "$b" ||
+        #echo Error: setfacl failed, line $LINENO
+    #elif [[ -v mountpoint ]]; then
+      #sudo setfacl -R -x u:"$UID" "$mountpoint" ||
+        #echo Error: setfacl failed, line $LINENO
+    #fi
+  #fi
+
   trap - EXIT TERM INT; 
   kill -s INT "$$"
   ' EXIT TERM INT # for cleaner xtrace output, put on one line 
@@ -91,7 +99,7 @@ export \
 
 :;: 'Functions'
 _age_file(){
-  :;: '_age_file'
+  : '_age_file'
   [[ -f "$1" ]] ||
     return 1
   local previous_aged_files new_hash paf new_hash
@@ -115,7 +123,7 @@ _age_file(){
   : 'END OF _age_file';:
 }
 _bak(){ 
-  :;: '_bak'
+  : '_bak'
   [[ "$#" -eq 0 ]] &&
     return 1
   local i_4
@@ -131,7 +139,7 @@ _bak(){
   : 'END OF _bak';:
 }
 _create_data_f(){
-  :;: '_create_data_f'
+  : '_create_data_f'
   :;: '_create_data_f: Open a timestamped file & append into it the list' 
   :   'of filenames and their crashbangs.' 
 
@@ -162,14 +170,14 @@ _create_data_f(){
   : 'END OF _create_data_f';:
 }
 _erx(){ 
-  :;: '_erx'
+  : '_erx'
   local ec="$?"
   echo -e Error: "$@" 
   : 'END OF _erx';:
   exit "$ec"
 }
 _num(){ 
-  :;: '_num'
+  : '_num'
   local i_7
   for i_7 in "$@"; do
     local -n array="$i_7" 
@@ -178,7 +186,7 @@ _num(){
   : 'END OF _num';:
 }
 _scan_local_disks(){
-  :;: '_scan_local_disks'
+  : '_scan_local_disks'
   :;: '_scan_local_disks: Sort out the scripts, ie, any file beginning' 
   :   'with a crashbang from the rest of the files'
   #   Note: this function can take 30-90 minutes!
@@ -281,7 +289,7 @@ _scan_local_disks(){
   : 'END OF _scan_local_disks';:
 }
 _usage(){
-  :;: '_usage'
+  : '_usage'
   # Usage:  _usage [exit-code]
   cat <<-\EOF
     SCF - Shell Check Find, version 1.0 (redhat-linux)
@@ -295,7 +303,7 @@ EOF
   : 'END OF _usage';:
 }
 _write_arrays(){
-  :;: '_write_arrays'
+  : '_write_arrays'
   # Usage: _write_arrays [one target-dir] [arrays]
   :;: '_write_arrays: Default directory is -time_d-.'
   local d_1 i_8 target_f
@@ -319,7 +327,7 @@ _write_arrays(){
 }
 # Usage: _write_vars [section] [raw variable names]
 _write_vars(){
-  :;: '_write_vars'
+  : '_write_vars'
   local section target_f
         section="$1"
         target_f="${time_d}/${section}_vars"
@@ -423,6 +431,8 @@ if [[ ! -r "$scripts_d" ]]; then
     b+="/${a[$i]}"; 
     b="$( realpath -e "$b" )"; 
     if [[ ! -r "$b" ]]; then 
+      execd_setfacl='y'
+      export execd_setfacl
       sudo setfacl -R -m "$USER":r-x "$b" || 
         break
       sudo mkdir --parents "$scripts_d" ||
@@ -656,12 +666,9 @@ mapfile -d '' -t all_files_sorted < <(
     first_two_chars mountpoint data_d time_d data_f \
     previous_time_dirs relevant_search_dirs n_0 n_7
 
-  : '<>'
-  exit "$LINENO"
-  set -x
-
-
-
+  #: '<>'
+  #exit "$LINENO"
+  #set -x
 
 
 ###  SECTION B  ::  SCANNING  ###
