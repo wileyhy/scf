@@ -197,9 +197,12 @@ _scan_local_disks(){
     unset file read_var od_o{0,1} line_1 
     file="${all_files_sorted[${i_1}]}"
     
+    # BUG: the arrays and vars are messy; clean up the lists.
+
     :;: '_scan_local_disks: file must exist'
     if [[ ! -e "$file" ]]; then
       set -x
+      file_DNE+=( "$file" )
       unset 'all_files_sorted[$i_1]'
       continue
       set -
@@ -210,7 +213,7 @@ _scan_local_disks(){
     :;: '_scan_local_disks: run -file- (and -stat-?) on each file'
     { 
       printf '+ %-8d: ' "$i_1"; 
-      file -pk "$file";
+      sudo file -pk "$file";
     } | 
       tee -a "${time_d}/file_out"
     
@@ -226,14 +229,14 @@ _scan_local_disks(){
     :;: '_scan_local_disks: If -od_o- contains some non-zero data, as it'
     :   ' should,'
     if [[ -z "$od_o0" ]]; then
-      _erx "$LINENO" "$i_1" "$file";
+      _erx "L:$LINENO I:$i_1 <${file}>" '*theoretically unreachable code*';
 
     :;: '_scan_local_disks: compare the hexidecimal representations to' 
     :   'find any crashbangs.'
     elif [[ "${od_o0}${od_o1}" == @(2321|2123) ]]; then
 
       :;: '_scan_local_disks: Issue: a big endian file format, possibly'
-      :   'DB file? not likely.'
+      :   ' a DB file, etc.'
       if [[ "${od_o0}${od_o1}" == '2123' ]]; then
         endian_wtf+=( [$i_1]="$file" )
         unset 'all_files_sorted[$i_1]'
@@ -765,3 +768,19 @@ rsync -ca "${data_f}_found_scripts_with_indices" /tmp ||
   _erx "$LINENO"
 
 exit "$LINENO"
+
+
+# scan 'all_other_files' for anything that isn't an ELF file
+# . /run/media/*/*/scf.d/latest_data/t_*/a_all_other_files
+# for f in "${all_other_files[@]}"; do sudo file -pk "$f" | grep -v 'ELF 64-bit LSB '; done
+
+# scan 'all_files_sorted' for proper sorting
+# . /run/media/*/*/scf.d/latest_data/t_*/a_all_files_sorted
+# _num all_files_sorted
+# sudo command -p printf '' | sudo tee ./all_files_sorted_printed; for g in "${all_files_sorted[@]}"; do sudo -p command printf '%s\n' "$g" | sudo tee -a ./all_files_sorted_printed ; done
+
+# check 'file_out' for anything odd
+# grep -v 'ELF 64-bit' ./scf.d/latest_data/t_2023-04-03_084130/file_out | grep 'read permission'
+# grep -v 'ELF 64-bit' ./scf.d/latest_data/t_2023-04-03_084130/file_out | grep -v 'read permission' | grep -v 'script text exec'
+
+# 
