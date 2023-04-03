@@ -58,7 +58,7 @@ if ! mkdir "$lock_d" 2> /dev/null; then
   exit "$LINENO"
 fi
 
-# BUG: this regex is totally slow. use a whitelist.
+# BUG: this regex is totally slow.
 
 :;: 'User variables'
 fstype_regexp_2='(btrfs|exfat|ext3|ext4|fat32|ntfs|xfs)'
@@ -272,7 +272,6 @@ _scan_local_disks(){
           fi
         fi
       fi
-
       
       :;: '_scan_local_disks: Make a record in RAM of the relevant'
       :   'filenames and their crashbangs.'
@@ -411,7 +410,6 @@ esac
   
 :;: 'on XFS'
 
-
 # Nearly all of the `sudo` commands below are allowing rw access, of  
 # this script's data_d, so simply using ACL's will reduce the overuse 
 # of `sudo`. This section takes the "$mountpoint" variable, portions
@@ -492,7 +490,6 @@ if [[ ! -d "${time_d}" ]]; then
     _erx "${LINENO}"
 fi
 
-
 # BUG:  Reduce Search Time  ==  RST
 
 :;: 'Gather filenames from local attached disk storage'
@@ -545,7 +542,7 @@ if [[ -v array_count_old ]]; then
     : 'get the hash of the new array' 
     hash_new="$( md5sum "$rst" )"
 
-    :;: 'get the new count of indices'
+    :;: 'get the new count of indices, and do some comparisons'
     array_count_new="$( _num "$array" )"
 
     if [[ "${hash_old%% *}" != "${hash_new%% *}" ]] ||
@@ -574,7 +571,6 @@ then
     hash_old="$( md5sum "$rst" )"
 
     :;: 'get the prior count of indices'
-    
     : 'set -; source -rst-'; 
     set -
     source "$rst"
@@ -598,9 +594,6 @@ then
   fi
 fi
 
-
-
-
 :;: 'If we must run -find- for array all_files.'
 if [[ ! -v all_files ]] ||
   [[ "$must_find_all_files" = 'y' ]]; 
@@ -611,6 +604,7 @@ then
     #relevant_search_dirs=( /usr/sbin )
     relevant_search_dirs=( /usr/sbin /usr/bin )
     #relevant_search_dirs=( /usr/sbin /usr/bin /etc )
+    #relevant_search_dirs=( /usr/sbin /usr/bin /etc /var )
   
   :;: 'Find all relevant files on disk.'
   mapfile -d '' -t "$array" < <( 
@@ -639,6 +633,9 @@ if [[ -v hash_old ]]; then
   if [[ "${hash_old%% *}" != "${hash_new%% *}" ]] ||
     [[ "$array_count_old" != "$array_count_new" ]]; 
   then 
+    
+    # BUG: as of yet unused variable
+    
     must_scan_relevant_dirs='y'
   fi
 fi
@@ -704,9 +701,11 @@ fi
 :;: 'CENTRAL TASK, 1 OF 2: Filter the list of crashbangs with the list' 
 :   '  of shells.'
 grep --extended-regexp '/bin/'"${shells}"'.*% % % %' \
-  "${data_f}" > "${data_f}_SC-scrpts-list"
+  "${data_f}" > "${data_f}_SC-scrpts-list" ||
+    _erx "$LINENO"
 _bak "${data_f}_SC-scrpts-list"
-rsync -ca "${data_f}_SC-scrpts-list" /tmp
+rsync -ca "${data_f}_SC-scrpts-list" /tmp ||
+  _erx "$LINENO"
 
   : '<>'
   ls -l "${data_f}"*
@@ -741,7 +740,7 @@ i=0;
 {
   for s in "${!wc_sort_o[@]}"; do 
     unset output; 
-    mapfile output < <( 
+    mapfile -t output < <( 
       shellcheck -S error "${wc_sort_o[$s]}" | 
         grep --fixed-strings --invert-match 'shellcheck.net' | 
         grep --extended-regexp -o "SC[0-9a-zA-Z\ \t():,.'-$&#\!]*" | 
@@ -760,7 +759,9 @@ i=0;
   set -x
 
 _bak "${data_f}_found_scripts_with_indices"
-rsync -ca "${data_f}_found_scripts_with_indices" "$scripts_d" 
-rsync -ca "${data_f}_found_scripts_with_indices" /tmp
+rsync -ca "${data_f}_found_scripts_with_indices" "$scripts_d" ||
+  _erx "$LINENO"
+rsync -ca "${data_f}_found_scripts_with_indices" /tmp ||
+  _erx "$LINENO"
 
 exit "$LINENO"
