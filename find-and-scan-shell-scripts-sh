@@ -215,8 +215,14 @@ _scan_local_disks(){
     # TODO: check for empty files, make a list of them
 
     :;: '_scan_local_disks: run -file- (and -stat-?) on each file'
-    { printf '+ '; file -pk "$file";} | tee -a "${time_d}/file_out"
-    #{ printf '+ '; stat -t "$file";} | tee -a "${time_d}/stat_out"
+    { 
+      printf '+ %-8d: ' "$i_1"; 
+      file -pk "$file";
+    } | 
+      tee -a "${time_d}/file_out"
+    
+      # <>
+      #{ printf '+ '; stat -t "$file";} | tee -a "${time_d}/stat_out"
 
     :;: '_scan_local_disks: Read from disk in binary the first two bytes' 
     :   'of each file in the list and output it in hexadecimal.'
