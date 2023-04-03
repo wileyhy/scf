@@ -819,6 +819,7 @@ fi
 grep --extended-regexp '/bin/'"${shells}"'.*% % % %' \
   "${data_f}_all-indexed" > "${data_f}_SC-scrpts-list"
 _bak "${data_f}_SC-scrpts-list"
+_bak /tmp "${data_f}_SC-scrpts-list"
 
   #: '<>'
   #ls -l "${data_f}"*
@@ -868,7 +869,8 @@ i=0;
   done;
 } | tee -a "${data_f}_found_scripts_with_indices"
 _bak "${data_f}_found_scripts_with_indices"
-
+_bak /tmp "${data_f}_found_scripts_with_indices"
+_bak "$mountpoint" "${data_f}_found_scripts_with_indices"
 
     # <> Bug: formatting
     ## Run `shellcheck on the script and count the number of each issue's ID.
