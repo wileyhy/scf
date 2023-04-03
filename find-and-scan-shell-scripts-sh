@@ -141,7 +141,7 @@ _bak(){
 _create_data_f(){
   : '_create_data_f'
   :;: '_create_data_f: Open a timestamped file & append into it the list' 
-  :   'of filenames and their crashbangs.' 
+  :   ' of filenames and their crashbangs.' 
 
   :;: '_create_data_f: data_files'
   data=( "${data_f:=crunchbangs}" /tmp/"${data_f##*/}" )
@@ -166,7 +166,7 @@ _create_data_f(){
   printf '%s\n' "${shell_scripts[@]}" |
     tee --append --output-error='exit' "${data[@]}" > /dev/null 2>&1
   set -x
-  _bak "${data[@]}"
+  :; _bak "${data[@]}"
   : 'END OF _create_data_f';:
 }
 _erx(){ 
@@ -284,7 +284,7 @@ _scan_local_disks(){
       unset 'all_files_sorted[$i_1]'
     fi
   done
-  _bak "${time_d}"/{file,stat}_out
+  :; _bak "${time_d}"/{file,stat}_out
   : 'END OF _scan_local_disks';:
 }
 _usage(){
@@ -319,7 +319,7 @@ _write_arrays(){
           target_f="${d_1:-"${time_d}"}/a_${i_8}"
     declare -p "$i_8" | 
       tee --output-error='exit' "$target_f" > /dev/null 2>&1
-    _bak "$target_f"
+    :; _bak "$target_f"
     unset target_f
   done
   : 'END OF _write_arrays';:
@@ -333,7 +333,7 @@ _write_vars(){
   shift
   declare -p "$@" 2> /dev/null |
     tee --output-error='exit' "$target_f" > /dev/null 2>&1
-  _bak "$target_f"
+  :; _bak "$target_f"
   : 'END OF _write_vars';:
 }
 export -f \
@@ -358,8 +358,8 @@ if [[ "$#" -gt 0 ]]; then
     -e) severity='error';;
     -i) severity='info';;
     -w) severity='warning';;
-    -h) _usage 0;;
-    *)  _usage 1;;
+    -h) :; _usage 0;;
+    *)  :; _usage 1;;
   esac
 fi
 
@@ -510,8 +510,8 @@ if [[ -f "$rst" ]] &&
 then
 
   :;: 'Keep existing data'
-  _age_file "${rst}".bak
-  _bak "$rst"
+  :; _age_file "${rst}".bak
+  :; _bak "$rst"
 
   :;: 'For whether or not to do the full scan of relevant_search_dirs'
     : 'get the hash of the prior array'
@@ -528,15 +528,15 @@ fi
 mapfile -d '' -t "$array" < <(
   sudo find / -mindepth 1 -maxdepth 1 -type d \! -empty \( \! -name proc -a \! -name sys -a \! -iname 'scf*' \) -print0 )
 export "${array?}"
-_write_arrays "$meta_d" "$array"
+:; _write_arrays "$meta_d" "$array"
 
 :;: 'if the pre-processing block ran, then exec this block also'
 if [[ -v array_count_old ]]; then 
   : '<>: variable -array_count_old- exists'
 
   :;: 'these newer files were written just milliseconds ago'
-  _age_file "${rst}".bak
-  _bak "$rst"
+  :; _age_file "${rst}".bak
+  :; _bak "$rst"
 
   :;: 'For whether or not to run -find- for the all_files array'
     : 'get the hash of the new array' 
@@ -563,8 +563,8 @@ if [[ -f "$rst" ]] &&
 then
 
   :;: 'Keep existing data'
-  _age_file "${rst}".bak
-  _bak "$rst"
+  :; _age_file "${rst}".bak
+  :; _bak "$rst"
 
   :;: 'For whether or not to do the full scan of relevant_search_dirs'
     : 'get the hash of the prior array'
@@ -611,11 +611,11 @@ then
     sudo find "${relevant_search_dirs[@]}" -mindepth 1 -type f -print0 \
       2> /dev/null )
   export "${array?}"
-  _write_arrays "$meta_d" "$array"
+  :; _write_arrays "$meta_d" "$array"
   
   :;: 'these newer files were written just milliseconds ago'
-  _age_file "${rst}".bak
-  _bak "$rst"
+  :; _age_file "${rst}".bak
+  :; _bak "$rst"
 fi
 
 :;: 'For whether or not to do the full scan for all_files'
@@ -658,8 +658,8 @@ mapfile -d '' -t all_files_sorted < <(
   _erx "${LINENO}"
 
   # <> 
-  _write_arrays all_files_sorted all_files 
-  _write_vars 'A' PATH LC_ALL severity shells fstype_regexp time_date \
+  :; _write_arrays all_files_sorted all_files 
+  :; _write_vars 'A' PATH LC_ALL severity shells fstype_regexp time_date \
     first_two_chars mountpoint data_d time_d data_f \
     previous_time_dirs relevant_search_dirs n_0 n_7
 
@@ -679,15 +679,15 @@ unset IFS
 if [[ ! -f /tmp/"${data_f##*/}" ]] || 
   [[ -L /tmp/"${data_f##*/}" ]]; 
 then
-  _scan_local_disks
-  _create_data_f
+  :; _scan_local_disks
+  :; _create_data_f
 fi
 
   # <>
-  _write_arrays shell_scripts crunches_with_hashbang_comments \
+  :; _write_arrays shell_scripts crunches_with_hashbang_comments \
     files_from_outside_rpm all_other_files endian_wtf \
     non_rpm_system_crunches non_rpm_user_crunches 
-  _write_vars 'B' file data_f i_1 od_o{0,1} X line_1 count
+  :; _write_vars 'B' file data_f i_1 od_o{0,1} X line_1 count
 
   : '<>'
   exit "$LINENO"
@@ -703,7 +703,7 @@ fi
 grep --extended-regexp '/bin/'"${shells}"'.*% % % %' \
   "${data_f}" > "${data_f}_SC-scrpts-list" ||
     _erx "$LINENO"
-_bak "${data_f}_SC-scrpts-list"
+:; _bak "${data_f}_SC-scrpts-list"
 rsync -ca "${data_f}_SC-scrpts-list" /tmp ||
   _erx "$LINENO"
 
@@ -758,7 +758,7 @@ i=0;
   exit "$LINENO"
   set -x
 
-_bak "${data_f}_found_scripts_with_indices"
+:; _bak "${data_f}_found_scripts_with_indices"
 rsync -ca "${data_f}_found_scripts_with_indices" "$scripts_d" ||
   _erx "$LINENO"
 rsync -ca "${data_f}_found_scripts_with_indices" /tmp ||
