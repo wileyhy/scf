@@ -751,148 +751,161 @@ mapfile -d '' -t all_files_sorted < <(
 count="${#all_files_sorted[@]}"
 unset IFS
 
-# BUG: this file existence test is ...wrong
-
 # if the full list exists (of files on disk which begin with crash-
 # bangs), then skip the 30-90 minute search phase.
 if [[ ! -f /tmp/"${data_f##*/}" ]] || 
   [[ -L /tmp/"${data_f##*/}" ]]; 
 then
   _scan_local_disks
-  
-    set -x
-
   _create_data_f
-
-    #set -
-
 fi
 
   # <> ##############################################################
   _write_arrays shell_scripts crunches_with_hashbang_comments \
     files_from_outside_rpm all_other_files endian_wtf \
     non_rpm_system_crunches non_rpm_user_crunches 
-
   _write_vars 'B' file data_f i_1 od_o{0,1} X line_1 count
 
+  #: '<>'
   #exit "$LINENO"
-  set -x
-
-
-
+  #set -x
 
     
 ###  SECTION C  ###    
 
 # Make the data readable and useable.
 
-# Alterations
-
-  # <>
-  ## Alteration 2: fix the odd extra data segments in the middles of the 
-  #rows. 
-  ## Requires using 'relevant_search_dirs' in the above `find` path. 
-  ### works
-  #ere_2='>?[[:space:]]{3,}<?/?[[:alnum:]].*>?[[:space:]]{3,}<?'
-  ## Bug? is opt -n necc?
-  #_test_2(){
-  #  #grep --extended-regexp --line-number "${ere_2}" "${1}" # ere_2
-  #}
-  #if _test_2 "$data_f"; then
-  #  #sed --in-place "s=${ere_2}=    =g" "$data_f" # ere_2
-  #  #\_test_2 "$data_f" &&
-  #    #_erx "${LINENO}"
-  #fi
-  #cp --archive "$data_f" "${data_f}_extra-data-removed"
-  #_bak "${data_f}_extra-data-removed"
-  #  #: '<>'
-  #  #ls -l "${data_f}"*
-  #  #wc "${data_f}"*
-  #  #md5sum "${data_f}.bak" "${data_f}_extra-data-removed"
-  
-  : '<>'
-  #exit "$LINENO"
-  set -x
-
-
-  # Alteration 3: Apply grep-style line numbers, ie, in-file indices. These 
-  # are necessary for section 'Extra,' however, can only be applied prior 
-  # to the full list having been subdivided. 
-  grep --extended-regexp --line-number '.' "${data_f}" > \
-    "${data_f}_all-indexed"
-  _bak "${data_f}_all-indexed"
-
-  : '<>'
-  exit "$LINENO"
-  set -x
-
-
+    # Alterations
+    # <>
+    ## Alteration 2: fix the odd extra data segments in the middles of the 
+    #rows. 
+    ## Requires using 'relevant_search_dirs' in the above `find` path. 
+    ### works
+    #ere_2='>?[[:space:]]{3,}<?/?[[:alnum:]].*>?[[:space:]]{3,}<?'
+    ## Bug? is opt -n necc?
+    #_test_2(){
+    #  #grep --extended-regexp --line-number "${ere_2}" "${1}" # ere_2
+    #}
+    #if _test_2 "$data_f"; then
+    #  #sed --in-place "s=${ere_2}=    =g" "$data_f" # ere_2
+    #  #\_test_2 "$data_f" &&
+    #    #_erx "${LINENO}"
+    #fi
+    #cp --archive "$data_f" "${data_f}_extra-data-removed"
+    #_bak "${data_f}_extra-data-removed"
+    #  #: '<>'
+    #  #ls -l "${data_f}"*
+    #  #wc "${data_f}"*
+    #  #md5sum "${data_f}.bak" "${data_f}_extra-data-removed"
+    #: '<>'
+    #exit "$LINENO"
+    #set -x
+    ## Bug? probably comment this section out
+    ## Alteration 3: Apply grep-style line numbers, ie, in-file indices. 
+    #These 
+    ## are necessary for section 'Extra,' however, can only be applied 
+    #prior 
+    ## to the full list having been subdivided. 
+    #grep --extended-regexp --line-number '.' "${data_f}" > \
+    #  #"${data_f}_all-indexed"
+    #_bak "${data_f}_all-indexed"
+    #: '<>'
+    #exit "$LINENO"
+    #set -x
 
 
 # CENTRAL TASK, 1 OF 2: Filter the list of crashbangs with the list 
 # of shells.
-#ere_3=^'[0-9]{1,7}:#! ?(/usr)?/bin/(env|(sh|bash|dash|ksh)?) *<?(/usr)?(/bin/)?(sh|bash|dash|ksh) ?>? *'
-# Bug likely: ere3
-
-ere_3=^"[0-9]{1,7}:#! ?(/usr)?/bin/(env|${shells}?) *<?(/usr)?(/bin/)?${shells} ?>? *"
-
-grep --extended-regexp "${ere_3}" "${data_f}_all-indexed" > \
-  "${data_f}_SC-scrpts-list" # ere_3
+grep --extended-regexp '/bin/'"${shells}"'.*% % % %' \
+  "${data_f}_all-indexed" > "${data_f}_SC-scrpts-list"
 _bak "${data_f}_SC-scrpts-list"
 
-  : '<>'
-  ls -l "${data_f}"*
-  wc "${data_f}"*
-  exit "$LINENO"
-  set -x
-
-
-
-
+  #: '<>'
+  #ls -l "${data_f}"*
+  #wc "${data_f}"*
+  #exit "$LINENO"
+  #set -x
 
 
 # MAIN TASK, 2 of 2: with ShellCheck scan each script for errors
-for i_2 in "${!shell_scripts[@]}"; do 
-  script="${shell_scripts[${i_2}]}"
-  script="${script##*% % % %}"
-  script="${script##* }"
+  
+    # <>
+    #for i_2 in "${!shell_scripts[@]}"; do 
+    #unset script careful errs
+    #script="${shell_scripts[${i_2}]}"
+    #script="${script##*% % % %}"
+    #script="${script##* }"
 
-  # Run `shellcheck on the script and count the number of each issue's ID.
-  mapfile -t careful < <( 
-    shellcheck --severity "$severity" "$script" ) || 
-      _erx "$LINENO"
-  mapfile -t errs < <( 
-    grep --fixed-strings --invert-match 'shellcheck.net' \
-        <<< "${careful[@]}" | 
-      grep --extended-regexp --only-matching 'SC[0-9]{4}' | 
-      sort --general-numeric-sort | 
-      uniq --count |
-      sed 's,^[[:space:]]*,,' ) || 
-        _erx "$LINENO"
 
-  # Bug: formatting
+# A hell world of pipelines: 
+mapfile -d '' -t cut_sed_o < <( 
+  cut -d '%' -f5- "${data_f}_SC-scrpts-list" | 
+    sed 's,^ *,,' | 
+    tr '\n' '\0' )
 
-  # If shellcheck found any issues, then open & append some 
-  # prioritized work lists with indices
-  if [[ -n "${errs[*]:0:1}" ]]; then 
-		
-    printf '<idx:%d>  %%  <%s>\n' "$i_2" "$script" >> \
-      "${data_f}_found_scripts_with_indices"
+mapfile -t wc_sort_o < <( 
+  for c in "${cut_sed_o[@]}"; do 
+    wc -l "$c"; 
+  done | 
+    sort -gr | 
+    awk '{ print $2 }' )
 
-    for each_error in "${errs[@]}"; do
-      printf '%s %% <idx:%d>\n' "${each_error//$'\n'/}" "$i_2" >> \
-        "${data_f}_found_errors_with_indices_unsorted"
-    done
-  fi
+i=0; 
+{
+  for s in "${!wc_sort_o[@]}"; do 
+    unset output; 
+    mapfile output < <( 
+      shellcheck -S error "${wc_sort_o[$s]}" | 
+        grep --fixed-strings --invert-match 'shellcheck.net' | 
+        grep --extended-regexp -o "SC[0-9a-zA-Z\ \t():,.'-$&#\!]*" | 
+        cut -b -64 | 
+        sort --general-numeric-sort | 
+        uniq --count ); 
+    if [[ -n "${output[*]:0:1}" ]]; then 
+      printf '\n%-4d%s\n' $((i++)) "${wc_sort_o[$s]}"; 
+      printf '%s' "${output[@]}"; 
+    fi; 
+  done;
+} | tee -a "${data_f}_found_scripts_with_indices"
+_bak "${data_f}_found_scripts_with_indices"
+
+
+    # <> Bug: formatting
+    ## Run `shellcheck on the script and count the number of each issue's ID.
+    #mapfile -t careful < <( 
+    #  #shellcheck --severity "$severity" "$script" ) || 
+    #    #_erx "$LINENO"
+    #mapfile -t errs < <( 
+    #  #grep --fixed-strings --invert-match 'shellcheck.net' \
+    #      #<<< "${careful[@]}" | 
+    #    #grep --extended-regexp --only-matching 'SC[0-9]{4}' | 
+    #    #sort --general-numeric-sort | 
+    #    #uniq --count |
+    #    #sed 's,^[[:space:]]*,,' ) || 
+    #      #_erx "$LINENO"
+    ## If shellcheck found any issues, then open & append some 
+    ## prioritized work lists with indices
+    #if [[ -n "${errs[*]:0:1}" ]]; then 
+    #  #printf '<idx:%d>  %%  <%s>\n' "$i_2" "$script" >> \
+    #    #"${data_f}_found_scripts_with_indices"
+    #  #for each_error in "${errs[@]}"; do
+    #    #printf '%s %% <idx:%d>\n' "${each_error//$'\n'/}" "$i_2" >> \
+    #      #"${data_f}_found_errors_with_indices_unsorted"
+    #  #done
+    #fi
+    #_bak "${data_f}_found_scripts_with_indices" \
+    #  "${data_f}_found_errors_with_indices_unsorted"
+
+
   unset errors script 'shell_scripts[$i_2]'
-done
+#done
 
-_bak "${data_f}_found_scripts_with_indices" \
-  "${data_f}_found_errors_with_indices_unsorted"
 
 exit "$LINENO"
 
   # get `dnf history` transaction number
   #dnf_tx_number="$( dnf history | 
     #awk '$1 ~ /[0-9]+/ { print $1; exit }' )"
+
+# i=0; for s in "${!sortd[@]}"; do unset output; mapfile output < <( shellcheck -S error "${sortd[$s]}" | grep --fixed-strings --invert-match 'shellcheck.net' | grep --extended-regexp -o "SC[0-9a-zA-Z\ \t():,.'-$&#\!]*" | cut -b -64 | sort --general-numeric-sort | uniq --count ); if [[ -n "${output[*]:0:1}" ]]; then printf '\n%-4d%s\n' $((i++)) "${sortd[$s]}"; printf '%s' "${output[@]}"; fi; done
 
