@@ -214,9 +214,9 @@ _scan_local_disks(){
 
     # TODO: check for empty files, make a list of them
 
-    :;: '_scan_local_disks: run -file- and -stat- on each file'
+    :;: '_scan_local_disks: run -file- (and -stat-?) on each file'
     { printf '+ '; file -pk "$file";} | tee -a "${time_d}/file_out"
-    { printf '+ '; stat -t "$file";} | tee -a "${time_d}/stat_out"
+    #{ printf '+ '; stat -t "$file";} | tee -a "${time_d}/stat_out"
 
     :;: '_scan_local_disks: Read from disk in binary the first two bytes' 
     :   'of each file in the list and output it in hexadecimal.'
@@ -819,7 +819,7 @@ fi
 grep --extended-regexp '/bin/'"${shells}"'.*% % % %' \
   "${data_f}_all-indexed" > "${data_f}_SC-scrpts-list"
 _bak "${data_f}_SC-scrpts-list"
-_bak /tmp "${data_f}_SC-scrpts-list"
+rsync -ca "${data_f}_SC-scrpts-list" /tmp
 
   #: '<>'
   #ls -l "${data_f}"*
@@ -869,11 +869,12 @@ i=0;
   done;
 } | tee -a "${data_f}_found_scripts_with_indices"
 _bak "${data_f}_found_scripts_with_indices"
-_bak /tmp "${data_f}_found_scripts_with_indices"
-_bak "$mountpoint" "${data_f}_found_scripts_with_indices"
+rsync -ca "${data_f}_found_scripts_with_indices" "$mountpoint" 
+rsync -ca "${data_f}_found_scripts_with_indices" /tmp
 
     # <> Bug: formatting
-    ## Run `shellcheck on the script and count the number of each issue's ID.
+    ## Run `shellcheck on the script and count the number of each issue's 
+    #ID.
     #mapfile -t careful < <( 
     #  #shellcheck --severity "$severity" "$script" ) || 
     #    #_erx "$LINENO"
