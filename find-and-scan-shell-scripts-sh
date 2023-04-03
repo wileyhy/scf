@@ -50,6 +50,10 @@ fi
 
 :;: 'User variables'
 fstype_regexp='(autofs|binfmt_misc|bpf|cgroup2|configfs|debugfs|devpts|devtmpfs|efivarfs|fusectl|fuse.portal|hugetlbfs|iso9660|mqueue|proc|pstore|rpc_pipefs|securityfs|selinuxfs|sysfs|tmpfs|tracefs)'
+
+#fstype_regexp_2='(btrfs|exfat|ext2|ext3|ext4|fat16|fat32|minix|ntfs|xfs)'
+fstype_regexp_2='(btrfs|exfat|ext3|ext4|fat32|ntfs|xfs)'
+
 time_date="$( builtin printf '%(%F_%H%M%S)T' )"
 export \
   all_files \
@@ -384,8 +388,10 @@ fi
 # output by descending size. With `awk`, take the device with the most 
 # available space and get its mountpoint with `findmnt`. If there is no 
 # output, then set 'mountpoint' according to environment variables. 
+#mapfile -t df_o < <( 
+  #sudo df --sync --local --output='fstype,avail,source' --block-size=1 | grep --extended-regexp --invert-match '^Type[[:space:]]*Avail' | grep --extended-regexp --invert-match -e ^"$fstype_regexp" -e 'live-rw'$ | sort --general-numeric-sort --reverse --key=2 )
 mapfile -t df_o < <( 
-  sudo df --sync --local --output='fstype,avail,source' --block-size=1 | grep --extended-regexp --invert-match '^Type[[:space:]]*Avail' | grep --extended-regexp --invert-match -e ^"$fstype_regexp" -e 'live-rw'$ | sort --general-numeric-sort --reverse --key=2 )
+  sudo df --sync --local --output='fstype,avail,source' --block-size=1 | grep --extended-regexp --invert-match '^Type[[:space:]]*Avail' | grep --extended-regexp -e ^"$fstype_regexp_2" -e 'live-rw'$ | sort --general-numeric-sort --reverse --key=2 )
 export df_o
 
   #: '<>'
@@ -804,17 +810,21 @@ fi
   #  #wc "${data_f}"*
   #  #md5sum "${data_f}.bak" "${data_f}_extra-data-removed"
   
+  : '<>'
   #exit "$LINENO"
   set -x
 
-  # <>
-  ## Alteration 3: Apply grep-style line numbers, ie, in-file indices. 
-  #These 
-  ## are necessary for section 'Extra,' however, can only be applied prior 
-  ## to the full list having been subdivided. 
-  #grep --extended-regexp --line-number '.' "${data_f}" > \
-  #  #"${data_f}_all-indexed"
-  #_bak "${data_f}_all-indexed"
+
+  # Alteration 3: Apply grep-style line numbers, ie, in-file indices. These 
+  # are necessary for section 'Extra,' however, can only be applied prior 
+  # to the full list having been subdivided. 
+  grep --extended-regexp --line-number '.' "${data_f}" > \
+    "${data_f}_all-indexed"
+  _bak "${data_f}_all-indexed"
+
+  : '<>'
+  exit "$LINENO"
+  set -x
 
 
 
