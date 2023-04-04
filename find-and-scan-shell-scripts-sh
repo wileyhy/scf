@@ -20,7 +20,7 @@ LC_COLLATE=C
   date
 
 if ! sudo -v; then
-  # use hex encoded punctuation here
+  # Bug: use hex encoded punctuation here
   printf '\n\tValidation failed of user-s -sudo- timestamp; ' 
   printf 'exiting.\n\n' 
   exit "$LINENO"
@@ -720,15 +720,19 @@ rsync -ca "${data_f}_SC-scrpts-list" /tmp ||
 :;: 'MAIN TASK, 2 of 2: with ShellCheck scan each script for errors'
   
 :;: 'A hell world of pipelines:'
+# Bug? line 1 of script could contain percent symbols
 mapfile -d '' -t cut_sed_o < <( 
   cut -d '%' -f5- "${data_f}_SC-scrpts-list" | 
     sed 's,^ *,,' | 
     tr '\n' '\0' )
+  # awk , multi-char delim, remv lead+trail wspc - redef $0 ?, printf
+  # grep -Eo | tr
 
   : '<>'
   exit "$LINENO"
   set -x
 
+# why sort by line count? More text, more bugs? How to prior mult factrs
 mapfile -t wc_sort_o < <( 
   for c in "${cut_sed_o[@]}"; do 
     wc -l "$c"; 
@@ -743,7 +747,8 @@ mapfile -t wc_sort_o < <(
 i=0; 
 {
   for s in "${!wc_sort_o[@]}"; do 
-    unset output; 
+    unset output;
+    # Bug? 1st grep extra?
     mapfile -t output < <( 
       shellcheck -S error "${wc_sort_o[$s]}" | 
         grep --fixed-strings --invert-match 'shellcheck.net' | 
@@ -763,6 +768,8 @@ i=0;
   set -x
 
 :; _bak "${data_f}_found_scripts_with_indices"
+
+:;: 'Write semi-permanent archives'
 rsync -ca "${data_f}_found_scripts_with_indices" "$scripts_d" ||
   _erx "$LINENO"
 rsync -ca "${data_f}_found_scripts_with_indices" /tmp ||
