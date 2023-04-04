@@ -27,6 +27,8 @@ if ! sudo -v; then
 fi
 
 :;: 'Process lock'
+
+# Bug: all 3 poss file locs sb rmd
 random="$RANDOM"
 lock_d="${XDG_RUNTIME_DIR:-"${HOME:-/tmp}"}/.${$}.${random}.lock"
 trap '
@@ -50,9 +52,9 @@ trap '
   trap - EXIT TERM INT; 
   kill -s INT "$$"
   ' EXIT TERM INT # for cleaner xtrace output, put on one line 
+
 if ! mkdir "$lock_d" 2> /dev/null; then
-  {
-    printf '\n\tCannot acquire process lock: <%s>.\n' "$lock_d"
+  { printf '\n\tCannot acquire process lock: <%s>.\n' "$lock_d"
     printf '\tID: %s\n' "$( whoami )"
     printf 'Exiting.\n\n' 
   } 1>&2
@@ -101,12 +103,17 @@ export \
 :;: 'Functions'
 _age_file(){
   : '_age_file'
-  [[ -f "$1" ]] ||
-    return 1
+
+    :;: '<>'
+    [[ -f "$1" ]] ||
+      return 1
+
   local previous_aged_files new_hash paf new_hash
   local -A paf_hashes
   previous_aged_files=( "${1}"*[0-9] )
 
+  # if the new hash is already present in the assoc
+  # array, then the new file is a dup
   for paf in "${previous_aged_files[@]}"; do 
     if [[ -f "$paf" ]]; then
       paf_hashes["$( md5sum "$paf" | cut -d ' ' -f1 )"]="$paf" 
@@ -125,8 +132,11 @@ _age_file(){
 }
 _bak(){ 
   : '_bak'
-  [[ "$#" -eq 0 ]] &&
-    return 1
+
+    :;: '<>'
+    [[ "$#" -eq 0 ]] &&
+      return 1
+
   local i_4
   for i_4 in "$@"; do 
     if [[ ! -f "${i_4}" ]]; then 
@@ -211,13 +221,17 @@ _scan_local_disks(){
 
     # TODO: check for empty files, make a list of them
 
-    :;: '_scan_local_disks: run -file- (and -stat-?) on each file'
+    :;: '_scan_local_disks: run -file- on each file'
     { 
       printf '+ %-8d: ' "$i_1"; 
       sudo file -pk "$file";
     } | 
       tee -a "${time_d}/file_out"
-    
+ 
+      # Bug: avoid as many disk writes as possible. 
+      # Bug: use indices to reference each type? 
+      #    RO all files array? 
+
     :;: '_scan_local_disks: Read from disk in binary the first two bytes' 
     :   'of each file in the list and output it in hexadecimal.'
     #   Note: inordinately long interpreter paths are rare, but do occur.
@@ -673,6 +687,8 @@ mapfile -d '' -t all_files_sorted < <(
 
 
 ###  SECTION B  ::  SCANNING  ###
+
+# Bug? Can more indices and fewer files be used?
 
 :;: 'Add some brevity, and write the completed arrays to disk'
 count="${#all_files_sorted[@]}"
