@@ -166,14 +166,28 @@ fn_age_file(){
   #local loc_a_previous_aged_files loc_prevsly_aged loc_aging_hash_new
   local -A loc_A_hashes_prev_files
   mapfile -d '' -t loc_a_previous_aged_files < <( 
-    find "${1%/*}" -type f -name "${1##*/}*[0-9]" -print0 ) # JASON
+    find "${1%/*}" -type f -regextype egrep \
+      -regex ".*/${1##*/}\.([0-9]){10}" ) 
+          # JASON
+
+    :;: '<>'
+    declare -p loc_a_previous_aged_files
+    exit "$LINENO"
 
   # if the new hash is already present in the assoc
   # array, then the new file is a dup
   for loc_prevsly_aged in "${loc_a_previous_aged_files[@]}"; do 
+    
     if [[ -f "$loc_prevsly_aged" ]]; then
-      loc_A_hashes_prev_files["$( md5sum "$loc_prevsly_aged" | cut -d ' ' -f1 )"]="$loc_prevsly_aged" 
-      loc_aging_hash_new="$( md5sum "$1"  | cut -d ' ' -f1 )"
+      
+      loc_A_hashes_prev_files["$( 
+        md5sum "$loc_prevsly_aged" | 
+          cut -d ' ' -f1 )"]="$loc_prevsly_aged" 
+      
+      loc_aging_hash_new="$( 
+        md5sum "$1" | 
+          cut -d ' ' -f1 )"
+      
       [[ -n "${loc_A_hashes_prev_files["$loc_aging_hash_new"]}" ]] && 
         : 'END OF fn_age_file';:
         return 0
@@ -457,11 +471,11 @@ fi
     a_acl_name_indiv_dir \
     a_poss_write_devices \
     a_previous_time_dirs
-  :; {
-    declare -fp \
- 	    fn_erx \
- 	    fn_usage; 
-    } | tee "${curr_time_ssubd}/A_functions"
+  #:; {
+    #declare -fp \
+ 	    #fn_erx \
+ 	    #fn_usage; 
+    #} | tee "${curr_time_ssubd}/A_functions"
   #exit "$LINENO"
   set -x
 
@@ -477,7 +491,7 @@ fi
 # search_dirs list is new, then do the full a_all_files search again.
 # But if they're the same, then ...
 
-:;: 'Variables for array -a_relevant_search_dirs-'
+:;: 'Variables for -a_relevant_search_dirs-'
 #array='a_relevant_search_dirs'
 list_dirs_search="${curr_time_ssubd}/a_relevant_search_dirs" 
 
@@ -501,7 +515,7 @@ then
     #unset a_relevant_search_dirs
 fi
 
-:;: 'then create a new record for a_relevant_search_dirs and...'
+:;: 'in any event, create a new record for a_relevant_search_dirs and...'
 mapfile -d '' -t a_relevant_search_dirs < <(
   sudo find / -mindepth 1 -maxdepth 1 -type d \! -empty \( \! -name proc -a \! -name sys -a \! -iname 'scf*' \) -print0 )
 #export a_relevant_search_dirs
@@ -529,12 +543,12 @@ if [[ -v array_count_old_a ]]; then
     fi
 fi
   
-:;: 'Variables for array -a_all_files-'
+:;: 'Variables for -a_all_files-'
 #unset array list_files_all hash_old_b hash_new_b array_count_old_b array_count_new_b
 #array='a_all_files'
 list_files_all="${curr_time_ssubd}/a_all_files"
 
-:;: 'if the record for the array a_all_files exists and isnt a symlink'
+:;: 'if the record for a_all_files exists and isnt a symlink'
 if [[ -f "$list_files_all" ]] &&
   [[ ! -L "$list_files_all" ]];
 then
@@ -571,7 +585,7 @@ then
   fi
 fi
 
-:;: 'If we must run -find- for array a_all_files.'
+:;: 'If we must run -find- for a_all_files.'
 if [[ ! -v a_all_files ]] ||
   [[ "$must_find_all_files" = 'y' ]]; 
 then
