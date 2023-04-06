@@ -495,6 +495,10 @@ fi
 #array='a_relevant_search_dirs'
 list_dirs_search="${curr_time_ssubd}/a_relevant_search_dirs" 
 
+# BUG: in any one execution, as long as time_ssubdr's are used, this
+# '[[ -f' test _will_always_fail_, bc there isn't a creation of the redq
+# file above this section of the script. 
+
 :;: 'if the a_relevant_search_dirs record file exists and is not a symlink'
 if [[ -f "$list_dirs_search" ]] &&
   [[ ! -L "$list_dirs_search" ]];
