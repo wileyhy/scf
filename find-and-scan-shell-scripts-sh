@@ -590,13 +590,12 @@ mapfile -d '' -t a_all_files_sorted < <(
   fn_erx "${LINENO}"
 
   # <> 
-  :; fn_write_arrays a_all_files_sorted a_all_files 
-  :; fn_write_vars 'A' PATH LC_ALL severity shells fstype_regex timecode \
-    cli_input mountpoint data_subd curr_time_ssubd list_crunchbangs \
-    a_previous_time_dirs a_relevant_search_dirs n_0 n_7
+  :; fn_write_vars 'A' LC_ALL LC_COLLATE PATH all_files_index any_existing_f array_count_new_a array_count_new_b array_count_old_a array_count_old_b abs_path byte_0 byte_1 byte_count cli_input curr_time_ssubd count data_subd device each_dir each_sorted_f execd_setfacl filesystem_type first_line fstype_regex hash_new_a hash_new_b hash_old_a hash_old_b iterator_1 iterator_2 leftover_words_a leftover_words_b list_crunchbangs list_dirs_search list_files_all main_d meta_subd mountpoint mtime_age_in_hours must_find_all_files must_scan_relevant_dirs prev_time_ssubd process_lock random_n severity shells sorted_script subd_x timecode loc_aging_hash_new loc_aging_mtime loc_dir_a loc_exit_code loc_filename_a loc_nameref loc_prevsly_aged loc_script_section_nm loc_unquotd_array_nm_a loc_unquotd_array_nm_b loc_write_f_a loc_write_f_b
+
+  :; fn_write_arrays a_abs_path_each_dir_nm a_all_files a_all_files_sorted a_all_other_files a_crunches_with_hashbang_comments a_each_script_abs_path_nm a_each_script_list_sorted a_each_script_SC_results a_file_DNE a_incorrect_endianness a_non_rpm_system_crunches a_non_rpm_user_crunches a_poss_write_devices a_previous_time_dirs a_relevant_search_dirs a_shell_scripts a_write_path_nms loc_A_hashes_prev_files loc_a_previous_aged_files
 
   #: '<>'
-  #exit "$LINENO"
+  exit "$LINENO"
   #set -x
 
 
@@ -761,7 +760,7 @@ fi
 
   # <>
   :; fn_write_arrays a_shell_scripts a_crunches_with_hashbang_comments \
-    files_from_outside_rpm a_all_other_files a_incorrect_endianness \
+    a_all_other_files a_incorrect_endianness \
     a_non_rpm_system_crunches a_non_rpm_user_crunches 
   :; fn_write_vars 'B' each_sorted_f list_crunchbangs all_files_index od_o{0,1} X first_line count
 
