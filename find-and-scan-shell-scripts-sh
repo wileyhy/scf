@@ -447,17 +447,16 @@ if [[ ! -r "$scripts_d" ]]; then
     b+="/${a[$i]}"; 
     b="$( realpath -e "$b" )"; 
     if [[ ! -r "$b" ]]; then 
+      sudo mkdir --parents "$scripts_d" ||
+        _erx "$LINENO"
       execd_setfacl='y'
       export execd_setfacl
       sudo setfacl -R -m "$USER":r-x "$b" || 
         break
       sudo setfacl -R -m "$USER":rwx "${scripts_d%/*}" || 
-        { 
-          : 'setfacl failed'
+        { : 'setfacl failed'
           break 
         }
-      sudo mkdir --parents "$scripts_d" ||
-        _erx "$LINENO"
       : 'setfacl succeeded'
       break
     fi ; 
