@@ -61,7 +61,7 @@ if ! mkdir "$process_lock" 2> /dev/null; then
   exit "$LINENO"
 fi
 
-# BUG: this regex is totally slow.
+# BUG: this regex is totally slow.  ...was it the '--sync' option? yes.
 
 :;: 'User variables'
 fstype_regex='(btrfs|exfat|ext3|ext4|fat32|ntfs|xfs)'
@@ -311,7 +311,7 @@ fi
 # available space and get its mountpoint with `findmnt`. If there is no 
 # output, then set 'mountpoint' according to environment variables. 
 mapfile -t a_poss_write_devices < <( 
-  sudo df --sync --local --output='fstype,avail,source' --block-size=1 | grep --extended-regexp --invert-match '^Type[[:space:]]*Avail' | grep --extended-regexp -e ^"$fstype_regex" -e 'live-rw'$ | sort --general-numeric-sort --reverse --key=2 )
+  sudo df --local --output='fstype,avail,source' --block-size=1 | grep --extended-regexp --invert-match '^Type[[:space:]]*Avail' | grep --extended-regexp -e ^"$fstype_regex" -e 'live-rw'$ | sort --general-numeric-sort --reverse --key=2 )
 export a_poss_write_devices
 
 read -r filesystem_type leftover_words_a device < <( 
