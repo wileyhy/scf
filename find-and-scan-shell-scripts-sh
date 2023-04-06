@@ -149,37 +149,6 @@ _bak(){
   done
   : 'END OF _bak';:
 }
-_create_data_f(){
-  : '_create_data_f'
-  :;: '_create_data_f: Open a timestamped file & append into it the list' 
-  :   ' of filenames and their crashbangs.' 
-
-  :;: '_create_data_f: data_files'
-  data=( "${data_f:=crunchbangs}" /tmp/"${data_f##*/}" )
-  
-  :;: '_create_data_f: if any data files already exist, keep them'
-  for i_6 in "${data[@]}"; do
-    if [[ -f "$i_6" ]] && [[ ! -L "$i_6" ]]; then
-      mv "$i_6" "${i_6}.${$}.${random}" ||
-        _erx "$LINENO"
-    fi
-  done
-
-  :;: '_create_data_f: create the original data_f'
-  touch "${data[@]}"
-
-  :;: '_create_data_f: header'
-  printf '# crunchbangs -- %s \n' "$time_date" | 
-    tee --output-error='exit' "${data[@]}" > /dev/null 2>&1
-  
-  :;: '_create_data_f: printing contents of shell_scripts array'
-  set -
-  printf '%s\n' "${shell_scripts[@]}" |
-    tee --append --output-error='exit' "${data[@]}" > /dev/null 2>&1
-  set -x
-  :; _bak "${data[@]}"
-  : 'END OF _create_data_f';:
-}
 _erx(){ 
   : '_erx'
   local ec="$?"
@@ -195,115 +164,6 @@ _num(){
     echo "${#array[@]}"
   done
   : 'END OF _num';:
-}
-_scan_local_disks(){
-  : '_scan_local_disks'
-  :;: '_scan_local_disks: Sort out the scripts, ie, any file beginning' 
-  :   'with a crashbang from the rest of the files'
-  #   Note: this function can take 30-90 minutes!
-  for i_1 in "${!all_files_sorted[@]}"; do
-
-    :;: '_scan_local_disks: LOOP';:
-    printf '%d of %d files\r' "$i_1" "$count"
-    unset file read_var od_o{0,1} line_1 
-    file="${all_files_sorted[${i_1}]}"
-    
-    # BUG: the arrays and vars are messy; clean up the lists.
-
-    :;: '_scan_local_disks: file must exist'
-    if [[ ! -e "$file" ]]; then
-      set -x
-      file_DNE+=( "$file" )
-      unset 'all_files_sorted[$i_1]'
-      continue
-      set -
-    fi
-
-    # TODO: check for empty files, make a list of them
-
-    :;: '_scan_local_disks: run -file- on each file'
-    { 
-      printf '+ %-8d: ' "$i_1"; 
-      sudo file -pk "$file";
-    } | 
-      tee -a "${time_d}/file_out"
- 
-      # Bug: avoid as many disk writes as possible. 
-      # Bug: use indices to reference each type? 
-      #    RO all files array? 
-
-    :;: '_scan_local_disks: Read from disk in binary the first two bytes' 
-    :   'of each file in the list and output it in hexadecimal.'
-    #   Note: inordinately long interpreter paths are rare, but do occur.
-    #   Note: `od` command is POSIX compliant
-    read -r read_var od_o0 od_o1 read_var < <( 
-      sudo od -j 0 -N 2 -t x1z -v "$file" || 
-        _erx "$LINENO" "$i_1" "$file" )
-    unset read_var
-    
-    :;: '_scan_local_disks: If -od_o- contains some non-zero data, as it'
-    :   ' should,'
-    if [[ -z "$od_o0" ]]; then
-      _erx "L:$LINENO I:$i_1 <${file}>" '*theoretically unreachable code*';
-
-    :;: '_scan_local_disks: compare the hexidecimal representations to' 
-    :   'find any crashbangs.'
-    elif [[ "${od_o0}${od_o1}" == @(2321|2123) ]]; then
-
-      :;: '_scan_local_disks: Issue: a big endian file format, possibly'
-      :   ' a DB file, etc.'
-      if [[ "${od_o0}${od_o1}" == '2123' ]]; then
-        endian_wtf+=( [$i_1]="$file" )
-        unset 'all_files_sorted[$i_1]'
-
-      # BUG: expect non-printable characters
-
-      :;: '_scan_local_disks: Crunchbang found. Use -read-, and hope'
-      :   'there won`t be any non-printable characters.'
-      else
-        IFS= read -r line_1 < "$file" ||
-          _erx "$LINENO" "$i_1" "$file";
-
-        :;: '_scan_local_disks: Issue: the files with -#!comment- as the'
-        :   'initial bytes. These aren-t scripts, so restart the loop.'
-        if [[ "$line_1" =~ ^'#!comment' ]]; then
-          crunches_with_hashbang_comments+=( [${i_1}]="$file" )
-          unset 'all_files_sorted[$i_1]'
-          continue
-        fi
-
-        :;: '_scan_local_disks: Issue: crashbang files which originate'
-        :   'outside of the rpm package manager'
-        #   Note: with only /bin/sbin, this if-fi block doesn't execute
-        if ! rpm -qf "$file" 2> /dev/null 1>&2; then
-
-          :;: '_scan_local_disks: user and system files from outside -rpm-'
-          if [[ "$file" = /@(root|home|run/media)/* ]]; then
-            non_rpm_user_crunches+=( [${i_1}]="$file" )
-            unset 'all_files_sorted[$i_1]'
-            continue
-
-          else
-            non_rpm_system_crunches+=( [${i_1}]="$file" )
-            unset 'all_files_sorted[$i_1]'
-            continue
-          fi
-        fi
-      fi
-      
-      :;: '_scan_local_disks: Make a record in RAM of the relevant'
-      :   'filenames and their crashbangs.'
-      shell_scripts+=( [$i_1]="$( \
-        printf '%-50s   %% %% %% %%   %s\n' "$line_1" "$file" )" )
-      unset 'all_files_sorted[$i_1]'
-
-    else
-      all_other_files+=( [$i_1]="$file" )
-      unset 'all_files_sorted[$i_1]'
-    fi
-  done
-  :; _bak "${time_d}"/{file,stat}_out
-  : 'END OF _scan_local_disks';:
 }
 _usage(){
   : '_usage'
@@ -698,7 +558,149 @@ unset IFS
 if [[ ! -f /tmp/"${data_f##*/}" ]] || 
   [[ -L /tmp/"${data_f##*/}" ]]; 
 then
+  
+_scan_local_disks(){
+  : '_scan_local_disks'
+  :;: '_scan_local_disks: Sort out the scripts, ie, any file beginning' 
+  :   'with a crashbang from the rest of the files'
+  #   Note: this function can take 30-90 minutes!
+  for i_1 in "${!all_files_sorted[@]}"; do
+
+    :;: '_scan_local_disks: LOOP';:
+    printf '%d of %d files\r' "$i_1" "$count"
+    unset file read_var od_o{0,1} line_1 
+    file="${all_files_sorted[${i_1}]}"
+    
+    # BUG: the arrays and vars are messy; clean up the lists.
+
+    :;: '_scan_local_disks: file must exist'
+    if [[ ! -e "$file" ]]; then
+      set -x
+      file_DNE+=( "$file" )
+      unset 'all_files_sorted[$i_1]'
+      continue
+      set -
+    fi
+
+    # TODO: check for empty files, make a list of them
+
+    :;: '_scan_local_disks: run -file- on each file'
+    { 
+      printf '+ %-8d: ' "$i_1"; 
+      sudo file -pk "$file";
+    } | 
+      tee -a "${time_d}/file_out"
+ 
+      # Bug: avoid as many disk writes as possible. 
+      # Bug: use indices to reference each type? 
+      #    RO all files array? 
+
+    :;: '_scan_local_disks: Read from disk in binary the first two bytes' 
+    :   'of each file in the list and output it in hexadecimal.'
+    #   Note: inordinately long interpreter paths are rare, but do occur.
+    #   Note: `od` command is POSIX compliant
+    read -r read_var od_o0 od_o1 read_var < <( 
+      sudo od -j 0 -N 2 -t x1z -v "$file" || 
+        _erx "$LINENO" "$i_1" "$file" )
+    unset read_var
+    
+    :;: '_scan_local_disks: If -od_o- contains some non-zero data, as it'
+    :   ' should,'
+    if [[ -z "$od_o0" ]]; then
+      _erx "L:$LINENO I:$i_1 <${file}>" '*theoretically unreachable code*';
+
+    :;: '_scan_local_disks: compare the hexidecimal representations to' 
+    :   'find any crashbangs.'
+    elif [[ "${od_o0}${od_o1}" == @(2321|2123) ]]; then
+
+      :;: '_scan_local_disks: Issue: a big endian file format, possibly'
+      :   ' a DB file, etc.'
+      if [[ "${od_o0}${od_o1}" == '2123' ]]; then
+        endian_wtf+=( [$i_1]="$file" )
+        unset 'all_files_sorted[$i_1]'
+
+      # BUG: expect non-printable characters
+
+      :;: '_scan_local_disks: Crunchbang found. Use -read-, and hope'
+      :   'there won`t be any non-printable characters.'
+      else
+        IFS= read -r line_1 < "$file" ||
+          _erx "$LINENO" "$i_1" "$file";
+
+        :;: '_scan_local_disks: Issue: the files with -#!comment- as the'
+        :   'initial bytes. These aren-t scripts, so restart the loop.'
+        if [[ "$line_1" =~ ^'#!comment' ]]; then
+          crunches_with_hashbang_comments+=( [${i_1}]="$file" )
+          unset 'all_files_sorted[$i_1]'
+          continue
+        fi
+
+        :;: '_scan_local_disks: Issue: crashbang files which originate'
+        :   'outside of the rpm package manager'
+        #   Note: with only /bin/sbin, this if-fi block doesn't execute
+        if ! rpm -qf "$file" 2> /dev/null 1>&2; then
+
+          :;: '_scan_local_disks: user and system files from outside -rpm-'
+          if [[ "$file" = /@(root|home|run/media)/* ]]; then
+            non_rpm_user_crunches+=( [${i_1}]="$file" )
+            unset 'all_files_sorted[$i_1]'
+            continue
+
+          else
+            non_rpm_system_crunches+=( [${i_1}]="$file" )
+            unset 'all_files_sorted[$i_1]'
+            continue
+          fi
+        fi
+      fi
+      
+      :;: '_scan_local_disks: Make a record in RAM of the relevant'
+      :   'filenames and their crashbangs.'
+      shell_scripts+=( [$i_1]="$( \
+        printf '%-50s   %% %% %% %%   %s\n' "$line_1" "$file" )" )
+      unset 'all_files_sorted[$i_1]'
+
+    else
+      all_other_files+=( [$i_1]="$file" )
+      unset 'all_files_sorted[$i_1]'
+    fi
+  done
+  :; _bak "${time_d}"/{file,stat}_out
+  : 'END OF _scan_local_disks';:
+}
   :; _scan_local_disks
+
+_create_data_f(){
+  : '_create_data_f'
+  :;: '_create_data_f: Open a timestamped file & append into it the list' 
+  :   ' of filenames and their crashbangs.' 
+
+  :;: '_create_data_f: data_files'
+  data=( "${data_f:=crunchbangs}" /tmp/"${data_f##*/}" )
+  
+  :;: '_create_data_f: if any data files already exist, keep them'
+  for i_6 in "${data[@]}"; do
+    if [[ -f "$i_6" ]] && [[ ! -L "$i_6" ]]; then
+      mv "$i_6" "${i_6}.${$}.${random}" ||
+        _erx "$LINENO"
+    fi
+  done
+
+  :;: '_create_data_f: create the original data_f'
+  touch "${data[@]}"
+
+  :;: '_create_data_f: header'
+  printf '# crunchbangs -- %s \n' "$time_date" | 
+    tee --output-error='exit' "${data[@]}" > /dev/null 2>&1
+  
+  :;: '_create_data_f: printing contents of shell_scripts array'
+  set -
+  printf '%s\n' "${shell_scripts[@]}" |
+    tee --append --output-error='exit' "${data[@]}" > /dev/null 2>&1
+  set -x
+  :; _bak "${data[@]}"
+  : 'END OF _create_data_f';:
+}
   :; _create_data_f
 fi
 
