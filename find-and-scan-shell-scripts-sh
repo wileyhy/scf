@@ -160,12 +160,13 @@ fn_age_file(){
   : 'fn_age_file'
 
     :;: '<>'
-    [[ ! -f "$1" ]] ||
+    [[ -f "$1" ]] ||
       return 1
 
   #local loc_a_previous_aged_files loc_prevsly_aged loc_aging_hash_new
   local -A loc_A_hashes_prev_files
-  loc_a_previous_aged_files=( "${1}"*[0-9] )
+  mapfile -d '' -t loc_a_previous_aged_files < <( 
+    find "${1%/*}" -type f -name "${1##*/}*[0-9]" -print0 ) # JASON
 
   # if the new hash is already present in the assoc
   # array, then the new file is a dup
@@ -183,8 +184,8 @@ fn_age_file(){
   loc_aging_mtime="$( stat -c%Y "$1" )"
   mv "${1}" "${1}.${loc_aging_mtime}" ||
     fn_erx 'fn_age_file' "$1";
-  declare -p 'loc_A_hashes_prev_files' 'loc_prevsly_aged' \
-    'loc_aging_hash_new' 'loc_aging_mtime'
+  #declare -p 'loc_A_hashes_prev_files' 'loc_prevsly_aged' \
+    #'loc_aging_hash_new' 'loc_aging_mtime'
   : 'END OF fn_age_file';:
 }
 fn_bak(){ 
@@ -205,7 +206,7 @@ fn_bak(){
     fi
     rsync -acq "${loc_filename_a}"{,.bak}
   done
-  declare -p 'loc_filename_a'
+  #declare -p 'loc_filename_a'
   : 'END OF fn_bak';:
 }
 fn_erx(){ 
@@ -222,7 +223,7 @@ fn_num(){
     local -n loc_nameref="$loc_unquotd_array_nm_a" 
     echo "${#loc_nameref[@]}"
   done
-  declare -p 'loc_unquotd_array_nm_a' >&2
+  #declare -p 'loc_unquotd_array_nm_a' >&2
   : 'END OF fn_num';:
 }
 fn_usage(){
@@ -256,7 +257,7 @@ fn_write_arrays(){
     :; fn_bak "$loc_write_f_b"
     #unset loc_write_f_b
   done
-  declare -p 'loc_unquotd_array_nm_b' 'loc_write_f_b'
+  #declare -p 'loc_unquotd_array_nm_b' 'loc_write_f_b'
   : 'END OF fn_write_arrays';:
 }
 # Usage: fn_write_vars [loc_script_section_nm] [raw variable names]
@@ -271,7 +272,7 @@ fn_write_vars(){
   declare -p "$@" 2> /dev/null |
     tee --output-error='exit' "$loc_write_f_a" > /dev/null 2>&1
   :; fn_bak "$loc_write_f_a"
-  declare -p 'loc_script_section_nm' 'loc_write_f_a' 
+  #declare -p 'loc_script_section_nm' 'loc_write_f_a' 
   : 'END OF fn_write_vars';:
 }
 #export -f \
@@ -478,7 +479,7 @@ fi
 
 :;: 'Variables for array -a_relevant_search_dirs-'
 #array='a_relevant_search_dirs'
-list_dirs_search="${data_subd}/a_relevant_search_dirs" 
+list_dirs_search="${curr_time_ssubd}/a_relevant_search_dirs" 
 
 :;: 'if the a_relevant_search_dirs record file exists and is not a symlink'
 if [[ -f "$list_dirs_search" ]] &&
@@ -500,7 +501,7 @@ then
     #unset a_relevant_search_dirs
 fi
 
-:;: 'then create a new record for array a_relevant_search_dirs and...'
+:;: 'then create a new record for a_relevant_search_dirs and...'
 mapfile -d '' -t a_relevant_search_dirs < <(
   sudo find / -mindepth 1 -maxdepth 1 -type d \! -empty \( \! -name proc -a \! -name sys -a \! -iname 'scf*' \) -print0 )
 #export a_relevant_search_dirs
@@ -531,7 +532,7 @@ fi
 :;: 'Variables for array -a_all_files-'
 #unset array list_files_all hash_old_b hash_new_b array_count_old_b array_count_new_b
 #array='a_all_files'
-list_files_all="${data_subd}/a_all_files" 
+list_files_all="${curr_time_ssubd}/a_all_files"
 
 :;: 'if the record for the array a_all_files exists and isnt a symlink'
 if [[ -f "$list_files_all" ]] &&
@@ -586,11 +587,11 @@ then
   mapfile -d '' -t a_all_files < <( 
     sudo find "${a_relevant_search_dirs[@]}" -mindepth 1 -type f -print0 \
       2> /dev/null )
-  #export a_all_files
+  #export a_all_files # AJAX
   :; fn_write_arrays a_all_files
   
   :;: 'these newer files were written just milliseconds ago'
-  :; fn_age_file "${list_files_all}".bak
+  :; fn_age_file "${list_files_all}".bak # xtrace-135
   :; fn_bak "$list_files_all"
 fi
 
