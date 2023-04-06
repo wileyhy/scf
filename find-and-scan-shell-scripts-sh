@@ -586,10 +586,10 @@ then
     sudo find "${a_relevant_search_dirs[@]}" -mindepth 1 -type f -print0 \
       2> /dev/null )
   #export a_all_files
-  :; fn_age_file "${list_files_all}".bak
   :; fn_write_arrays a_all_files
   
   :;: 'these newer files were written just milliseconds ago'
+  :; fn_age_file "${list_files_all}".bak
   :; fn_bak "$list_files_all"
 fi
 
