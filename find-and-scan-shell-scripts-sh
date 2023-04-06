@@ -157,7 +157,7 @@ timecode="$( builtin printf '%(%F_%H%M%S)T' )"
 
 :;: 'Functions'
 fn_age_file(){
-  : 'fn_age_file'
+  : 'fn_age_file' # JASON
 
     :;: '<>'
     [[ -f "$1" ]] ||
@@ -168,11 +168,10 @@ fn_age_file(){
   mapfile -d '' -t loc_a_previous_aged_files < <( 
     find "${1%/*}" -type f -regextype egrep \
       -regex ".*/${1##*/}\.([0-9]){10}" ) 
-          # JASON
 
-    :;: '<>'
-    declare -p loc_a_previous_aged_files
-    exit "$LINENO"
+    #:;: '<>'
+    #declare -p loc_a_previous_aged_files
+    #exit "$LINENO"
 
   # if the new hash is already present in the assoc
   # array, then the new file is a dup
@@ -601,11 +600,11 @@ then
   mapfile -d '' -t a_all_files < <( 
     sudo find "${a_relevant_search_dirs[@]}" -mindepth 1 -type f -print0 \
       2> /dev/null )
-  #export a_all_files # AJAX
+  #export a_all_files 
   :; fn_write_arrays a_all_files
   
   :;: 'these newer files were written just milliseconds ago'
-  :; fn_age_file "${list_files_all}".bak # xtrace-135
+  :; fn_age_file "${list_files_all}".bak # AJAX
   :; fn_bak "$list_files_all"
 fi
 
