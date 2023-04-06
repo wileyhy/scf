@@ -55,13 +55,11 @@ trap '
 
 if ! mkdir "$process_lock" 2> /dev/null; then
   { printf '\n\tCannot acquire process lock: <%s>.\n' "$process_lock"
-    printf '\tID: %s\n' "$( whoami )"
+    printf '\tID: %s\n' "$USER"
     printf 'Exiting.\n\n' 
   } 1>&2
   exit "$LINENO"
 fi
-
-# BUG: this regex is totally slow.  ...was it the '--sync' option? yes.
 
 :;: 'User variables'
 fstype_regex='(btrfs|exfat|ext3|ext4|fat32|ntfs|xfs)'
