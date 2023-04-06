@@ -160,7 +160,7 @@ fn_age_file(){
   : 'fn_age_file'
 
     :;: '<>'
-    [[ -f "$1" ]] ||
+    [[ ! -f "$1" ]] ||
       return 1
 
   #local loc_a_previous_aged_files loc_prevsly_aged loc_aging_hash_new
@@ -194,6 +194,7 @@ fn_bak(){
     [[ "$#" -eq 0 ]] &&
       return 1
 
+  # test verifying existence of input -- sb unnec, except for debugging
   #local loc_filename_a
   for loc_filename_a in "$@"; do 
     if [[ ! -f "${loc_filename_a}" ]]; then 
