@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 # find-and-scan-shell-scripts-sh
 # Written in bash version 5.1 on Fedora 37
 
@@ -39,9 +39,9 @@ trap '
   fi;
   
   # Good code, for final versions
-  #if [[ -v execd_setfacl ]]; then 
-    #if [[ -v abs_path ]]; then 
-      #sudo setfacl -R -x u:"$UID" "$abs_path" ||
+  #if [[ -v acl_execd_setfacl ]]; then 
+    #if [[ -v acl_abs_path ]]; then 
+      #sudo setfacl -R -x u:"$UID" "$acl_abs_path" ||
         #echo Error: setfacl failed, line $LINENO
     #elif [[ -v mountpoint ]]; then
       #sudo setfacl -R -x u:"$UID" "$mountpoint" ||
@@ -65,97 +65,95 @@ fi
 fstype_regex='(btrfs|exfat|ext3|ext4|fat32|ntfs|xfs)'
 timecode="$( builtin printf '%(%F_%H%M%S)T' )"
 
-# Variables, global scope
-export \
-  LC_ALL \
-  LC_COLLATE \
-  PATH \
-  all_files_index \
-  any_existing_f \
-  array_count_new_a \
-  array_count_new_b \
-  array_count_old_a \
-  array_count_old_b \
-  abs_path \
-  byte_0 \
-  byte_1 \
-  byte_count \
-  cli_input \
-  curr_time_ssubd \
-  count \
-  data_subd \
-  device \
-  each_dir \
-  each_sorted_f \
-  execd_setfacl \
-  filesystem_type \
-  first_line \
-  fstype_regex \
-  hash_new_a \
-  hash_new_b \
-  hash_old_a \
-  hash_old_b \
-  iterator_1 \
-  iterator_2 \
-  leftover_words_a \
-  leftover_words_b \
-  list_crunchbangs \
-  list_dirs_search \
-  list_files_all \
-  main_d \
-  meta_subd \
-  mountpoint \
-  mtime_age_in_hours \
-  must_find_all_files \
-  must_scan_relevant_dirs \
-  prev_time_ssubd \
-  process_lock \
-  random_n \
-  severity \
-  shells \
-  sorted_script \
-  subd_x \
-  timecode
+## Variables, global scope
+#export \
+  #LC_ALL \
+  #LC_COLLATE \
+  #PATH \
+  #all_files_index \
+  #any_existing_f \
+  #array_count_new_a \
+  #array_count_new_b \
+  #array_count_old_a \
+  #array_count_old_b \
+  #acl_abs_path \
+  #byte_0 \
+  #byte_1 \
+  #byte_count \
+  #cli_input \
+  #curr_time_ssubd \
+  #count \
+  #data_subd \
+  #device \
+  #acl_each_dir \
+  #each_sorted_f \
+  #acl_execd_setfacl \
+  #filesystem_type \
+  #first_line \
+  #fstype_regex \
+  #hash_new_a \
+  #hash_new_b \
+  #hash_old_a \
+  #hash_old_b \
+  #iterator_1 \
+  #iterator_2 \
+  #leftover_words_a \
+  #leftover_words_b \
+  #list_crunchbangs \
+  #list_dirs_search \
+  #list_files_all \
+  #main_d \
+  #mountpoint \
+  #mtime_age_in_hours \
+  #must_find_all_files \
+  #must_scan_relevant_dirs \
+  #prev_time_ssubd \
+  #process_lock \
+  #random_n \
+  #severity \
+  #shells \
+  #sorted_script \
+  #subd_x \
+  #timecode
 
 # Variables, local scope
-export \
-  loc_aging_hash_new \
-  loc_aging_mtime \
-  loc_dir_a \
-  loc_exit_code \
-  loc_filename_a \
-  loc_nameref \
-  loc_prevsly_aged \
-  loc_script_section_nm \
-  loc_unquotd_array_nm_a \
-  loc_unquotd_array_nm_b \
-  loc_write_f_a \
-  loc_write_f_b
+#export \
+  #loc_aging_hash_new \
+  #loc_aging_mtime \
+  #loc_exit_code \
+  #loc_filename_a \
+  #loc_nameref \
+  #loc_prevsly_aged \
+  #loc_script_section_nm \
+  #loc_unquotd_array_nm_a \
+  #loc_unquotd_array_nm_b \
+  #loc_write_f_a \
+  #loc_write_f_b
 
 # Arrays, global scope
-export \
-  a_abs_path_each_dir_nm \
-  a_all_files \
-  a_all_files_sorted \
-  a_all_other_files \
-  a_crunches_with_hashbang_comments \
-  a_each_script_abs_path_nm \
-  a_each_script_list_sorted \
-  a_each_script_SC_results \
-  a_file_DNE \
-  a_incorrect_endianness \
-  a_non_rpm_system_crunches \
-  a_non_rpm_user_crunches \
-  a_poss_write_devices \
-  a_previous_time_dirs \
-  a_relevant_search_dirs \
-  a_shell_scripts \
-  a_write_path_nms
+#export \
+  #a_acl_name_indiv_dir \
+  #a_all_files \
+  #a_all_files_sorted \
+  #a_all_other_files \
+  #a_crunches_with_hashbang_comments \
+  #a_each_abspath_scriptnm \
+  #a_each_script_list_sorted \
+  #a_each_script_SC_results \
+  #a_file_DNE \
+  #a_incorrect_endianness \
+  #a_non_rpm_system_crunches \
+  #a_non_rpm_user_crunches \
+  #a_poss_write_devices \
+  #a_previous_time_dirs \
+  #a_relevant_search_dirs \
+  #a_shell_scripts \
+  #a_write_path_nms
 
 # Arrays, local scope
-export \
-  loc_A_hashes_prev_files \
-  loc_a_previous_aged_files
+#export \
+  #loc_A_hashes_prev_files \
+  #loc_a_previous_aged_files
 
 :;: 'Functions'
 fn_age_file(){
@@ -165,7 +163,7 @@ fn_age_file(){
     [[ -f "$1" ]] ||
       return 1
 
-  local loc_a_previous_aged_files loc_prevsly_aged loc_aging_hash_new
+  #local loc_a_previous_aged_files loc_prevsly_aged loc_aging_hash_new
   local -A loc_A_hashes_prev_files
   loc_a_previous_aged_files=( "${1}"*[0-9] )
 
@@ -181,10 +179,12 @@ fn_age_file(){
     fi
   done
 
-  local loc_aging_mtime
+  #local loc_aging_mtime
   loc_aging_mtime="$( stat -c%Y "$1" )"
   mv "${1}" "${1}.${loc_aging_mtime}" ||
-    fn_erx fn_age_file "$1";
+    fn_erx 'fn_age_file' "$1";
+  declare -p 'loc_A_hashes_prev_files' 'loc_prevsly_aged' \
+    'loc_aging_hash_new' 'loc_aging_mtime'
   : 'END OF fn_age_file';:
 }
 fn_bak(){ 
@@ -194,7 +194,7 @@ fn_bak(){
     [[ "$#" -eq 0 ]] &&
       return 1
 
-  local loc_filename_a
+  #local loc_filename_a
   for loc_filename_a in "$@"; do 
     if [[ ! -f "${loc_filename_a}" ]]; then 
       : "fn_bak: target file <${loc_filename_a}>> DNE"
@@ -204,6 +204,7 @@ fn_bak(){
     fi
     rsync -acq "${loc_filename_a}"{,.bak}
   done
+  declare -p 'loc_filename_a'
   : 'END OF fn_bak';:
 }
 fn_erx(){ 
@@ -215,11 +216,12 @@ fn_erx(){
 }
 fn_num(){ 
   : 'fn_num'
-  local loc_unquotd_array_nm_a
+  #local loc_unquotd_array_nm_a
   for loc_unquotd_array_nm_a in "$@"; do
     local -n loc_nameref="$loc_unquotd_array_nm_a" 
     echo "${#loc_nameref[@]}"
   done
+  declare -p 'loc_unquotd_array_nm_a' >&2
   : 'END OF fn_num';:
 }
 fn_usage(){
@@ -238,47 +240,47 @@ EOF
 }
 fn_write_arrays(){
   : 'fn_write_arrays'
-  # Usage: fn_write_arrays [one target-dir] [arrays]
-  :;: 'fn_write_arrays: Default directory is -curr_time_ssubd-.'
-  local loc_dir_a loc_unquotd_array_nm_b loc_write_f_a
-  : 'fn_write_arrays: is function-pos-parm number 1 a directory?'
-  if [[ -d "$1" ]]; then
-    loc_dir_a="$1"
-    shift
-  fi
+  # Usage: fn_write_arrays [arrays]
+  # 'Note: Default directory is -curr_time_ssubd-.'
 
   :;: 'fn_write_arrays: Write each array to disk.'
   #   Note: `tee` without '-a' will overwrite an existing file
   for loc_unquotd_array_nm_b in "$@"; do 
-    local loc_write_f_a
-          loc_write_f_a="${loc_dir_a:-"${curr_time_ssubd}"}/${loc_unquotd_array_nm_b}"
+    #local loc_write_f_b
+          loc_write_f_b="${curr_time_ssubd}/${loc_unquotd_array_nm_b}"
+    [[ -e "$loc_write_f_b" ]] &&
+      fn_age_file "$loc_write_f_b"
     declare -p "$loc_unquotd_array_nm_b" | 
-      tee --output-error='exit' "$loc_write_f_a" > /dev/null 2>&1
-    :; fn_bak "$loc_write_f_a"
-    unset loc_write_f_a
+      tee --output-error='exit' "$loc_write_f_b" > /dev/null 2>&1
+    :; fn_bak "$loc_write_f_b"
+    #unset loc_write_f_b
   done
+  declare -p 'loc_unquotd_array_nm_b' 'loc_write_f_b'
   : 'END OF fn_write_arrays';:
 }
 # Usage: fn_write_vars [loc_script_section_nm] [raw variable names]
 fn_write_vars(){
   : 'fn_write_vars'
-  local loc_script_section_nm loc_write_f_b
+  #local loc_script_section_nm loc_write_f_a
         loc_script_section_nm="$1"
-        loc_write_f_b="${curr_time_ssubd}/${loc_script_section_nm}_vars"
+        loc_write_f_a="${curr_time_ssubd}/${loc_script_section_nm}_vars"
   shift
+  [[ -e "$loc_write_f_a" ]] &&
+    fn_age_file "$loc_write_f_a"
   declare -p "$@" 2> /dev/null |
-    tee --output-error='exit' "$loc_write_f_b" > /dev/null 2>&1
-  :; fn_bak "$loc_write_f_b"
+    tee --output-error='exit' "$loc_write_f_a" > /dev/null 2>&1
+  :; fn_bak "$loc_write_f_a"
+  declare -p 'loc_script_section_nm' 'loc_write_f_a' 
   : 'END OF fn_write_vars';:
 }
-export -f \
-  fn_age_file \
-  fn_bak \
-  fn_erx \
-  fn_num \
-  fn_usage \
-  fn_write_arrays \
-  fn_write_vars
+#export -f \
+  #fn_age_file \
+  #fn_bak \
+  #fn_erx \
+  #fn_num \
+  #fn_usage \
+  #fn_write_arrays \
+  #fn_write_vars
 
 
 :;: 'Option parsing'
@@ -310,7 +312,7 @@ fi
 # output, then set 'mountpoint' according to environment variables. 
 mapfile -t a_poss_write_devices < <( 
   sudo df --local --output='fstype,avail,source' --block-size=1 | grep --extended-regexp --invert-match '^Type[[:space:]]*Avail' | grep --extended-regexp -e ^"$fstype_regex" -e 'live-rw'$ | sort --general-numeric-sort --reverse --key=2 )
-export a_poss_write_devices
+#export a_poss_write_devices
 
 read -r filesystem_type leftover_words_a device < <( 
   printf '%s\n' "${a_poss_write_devices[@]}" | head -n 1 )
@@ -327,7 +329,6 @@ mountpoint="$(
   mountpoint="${process_lock:-"${TMPDIR:-/tmp}"}"
 main_d="${mountpoint}/scf.d"
 data_subd="${main_d}/latest_data"
-meta_subd="${main_d}/current_meta"
 curr_time_ssubd="${data_subd}/t_${timecode}"
 list_crunchbangs="${curr_time_ssubd}/crunchbangs"
 umask 077
@@ -353,20 +354,20 @@ esac
 # ACL is written, and then a recursive "rwx" is written for the 
 # "$main_d". 
 if [[ ! -r "$main_d" ]]; then
-  mapfile -d '/' -t a_abs_path_each_dir_nm <<< "${mountpoint}"; 
-  export a_abs_path_each_dir_nm
-  a_abs_path_each_dir_nm[0]='/'
-  a_abs_path_each_dir_nm[-1]="${a_abs_path_each_dir_nm[-1]//$'\n'}"
-  each_dir=${#a_abs_path_each_dir_nm[@]}; 
-  for (( iterator_1 = 0 ; iterator_1 < each_dir ; iterator_1++ )); do 
-    abs_path+="/${a_abs_path_each_dir_nm[$iterator_1]}"; 
-    abs_path="$( realpath -e "$abs_path" )"; 
-    if [[ ! -r "$abs_path" ]]; then 
+  mapfile -d '/' -t a_acl_name_indiv_dir <<< "${mountpoint}"; 
+  #export a_acl_name_indiv_dir
+  a_acl_name_indiv_dir[0]='/'
+  a_acl_name_indiv_dir[-1]="${a_acl_name_indiv_dir[-1]//$'\n'}"
+  acl_each_dir=${#a_acl_name_indiv_dir[@]}; 
+  for (( iterator_1 = 0 ; iterator_1 < acl_each_dir ; iterator_1++ )); do 
+    acl_abs_path+="/${a_acl_name_indiv_dir[$iterator_1]}"; 
+    acl_abs_path="$( realpath -e "$acl_abs_path" )"; 
+    if [[ ! -r "$acl_abs_path" ]]; then 
       sudo mkdir --parents "$main_d" ||
         fn_erx "$LINENO"
-      execd_setfacl='y'
-      export execd_setfacl
-      sudo setfacl -R -m "$USER":r-x "$abs_path" || 
+      acl_execd_setfacl='y'
+      #export acl_execd_setfacl
+      sudo setfacl -R -m "$USER":r-x "$acl_abs_path" || 
         break
       sudo setfacl -R -m "$USER":rwx "${main_d%/*}" || 
         { : 'setfacl failed'
@@ -378,19 +379,21 @@ if [[ ! -r "$main_d" ]]; then
   done; 
 fi
 
-:;: 'make sure -subd_x- is a directory OR create the -subd_x- dir '
+:;: 'make sure -data_subd- is a directory OR create the -data_subd- dir '
 : 'if necessary'
-for subd_x in "$data_subd" "$meta_subd"; do
-  [[ -d "$subd_x" ]] ||
-    mkdir "$subd_x" 
-done
+#for subd_x in "$data_subd" "$meta_subd"; do
+  #[[ -d "$subd_x" ]] ||
+    #mkdir "$subd_x" 
+#done
+[[ -d "$data_subd" ]] ||
+  mkdir "$data_subd"
 
 :;: 'Label the current data as -latest.-'
 #   Note: `find` sees dirs and symlinks as separate things 
 mapfile -d '' -t a_previous_time_dirs < <( 
   find "${data_subd}" -mindepth 1 -maxdepth 1 -type d -a \! -type l \
     -name 't_*' -print0 )
-export a_previous_time_dirs
+#export a_previous_time_dirs
 
 :;: 'if -prev_time_ssubd- is empty, then delete it; otherwise -mv- it out'
 :   ' of the -latest- dir'
@@ -422,6 +425,46 @@ if [[ ! -d "${curr_time_ssubd}" ]]; then
     fn_erx "${LINENO}"
 fi
 
+  # <> 
+  :; fn_write_vars \
+    'A' \
+    LC_ALL \
+    LC_COLLATE \
+    PATH \
+    acl_abs_path \
+    acl_each_dir \
+    acl_execd_setfacl \
+    cli_input \
+    curr_time_ssubd \
+    data_subd \
+    device \
+    filesystem_type \
+    fstype_regex \
+    leftover_words_a \
+    list_crunchbangs \
+    main_d \
+    mountpoint \
+    prev_time_ssubd \
+    process_lock \
+    random_n \
+    severity \
+    shells \
+    subd_x \
+    timecode
+  :; fn_write_arrays \
+    a_acl_name_indiv_dir \
+    a_poss_write_devices \
+    a_previous_time_dirs
+  :; {
+    declare -fp \
+ 	    fn_erx \
+ 	    fn_usage; 
+    } | tee "${curr_time_ssubd}/A_functions"
+  #exit "$LINENO"
+  set -x
+
+
+###  section  b  ###
 # BUG:  Reduce Search Time  ==  RST
 
 :;: 'Gather filenames from local attached disk storage'
@@ -434,7 +477,7 @@ fi
 
 :;: 'Variables for array -a_relevant_search_dirs-'
 #array='a_relevant_search_dirs'
-list_dirs_search="${meta_subd}/a_relevant_search_dirs" 
+list_dirs_search="${data_subd}/a_relevant_search_dirs" 
 
 :;: 'if the a_relevant_search_dirs record file exists and is not a symlink'
 if [[ -f "$list_dirs_search" ]] &&
@@ -453,14 +496,14 @@ then
     # shellcheck disable=SC1090
     source "$list_dirs_search"
     array_count_old_a="$( fn_num a_relevant_search_dirs )"
-    unset a_relevant_search_dirs
+    #unset a_relevant_search_dirs
 fi
 
 :;: 'then create a new record for array a_relevant_search_dirs and...'
 mapfile -d '' -t a_relevant_search_dirs < <(
   sudo find / -mindepth 1 -maxdepth 1 -type d \! -empty \( \! -name proc -a \! -name sys -a \! -iname 'scf*' \) -print0 )
-export a_relevant_search_dirs
-:; fn_write_arrays "$meta_subd" a_relevant_search_dirs
+#export a_relevant_search_dirs
+:; fn_write_arrays a_relevant_search_dirs
 
 :;: 'if the pre-processing block ran, then exec this block also'
 if [[ -v array_count_old_a ]]; then 
@@ -485,9 +528,9 @@ if [[ -v array_count_old_a ]]; then
 fi
   
 :;: 'Variables for array -a_all_files-'
-unset array list_files_all hash_old_b hash_new_b array_count_old_b array_count_new_b
+#unset array list_files_all hash_old_b hash_new_b array_count_old_b array_count_new_b
 #array='a_all_files'
-list_files_all="${meta_subd}/a_all_files" 
+list_files_all="${data_subd}/a_all_files" 
 
 :;: 'if the record for the array a_all_files exists and isnt a symlink'
 if [[ -f "$list_files_all" ]] &&
@@ -508,7 +551,7 @@ then
     source "$list_files_all"
     set -x
     array_count_old_b="$( fn_num a_all_files )"
-    unset a_all_files
+    #unset a_all_files
 
   :;: 'For whether or not to run -find- for the a_all_files array'
   if [[ "$must_find_all_files" != 'y' ]]; then
@@ -542,11 +585,11 @@ then
   mapfile -d '' -t a_all_files < <( 
     sudo find "${a_relevant_search_dirs[@]}" -mindepth 1 -type f -print0 \
       2> /dev/null )
-  export a_all_files
-  :; fn_write_arrays "$meta_subd" a_all_files
+  #export a_all_files
+  :; fn_age_file "${list_files_all}".bak
+  :; fn_write_arrays a_all_files
   
   :;: 'these newer files were written just milliseconds ago'
-  :; fn_age_file "${list_files_all}".bak
   :; fn_bak "$list_files_all"
 fi
 
@@ -590,16 +633,33 @@ mapfile -d '' -t a_all_files_sorted < <(
   fn_erx "${LINENO}"
 
   # <> 
-  :; fn_write_vars 'A' LC_ALL LC_COLLATE PATH all_files_index any_existing_f array_count_new_a array_count_new_b array_count_old_a array_count_old_b abs_path byte_0 byte_1 byte_count cli_input curr_time_ssubd count data_subd device each_dir each_sorted_f execd_setfacl filesystem_type first_line fstype_regex hash_new_a hash_new_b hash_old_a hash_old_b iterator_1 iterator_2 leftover_words_a leftover_words_b list_crunchbangs list_dirs_search list_files_all main_d meta_subd mountpoint mtime_age_in_hours must_find_all_files must_scan_relevant_dirs prev_time_ssubd process_lock random_n severity shells sorted_script subd_x timecode loc_aging_hash_new loc_aging_mtime loc_dir_a loc_exit_code loc_filename_a loc_nameref loc_prevsly_aged loc_script_section_nm loc_unquotd_array_nm_a loc_unquotd_array_nm_b loc_write_f_a loc_write_f_b
+  :; fn_write_vars \
+    'B' \
+        array_count_new_a \
+        array_count_new_b \
+        array_count_old_a \
+        array_count_old_b \
+        byte_count \
+        hash_new_a \
+        hash_new_b \
+        hash_old_a \
+        hash_old_b \
+    list_dirs_search \
+    list_files_all \
+        mtime_age_in_hours \
+        must_find_all_files
 
-  :; fn_write_arrays a_abs_path_each_dir_nm a_all_files a_all_files_sorted a_all_other_files a_crunches_with_hashbang_comments a_each_script_abs_path_nm a_each_script_list_sorted a_each_script_SC_results a_file_DNE a_incorrect_endianness a_non_rpm_system_crunches a_non_rpm_user_crunches a_poss_write_devices a_previous_time_dirs a_relevant_search_dirs a_shell_scripts a_write_path_nms loc_A_hashes_prev_files loc_a_previous_aged_files
+  :; fn_write_arrays \
+    a_all_files \
+    a_all_files_sorted \
+    a_relevant_search_dirs
 
   #: '<>'
   exit "$LINENO"
   #set -x
 
 
-###  SECTION B  ::  SCANNING  ###
+###  SECTION c  ::  SCANNING  ###
 
 # Bug? Can more indices and fewer files be used?
 
@@ -622,7 +682,7 @@ then
 
     :;: 'fn_scan_local_disks: LOOP';:
     printf '%d of %d files\r' "$all_files_index" "$count"
-    unset each_sorted_f leftover_words_b od_o{0,1} first_line 
+    #unset each_sorted_f leftover_words_b od_o{0,1} first_line 
     each_sorted_f="${a_all_files_sorted[${all_files_index}]}"
     
     # BUG: the arrays and vars are messy; clean up the lists.
@@ -631,7 +691,7 @@ then
     if [[ ! -e "$each_sorted_f" ]]; then
       set -x
       a_file_DNE+=( "$each_sorted_f" )
-      unset 'a_all_files_sorted[$all_files_index]'
+      #unset 'a_all_files_sorted[$all_files_index]'
       continue
       set -
     fi
@@ -671,7 +731,7 @@ then
       :   ' a DB file, etc.'
       if [[ "${byte_0}${byte_1}" == '2123' ]]; then
         a_incorrect_endianness+=( [$all_files_index]="$each_sorted_f" )
-        unset 'a_all_files_sorted[$all_files_index]'
+        #unset 'a_all_files_sorted[$all_files_index]'
 
       # BUG: expect non-printable characters
 
@@ -685,7 +745,7 @@ then
         :   'initial bytes. These aren-t scripts, so restart the loop.'
         if [[ "$first_line" =~ ^'#!comment' ]]; then
           a_crunches_with_hashbang_comments+=( [${all_files_index}]="$each_sorted_f" )
-          unset 'a_all_files_sorted[$all_files_index]'
+          #unset 'a_all_files_sorted[$all_files_index]'
           continue
         fi
 
@@ -697,12 +757,12 @@ then
           :;: 'fn_scan_local_disks: user and system files from outside -rpm-'
           if [[ "$each_sorted_f" = /@(root|home|run/media)/* ]]; then
             a_non_rpm_user_crunches+=( [${all_files_index}]="$each_sorted_f" )
-            unset 'a_all_files_sorted[$all_files_index]'
+            #unset 'a_all_files_sorted[$all_files_index]'
             continue
 
           else
             a_non_rpm_system_crunches+=( [${all_files_index}]="$each_sorted_f" )
-            unset 'a_all_files_sorted[$all_files_index]'
+            #unset 'a_all_files_sorted[$all_files_index]'
             continue
           fi
         fi
@@ -712,11 +772,11 @@ then
       :   'filenames and their crashbangs.'
       a_shell_scripts+=( [$all_files_index]="$( \
         printf '%-50s   %% %% %% %%   %s\n' "$first_line" "$each_sorted_f" )" )
-      unset 'a_all_files_sorted[$all_files_index]'
+      #unset 'a_all_files_sorted[$all_files_index]'
 
     else
       a_all_other_files+=( [$all_files_index]="$each_sorted_f" )
-      unset 'a_all_files_sorted[$all_files_index]'
+      #unset 'a_all_files_sorted[$all_files_index]'
     fi
   done
   :; fn_bak "${curr_time_ssubd}"/{file,stat}_out
@@ -769,7 +829,7 @@ fi
   #set -x
 
     
-###  SECTION C  ###    
+###  SECTION d  ###    
 
 # Make the data readable and useable.
 
@@ -792,7 +852,7 @@ rsync -ca "${list_crunchbangs}_SC-scrpts-list" /tmp ||
   
 :;: 'A hell world of pipelines:'
 # Bug? line 1 of script could contain percent symbols
-mapfile -d '' -t a_each_script_abs_path_nm < <( 
+mapfile -d '' -t a_each_abspath_scriptnm < <( 
   cut -d '%' -f5- "${list_crunchbangs}_SC-scrpts-list" | 
     sed 's,^ *,,' | 
     tr '\n' '\0' )
@@ -805,7 +865,7 @@ mapfile -d '' -t a_each_script_abs_path_nm < <(
 
 # why sort by line count? More text, more bugs? How to prior mult factrs
 mapfile -t a_each_script_list_sorted < <( 
-  for c in "${a_each_script_abs_path_nm[@]}"; do 
+  for c in "${a_each_abspath_scriptnm[@]}"; do 
     wc -l "$c"; 
   done | 
     sort -gr | 
@@ -818,7 +878,7 @@ mapfile -t a_each_script_list_sorted < <(
 iterator_2=0; 
 {
   for sorted_script in "${!a_each_script_list_sorted[@]}"; do 
-    unset a_each_script_SC_results;
+    #unset a_each_script_SC_results;
     # Bug? 1st grep extra?
     mapfile -d '' -t a_each_script_SC_results < <( 
       shellcheck -S error "${a_each_script_list_sorted[$sorted_script]}" | 
