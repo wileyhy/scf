@@ -202,7 +202,7 @@ fn_bak(){
     else 
       : 'fn_bak: target file exists'
     fi
-    tee --output-error='exit' "${loc_filename_a}.bak" < "$loc_filename_a" > /dev/null 2>&1
+    rsync -acq "${loc_filename_a}"{,.bak}
   done
   : 'END OF fn_bak';:
 }
