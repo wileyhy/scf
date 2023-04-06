@@ -40,8 +40,8 @@ trap '
   
   # Good code, for final versions
   #if [[ -v execd_setfacl ]]; then 
-    #if [[ -v b ]]; then 
-      #sudo setfacl -R -x u:"$UID" "$b" ||
+    #if [[ -v abs_path ]]; then 
+      #sudo setfacl -R -x u:"$UID" "$abs_path" ||
         #echo Error: setfacl failed, line $LINENO
     #elif [[ -v mountpoint ]]; then
       #sudo setfacl -R -x u:"$UID" "$mountpoint" ||
@@ -67,7 +67,97 @@ fi
 fstype_regex='(btrfs|exfat|ext3|ext4|fat32|ntfs|xfs)'
 timecode="$( builtin printf '%(%F_%H%M%S)T' )"
 
+# Variables, global scope
+export \
+  LC_ALL \
+  LC_COLLATE \
+  PATH \
+  all_files_index \
+  any_existing_f \
+  array_count_new_a \
+  array_count_new_b \
+  array_count_old_a \
+  array_count_old_b \
+  abs_path \
+  byte_0 \
+  byte_1 \
+  byte_count \
+  cli_input \
+  curr_time_ssubd \
+  count \
+  data_subd \
+  device \
+  each_dir \
+  each_sorted_f \
+  execd_setfacl \
+  filesystem_type \
+  first_line \
+  fstype_regex \
+  hash_new_a \
+  hash_new_b \
+  hash_old_a \
+  hash_old_b \
+  iterator_1 \
+  iterator_2 \
+  leftover_words_a \
+  leftover_words_b \
+  list_crunchbangs \
+  list_dirs_search \
+  list_files_all \
+  main_d \
+  meta_subd \
+  mountpoint \
+  mtime_age_in_hours \
+  must_find_all_files \
+  must_scan_relevant_dirs \
+  prev_time_ssubd \
+  process_lock \
+  random_n \
+  severity \
+  shells \
+  sorted_script \
+  subd_x \
+  timecode
 
+# Variables, local scope
+export \
+  loc_aging_hash_new \
+  loc_aging_mtime \
+  loc_dir_a \
+  loc_exit_code \
+  loc_filename_a \
+  loc_nameref \
+  loc_prevsly_aged \
+  loc_script_section_nm \
+  loc_unquotd_array_nm_a \
+  loc_unquotd_array_nm_b \
+  loc_write_f_a \
+  loc_write_f_b
+
+# Arrays, global scope
+export \
+  a_abs_path_each_dir_nm \
+  a_all_files \
+  a_all_files_sorted \
+  a_all_other_files \
+  a_crunches_with_hashbang_comments \
+  a_each_script_abs_path_nm \
+  a_each_script_list_sorted \
+  a_each_script_SC_results \
+  a_file_DNE \
+  a_incorrect_endianness \
+  a_non_rpm_system_crunches \
+  a_non_rpm_user_crunches \
+  a_poss_write_devices \
+  a_previous_time_dirs \
+  a_relevant_search_dirs \
+  a_shell_scripts \
+  a_write_path_nms
+
+# Arrays, local scope
+export \
+  loc_A_hashes_prev_files \
+  loc_a_previous_aged_files
 
 :;: 'Functions'
 fn_age_file(){
@@ -186,10 +276,8 @@ fn_write_vars(){
 export -f \
   fn_age_file \
   fn_bak \
-  fn_createdatafile \
   fn_erx \
   fn_num \
-  fn_scan_local_disks \
   fn_usage \
   fn_write_arrays \
   fn_write_vars
@@ -273,14 +361,14 @@ if [[ ! -r "$main_d" ]]; then
   a_abs_path_each_dir_nm[-1]="${a_abs_path_each_dir_nm[-1]//$'\n'}"
   each_dir=${#a_abs_path_each_dir_nm[@]}; 
   for (( iterator_1 = 0 ; iterator_1 < each_dir ; iterator_1++ )); do 
-    b+="/${a_abs_path_each_dir_nm[$iterator_1]}"; 
-    b="$( realpath -e "$b" )"; 
-    if [[ ! -r "$b" ]]; then 
+    abs_path+="/${a_abs_path_each_dir_nm[$iterator_1]}"; 
+    abs_path="$( realpath -e "$abs_path" )"; 
+    if [[ ! -r "$abs_path" ]]; then 
       sudo mkdir --parents "$main_d" ||
         fn_erx "$LINENO"
       execd_setfacl='y'
       export execd_setfacl
-      sudo setfacl -R -m "$USER":r-x "$b" || 
+      sudo setfacl -R -m "$USER":r-x "$abs_path" || 
         break
       sudo setfacl -R -m "$USER":rwx "${main_d%/*}" || 
         { : 'setfacl failed'
