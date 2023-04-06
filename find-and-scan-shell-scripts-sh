@@ -451,13 +451,13 @@ if [[ ! -r "$scripts_d" ]]; then
       export execd_setfacl
       sudo setfacl -R -m "$USER":r-x "$b" || 
         break
-      sudo mkdir --parents "$scripts_d" ||
-        _erx "$LINENO"
-      sudo setfacl -R -m "$USER":rwx "$scripts_d" || 
+      sudo setfacl -R -m "$USER":rwx "${scripts_d%/*}" || 
         { 
           : 'setfacl failed'
           break 
         }
+      sudo mkdir --parents "$scripts_d" ||
+        _erx "$LINENO"
       : 'setfacl succeeded'
       break
     fi ; 
