@@ -78,6 +78,7 @@ done;
 
 proc_lk_f_nm=".${$}.${random_n}.lock"; 
 read -r proc_lk_index_1 leftover_words_c <<< "${!a_process_lock_dirs[@]}"; 
+export leftover_words_c # SC2034
 process_lock="${a_poss_process_lock_dirs["$proc_lk_index_1"]}/${proc_lk_f_nm}"; 
 
   :;: '<>'
@@ -365,7 +366,7 @@ mapfile -t a_poss_write_devices < <(
 
 read -r filesystem_type leftover_words_a device < <( 
   printf '%s\n' "${a_poss_write_devices[@]}" | head -n 1 )
-#unset leftover_words_a
+export leftover_words_a # SC2034
 
 mountpoint="$( 
   findmnt --canonicalize --output=target --noheadings "$device" )"
@@ -714,7 +715,7 @@ then
     read -r leftover_words_b byte_0 byte_1 leftover_words_b < <( 
       sudo od -j 0 -N 2 -t x1z -v "$each_sorted_f" || 
         fn_erx "$LINENO" "$all_files_index" "$each_sorted_f" )
-    #unset leftover_words_b
+    export leftover_words_b # SC2034
     
     :;: 'fn_scan_local_disks: If -od_o- contains some non-zero data, as it'
     :   ' should,'
