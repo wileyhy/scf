@@ -76,8 +76,8 @@ for poss_lk_d in "${a_poss_proces_lock_dirs[@]}"; do
 done; 
 
   :;: '<>'
-  declare -p random_n a_poss_proces_lock_dirs poss_lk_d proc_lok_d_nm proc_lk_f_nm process_lock; 
-  set -x
+  #declare -p random_n a_poss_proces_lock_dirs poss_lk_d proc_lok_d_nm proc_lk_f_nm process_lock; 
+  #set -x
 
 trap '
   for poss_lk_d in "${a_poss_proces_lock_dirs[@]}"; do 
@@ -355,15 +355,13 @@ fn_write_vars(){
 # and print any which have both any detected filesystem and no detected
 # mountpoint.
 
-fstype_list='btrfs,exfat,ext3,ext4,fat32,ntfs,xfs'; 
-
 # get the list of attached SCSI devices
 mapfile -t a_maj8s < <( 
   lsblk --ascii --include 8 --noempty --noheadings --paths --output path --list /dev/sd[b-z][0-9] ); 
 
   :;: '<>'
   declare -p a_maj8s
-  exit "$LINENO"
+  #exit "$LINENO"
 
 I=${#a_maj8s[@]}; 
 for ((i=0;i<I;i++)); do 
@@ -378,6 +376,9 @@ for ((i=0;i<I;i++)); do
   read -r 'a_mp[$i]' < <( 
     lsblk --noheadings --output mountpoints "${a_maj8s[$i]}" ); 
 
+    :;: '<>'
+    declare -p a_{maj8s,fs,uu,mp}
+
   # of the found SCSI devices, if there is no FS, then disregard it...
   [[ -z "${a_fs[$i]}" ]] && 
     unset a_{maj8s,fs,uu,mp}'[$i]'; 
@@ -388,18 +389,19 @@ for ((i=0;i<I;i++)); do
 done
 
   :;: '<>'
-  declare -p a_{maj8s,fs,uu,mp}
-  exit "$LINENO"
+  declare -p a_{maj8s,fs,uu,mp} i
+  #exit "$LINENO"
 
 # if there are any partitions left in the 'a_maj8s' array, then...
 # shellcheck disable=SC2154
-if [[ "${#maj8s[@]}" -ne 0 ]]; then
+if [[ "${#a_maj8s[@]}" -ne 0 ]]; then
 
   # 
-  printf '\n\t There are %d additional SCSI partitions' "${#maj8s[@]}" 
-  printf      'available. \n' 
+  printf '\n\t There are _%d_ additional SCSI partitions' "${#a_maj8s[@]}" 
+  printf     ' available. \n' 
   printf   '\t Would you like to (a) mount them or (b) exit? \n\n'
-  printf '\t\t %s \n' "${maj8s[@]}"
+  printf '\t\t %s \n' "${a_maj8s[@]}"
+  printf     ' \n'
 
   select mount_exit in 'Mount all' 'Exit'; do
 
@@ -412,22 +414,26 @@ if [[ "${#maj8s[@]}" -ne 0 ]]; then
 
           # create a mountpoint
           new_mp="/run/media/${USER}/${a_uu[$j]}"
-          mkdir --parents "$new_mp" ||
+          sudo mkdir --parents "$new_mp" ||
             fn_erx "$LINENO"
 
           # mount the device
           new_dvc="${a_maj8s[$j]}"
-          mount -o nosuid,nodev,noexec,rw "$new_dvc" "$new_mp" ||
+          sudo mount -o nosuid,nodev,noexec,rw "$new_dvc" "$new_mp" ||
             fn_erx "$LINENO"
         done
+        break
         ;;
       *) fn_erx "$LINENO" '*Unreachable code*'
     esac
   done
+
+    :;: '<>'
+    declare -p j mount_exit new_{dvc,mp}
 fi
 
-  :;: '<>'
-  exit "$LINENO"
+    :;: '<>'
+    exit "$LINENO"
 
 mountpoint="$( 
   findmnt --ascii --bytes --canonicalize --df --list --types "$fstype_list" --noheadings --notruncate --nofsroot --output maj:min,size,target | 
