@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 # find-and-scan-shell-scripts-sh
 # Written in bash version 5.1 on Fedora 37
 
@@ -63,33 +63,26 @@ if ! sudo -v; then
 fi
 
 :;: 'Process lock'
-
-  :;: '<>'
-  set -x; 
-
 random_n="$RANDOM"; 
-a_poss_process_lock_dirs=( [0]="$XDG_RUNTIME_DIR" [1]="$HOME" [2]="$TMPDIR" 
-  [3]='/tmp' [4]='/' ); 
-
-for poss_lk_d in "${!a_poss_process_lock_dirs[@]}"; do 
-  [[ ! -d "${a_poss_process_lock_dirs["$poss_lk_d"]}" ]] && 
-    unset 'a_poss_process_lock_dirs[$poss_lk_d]'; 
+a_poss_proces_lock_dirs=( [0]="$XDG_RUNTIME_DIR" [1]="$HOME" 
+  [2]="$TMPDIR" [3]='/tmp' [4]='/' ); 
+for poss_lk_d in "${a_poss_proces_lock_dirs[@]}"; do 
+  if [[ -d "$poss_lk_d" ]]; then
+    proc_lok_d_nm="$poss_lk_d"
+    break
+  fi
 done; 
-
 proc_lk_f_nm=".${$}.${random_n}.lock"; 
-read -r lk_index_1 leftover_words_c <<< \
-  "${!a_poss_process_lock_dirs[@]}"; 
-export leftover_words_c # SC2034
-process_lock="${a_poss_process_lock_dirs["$lk_index_1"]}/${proc_lk_f_nm}"; 
+process_lock="${proc_lok_d_nm}/${proc_lk_f_nm}"; 
 
   :;: '<>'
-  declare -p random_n a_poss_process_lock_dirs poss_lk_d proc_lk_f_nm lk_index_1 leftover_words_c process_lock; 
+  declare -p random_n a_poss_proces_lock_dirs poss_lk_d proc_lok_d_nm proc_lk_f_nm lk_index_1 leftover_words_c process_lock; 
   set -x
 
 trap '
-  for poss_lk_d in "${!a_poss_process_lock_dirs[@]}"; do 
+  for poss_lk_d in "${!a_poss_proces_lock_dirs[@]}"; do 
     
-    process_lock="${a_poss_process_lock_dirs["$poss_lk_d"]}/${proc_lk_f_nm}"
+    process_lock="${a_poss_proces_lock_dirs["$poss_lk_d"]}/${proc_lk_f_nm}"
   
     if [[ -d "$process_lock" ]] && 
       [[ ! -L "$process_lock" ]]; 
@@ -361,7 +354,7 @@ fn_write_vars(){
 # BUG: needs a test for whether or not there are any unmounted USB drives. 
 # automatically using '/' as mountpoint is, in this case, ie, on a live usb,
 # not so good of an idea.
-udevadm --timeout=1 settle
+sudo udevadm settle --timeout=1 2> /dev/null
 
 # List all SCSI device (major number 8) partitions (ending with [0-9]), 
 # and print any which have both any detected filesystem and no detected
@@ -372,7 +365,11 @@ fstype_list='btrfs,exfat,ext3,ext4,fat32,ntfs,xfs';
 # get the list of attached SCSI devices
 mapfile -t a_maj8s < <( 
   lsblk --ascii --include 8 --noempty --noheadings --paths --output path --list /dev/sd[b-z][0-9] ); 
-   
+
+  :;: '<>'
+  declare -p a_maj8s
+  exit "$LINENO"
+
 I=${#a_maj8s[@]}; 
 for ((i=0;i<I;i++)); do 
   #echo $i: "${a_maj8s[$i]}"; 
@@ -395,6 +392,9 @@ for ((i=0;i<I;i++)); do
     unset a_{maj8s,fs,uu,mp}'[$i]'
 done
 
+  :;: '<>'
+  declare -p a_{maj8s,fs,uu,mp}
+  exit "$LINENO"
 
 # if there are any partitions left in the 'a_maj8s' array, then...
 # shellcheck disable=SC2154
