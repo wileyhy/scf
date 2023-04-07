@@ -87,7 +87,7 @@ process_lock="${a_poss_process_lock_dirs["$proc_lk_index_1"]}/${proc_lk_f_nm}";
 trap '
   for poss_lk_d in "${!a_poss_process_lock_dirs[@]}"; do 
     
-    process_lock="${poss_lk_d}/${proc_lk_f_nm}"
+    process_lock="${a_poss_process_lock_dirs["$poss_lk_d"]}/${proc_lk_f_nm}"
   
     if [[ -d "$process_lock" ]] && 
       [[ ! -L "$process_lock" ]]; 
@@ -119,8 +119,8 @@ if ! mkdir "$process_lock" 2> /dev/null; then
   exit "$LINENO"
 fi
 
-  :;: '<>'
-  exit "$LINENO"
+  #:;: '<>'
+  #exit "$LINENO"
 
 
 :;: 'User variables'
