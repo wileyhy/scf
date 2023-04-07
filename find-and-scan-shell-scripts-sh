@@ -14,6 +14,42 @@ PATH="$( /usr/bin/command -p getconf PATH ):/usr/bin:/usr/sbin:${PATH}"
 LC_ALL=C.UTF-8
 LC_COLLATE=C
 
+:;: 'Option parsing'
+
+fn_usage(){
+  : 'fn_usage'
+  # Usage:  fn_usage [exit-code]
+  cat <<-\EOF
+    
+    SCF - Shell Check Find, version 1.0 (for redhat-linux)
+    Find and scan shell scripts depending on severity level. 
+        Usage:  ./find-and-scan-shell-scripts-sh [-ehiw]
+                -e error          -i info
+                -h help           -w warning
+    Only the first option is processed.
+
+EOF
+  exit "${1}"
+  : 'END OF fn_usage';:
+}
+
+if [[ "$#" -gt 0 ]]; then
+  cli_input="${1:0:2}"
+
+  case "${cli_input}" in
+    --) printf '\n\tHappy Easter!\n\n'
+          exit 0;;
+    -e) severity='error';;
+    -i) severity='info';;
+    -v) printf '\n\t"I would have made this shorter, but I didn\x27t '
+        printf ' have the time."\n\t\t-- Mark Twain\n\n'
+        exit 0;;
+    -w) severity='warning';;
+    -h) :; fn_usage 0;;
+    *)  :; fn_usage 1;;
+  esac
+fi
+
 :;: 'Use -sudo-'
 
   : '<>'
@@ -237,20 +273,6 @@ fn_num(){
   #declare -p 'loc_unquotd_array_nm_a' >&2
   : 'END OF fn_num';:
 }
-fn_usage(){
-  : 'fn_usage'
-  # Usage:  fn_usage [exit-code]
-  cat <<-\EOF
-    SCF - Shell Check Find, version 1.0 (redhat-linux)
-    Find and scan shell scripts depending on severity level. 
-        Usage:  ./find-and-scan-shell-scripts-sh [-ehiw]
-                -e error          -i info
-                -h help           -w warning
-    Only the first option is processed.
-EOF
-  exit "${1}"
-  : 'END OF fn_usage';:
-}
 fn_write_arrays(){
   : 'fn_write_arrays'
   # Usage: fn_write_arrays [arrays]
@@ -295,21 +317,6 @@ fn_write_vars(){
   #fn_write_arrays \
   #fn_write_vars
 
-
-:;: 'Option parsing'
-if [[ "$#" -gt 0 ]]; then
-  cli_input="${1:0:2}"
-
-  case "${cli_input}" in
-    --) printf '\n\tHappy Easter!\n\n'
-          exit "$LINENO";;
-    -e) severity='error';;
-    -i) severity='info';;
-    -w) severity='warning';;
-    -h) :; fn_usage 0;;
-    *)  :; fn_usage 1;;
-  esac
-fi
 
 
 :;: 'Assign varnames and paths for the data directories'
@@ -387,7 +394,7 @@ if [[ ! -r "$main_d" ]]; then
         fn_erx 'setfacl failed, acl_abs_path:' "$acl_abs_path"
         break
       elif ! sudo setfacl -R -m "$USER":rwx "${main_d%/*}"; then
-        fn_erx 'setfacl failed, ${maind%/*}:' "${main_d%/*}"
+        fn_erx 'setfacl failed, \x24{maind%/*}:' "${main_d%/*}"
         break 
       fi
     fi 
@@ -848,7 +855,8 @@ iterator_2=0;
     #unset a_each_script_SC_results;
     # Bug? 1st grep extra?
     mapfile -d '' -t a_each_script_SC_results < <( 
-      shellcheck -S error "${a_each_script_list_sorted[$sorted_script]}" | 
+      shellcheck -S "$severity" \
+          "${a_each_script_list_sorted[$sorted_script]}" | 
         grep --fixed-strings --invert-match 'shellcheck.net' | 
         grep --extended-regexp -o "SC[0-9a-zA-Z\ \t():,.'-$&#\!]*" | 
         cut -b -64 | 
