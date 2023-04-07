@@ -42,7 +42,8 @@ if [[ "$#" -gt 0 ]]; then
     -e) severity='error';;
     -i) severity='info';;
     -v) printf '\n\t"I would have made this shorter, but I didn\x27t '
-        printf ' have the time."\n\t\t-- Mark Twain\n\n'
+        printf 'have the time."\n\t\t-- Mark Twain\n'
+        printf '\t\t\t...perhaps....\n\n'
         exit 0;;
     -w) severity='warning';;
     -h) :; fn_usage 0;;
@@ -56,24 +57,45 @@ fi
   date
 
 if ! sudo -v; then
-  # Bug: use hex encoded punctuation here
-  printf '\n\tValidation failed of user-s -sudo- timestamp; ' 
+  printf '\n\tValidation failed of user\x27s \x60sudo\x60 timestamp; ' 
   printf 'exiting.\n\n' 
   exit "$LINENO"
 fi
 
 :;: 'Process lock'
 
-# Bug: all 3 poss file locs sb rmd
-random_n="$RANDOM"
-process_lock="${XDG_RUNTIME_DIR:-"${HOME:-/tmp}"}/.${$}.${random_n}.lock"
+  :;: '<>'
+  set -x; 
+
+random_n="$RANDOM"; 
+a_poss_process_lock_dirs=( [0]="$XDG_RUNTIME_DIR" [1]="$HOME" [2]="$TMPDIR" 
+  [3]='/tmp' [4]='/' ); 
+
+for poss_lk_d in "${!a_poss_process_lock_dirs[@]}"; do 
+  [[ ! -d "${a_poss_process_lock_dirs["$poss_lk_d"]}" ]] && 
+    unset 'a_poss_process_lock_dirs[$poss_lk_d]'; 
+done; 
+
+proc_lk_f_nm=".${$}.${random_n}.lock"; 
+read -r proc_lk_index_1 leftover_words_c <<< "${!a_process_lock_dirs[@]}"; 
+process_lock="${a_poss_process_lock_dirs["$proc_lk_index_1"]}/${proc_lk_f_nm}"; 
+
+  :;: '<>'
+  declare -p random_n a_poss_process_lock_dirs poss_lk_d proc_lk_f_nm proc_lk_index_1 leftover_words_c process_lock; 
+  set -x
+
 trap '
-  if [[ -d "$process_lock" ]] && 
-    [[ ! -L "$process_lock" ]]; 
-  then 
-    rm -rf -- "$process_lock"; 
-  fi;
+  for poss_lk_d in "${!a_poss_process_lock_dirs[@]}"; do 
+    
+    process_lock="${poss_lk_d}/${proc_lk_f_nm}"
   
+    if [[ -d "$process_lock" ]] && 
+      [[ ! -L "$process_lock" ]]; 
+    then 
+      rm -rf -- "$process_lock"; 
+    fi;
+  done
+
   # Good code, for final versions
   #if [[ -v acl_execd_setfacl ]]; then 
     #if [[ -v acl_abs_path ]]; then 
@@ -96,6 +118,10 @@ if ! mkdir "$process_lock" 2> /dev/null; then
   } 1>&2
   exit "$LINENO"
 fi
+
+  :;: '<>'
+  exit "$LINENO"
+
 
 :;: 'User variables'
 fstype_regex='(btrfs|exfat|ext3|ext4|fat32|ntfs|xfs)'
