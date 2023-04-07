@@ -126,7 +126,7 @@ fi
 
 
 :;: 'User variables'
-fstype_regex='(btrfs|exfat|ext3|ext4|fat32|ntfs|xfs)'
+fstype_list='btrfs,exfat,ext3,ext4,fat32,ntfs,xfs'
 timecode="$( builtin printf '%(%F_%H%M%S)T' )"
 
 ## Variables, global scope
@@ -154,7 +154,7 @@ timecode="$( builtin printf '%(%F_%H%M%S)T' )"
   #acl_execd_setfacl \
   #filesystem_type \
   #first_line \
-  #fstype_regex \
+  #fstype_list \
   #hash_new_a \
   #hash_new_b \
   #hash_old_a \
@@ -221,7 +221,7 @@ timecode="$( builtin printf '%(%F_%H%M%S)T' )"
 
 :;: 'Functions'
 fn_age_file(){
-  : 'fn_age_file' # JASON
+  : 'fn_age_file'
 
     :;: '<>'
     [[ -f "$1" ]] ||
@@ -349,8 +349,6 @@ fn_write_vars(){
 
 :;: 'Assign varnames and paths for the data directories'
 
-# BUG? `findmnt` has a '--df' option
-
 #   Note: In case of large log files, programatically select a save di-
 # rectory, attached to the local disk, where any output can be saved; 
 # prefer USB flash drives. This particular `df` command will output three 
@@ -358,26 +356,18 @@ fn_write_vars(){
 # output by descending size. With `awk`, take the device with the most 
 # available space and get its mountpoint with `findmnt`. If there is no 
 # output, then set 'mountpoint' according to environment variables. 
-mapfile -t a_poss_write_devices < <( 
-  sudo df --local --output='fstype,avail,source' --block-size=1 | 
-    grep --extended-regexp --invert-match '^Type[[:space:]]*Avail' | 
-    grep --extended-regexp -e ^"$fstype_regex" -e 'live-rw'$ | 
-    sort --general-numeric-sort --reverse --key=2 )
-#export a_poss_write_devices
-
-read -r filesystem_type leftover_words_a device < <( 
-  printf '%s\n' "${a_poss_write_devices[@]}" | head -n 1 )
-export leftover_words_a # SC2034
-
 mountpoint="$( 
-  findmnt --canonicalize --output=target --noheadings "$device" )"
+  findmnt --ascii --bytes --canonicalize --df --list --types "$fstype_list" --noheadings --notruncate --nofsroot --output maj:min,size,target | 
+    sort -rnk2 | 
+    awk '$1 ~ /8:/ { print $3 }' )"
+
 
 # BUG: needs a test for whether or not there are any unmounted USB drives. 
 # automatically using '/' as mountpoint is, in this case, ie, on a live usb,
 # not so good of an idea.
 
 [[ -z "${mountpoint}" ]] &&
-  mountpoint="${process_lock:-"${TMPDIR:-/tmp}"}"
+  mountpoint="$process_lock"
 main_d="${mountpoint}/scf.d"
 data_subd="${main_d}/latest_data"
 curr_time_ssubd="${data_subd}/t_${timecode}"
@@ -476,7 +466,7 @@ if [[ ! -d "${curr_time_ssubd}" ]]; then
 fi
 
   # <> 
-  #:; fn_write_vars 'A' LC_ALL LC_COLLATE PATH acl_abs_path acl_each_dir acl_execd_setfacl cli_input curr_time_ssubd data_subd device filesystem_type fstype_regex leftover_words_a list_crunchbangs main_d mountpoint prev_time_ssubd process_lock random_n severity shells subd_x timecode
+  #:; fn_write_vars 'A' LC_ALL LC_COLLATE PATH acl_abs_path acl_each_dir acl_execd_setfacl cli_input curr_time_ssubd data_subd device filesystem_type fstype_list leftover_words_a list_crunchbangs main_d mountpoint prev_time_ssubd process_lock random_n severity shells subd_x timecode
   #:; fn_write_arrays a_acl_name_indiv_dir a_poss_write_devices a_previous_time_dirs
   #:; {
     #declare -fp \
@@ -780,7 +770,7 @@ then
       #unset 'a_all_files_sorted[$all_files_index]'
     fi
   done
-  :; fn_bak "${curr_time_ssubd}"/{file,stat}_out
+  :; fn_bak "${curr_time_ssubd}"/file_out
   #: 'END OF fn_scan_local_disks';:
 #}
   #:; fn_scan_local_disks
