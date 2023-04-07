@@ -37,13 +37,13 @@ if [[ "$#" -gt 0 ]]; then
   cli_input="${1:0:2}"
 
   case "${cli_input}" in
-    --) printf '\n\tHappy Easter!\n\n'
-          exit 0;;
+    --) printf '0a09486170707920456173746572210a0a' | 
+          xxd -r -p
+        exit 0;;
     -e) severity='error';;
     -i) severity='info';;
-    -v) printf '\n\t"I would have made this shorter, but I didn\x27t '
-        printf 'have the time."\n\t\t-- Mark Twain\n'
-        printf '\t\t\t...perhaps....\n\n'
+    -v) printf '0a09224920776f756c642068617665206d61646520746869732073686f727465722c206275742049206469646e27742068617665207468652074696d652e220a09092d2d204d61726b20547761696e0a0a' |
+          xxd -r -p
         exit 0;;
     -w) severity='warning';;
     -h) :; fn_usage 0;;
@@ -79,11 +79,12 @@ done;
   #declare -p random_n a_poss_proces_lock_dirs poss_lk_d proc_lok_d_nm proc_lk_f_nm process_lock; 
   #set -x
 
+# shellcheck disable=SC2154
 trap '
   for poss_lk_d in "${a_poss_proces_lock_dirs[@]}"; do 
-    prcslk="${poss_lk_d}/${proc_lk_f_nm}"
-    if [[ -d "$prcslk" ]] && [[ ! -L "$prcslk" ]]; then 
-      rm -rf -- "$prcslk"; 
+    proclock="${poss_lk_d}/${proc_lk_f_nm}"
+    if [[ -d "$proclock" ]] && [[ ! -L "$proclock" ]]; then 
+      rm -rf -- "$proclock"; 
     fi;
   done
 
@@ -447,26 +448,23 @@ mountpoint="$(
     sort -rnk2 | 
     awk '$1 ~ /8:/ { print $3 }' |
     head -n1 )"
+
+# BUG: the mountpoint cannot be the process lock
+
 [[ -z "${mountpoint}" ]] &&
   mountpoint="$process_lock"
 main_d="${mountpoint}/scf.d"
 data_subd="${main_d}/latest_data"
 curr_time_ssubd="${data_subd}/t_${timecode}"
 list_crunchbangs="${curr_time_ssubd}/crunchbangs"
-
-declare -A A_major8s_rev
-for k in "${!a_maj8s_copy[@]}"; do
-  A_major8s_rev+=( ["${a_maj8s_copy[$k]}"]="$k" )
-done
-
-
-filesystem_type=
-device=
-
+read -r filesystem_type device < <( 
+  sudo findmnt --ascii --bytes --canonicalize --df --list \
+    --types "$fstype_list" --noheadings --notruncate --nofsroot \
+    --output fstype,source --mountpoint "$mountpoint" )
 umask 077
 
-  :;: '<> SC Errors below'
-  declare -p A_major8s_rev a_maj8s_copy
+  :;: '<>'
+  declare -p process_lock filesystem_type device
   exit "$LINENO"
 
 :;: 'reduce use of -sudo- in this script by setting up ACL-s'
@@ -490,19 +488,22 @@ esac
 # ACL is written, and then a recursive "rwx" is written for the 
 # "$main_d". 
 if [[ ! -r "$main_d" ]]; then
+  
   mapfile -d '/' -t a_acl_name_indiv_dir <<< "${mountpoint}"; 
-  #export a_acl_name_indiv_dir
   a_acl_name_indiv_dir[0]='/'
   a_acl_name_indiv_dir[-1]="${a_acl_name_indiv_dir[-1]//$'\n'}"
   acl_each_dir=${#a_acl_name_indiv_dir[@]}; 
+  
   for (( iterator_1 = 0 ; iterator_1 < acl_each_dir ; iterator_1++ )); do 
     acl_abs_path+="/${a_acl_name_indiv_dir[$iterator_1]}"; 
     acl_abs_path="$( realpath -e "$acl_abs_path" )"; 
+    
     if [[ ! -r "$acl_abs_path" ]]; then 
       sudo mkdir --parents "$main_d" ||
         fn_erx "$LINENO"
       acl_execd_setfacl='y'
       export acl_execd_setfacl # SC2034, while trap-s setfacl blk is #-d
+      
       if ! sudo setfacl -R -m "$USER":r-x "$acl_abs_path"; then
         fn_erx 'setfacl failed, acl_abs_path:' "$acl_abs_path"
         break
