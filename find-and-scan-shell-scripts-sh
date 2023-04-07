@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 # find-and-scan-shell-scripts-sh
 # Written in bash version 5.1 on Fedora 37
 
@@ -347,22 +347,22 @@ fn_write_vars(){
 # output, then set 'mountpoint' according to environment variables. 
 
 
-# BUG: needs a test for whether or not there are any unmounted USB drives. 
-# automatically using '/' as mountpoint is, in this case, ie, on a live usb,
-# not so good of an idea.
-
 # List all SCSI device (major number 8) partitions (ending with [0-9]), 
 # and print any which have both any detected filesystem and no detected
 # mountpoint.
+
+  #:;: '<>'
+  #set -x
 
 # get the list of attached SCSI devices
 mapfile -t a_maj8s < <( 
   lsblk --ascii --include 8 --noempty --noheadings --paths --output path --list /dev/sd[b-z][0-9] ); 
 
-  :;: '<>'
-  declare -p a_maj8s
+  #:;: '<>'
+  #declare -p a_maj8s
   #exit "$LINENO"
 
+a_maj8s_copy=( "${a_maj8s[@]}" )
 I=${#a_maj8s[@]}; 
 for ((i=0;i<I;i++)); do 
   #echo $i: "${a_maj8s[$i]}"; 
@@ -376,21 +376,22 @@ for ((i=0;i<I;i++)); do
   read -r 'a_mp[$i]' < <( 
     lsblk --noheadings --output mountpoints "${a_maj8s[$i]}" ); 
 
-    :;: '<>'
-    declare -p a_{maj8s,fs,uu,mp}
+    #:;: '<>'
+    #declare -p a_{maj8s{,_copy},fs,uu,mp}
 
   # of the found SCSI devices, if there is no FS, then disregard it...
   [[ -z "${a_fs[$i]}" ]] && 
-    unset a_{maj8s,fs,uu,mp}'[$i]'; 
+    unset a_maj8s'[$i]'; 
     
   # ...and if there is a mountpoint, also disregard that
   [[ -n "${a_mp[$i]}" ]] && 
-    unset a_{maj8s,fs,uu,mp}'[$i]'
+    unset a_maj8s'[$i]'
 done
 
-  :;: '<>'
-  declare -p a_{maj8s,fs,uu,mp} i
+  #:;: '<>'
+  #declare -p a_{maj8s{,_copy},fs,uu,mp} i
   #exit "$LINENO"
+  #set -x
 
 # if there are any partitions left in the 'a_maj8s' array, then...
 # shellcheck disable=SC2154
@@ -412,14 +413,17 @@ if [[ "${#a_maj8s[@]}" -ne 0 ]]; then
         # mount the found partitions
         for j in "${!a_maj8s[@]}"; do 
 
+            #:;: '<>'
+            #declare -p j
+
           # create a mountpoint
-          new_mp="/run/media/${USER}/${a_uu[$j]}"
-          sudo mkdir --parents "$new_mp" ||
+          a_mp+=( [$j]="/run/media/${USER}/${a_uu[$j]}" )
+          sudo mkdir --parents "${a_mp[$j]}" ||
             fn_erx "$LINENO"
 
           # mount the device
-          new_dvc="${a_maj8s[$j]}"
-          sudo mount -o nosuid,nodev,noexec,rw "$new_dvc" "$new_mp" ||
+          sudo mount -o nosuid,nodev,noexec,rw \
+              "${a_maj8s[$j]}" "${a_mp[$j]}" ||
             fn_erx "$LINENO"
         done
         break
@@ -428,26 +432,41 @@ if [[ "${#a_maj8s[@]}" -ne 0 ]]; then
     esac
   done
 
-    :;: '<>'
-    declare -p j mount_exit new_{dvc,mp}
+    #:;: '<>'
+    declare -p j mount_exit a_mp a_maj8s_copy
 fi
 
-    :;: '<>'
-    exit "$LINENO"
+    #:;: '<>'
+    #exit "$LINENO"
+    set -x
 
+# prevent the FS root '/' from becoming the mountpoint
 mountpoint="$( 
-  findmnt --ascii --bytes --canonicalize --df --list --types "$fstype_list" --noheadings --notruncate --nofsroot --output maj:min,size,target | 
+  sudo findmnt --ascii --bytes --canonicalize --df --list --types "$fstype_list" --noheadings --notruncate --nofsroot --output maj:min,size,target | 
+    grep -Ev ' /'$ | 
     sort -rnk2 | 
-    awk '$1 ~ /8:/ { print $3 }' )"
+    awk '$1 ~ /8:/ { print $3 }' |
+    head -n1 )"
 [[ -z "${mountpoint}" ]] &&
   mountpoint="$process_lock"
 main_d="${mountpoint}/scf.d"
 data_subd="${main_d}/latest_data"
 curr_time_ssubd="${data_subd}/t_${timecode}"
 list_crunchbangs="${curr_time_ssubd}/crunchbangs"
+
+declare -A A_major8s_rev
+for k in "${!a_maj8s_copy[@]}"; do
+  A_major8s_rev+=( ["${a_maj8s_copy[$k]}"]="$k" )
+done
+
+
+filesystem_type=
+device=
+
 umask 077
 
   :;: '<> SC Errors below'
+  declare -p A_major8s_rev a_maj8s_copy
   exit "$LINENO"
 
 :;: 'reduce use of -sudo- in this script by setting up ACL-s'
