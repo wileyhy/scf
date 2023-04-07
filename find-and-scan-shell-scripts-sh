@@ -356,16 +356,88 @@ fn_write_vars(){
 # output by descending size. With `awk`, take the device with the most 
 # available space and get its mountpoint with `findmnt`. If there is no 
 # output, then set 'mountpoint' according to environment variables. 
-mountpoint="$( 
-  findmnt --ascii --bytes --canonicalize --df --list --types "$fstype_list" --noheadings --notruncate --nofsroot --output maj:min,size,target | 
-    sort -rnk2 | 
-    awk '$1 ~ /8:/ { print $3 }' )"
 
 
 # BUG: needs a test for whether or not there are any unmounted USB drives. 
 # automatically using '/' as mountpoint is, in this case, ie, on a live usb,
 # not so good of an idea.
+udevadm --timeout=1 settle
 
+# List all SCSI device (major number 8) partitions (ending with [0-9]), 
+# and print any which have both any detected filesystem and no detected
+# mountpoint.
+
+fstype_list='btrfs,exfat,ext3,ext4,fat32,ntfs,xfs'; 
+
+# get the list of attached SCSI devices
+mapfile -t a_maj8s < <( 
+  lsblk --ascii --include 8 --noempty --noheadings --paths --output path --list /dev/sd[b-z][0-9] ); 
+   
+I=${#a_maj8s[@]}; 
+for ((i=0;i<I;i++)); do 
+  #echo $i: "${a_maj8s[$i]}"; 
+
+  # get per-device info on fstype, uuid and mountpoints
+  # shellcheck disable=SC2016
+  read -r 'a_fs[$i]' 'a_uu[$i]' < <( 
+    sudo wipefs --no-act --output type,uuid --noheadings \
+      --types "$fstype_list" "${a_maj8s[$i]}" )
+  # shellcheck disable=SC2016
+  read -r 'a_mp[$i]' < <( 
+    lsblk --noheadings --output mountpoints "${a_maj8s[$i]}" ); 
+
+  # of the found SCSI devices, if there is no FS, then disregard it...
+  [[ -z "${a_fs[$i]}" ]] && 
+    unset a_{maj8s,fs,uu,mp}'[$i]'; 
+    
+  # ...and if there is a mountpoint, also disregard that
+  [[ -n "${a_mp[$i]}" ]] && 
+    unset a_{maj8s,fs,uu,mp}'[$i]'
+done
+
+
+# if there are any partitions left in the 'a_maj8s' array, then...
+# shellcheck disable=SC2154
+if [[ "${#maj8s[@]}" -ne 0 ]]; then
+
+  # 
+  printf '\n\t There are %d additional SCSI partitions' "${#maj8s[@]}" 
+  printf      'available. \n' 
+  printf   '\t Would you like to (a) mount them or (b) exit? \n\n'
+  printf '\t\t %s \n' "${maj8s[@]}"
+
+  select mount_exit in 'Mount all' 'Exit'; do
+
+    case "$mount_exit" in
+      'Exit') exit 0;;
+      'Mount all')
+
+        # mount the found partitions
+        for j in "${!a_maj8s[@]}"; do 
+
+          # create a mountpoint
+          new_mp="/run/media/${USER}/${a_uu[$j]}"
+          mkdir --parents "$new_mp" ||
+            fn_erx "$LINENO"
+
+          # mount the device
+          new_dvc="${a_maj8s[$j]}"
+          mount -o nosuid,nodev,noexec,rw "$new_dvc" "$new_mp" ||
+            fn_erx "$LINENO"
+        done
+        ;;
+      *) fn_erx "$LINENO" '*Unreachable code*'
+    esac
+  done
+fi
+
+  :;: '<>'
+  exit "$LINENO"
+
+mountpoint="$( 
+  findmnt --ascii --bytes --canonicalize --df --list --types "$fstype_list" --noheadings --notruncate --nofsroot --output maj:min,size,target | 
+    sort -rnk2 | 
+    awk '$1 ~ /8:/ { print $3 }' )"
 [[ -z "${mountpoint}" ]] &&
   mountpoint="$process_lock"
 main_d="${mountpoint}/scf.d"
@@ -373,6 +445,9 @@ data_subd="${main_d}/latest_data"
 curr_time_ssubd="${data_subd}/t_${timecode}"
 list_crunchbangs="${curr_time_ssubd}/crunchbangs"
 umask 077
+
+  :;: '<> SC Errors below'
+  exit "$LINENO"
 
 :;: 'reduce use of -sudo- in this script by setting up ACL-s'
 case "$filesystem_type" in
