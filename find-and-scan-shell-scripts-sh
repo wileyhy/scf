@@ -77,12 +77,13 @@ for poss_lk_d in "${!a_poss_process_lock_dirs[@]}"; do
 done; 
 
 proc_lk_f_nm=".${$}.${random_n}.lock"; 
-read -r proc_lk_index_1 leftover_words_c <<< "${!a_process_lock_dirs[@]}"; 
+read -r lk_index_1 leftover_words_c <<< \
+  "${!a_poss_process_lock_dirs[@]}"; 
 export leftover_words_c # SC2034
-process_lock="${a_poss_process_lock_dirs["$proc_lk_index_1"]}/${proc_lk_f_nm}"; 
+process_lock="${a_poss_process_lock_dirs["$lk_index_1"]}/${proc_lk_f_nm}"; 
 
   :;: '<>'
-  declare -p random_n a_poss_process_lock_dirs poss_lk_d proc_lk_f_nm proc_lk_index_1 leftover_words_c process_lock; 
+  declare -p random_n a_poss_process_lock_dirs poss_lk_d proc_lk_f_nm lk_index_1 leftover_words_c process_lock; 
   set -x
 
 trap '
@@ -416,7 +417,7 @@ if [[ ! -r "$main_d" ]]; then
       sudo mkdir --parents "$main_d" ||
         fn_erx "$LINENO"
       acl_execd_setfacl='y'
-      #export acl_execd_setfacl
+      export acl_execd_setfacl # SC2034, while trap-s setfacl blk is #-d
       if ! sudo setfacl -R -m "$USER":r-x "$acl_abs_path"; then
         fn_erx 'setfacl failed, acl_abs_path:' "$acl_abs_path"
         break
@@ -497,9 +498,9 @@ fi
 # search_dirs list is new, then do the full a_all_files search again.
 # But if they're the same, then ...
 
-:;: 'Variables for -a_relevant_search_dirs-'
+#:;: 'Variables for -a_relevant_search_dirs-'
 #array='a_relevant_search_dirs'
-list_dirs_search="${curr_time_ssubd}/a_relevant_search_dirs" 
+#list_dirs_search="${curr_time_ssubd}/a_relevant_search_dirs" 
 
 # BUG: in any one execution, as long as time_ssubdr's are used, this
 # '[[ -f' test _will_always_fail_, bc there isn't a creation of the redq
@@ -548,10 +549,10 @@ mapfile -d '' -t a_relevant_search_dirs < <(
     #fi
 #fi
   
-:;: 'Variables for -a_all_files-'
+#:;: 'Variables for -a_all_files-'
 #unset array list_files_all hash_old_b hash_new_b array_count_old_b array_count_new_b
 #array='a_all_files'
-list_files_all="${curr_time_ssubd}/a_all_files"
+#list_files_all="${curr_time_ssubd}/a_all_files"
 
 # BUG: also. this block will never execute
 
@@ -587,7 +588,8 @@ list_files_all="${curr_time_ssubd}/a_all_files"
 #fi
 
 :;: 'If we must run -find- for a_all_files.'
-if [[ ! -v a_all_files ]] || [[ "$must_find_all_files" = 'y' ]]; then
+if [[ ! -v a_all_files ]]; then
+  #|| [[ "$must_find_all_files" = 'y' ]]
   
     : '<>'
     date
