@@ -264,8 +264,8 @@ fn_write_arrays(){
   for loc_unquotd_array_nm_b in "$@"; do 
     #local loc_write_f_b
           loc_write_f_b="${curr_time_ssubd}/${loc_unquotd_array_nm_b}"
-    [[ -e "$loc_write_f_b" ]] &&
-      fn_age_file "$loc_write_f_b"
+    #[[ -e "$loc_write_f_b" ]] &&
+      #fn_age_file "$loc_write_f_b"
     declare -p "$loc_unquotd_array_nm_b" | 
       tee --output-error='exit' "$loc_write_f_b" > /dev/null 2>&1
     :; fn_bak "$loc_write_f_b"
@@ -442,35 +442,8 @@ if [[ ! -d "${curr_time_ssubd}" ]]; then
 fi
 
   # <> 
-  :; fn_write_vars \
-    'A' \
-    LC_ALL \
-    LC_COLLATE \
-    PATH \
-    acl_abs_path \
-    acl_each_dir \
-    acl_execd_setfacl \
-    cli_input \
-    curr_time_ssubd \
-    data_subd \
-    device \
-    filesystem_type \
-    fstype_regex \
-    leftover_words_a \
-    list_crunchbangs \
-    main_d \
-    mountpoint \
-    prev_time_ssubd \
-    process_lock \
-    random_n \
-    severity \
-    shells \
-    subd_x \
-    timecode
-  :; fn_write_arrays \
-    a_acl_name_indiv_dir \
-    a_poss_write_devices \
-    a_previous_time_dirs
+  #:; fn_write_vars 'A' LC_ALL LC_COLLATE PATH acl_abs_path acl_each_dir acl_execd_setfacl cli_input curr_time_ssubd data_subd device filesystem_type fstype_regex leftover_words_a list_crunchbangs main_d mountpoint prev_time_ssubd process_lock random_n severity shells subd_x timecode
+  #:; fn_write_arrays a_acl_name_indiv_dir a_poss_write_devices a_previous_time_dirs
   #:; {
     #declare -fp \
  	    #fn_erx \
@@ -497,27 +470,25 @@ list_dirs_search="${curr_time_ssubd}/a_relevant_search_dirs"
 
 # BUG: in any one execution, as long as time_ssubdr's are used, this
 # '[[ -f' test _will_always_fail_, bc there isn't a creation of the redq
-# file above this section of the script. 
+# file above this section of the script.  Also, the post-processing
+# block also will never execute. 
 
-:;: 'if the a_relevant_search_dirs record file exists and is not a symlink'
-if [[ -f "$list_dirs_search" ]] &&
-  [[ ! -L "$list_dirs_search" ]];
-then
-
-  :;: 'Keep existing data'
-  :; fn_age_file "${list_dirs_search}".bak
-  :; fn_bak "$list_dirs_search"
-
-  :;: 'For whether or not to do the full scan of a_relevant_search_dirs'
-    : 'get the hash of the prior array'
-    hash_old_a="$( md5sum "$list_dirs_search" )"
-
-    :;: 'get the prior count of indices'
-    # shellcheck disable=SC1090
-    source "$list_dirs_search"
-    array_count_old_a="$( fn_num a_relevant_search_dirs )"
-    #unset a_relevant_search_dirs
-fi
+#:;: 'if the a_relevant_search_dirs record file exists and is not a symlink'
+#if [[ -f "$list_dirs_search" ]] &&
+  #[[ ! -L "$list_dirs_search" ]];
+#then
+  #:;: 'Keep existing data'
+  #:; fn_age_file "${list_dirs_search}".bak
+  #:; fn_bak "$list_dirs_search"
+  #:;: 'For whether or not to do the full scan of a_relevant_search_dirs'
+    #: 'get the hash of the prior array'
+    #hash_old_a="$( md5sum "$list_dirs_search" )"
+    #:;: 'get the prior count of indices'
+    ## shellcheck disable=SC1090
+    #source "$list_dirs_search"
+    #array_count_old_a="$( fn_num a_relevant_search_dirs )"
+    ##unset a_relevant_search_dirs
+#fi
 
 :;: 'in any event, create a new record for a_relevant_search_dirs and...'
 mapfile -d '' -t a_relevant_search_dirs < <(
@@ -525,74 +496,64 @@ mapfile -d '' -t a_relevant_search_dirs < <(
 #export a_relevant_search_dirs
 :; fn_write_arrays a_relevant_search_dirs
 
-:;: 'if the pre-processing block ran, then exec this block also'
-if [[ -v array_count_old_a ]]; then 
-  : '<>: variable -array_count_old_a- exists'
-
-  :;: 'these newer files were written just milliseconds ago'
-  :; fn_age_file "${list_dirs_search}".bak
-  :; fn_bak "$list_dirs_search"
-
-  :;: 'For whether or not to run -find- for the a_all_files array'
-    : 'get the hash of the new array' 
-    hash_new_a="$( md5sum "$list_dirs_search" )"
-
-    :;: 'get the new count of indices, and do some comparisons'
-    array_count_new_a="$( fn_num a_relevant_search_dirs )"
-
-    if [[ "${hash_old_a%% *}" != "${hash_new_a%% *}" ]] ||
-      [[ "$array_count_old_a" != "$array_count_new_a" ]]; 
-    then 
-      must_find_all_files='y'
-    fi
-fi
+#:;: 'if the pre-processing block ran, then exec this block also'
+#if [[ -v array_count_old_a ]]; then 
+  #: '<>: variable -array_count_old_a- exists'
+  #:;: 'these newer files were written just milliseconds ago'
+  #:; fn_age_file "${list_dirs_search}".bak
+  #:; fn_bak "$list_dirs_search"
+  #:;: 'For whether or not to run -find- for the a_all_files array'
+    #: 'get the hash of the new array' 
+    #hash_new_a="$( md5sum "$list_dirs_search" )"
+    #:;: 'get the new count of indices, and do some comparisons'
+    #array_count_new_a="$( fn_num a_relevant_search_dirs )"
+    #if [[ "${hash_old_a%% *}" != "${hash_new_a%% *}" ]] ||
+      #[[ "$array_count_old_a" != "$array_count_new_a" ]]; 
+    #then 
+      #must_find_all_files='y'
+    #fi
+#fi
   
 :;: 'Variables for -a_all_files-'
 #unset array list_files_all hash_old_b hash_new_b array_count_old_b array_count_new_b
 #array='a_all_files'
 list_files_all="${curr_time_ssubd}/a_all_files"
 
-:;: 'if the record for a_all_files exists and isnt a symlink'
-if [[ -f "$list_files_all" ]] &&
-  [[ ! -L "$list_files_all" ]];
-then
+# BUG: also. this block will never execute
 
-  :;: 'Keep existing data'
-  :; fn_age_file "${list_files_all}".bak
-  :; fn_bak "$list_files_all"
-
-  :;: 'For whether or not to do the full scan of a_relevant_search_dirs'
-    : 'get the hash of the prior array'
-    hash_old_b="$( md5sum "$list_files_all" )"
-
-    :;: 'get the prior count of indices'
-    : 'set -; source -list_files_all-'; 
-    set -
-    source "$list_files_all"
-    set -x
-    array_count_old_b="$( fn_num a_all_files )"
-    #unset a_all_files
-
-  :;: 'For whether or not to run -find- for the a_all_files array'
-  if [[ "$must_find_all_files" != 'y' ]]; then
-
-    :;: 'get byte count of record file'
-    byte_count="$( wc -c "$list_files_all" )"
-    [[ "${byte_count%% *}" -lt 500 ]] && 
-      must_find_all_files='y'
-
-    :;: 'get delta of mtime to now'
-    mtime_age_in_hours=$(( $(( $( date +%s ) - \
-      $( stat -c%Y "$list_files_all" ) )) / 60 / 60 ))
-    [[ "$mtime_age_in_hours" -gt 72 ]] &&
-      must_find_all_files='y'
-  fi
-fi
+#:;: 'if the record for a_all_files exists and isnt a symlink'
+#if [[ -f "$list_files_all" ]] &&
+  #[[ ! -L "$list_files_all" ]];
+#then
+  #:;: 'Keep existing data'
+  #:; fn_age_file "${list_files_all}".bak
+  #:; fn_bak "$list_files_all"
+  #:;: 'For whether or not to do the full scan of a_relevant_search_dirs'
+    #: 'get the hash of the prior array'
+    #hash_old_b="$( md5sum "$list_files_all" )"
+    #:;: 'get the prior count of indices'
+    #: 'set -; source -list_files_all-'; 
+    #set -
+    #source "$list_files_all"
+    #set -x
+    #array_count_old_b="$( fn_num a_all_files )"
+    ##unset a_all_files
+  #:;: 'For whether or not to run -find- for the a_all_files array'
+  #if [[ "$must_find_all_files" != 'y' ]]; then
+    #:;: 'get byte count of record file'
+    #byte_count="$( wc -c "$list_files_all" )"
+    #[[ "${byte_count%% *}" -lt 500 ]] && 
+      #must_find_all_files='y'
+    #:;: 'get delta of mtime to now'
+    #mtime_age_in_hours=$(( $(( $( date +%s ) - \
+      #$( stat -c%Y "$list_files_all" ) )) / 60 / 60 ))
+    #[[ "$mtime_age_in_hours" -gt 72 ]] &&
+      #must_find_all_files='y'
+  #fi
+#fi
 
 :;: 'If we must run -find- for a_all_files.'
-if [[ ! -v a_all_files ]] ||
-  [[ "$must_find_all_files" = 'y' ]]; 
-then
+if [[ ! -v a_all_files ]] || [[ "$must_find_all_files" = 'y' ]]; then
   
     : '<>'
     date
@@ -609,31 +570,28 @@ then
   :; fn_write_arrays a_all_files
   
   :;: 'these newer files were written just milliseconds ago'
-  :; fn_age_file "${list_files_all}".bak # AJAX
-  :; fn_bak "$list_files_all"
+  #:; fn_age_file "${list_files_all}".bak # AJAX
+  #:; fn_bak "$list_files_all"
 fi
 
-:;: 'For whether or not to do the full scan for a_all_files'
-if [[ -v hash_old_b ]]; then
-  : '<>: variable -hash_old_b- exists'
+# BUG: and neither will this block.
 
-  :;: 'get the hash of the new array'
-  hash_new_b="$( md5sum "$list_files_all" )"
-
-  :;: 'get the prior count of indices; this array was re-assigned'
-  : 'a few milliseconds ago'
-  array_count_new_b="$( fn_num a_all_files )"
-
-  :;: 'Do the comparisons' 
-  if [[ "${hash_old_b%% *}" != "${hash_new_b%% *}" ]] ||
-    [[ "$array_count_old_b" != "$array_count_new_b" ]]; 
-  then 
-    
+#:;: 'For whether or not to do the full scan for a_all_files'
+#if [[ -v hash_old_b ]]; then
+  #: '<>: variable -hash_old_b- exists'
+  #:;: 'get the hash of the new array'
+  #hash_new_b="$( md5sum "$list_files_all" )"
+  #:;: 'get the prior count of indices; this array was re-assigned'
+  #: 'a few milliseconds ago'
+  #array_count_new_b="$( fn_num a_all_files )"
+  #:;: 'Do the comparisons' 
+  #if [[ "${hash_old_b%% *}" != "${hash_new_b%% *}" ]] ||
+    #[[ "$array_count_old_b" != "$array_count_new_b" ]]; 
+  #then 
     # BUG: as of yet unused variable
-    
-    must_scan_relevant_dirs='y'
-  fi
-fi
+    #must_scan_relevant_dirs='y'
+  #fi
+#fi
 
 :;: 'Sort the original array and test it.'
   : '<>'
@@ -653,29 +611,12 @@ mapfile -d '' -t a_all_files_sorted < <(
   fn_erx "${LINENO}"
 
   # <> 
-  :; fn_write_vars \
-    'B' \
-        array_count_new_a \
-        array_count_new_b \
-        array_count_old_a \
-        array_count_old_b \
-        byte_count \
-        hash_new_a \
-        hash_new_b \
-        hash_old_a \
-        hash_old_b \
-    list_dirs_search \
-    list_files_all \
-        mtime_age_in_hours \
-        must_find_all_files
+  #:; fn_write_vars 'B' array_count_new_a array_count_new_b array_count_old_a array_count_old_b byte_count hash_new_a hash_new_b hash_old_a hash_old_b list_dirs_search list_files_all mtime_age_in_hours must_find_all_files
 
-  :; fn_write_arrays \
-    a_all_files \
-    a_all_files_sorted \
-    a_relevant_search_dirs
+  #:; fn_write_arrays a_all_files a_all_files_sorted a_relevant_search_dirs
 
   #: '<>'
-  exit "$LINENO"
+  #exit "$LINENO"
   #set -x
 
 
@@ -880,7 +821,7 @@ mapfile -d '' -t a_each_abspath_scriptnm < <(
   # grep -Eo | tr
 
   : '<>'
-  exit "$LINENO"
+  #exit "$LINENO"
   set -x
 
 # why sort by line count? More text, more bugs? How to prior mult factrs
@@ -926,6 +867,10 @@ rsync -ca "${list_crunchbangs}_found_scripts_with_indices" "$main_d" ||
 rsync -ca "${list_crunchbangs}_found_scripts_with_indices" /tmp ||
   fn_erx "$LINENO"
 
+  :;: '<>'
+  :; fn_write_vars 'D' all_files_index any_existing_f byte_0 byte_1 count each_sorted_f first_line iterator_1 iterator_2 leftover_words_b sorted_script loc_aging_hash_new loc_aging_mtime loc_dir_a loc_exit_code loc_filename_a loc_nameref loc_prevsly_aged loc_script_section_nm loc_unquotd_array_nm_a loc_unquotd_array_nm_b loc_write_f_a loc_write_f_b
+  :; fn_write_arrays a_all_other_files a_crunches_with_hashbang_comments a_each_script_abs_path_nm a_each_script_list_sorted a_each_script_SC_results a_file_DNE a_incorrect_endianness a_non_rpm_system_crunches a_non_rpm_user_crunches a_shell_scripts a_write_path_nms loc_A_hashes_prev_files loc_a_previous_aged_files
+
 exit "$LINENO"
 
 
@@ -937,6 +882,7 @@ exit "$LINENO"
 # . /run/media/*/*/scf.d/latest_data/t_*/a_all_files_sorted
 # fn_num a_all_files_sorted
 # sudo command -p printf '' | sudo tee ./a_all_files_sorted_printed; for g in "${a_all_files_sorted[@]}"; do sudo -p command printf '%s\n' "$g" | sudo tee -a ./a_all_files_sorted_printed ; done
+
 
 # check 'file_out' for anything odd
 # grep -v 'ELF 64-bit' ./scf.d/latest_data/t_2023-04-03_084130/file_out | grep 'read permission'
