@@ -213,12 +213,9 @@ fn_bak(){
   #local loc_filename_a
   for loc_filename_a in "$@"; do 
     if [[ ! -f "${loc_filename_a}" ]]; then 
-      : "fn_bak: target file <${loc_filename_a}>> DNE"
-      continue
-    else 
-      : 'fn_bak: target file exists'
+      rsync -acq "${loc_filename_a}"{,.bak} ||
+        fn_erx "$LINENO"
     fi
-    rsync -acq "${loc_filename_a}"{,.bak}
   done
   #declare -p 'loc_filename_a'
   : 'END OF fn_bak';:
@@ -263,7 +260,7 @@ fn_write_arrays(){
   #   Note: `tee` without '-a' will overwrite an existing file
   for loc_unquotd_array_nm_b in "$@"; do 
     #local loc_write_f_b
-          loc_write_f_b="${curr_time_ssubd}/${loc_unquotd_array_nm_b}"
+     loc_write_f_b="${curr_time_ssubd}/${loc_unquotd_array_nm_b}"
     #[[ -e "$loc_write_f_b" ]] &&
       #fn_age_file "$loc_write_f_b"
     declare -p "$loc_unquotd_array_nm_b" | 
@@ -278,8 +275,8 @@ fn_write_arrays(){
 fn_write_vars(){
   : 'fn_write_vars'
   #local loc_script_section_nm loc_write_f_a
-        loc_script_section_nm="$1"
-        loc_write_f_a="${curr_time_ssubd}/${loc_script_section_nm}_vars"
+  loc_script_section_nm="$1"
+  loc_write_f_a="${curr_time_ssubd}/${loc_script_section_nm}_vars"
   shift
   [[ -e "$loc_write_f_a" ]] &&
     fn_age_file "$loc_write_f_a"
@@ -327,7 +324,10 @@ fi
 # available space and get its mountpoint with `findmnt`. If there is no 
 # output, then set 'mountpoint' according to environment variables. 
 mapfile -t a_poss_write_devices < <( 
-  sudo df --local --output='fstype,avail,source' --block-size=1 | grep --extended-regexp --invert-match '^Type[[:space:]]*Avail' | grep --extended-regexp -e ^"$fstype_regex" -e 'live-rw'$ | sort --general-numeric-sort --reverse --key=2 )
+  sudo df --local --output='fstype,avail,source' --block-size=1 | 
+    grep --extended-regexp --invert-match '^Type[[:space:]]*Avail' | 
+    grep --extended-regexp -e ^"$fstype_regex" -e 'live-rw'$ | 
+    sort --general-numeric-sort --reverse --key=2 )
 #export a_poss_write_devices
 
 read -r filesystem_type leftover_words_a device < <( 
@@ -383,16 +383,15 @@ if [[ ! -r "$main_d" ]]; then
         fn_erx "$LINENO"
       acl_execd_setfacl='y'
       #export acl_execd_setfacl
-      sudo setfacl -R -m "$USER":r-x "$acl_abs_path" || 
+      if ! sudo setfacl -R -m "$USER":r-x "$acl_abs_path"; then
+        fn_erx 'setfacl failed, acl_abs_path:' "$acl_abs_path"
         break
-      sudo setfacl -R -m "$USER":rwx "${main_d%/*}" || 
-        { : 'setfacl failed'
-          break 
-        }
-      : 'setfacl succeeded'
-      break
-    fi ; 
-  done; 
+      elif ! sudo setfacl -R -m "$USER":rwx "${main_d%/*}"; then
+        fn_erx 'setfacl failed, ${maind%/*}:' "${main_d%/*}"
+        break 
+      fi
+    fi 
+  done 
 fi
 
 :;: 'make sure -data_subd- is a directory OR create the -data_subd- dir '
@@ -492,7 +491,8 @@ list_dirs_search="${curr_time_ssubd}/a_relevant_search_dirs"
 
 :;: 'in any event, create a new record for a_relevant_search_dirs and...'
 mapfile -d '' -t a_relevant_search_dirs < <(
-  sudo find / -mindepth 1 -maxdepth 1 -type d \! -empty \( \! -name proc -a \! -name sys -a \! -iname 'scf*' \) -print0 )
+  sudo find / -mindepth 1 -maxdepth 1 -type d \! -empty \
+    \( \! -name proc -a \! -name sys -a \! -iname 'scf*' \) -print0 )
 #export a_relevant_search_dirs
 :; fn_write_arrays a_relevant_search_dirs
 
@@ -569,7 +569,7 @@ if [[ ! -v a_all_files ]] || [[ "$must_find_all_files" = 'y' ]]; then
   #export a_all_files 
   :; fn_write_arrays a_all_files
   
-  :;: 'these newer files were written just milliseconds ago'
+  #:;: 'these newer files were written just milliseconds ago'
   #:; fn_age_file "${list_files_all}".bak # AJAX
   #:; fn_bak "$list_files_all"
 fi
@@ -627,6 +627,10 @@ mapfile -d '' -t a_all_files_sorted < <(
 :;: 'Add some brevity, and write the completed arrays to disk'
 count="${#a_all_files_sorted[@]}"
 unset IFS
+
+  :;: '<>'
+  [[ -f /tmp/"${list_crunchbangs##*/}" ]] &&
+    fn_age_file /tmp/"${list_crunchbangs##*/}"
 
 :;: 'if the full list exists (of files on disk which begin with crash-'
 :   ' bangs), then skip the 30-90 minute search phase.'
@@ -823,6 +827,8 @@ mapfile -d '' -t a_each_abspath_scriptnm < <(
   : '<>'
   #exit "$LINENO"
   set -x
+
+# Bug: rename variable "$c" below
 
 # why sort by line count? More text, more bugs? How to prior mult factrs
 mapfile -t a_each_script_list_sorted < <( 
