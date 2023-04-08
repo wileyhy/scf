@@ -450,7 +450,7 @@ mountpoint="$(
           --output maj:min,size,target --mountpoint "$m"; 
   done | 
     sort -rnk2 | 
-    awk 'NR==1 { print $3 }' )
+    awk 'NR==1 { print $3 }' )"
 
 
 [[ -n "$mountpoint" ]] ||
@@ -825,7 +825,7 @@ then
       # BUG: expect non-printable characters
 
       :;: 'fn_scan_local_disks: Crunchbang found. Use -read-, and hope'
-      :   'there won`t be any non-printable characters.'
+      :   'there won-t be any non-printable characters.'
       else
         IFS= read -r first_line < "$each_sorted_f" ||
           fn_erx "$LINENO" "$all_files_index" "$each_sorted_f";
