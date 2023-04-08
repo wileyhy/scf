@@ -566,30 +566,15 @@ rsync -ca "${list_crunchbangs}_SC-scrpts-list" /tmp ||
   fn_erx "$LINENO"
 :; fn_bak "${list_crunchbangs}_SC-scrpts-list" /tmp/*_SC-scrpts-list
 
-  : '<>'
-  ls -l "${list_crunchbangs}"*
-  wc "${list_crunchbangs}"*
-  exit "$LINENO"
-  #set -x
 
 :;: 'MAIN TASK, 2 of 2: with ShellCheck scan each script for errors'
   
 :;: 'A hell world of pipelines:'
-# Bug? line 1 of script could contain percent symbols
 mapfile -d '' -t a_each_abspath_scriptnm < <( 
   cut -d '%' -f5- "${list_crunchbangs}_SC-scrpts-list" | 
     sed 's,^ *,,' | 
     tr '\n' '\0' )
-  # awk , multi-char delim, remv lead+trail wspc - redef $0 ?, printf
-  # grep -Eo | tr
 
-  : '<>'
-  #exit "$LINENO"
-  set -x
-
-# Bug: rename variable "$c" below
-
-# why sort by line count? More text, more bugs? How to prior mult factrs
 mapfile -t a_each_script_list_sorted < <( 
   for c in "${a_each_abspath_scriptnm[@]}"; do 
     wc -l "$c"; 
@@ -597,15 +582,9 @@ mapfile -t a_each_script_list_sorted < <(
     sort -gr | 
     awk '{ print $2 }' )
 
-  : '<>'
-  exit "$LINENO"
-  set -x
-
 iterator_2=0; 
 {
   for sorted_script in "${!a_each_script_list_sorted[@]}"; do 
-    #unset a_each_script_SC_results;
-    # Bug? 1st grep extra?
     mapfile -d '' -t a_each_script_SC_results < <( 
       shellcheck -S "$severity" \
           "${a_each_script_list_sorted[$sorted_script]}" | 
@@ -614,16 +593,13 @@ iterator_2=0;
         cut -b -64 | 
         sort --general-numeric-sort | 
         uniq --count ; printf '\0' ); 
+
     if [[ -n "${a_each_script_SC_results[*]:0:1}" ]]; then 
       printf '\n%-4d%s\n' $((iterator_2++)) "${a_each_script_list_sorted[$sorted_script]}"; 
       printf '%s' "${a_each_script_SC_results[@]}"; 
     fi; 
   done;
 } | tee -a "${list_crunchbangs}_found_scripts_with_indices"
-
-  : '<>'
-  exit "$LINENO"
-  set -x
 
 :; fn_bak "${list_crunchbangs}_found_scripts_with_indices"
 
@@ -633,25 +609,4 @@ rsync -ca "${list_crunchbangs}_found_scripts_with_indices" "$main_d" ||
 rsync -ca "${list_crunchbangs}_found_scripts_with_indices" /tmp ||
   fn_erx "$LINENO"
 
-  :;: '<>'
-  :; fn_write_vars 'D' all_files_index any_existing_f byte_0 byte_1 count each_sorted_f first_line iterator_1 iterator_2 leftover_words_b sorted_script loc_aging_hash_new loc_aging_mtime loc_dir_a loc_exit_code loc_filename_a loc_nameref loc_prevsly_aged loc_script_section_nm loc_unquotd_array_nm_a loc_unquotd_array_nm_b loc_write_f_a loc_write_f_b
-  :; fn_write_arrays a_all_other_files a_crunches_with_hashbang_comments a_each_script_abs_path_nm a_each_script_list_sorted a_each_script_SC_results a_file_DNE a_incorrect_endianness a_non_rpm_system_crunches a_non_rpm_user_crunches a_shell_scripts a_write_path_nms loc_A_hashes_prev_files loc_a_previous_aged_files
-
-exit "$LINENO"
-
-
-# scan 'a_all_other_files' for anything that isn't an ELF file
-# . /run/media/*/*/scf.d/latest_data/t_*/a_all_other_files
-# for f in "${a_all_other_files[@]}"; do sudo file -pk "$f" | grep -v 'ELF 64-bit LSB '; done
-
-# scan 'a_all_files_sorted' for proper sorting
-# . /run/media/*/*/scf.d/latest_data/t_*/a_all_files_sorted
-# fn_num a_all_files_sorted
-# sudo command -p printf '' | sudo tee ./a_all_files_sorted_printed; for g in "${a_all_files_sorted[@]}"; do sudo -p command printf '%s\n' "$g" | sudo tee -a ./a_all_files_sorted_printed ; done
-
-
-# check 'file_out' for anything odd
-# grep -v 'ELF 64-bit' ./scf.d/latest_data/t_2023-04-03_084130/file_out | grep 'read permission'
-# grep -v 'ELF 64-bit' ./scf.d/latest_data/t_2023-04-03_084130/file_out | grep -v 'read permission' | grep -v 'script text exec'
-
-# 
+exit 0
