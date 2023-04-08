@@ -221,7 +221,7 @@ fn_age_file(){
   local -A loc_A_hashes_prev_files
   mapfile -d '' -t loc_a_previous_aged_files < <( 
     find "${1%/*}" -type f -regextype egrep \
-      -regex ".*/${1##*/}\.([0-9]){10}" ) 
+      -regex ".*/${1##*/}\.([0-9]){10}" 2> /dev/null ) 
 
     :;: '<>'
     declare -p loc_a_previous_aged_files
@@ -266,9 +266,11 @@ fn_bak(){
   # test verifying existence of input -- sb unnec, except for debugging
   #local loc_filename_a
   for loc_filename_a in "$@"; do 
-    if [[ ! -f "${loc_filename_a}" ]]; then 
+    if [[ -f "${loc_filename_a}" ]]; then 
       rsync -acq "${loc_filename_a}"{,.bak} ||
         fn_erx "$LINENO"
+    else
+      fn_erx "$LINENO" file DNE "${loc_filename_a}" 
     fi
   done
   #declare -p loc_filename_a
@@ -365,7 +367,7 @@ mapfile -t a_maj8s < <(
   #declare -p a_maj8s
   #exit "$LINENO"
 
-a_maj8s_copy=( "${a_maj8s[@]}" )
+#a_maj8s_copy=( "${a_maj8s[@]}" )
 I=${#a_maj8s[@]}; 
 for ((i=0;i<I;i++)); do 
   #echo $i: "${a_maj8s[$i]}"; 
@@ -636,7 +638,7 @@ fi
 mapfile -d '' -t a_relevant_search_dirs < <(
   sudo find / -mindepth 1 -maxdepth 1 -type d \! -empty \
     \( \! -name proc -a \! -name sys -a \! -iname 'scf*' \) \
-    -print0 2>/dev/null )
+    -print0 2> /dev/null )
 #export a_relevant_search_dirs
 :; fn_write_arrays a_relevant_search_dirs
 
@@ -935,7 +937,7 @@ fi
   :; fn_write_vars 'B' each_sorted_f list_crunchbangs all_files_index od_o{0,1} X first_line count
 
   : '<>'
-  exit "$LINENO"
+  #exit "$LINENO"
   #set -x
 
     
