@@ -303,8 +303,10 @@ fn_write_arrays(){
      loc_write_f_b="${curr_time_ssubd}/${loc_unquotd_array_nm_b}"
     #[[ -e "$loc_write_f_b" ]] &&
       #fn_age_file "$loc_write_f_b"
-    declare -p "$loc_unquotd_array_nm_b" | 
-      tee --output-error=exit "$loc_write_f_b" > /dev/null 2>&1
+    if [[ -v "$loc_unquotd_array_nm_b" ]]; then
+      declare -p "$loc_unquotd_array_nm_b" | 
+        tee --output-error=exit "$loc_write_f_b" > /dev/null 2>&1
+    fi
     :; fn_bak "$loc_write_f_b"
     #unset loc_write_f_b
   done
@@ -633,7 +635,8 @@ fi
 :;: 'in any event, create a new record for a_relevant_search_dirs and...'
 mapfile -d '' -t a_relevant_search_dirs < <(
   sudo find / -mindepth 1 -maxdepth 1 -type d \! -empty \
-    \( \! -name proc -a \! -name sys -a \! -iname 'scf*' \) -print0 )
+    \( \! -name proc -a \! -name sys -a \! -iname 'scf*' \) \
+    -print0 2>/dev/null )
 #export a_relevant_search_dirs
 :; fn_write_arrays a_relevant_search_dirs
 
@@ -739,7 +742,7 @@ fi
   : '<>'
   set -; 
 
-printf 'printf -a_all_files_sorted- array\n'
+#printf 'printf -a_all_files_sorted- array\n'
 mapfile -d '' -t a_all_files_sorted < <(
   printf '%s\0' "${a_all_files[@]}" |
     sort --zero-terminated )
@@ -911,7 +914,7 @@ then
   touch "${a_write_path_nms[@]}"
 
   :;: 'fn_createdatafile: header'
-  printf '# crunchbangs -- %s \n' "$timecode" | 
+  printf '# crunchbangs -- %s \n' "${timecode%_*}" | 
     tee --output-error='exit' "${a_write_path_nms[@]}" > /dev/null 2>&1
   
   :;: 'fn_createdatafile: printing contents of a_shell_scripts array'
