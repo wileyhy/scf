@@ -394,76 +394,26 @@ mapfile -d '' -t a_relevant_search_dirs < <(
 
 :;: 'If we must run -find- for a_all_files.'
 if [[ ! -v a_all_files ]]; then
-  #|| [[ "$must_find_all_files" = 'y' ]]
   
     : '<>'
-    date
     a_relevant_search_dirs=( /usr/sbin )
     #a_relevant_search_dirs=( /usr/sbin /usr/bin )
-    #a_relevant_search_dirs=( /usr/sbin /usr/bin /etc )
-    #a_relevant_search_dirs=( /usr/sbin /usr/bin /etc /var )
   
   :;: 'Find all relevant files on disk.'
   mapfile -d '' -t a_all_files < <( 
     sudo find "${a_relevant_search_dirs[@]}" -mindepth 1 -type f -print0 \
       2> /dev/null )
-  #export a_all_files 
   :; fn_write_arrays a_all_files
-  
-  #:;: 'these newer files were written just milliseconds ago'
-  #:; fn_age_file "${list_files_all}".bak # AJAX
-  #:; fn_bak "$list_files_all"
-fi
-
-# BUG: and neither will this block.
-
-#:;: 'For whether or not to do the full scan for a_all_files'
-#if [[ -v hash_old_b ]]; then
-  #: '<>: variable -hash_old_b- exists'
-  #:;: 'get the hash of the new array'
-  #hash_new_b="$( md5sum "$list_files_all" )"
-  #:;: 'get the prior count of indices; this array was re-assigned'
-  #: 'a few milliseconds ago'
-  #array_count_new_b="$( fn_num a_all_files )"
-  #:;: 'Do the comparisons' 
-  #if [[ "${hash_old_b%% *}" != "${hash_new_b%% *}" ]] ||
-    #[[ "$array_count_old_b" != "$array_count_new_b" ]]; 
-  #then 
-    # BUG: as of yet unused variable
-    #must_scan_relevant_dirs='y'
-  #fi
-#fi
 
 :;: 'Sort the original array and test it.'
-  : '<>'
-  set -; 
-
-#printf 'printf -a_all_files_sorted- array\n'
 mapfile -d '' -t a_all_files_sorted < <(
   printf '%s\0' "${a_all_files[@]}" |
     sort --zero-terminated )
-
-  : '<>'
-  set -x; 
-  : 'set -x'
 
 :;: 'Do the second comparison.' 
 [[ "$( fn_num a_all_files )" -eq "$( fn_num a_all_files_sorted )" ]] ||
   fn_erx "${LINENO}"
 
-  # <> 
-  #:; fn_write_vars 'B' array_count_new_a array_count_new_b array_count_old_a array_count_old_b byte_count hash_new_a hash_new_b hash_old_a hash_old_b list_dirs_search list_files_all mtime_age_in_hours must_find_all_files
-
-  #:; fn_write_arrays a_all_files a_all_files_sorted a_relevant_search_dirs
-
-  #: '<>'
-  #exit "$LINENO"
-  #set -x
-
-
-###  SECTION c  ::  SCANNING  ###
-
-# Bug? Can more indices and fewer files be used?
 
 :;: 'Add some brevity, and write the completed arrays to disk'
 count="${#a_all_files_sorted[@]}"
@@ -479,30 +429,22 @@ if [[ ! -f /tmp/"${list_crunchbangs##*/}" ]] ||
   [[ -L /tmp/"${list_crunchbangs##*/}" ]]; 
 then
   
-#fn_scan_local_disks(){
-  #: 'fn_scan_local_disks'
+
   :;: 'fn_scan_local_disks: Sort out the scripts, ie, any file beginning' 
   :   'with a crashbang from the rest of the files'
-  #   Note: this function can take 30-90 minutes!
   for all_files_index in "${!a_all_files_sorted[@]}"; do
 
     :;: 'fn_scan_local_disks: LOOP';:
     printf '%d of %d files\r' "$all_files_index" "$count"
-    #unset each_sorted_f leftover_words_b od_o{0,1} first_line 
     each_sorted_f="${a_all_files_sorted[${all_files_index}]}"
     
-    # BUG: the arrays and vars are messy; clean up the lists.
-
     :;: 'fn_scan_local_disks: each_sorted_f must exist'
     if [[ ! -e "$each_sorted_f" ]]; then
       set -x
       a_file_DNE+=( "$each_sorted_f" )
-      #unset 'a_all_files_sorted[$all_files_index]'
       continue
       set -
     fi
-
-    # TODO: check for empty files, make a list of them
 
     :;: 'fn_scan_local_disks: run -file- on each each_sorted_f'
     { 
@@ -511,14 +453,8 @@ then
     } | 
       tee -a "${curr_time_ssubd}/file_out"
  
-      # Bug: avoid as many disk writes as possible. 
-      # Bug: use indices to reference each type? 
-      #    RO all files array? 
-
     :;: 'fn_scan_local_disks: Read from disk in binary the first two bytes' 
     :   'of each each_sorted_f in the list and output it in hexadecimal.'
-    #   Note: inordinately long interpreter paths are rare, but do occur.
-    #   Note: `od` command is POSIX compliant
     read -r leftover_words_b byte_0 byte_1 leftover_words_b < <( 
       sudo od -j 0 -N 2 -t x1z -v "$each_sorted_f" || 
         fn_erx "$LINENO" "$all_files_index" "$each_sorted_f" )
@@ -537,9 +473,6 @@ then
       :   ' a DB file, etc.'
       if [[ "${byte_0}${byte_1}" == '2123' ]]; then
         a_incorrect_endianness+=( [$all_files_index]="$each_sorted_f" )
-        #unset 'a_all_files_sorted[$all_files_index]'
-
-      # BUG: expect non-printable characters
 
       :;: 'fn_scan_local_disks: Crunchbang found. Use -read-, and hope'
       :   'there won-t be any non-printable characters.'
@@ -551,24 +484,20 @@ then
         :   'initial bytes. These aren-t scripts, so restart the loop.'
         if [[ "$first_line" =~ ^'#!comment' ]]; then
           a_crunches_with_hashbang_comments+=( [${all_files_index}]="$each_sorted_f" )
-          #unset 'a_all_files_sorted[$all_files_index]'
           continue
         fi
 
         :;: 'fn_scan_local_disks: Issue: crashbang files which originate'
         :   'outside of the rpm package manager'
-        #   Note: with only /bin/sbin, this if-fi block doesn't execute
         if ! rpm -qf "$each_sorted_f" 2> /dev/null 1>&2; then
 
           :;: 'fn_scan_local_disks: user and system files from outside -rpm-'
           if [[ "$each_sorted_f" = /@(root|home|run/media)/* ]]; then
             a_non_rpm_user_crunches+=( [${all_files_index}]="$each_sorted_f" )
-            #unset 'a_all_files_sorted[$all_files_index]'
             continue
 
           else
             a_non_rpm_system_crunches+=( [${all_files_index}]="$each_sorted_f" )
-            #unset 'a_all_files_sorted[$all_files_index]'
             continue
           fi
         fi
@@ -578,36 +507,23 @@ then
       :   'filenames and their crashbangs.'
       a_shell_scripts+=( [$all_files_index]="$( \
         printf '%-50s   %% %% %% %%   %s\n' "$first_line" "$each_sorted_f" )" )
-      #unset 'a_all_files_sorted[$all_files_index]'
 
     else
       a_all_other_files+=( [$all_files_index]="$each_sorted_f" )
-      #unset 'a_all_files_sorted[$all_files_index]'
     fi
   done
   
-  :;: '<>'
-
   :; fn_bak "${curr_time_ssubd}"/file_out
-  #: 'END OF fn_scan_local_disks';:
-#}
-  #:; fn_scan_local_disks
 
-#fn_createdatafile(){
-  #: 'fn_createdatafile'
+
   :;: 'fn_createdatafile: Open a timestamped file & append into it the list' 
   :   ' of filenames and their crashbangs.' 
 
   :;: Exporting is necessary of the array names from the above scan 
   export a_all_files_sorted a_file_DNE a_incorrect_endianness  a_crunches_with_hashbang_comments a_non_rpm_user_crunches a_non_rpm_system_crunches a_shell_scripts a_all_other_files a_relevant_search_dirs
-  #declare -p a_all_files_sorted a_file_DNE a_incorrect_endianness  a_crunches_with_hashbang_comments a_non_rpm_user_crunches a_non_rpm_system_crunches a_shell_scripts a_all_other_files a_relevant_search_dirs
-  #exit "$LINENO"
   
   :;: 'fn_createdatafile: data files'
   a_write_path_nms=( "${list_crunchbangs:=crunchbangs}" /tmp/"${list_crunchbangs##*/}" )
- 
-    :;: '<>'
-    declare -p a_write_path_nms a_shell_scripts
 
   :;: 'fn_createdatafile: if any data files already exist, keep them'
   for any_existing_f in "${a_write_path_nms[@]}"; do
@@ -627,30 +543,12 @@ then
     tee --output-error='exit' "${a_write_path_nms[@]}"
   
   :;: fn_createdatafile: printing contents of a_shell_scripts array
-  #set -
   printf '%s\n' "${a_shell_scripts[@]}" |
     tee --append --output-error=exit "${a_write_path_nms[@]}"
-  #set -x
   :; fn_bak "${a_write_path_nms[@]}"
-  #: 'END OF fn_createdatafile';:
-#}
-  #:; fn_createdatafile
+
 fi
 
-  # <>
-  #:; fn_write_arrays a_shell_scripts a_crunches_with_hashbang_comments \
-    #a_all_other_files a_incorrect_endianness \
-    #a_non_rpm_system_crunches a_non_rpm_user_crunches 
-  #:; fn_write_vars 'C' each_sorted_f list_crunchbangs all_files_index od_o{0,1} X first_line count
-
-  : '<>'
-  #exit "$LINENO"
-  #set -x
-
-    
-###  SECTION d  ###    
-
-# Make the data readable and useable.
 
 :;: 'CENTRAL TASK, 1 OF 2: Filter the list of crashbangs with the list' 
 :   '  of shells.'
