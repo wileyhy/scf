@@ -13,7 +13,6 @@ LC_ALL=C.UTF-8
 LC_COLLATE=C
 
 :;: Option parsing
-
 fn_usage(){
   : fn_usage
   # Usage:  fn_usage [exit-code]
@@ -78,20 +77,20 @@ trap '
     fi;
   done
 
-  # Good code, for final versions
-  #if [[ -v acl_execd_setfacl ]]; then 
-    #if [[ -v acl_abs_path ]]; then 
-      #sudo setfacl -R -x u:"$UID" "$acl_abs_path" ||
-        #echo Error: setfacl failed, line $LINENO
-    #elif [[ -v mountpoint ]]; then
-      #sudo setfacl -R -x u:"$UID" "$mountpoint" ||
-        #echo Error: setfacl failed, line $LINENO
-    #fi
-  #fi
+  # Remove this script's ACL's
+  if [[ -v acl_execd_setfacl ]]; then 
+    if [[ -v acl_abs_path ]]; then 
+      sudo setfacl -R -x u:"$UID" "$acl_abs_path" ||
+        echo Error: setfacl failed, line $LINENO
+    elif [[ -v mountpoint ]]; then
+      sudo setfacl -R -x u:"$UID" "$mountpoint" ||
+        echo Error: setfacl failed, line $LINENO
+    fi
+  fi
 
   trap - EXIT TERM INT; 
   kill -s INT "$$"
-  ' EXIT TERM INT # for cleaner xtrace output, put on one line 
+' EXIT TERM INT 
 
 if ! mkdir "$process_lock" 2> /dev/null; then
   { printf '\n\tCannot acquire process lock: <%s>.\n' "$process_lock"
@@ -146,12 +145,7 @@ fn_age_file(){
 fn_bak(){ 
   : fn_bak
 
-    :;: '<>'
-    [[ "$#" -eq 0 ]] &&
-      return 1
-
-  # test verifying existence of input -- sb unnec, except for debugging
-  #local loc_filename_a
+  # test verifying existence of input
   for loc_filename_a in "$@"; do 
     if [[ -f "${loc_filename_a}" ]]; then 
       rsync -acq "${loc_filename_a}"{,.bak} ||
@@ -160,7 +154,6 @@ fn_bak(){
       fn_erx "$LINENO" file DNE "${loc_filename_a}" 
     fi
   done
-  #declare -p loc_filename_a
   : END OF fn_bak;:
 }
 fn_erx(){ 
@@ -172,26 +165,21 @@ fn_erx(){
 }
 fn_num(){ 
   : fn_num
-  #local loc_unquotd_array_nm_a
   for loc_unquotd_array_nm_a in "$@"; do
     local -n loc_nameref="$loc_unquotd_array_nm_a" 
     echo "${#loc_nameref[@]}"
   done
-  #declare -p loc_unquotd_array_nm_a >&2
   : END OF fn_num;:
 }
 fn_write_arrays(){
   : fn_write_arrays
   # Usage: fn_write_arrays [arrays]
-  # Note: Default directory is -curr_time_ssubd-.
 
   :;: fn_write_arrays: Write each array to disk.
   #   Note: `tee` without -a will overwrite an existing file
   for loc_unquotd_array_nm_b in "$@"; do 
-    #local loc_write_f_b
-     loc_write_f_b="${curr_time_ssubd}/${loc_unquotd_array_nm_b}"
-    #[[ -e "$loc_write_f_b" ]] &&
-      #fn_age_file "$loc_write_f_b"
+    loc_write_f_b="${curr_time_ssubd}/${loc_unquotd_array_nm_b}"
+
     if [[ -v "$loc_unquotd_array_nm_b" ]]; then
       declare -p "$loc_unquotd_array_nm_b" | 
         tee --output-error=exit "$loc_write_f_b" > /dev/null
@@ -199,79 +187,44 @@ fn_write_arrays(){
       fn_erx "$LINENO" VAR "$loc_unquotd_array_nm_b" DNE
     fi
     :; fn_bak "$loc_write_f_b"
-    #unset loc_write_f_b
   done
-  #declare -p loc_unquotd_array_nm_b loc_write_f_b
   : END OF fn_write_arrays;:
 }
 # Usage: fn_write_vars [loc_script_section_nm] [raw variable names]
 fn_write_vars(){
   : fn_write_vars
-  #local loc_script_section_nm loc_write_f_a
   loc_script_section_nm="$1"
   loc_write_f_a="${curr_time_ssubd}/${loc_script_section_nm}_vars"
   shift
+
   [[ -e "$loc_write_f_a" ]] &&
     fn_age_file "$loc_write_f_a"
+
   declare -p "$@" 2> /dev/null |
     tee --output-error=exit "$loc_write_f_a" > /dev/null
+
   :; fn_bak "$loc_write_f_a"
-  #declare -p loc_script_section_nm loc_write_f_a 
   : END OF fn_write_vars;:
 }
-#export -f \
-  #fn_age_file \
-  #fn_bak \
-  #fn_erx \
-  #fn_num \
-  #fn_usage \
-  #fn_write_arrays \
-  #fn_write_vars
-
-
 
 :;: Assign varnames and paths for the data directories
-
-#   Note: In case of large log files, programatically select a save di-
-# rectory, attached to the local disk, where any output can be saved; 
-# prefer USB flash drives. This particular `df` command will output three 
-# alphanumeric strings separated by whitespace on a single line. `sort` the 
-# output by descending size. With `awk`, take the device with the most 
-# available space and get its mountpoint with `findmnt`. If there is no 
-# output, then set mountpoint according to environment variables. 
-
-
-# List all SCSI device (major number 8) partitions (ending with [0-9]), 
-# and print any which have both any detected filesystem and no detected
-# mountpoint.
-
-  #:;: '<>'
-  #set -x
 
 # get the list of attached SCSI devices
 mapfile -t a_maj8s < <( 
   lsblk --ascii --include 8 --noempty --noheadings --paths --output path --list /dev/sd[b-z][0-9] ); 
 
-  #:;: '<>'
-  #declare -p a_maj8s
-  #exit "$LINENO"
-
-#a_maj8s_copy=( "${a_maj8s[@]}" )
 I=${#a_maj8s[@]}; 
 for ((i=0;i<I;i++)); do 
-  #echo $i: "${a_maj8s[$i]}"; 
 
   # get per-device info on fstype, uuid and mountpoints
   # shellcheck disable=SC2016
   read -r 'a_fs[$i]' 'a_uu[$i]' < <( 
     sudo wipefs --no-act --output type,uuid --noheadings \
       --types "$fstype_list" "${a_maj8s[$i]}" )
+
   # shellcheck disable=SC2016
   read -r 'a_mp[$i]' < <( 
     lsblk --noheadings --output mountpoints "${a_maj8s[$i]}" ); 
-
-    #:;: '<>'
-    #declare -p a_{maj8s{,_copy},fs,uu,mp}
 
   # of the found SCSI devices, if there is no FS, then disregard it...
   [[ -z "${a_fs[$i]}" ]] && 
@@ -282,17 +235,10 @@ for ((i=0;i<I;i++)); do
     unset a_maj8s'[$i]'
 done
 
-  #:;: '<>'
-  #declare -p a_{maj8s,fs,uu,mp} i a_maj8s_copy 
-  #exit "$LINENO"
-  set -x
-
 # if there arent any available mountpoints, but there are some fs-s
 # or if there are some extra fs-s attached which arent mounted
 for mp in "${a_mp[@]}"; do [[ -n "$mp" ]] && a_avail_mp+=( "$mp" ); done
 for fs in "${a_fs[@]}"; do [[ -n "$fs" ]] && a_avail_fs+=( "$fs" ); done
-
-  declare -p a_avail_mp a_avail_fs
 
 if { 
   [[ "${#a_avail_mp[@]}" -eq 0 ]] && [[ "${#a_avail_fs[@]}" -gt 0 ]];
@@ -311,8 +257,6 @@ then
     printf '\t\t %s \n' "${a_maj8s[@]}"
     printf ' \n'
 
-    # BUG: needs a timeout and a default value. use `read`?
-
     select mount_exit in Ignore 'Mount all' Exit; do
 
       case "$mount_exit" in
@@ -322,9 +266,6 @@ then
 
           # mount the found partitions
           for j in "${!a_maj8s[@]}"; do 
-
-              #:;: '<>'
-              #declare -p j
 
             # create a mountpoint
             a_mp+=( [$j]="/run/media/${USER}/${a_uu[$j]}" )
@@ -341,18 +282,12 @@ then
         *) fn_erx "$LINENO" '*Unreachable code*'
       esac
     done
-
-      #:;: '<>'
-      declare -p mount_exit a_mp 
   fi
 elif [[ "${#a_avail_mp[@]}" -eq "${#a_avail_fs[@]}" ]]; then
   true
 else
   fn_erx "$LINENO" '*Unreachable code*'
 fi
-    :;: '<>'
-    set -x
-    #exit "$LINENO"
 
 # prevent the FS root '/' from becoming the mountpoint
 mountpoint="$( 
@@ -377,10 +312,6 @@ read -r filesystem_type device < <(
     --types "$fstype_list" --noheadings --notruncate --nofsroot \
     --output fstype,source --mountpoint "$mountpoint" )
 umask 077
-
-  :;: '<>'
-  declare -p process_lock filesystem_type device
-  #exit "$LINENO"
 
 :;: 'reduce use of -sudo- in this script by setting up ACL-s'
 case "$filesystem_type" in
