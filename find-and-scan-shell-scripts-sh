@@ -5,19 +5,19 @@
 
 ###  SECTION A  ###
 
-:;: 'Implementation-dependent arguments for opts parsable by -shellcheck-'
-severity='error'
+:;: Implementation-dependent arguments for opts parsable by -shellcheck-
+severity=error
 shells='(sh|bash|dash|ksh)'
 
-:;: 'Environment variables'
+:;: Environment variables
 PATH="$( /usr/bin/command -p getconf PATH ):/usr/bin:/usr/sbin:${PATH}"
 LC_ALL=C.UTF-8
 LC_COLLATE=C
 
-:;: 'Option parsing'
+:;: Option parsing
 
 fn_usage(){
-  : 'fn_usage'
+  : fn_usage
   # Usage:  fn_usage [exit-code]
   cat <<-\EOF
     
@@ -30,28 +30,28 @@ fn_usage(){
 
 EOF
   exit "${1}"
-  : 'END OF fn_usage';:
+  : END OF fn_usage;:
 }
 
 if [[ "$#" -gt 0 ]]; then
   cli_input="${1:0:2}"
 
   case "${cli_input}" in
-    --) printf '0a09486170707920456173746572210a0a' | 
+    --) printf 0a09486170707920456173746572210a0a | 
           xxd -r -p
         exit 0;;
-    -e) severity='error';;
-    -i) severity='info';;
-    -v) printf '0a09224920776f756c642068617665206d61646520746869732073686f727465722c206275742049206469646e27742068617665207468652074696d652e220a09092d2d204d61726b20547761696e0a0a' |
+    -e) severity=error;;
+    -i) severity=info;;
+    -v) printf 0a09224920776f756c642068617665206d61646520746869732073686f727465722c206275742049206469646e27742068617665207468652074696d652e220a09092d2d204d61726b20547761696e0a0a |
           xxd -r -p
         exit 0;;
-    -w) severity='warning';;
+    -w) severity=warning;;
     -h) :; fn_usage 0;;
     *)  :; fn_usage 1;;
   esac
 fi
 
-:;: 'Use -sudo-'
+:;: Use -sudo-
 
   : '<>'
   date
@@ -62,11 +62,11 @@ if ! sudo -v; then
   exit "$LINENO"
 fi
 
-:;: 'Process lock'
+:;: Process lock
 random_n="$RANDOM"; 
 proc_lk_f_nm=".$$.${random_n}.lock"; 
 a_poss_proces_lock_dirs=( [0]="$XDG_RUNTIME_DIR" [1]="$HOME" 
-  [2]="$TMPDIR" [3]='/tmp' [4]='/var/tmp' ); 
+  [2]="$TMPDIR" [3]=/tmp [4]=/var/tmp ); 
 
 for poss_lk_d in "${a_poss_proces_lock_dirs[@]}"; do 
   if [[ -d "$poss_lk_d" ]]; then
@@ -115,7 +115,7 @@ fi
   #exit "$LINENO"
 
 
-:;: 'User variables'
+:;: User variables
 fstype_list='btrfs,exfat,ext3,ext4,fat32,ntfs,xfs'
 timecode="$( builtin printf '%(%F_%H%M%S)T' )"
 
@@ -209,9 +209,9 @@ timecode="$( builtin printf '%(%F_%H%M%S)T' )"
   #loc_A_hashes_prev_files \
   #loc_a_previous_aged_files
 
-:;: 'Functions'
+:;: Functions
 fn_age_file(){
-  : 'fn_age_file'
+  : fn_age_file
 
     :;: '<>'
     [[ -f "$1" ]] ||
@@ -243,7 +243,7 @@ fn_age_file(){
           cut -d ' ' -f1 )"
       
       [[ -n "${loc_A_hashes_prev_files["$loc_aging_hash_new"]}" ]] && 
-        : 'END OF fn_age_file';:
+        : END OF fn_age_file;:
         return 0
     fi
   done
@@ -251,13 +251,13 @@ fn_age_file(){
   #local loc_aging_mtime
   loc_aging_mtime="$( stat -c%Y "$1" )"
   mv "${1}" "${1}.${loc_aging_mtime}" ||
-    fn_erx 'fn_age_file' "$1";
-  #declare -p 'loc_A_hashes_prev_files' 'loc_prevsly_aged' \
-    #'loc_aging_hash_new' 'loc_aging_mtime'
-  : 'END OF fn_age_file';:
+    fn_erx fn_age_file "$1";
+  #declare -p loc_A_hashes_prev_files loc_prevsly_aged \
+    #loc_aging_hash_new loc_aging_mtime
+  : END OF fn_age_file;:
 }
 fn_bak(){ 
-  : 'fn_bak'
+  : fn_bak
 
     :;: '<>'
     [[ "$#" -eq 0 ]] &&
@@ -271,49 +271,49 @@ fn_bak(){
         fn_erx "$LINENO"
     fi
   done
-  #declare -p 'loc_filename_a'
-  : 'END OF fn_bak';:
+  #declare -p loc_filename_a
+  : END OF fn_bak;:
 }
 fn_erx(){ 
   local loc_exit_code="$?" # this assignment must be the first command
-  : 'fn_erx'
+  : fn_erx
   echo -e Error: "$@" 
-  : 'END OF fn_erx';:
+  : END OF fn_erx;:
   exit "$loc_exit_code"
 }
 fn_num(){ 
-  : 'fn_num'
+  : fn_num
   #local loc_unquotd_array_nm_a
   for loc_unquotd_array_nm_a in "$@"; do
     local -n loc_nameref="$loc_unquotd_array_nm_a" 
     echo "${#loc_nameref[@]}"
   done
-  #declare -p 'loc_unquotd_array_nm_a' >&2
-  : 'END OF fn_num';:
+  #declare -p loc_unquotd_array_nm_a >&2
+  : END OF fn_num;:
 }
 fn_write_arrays(){
-  : 'fn_write_arrays'
+  : fn_write_arrays
   # Usage: fn_write_arrays [arrays]
-  # 'Note: Default directory is -curr_time_ssubd-.'
+  # Note: Default directory is -curr_time_ssubd-.
 
-  :;: 'fn_write_arrays: Write each array to disk.'
-  #   Note: `tee` without '-a' will overwrite an existing file
+  :;: fn_write_arrays: Write each array to disk.
+  #   Note: `tee` without -a will overwrite an existing file
   for loc_unquotd_array_nm_b in "$@"; do 
     #local loc_write_f_b
      loc_write_f_b="${curr_time_ssubd}/${loc_unquotd_array_nm_b}"
     #[[ -e "$loc_write_f_b" ]] &&
       #fn_age_file "$loc_write_f_b"
     declare -p "$loc_unquotd_array_nm_b" | 
-      tee --output-error='exit' "$loc_write_f_b" > /dev/null 2>&1
+      tee --output-error=exit "$loc_write_f_b" > /dev/null 2>&1
     :; fn_bak "$loc_write_f_b"
     #unset loc_write_f_b
   done
-  #declare -p 'loc_unquotd_array_nm_b' 'loc_write_f_b'
-  : 'END OF fn_write_arrays';:
+  #declare -p loc_unquotd_array_nm_b loc_write_f_b
+  : END OF fn_write_arrays;:
 }
 # Usage: fn_write_vars [loc_script_section_nm] [raw variable names]
 fn_write_vars(){
-  : 'fn_write_vars'
+  : fn_write_vars
   #local loc_script_section_nm loc_write_f_a
   loc_script_section_nm="$1"
   loc_write_f_a="${curr_time_ssubd}/${loc_script_section_nm}_vars"
@@ -321,10 +321,10 @@ fn_write_vars(){
   [[ -e "$loc_write_f_a" ]] &&
     fn_age_file "$loc_write_f_a"
   declare -p "$@" 2> /dev/null |
-    tee --output-error='exit' "$loc_write_f_a" > /dev/null 2>&1
+    tee --output-error=exit "$loc_write_f_a" > /dev/null 2>&1
   :; fn_bak "$loc_write_f_a"
-  #declare -p 'loc_script_section_nm' 'loc_write_f_a' 
-  : 'END OF fn_write_vars';:
+  #declare -p loc_script_section_nm loc_write_f_a 
+  : END OF fn_write_vars;:
 }
 #export -f \
   #fn_age_file \
@@ -337,7 +337,7 @@ fn_write_vars(){
 
 
 
-:;: 'Assign varnames and paths for the data directories'
+:;: Assign varnames and paths for the data directories
 
 #   Note: In case of large log files, programatically select a save di-
 # rectory, attached to the local disk, where any output can be saved; 
@@ -345,7 +345,7 @@ fn_write_vars(){
 # alphanumeric strings separated by whitespace on a single line. `sort` the 
 # output by descending size. With `awk`, take the device with the most 
 # available space and get its mountpoint with `findmnt`. If there is no 
-# output, then set 'mountpoint' according to environment variables. 
+# output, then set mountpoint according to environment variables. 
 
 
 # List all SCSI device (major number 8) partitions (ending with [0-9]), 
@@ -363,7 +363,7 @@ mapfile -t a_maj8s < <(
   #declare -p a_maj8s
   #exit "$LINENO"
 
-#a_maj8s_copy=( "${a_maj8s[@]}" )
+a_maj8s_copy=( "${a_maj8s[@]}" )
 I=${#a_maj8s[@]}; 
 for ((i=0;i<I;i++)); do 
   #echo $i: "${a_maj8s[$i]}"; 
@@ -390,56 +390,74 @@ for ((i=0;i<I;i++)); do
 done
 
   #:;: '<>'
-  #declare -p a_{maj8s{,_copy},fs,uu,mp} i
+  #declare -p a_{maj8s,fs,uu,mp} i a_maj8s_copy 
   #exit "$LINENO"
-  #set -x
+  set -x
 
-# if there are any partitions left in the 'a_maj8s' array, then...
-# shellcheck disable=SC2154
-if [[ "${#a_maj8s[@]}" -ne 0 ]]; then
+# if there arent any available mountpoints, but there are some fs-s
+# or if there are some extra fs-s attached which arent mounted
+for mp in "${a_mp[@]}"; do [[ -n "$mp" ]] && a_avail_mp+=( "$mp" ); done
+for fs in "${a_fs[@]}"; do [[ -n "$fs" ]] && a_avail_fs+=( "$fs" ); done
 
-  # 
-  printf '\n\t There are _%d_ additional SCSI partitions' "${#a_maj8s[@]}" 
-  printf     ' available. \n' 
-  printf   '\t Would you like to (a) mount them or (b) exit? \n\n'
-  printf '\t\t %s \n' "${a_maj8s[@]}"
-  printf     ' \n'
+  declare -p a_avail_mp a_avail_fs
 
-  select mount_exit in 'Mount all' 'Exit'; do
+if { 
+  [[ "${#a_avail_mp[@]}" -eq 0 ]] && [[ "${#a_avail_fs[@]}" -gt 0 ]];
+    } || 
+  [[ "${#a_avail_mp[@]}" -lt "${#a_avail_fs[@]}" ]]; 
+then
+  
+  # if there are any partitions left in the 'a_maj8s' array, then...
+  # shellcheck disable=SC2154
+  if [[ "${#a_maj8s[@]}" -gt 0 ]]; then
 
-    case "$mount_exit" in
-      'Exit') exit 0;;
-      'Mount all')
+    # 
+    printf '\n\t There are _%d_ SCSI filesystems ' "${#a_avail_mp[@]}"
+    printf 'mounted and _%d_ additional SCSI \n\t file' "${#a_maj8s[@]}" 
+    printf 'systems unmounted and available.\n\n'
+    printf '\t\t %s \n' "${a_maj8s[@]}"
+    printf ' \n'
 
-        # mount the found partitions
-        for j in "${!a_maj8s[@]}"; do 
+    select mount_exit in Ignore 'Mount all' Exit; do
 
-            #:;: '<>'
-            #declare -p j
+      case "$mount_exit" in
+        Exit) exit 0;;
+        Ignore) break;;
+        'Mount all')
 
-          # create a mountpoint
-          a_mp+=( [$j]="/run/media/${USER}/${a_uu[$j]}" )
-          sudo mkdir --parents "${a_mp[$j]}" ||
-            fn_erx "$LINENO"
+          # mount the found partitions
+          for j in "${!a_maj8s[@]}"; do 
 
-          # mount the device
-          sudo mount -o nosuid,nodev,noexec,rw \
-              "${a_maj8s[$j]}" "${a_mp[$j]}" ||
-            fn_erx "$LINENO"
-        done
-        break
-        ;;
-      *) fn_erx "$LINENO" '*Unreachable code*'
-    esac
-  done
+              #:;: '<>'
+              #declare -p j
 
-    #:;: '<>'
-    declare -p j mount_exit a_mp a_maj8s_copy
+            # create a mountpoint
+            a_mp+=( [$j]="/run/media/${USER}/${a_uu[$j]}" )
+            sudo mkdir --parents "${a_mp[$j]}" ||
+              fn_erx "$LINENO"
+
+            # mount the device
+            sudo mount -o nosuid,nodev,noexec,rw \
+                "${a_maj8s[$j]}" "${a_mp[$j]}" ||
+              fn_erx "$LINENO"
+          done
+          break
+          ;;
+        *) fn_erx "$LINENO" '*Unreachable code*'
+      esac
+    done
+
+      #:;: '<>'
+      declare -p mount_exit a_mp 
+  fi
+elif [[ "${#a_avail_mp[@]}" -eq "${#a_avail_fs[@]}" ]]; then
+  true
+else
+  fn_erx "$LINENO" '*Unreachable code*'
 fi
-
-    #:;: '<>'
-    #exit "$LINENO"
+    :;: '<>'
     set -x
+    #exit "$LINENO"
 
 # prevent the FS root '/' from becoming the mountpoint
 mountpoint="$( 
@@ -467,7 +485,7 @@ umask 077
 
   :;: '<>'
   declare -p process_lock filesystem_type device
-  exit "$LINENO"
+  #exit "$LINENO"
 
 :;: 'reduce use of -sudo- in this script by setting up ACL-s'
 case "$filesystem_type" in
