@@ -307,7 +307,9 @@ fn_write_arrays(){
       #fn_age_file "$loc_write_f_b"
     if [[ -v "$loc_unquotd_array_nm_b" ]]; then
       declare -p "$loc_unquotd_array_nm_b" | 
-        tee --output-error=exit "$loc_write_f_b" > /dev/null 2>&1
+        tee --output-error=exit "$loc_write_f_b" > /dev/null
+    else
+      fn_erx "$LINENO" VAR "$loc_unquotd_array_nm_b" DNE
     fi
     :; fn_bak "$loc_write_f_b"
     #unset loc_write_f_b
@@ -325,7 +327,7 @@ fn_write_vars(){
   [[ -e "$loc_write_f_a" ]] &&
     fn_age_file "$loc_write_f_a"
   declare -p "$@" 2> /dev/null |
-    tee --output-error=exit "$loc_write_f_a" > /dev/null 2>&1
+    tee --output-error=exit "$loc_write_f_a" > /dev/null
   :; fn_bak "$loc_write_f_a"
   #declare -p loc_script_section_nm loc_write_f_a 
   : END OF fn_write_vars;:
@@ -421,6 +423,8 @@ then
     printf 'systems unmounted and available.\n\n'
     printf '\t\t %s \n' "${a_maj8s[@]}"
     printf ' \n'
+
+    # BUG: needs a timeout and a default value. use `read`?
 
     select mount_exit in Ignore 'Mount all' Exit; do
 
@@ -704,8 +708,8 @@ if [[ ! -v a_all_files ]]; then
   
     : '<>'
     date
-    #a_relevant_search_dirs=( /usr/sbin )
-    a_relevant_search_dirs=( /usr/sbin /usr/bin )
+    a_relevant_search_dirs=( /usr/sbin )
+    #a_relevant_search_dirs=( /usr/sbin /usr/bin )
     #a_relevant_search_dirs=( /usr/sbin /usr/bin /etc )
     #a_relevant_search_dirs=( /usr/sbin /usr/bin /etc /var )
   
@@ -891,6 +895,9 @@ then
       #unset 'a_all_files_sorted[$all_files_index]'
     fi
   done
+  
+  :;: '<>'
+
   :; fn_bak "${curr_time_ssubd}"/file_out
   #: 'END OF fn_scan_local_disks';:
 #}
@@ -901,9 +908,17 @@ then
   :;: 'fn_createdatafile: Open a timestamped file & append into it the list' 
   :   ' of filenames and their crashbangs.' 
 
+  :;: Exporting is necessary of the array names from the above scan 
+  export a_all_files_sorted a_file_DNE a_incorrect_endianness  a_crunches_with_hashbang_comments a_non_rpm_user_crunches a_non_rpm_system_crunches a_shell_scripts a_all_other_files a_relevant_search_dirs
+  #declare -p a_all_files_sorted a_file_DNE a_incorrect_endianness  a_crunches_with_hashbang_comments a_non_rpm_user_crunches a_non_rpm_system_crunches a_shell_scripts a_all_other_files a_relevant_search_dirs
+  #exit "$LINENO"
+  
   :;: 'fn_createdatafile: data files'
   a_write_path_nms=( "${list_crunchbangs:=crunchbangs}" /tmp/"${list_crunchbangs##*/}" )
-  
+ 
+    :;: '<>'
+    declare -p a_write_path_nms a_shell_scripts
+
   :;: 'fn_createdatafile: if any data files already exist, keep them'
   for any_existing_f in "${a_write_path_nms[@]}"; do
     if [[ -f "$any_existing_f" ]] && [[ ! -L "$any_existing_f" ]]; then
@@ -912,18 +927,20 @@ then
     fi
   done
 
-  :;: 'fn_createdatafile: create the original list_crunchbangs'
+  :;: fn_createdatafile: create the original list_crunchbangs
   touch "${a_write_path_nms[@]}"
 
-  :;: 'fn_createdatafile: header'
-  printf '# crunchbangs -- %s \n' "${timecode%_*}" | 
-    tee --output-error='exit' "${a_write_path_nms[@]}" > /dev/null 2>&1
+  :;: fn_createdatafile: header
+  { printf '# crunchbangs -- %s\n' "${timecode%-*}" 
+    printf '# %s\n' "$( declare -p a_relevant_search_dirs )" 
+  } | 
+    tee --output-error='exit' "${a_write_path_nms[@]}"
   
-  :;: 'fn_createdatafile: printing contents of a_shell_scripts array'
-  set -
+  :;: fn_createdatafile: printing contents of a_shell_scripts array
+  #set -
   printf '%s\n' "${a_shell_scripts[@]}" |
-    tee --append --output-error='exit' "${a_write_path_nms[@]}" > /dev/null 2>&1
-  set -x
+    tee --append --output-error=exit "${a_write_path_nms[@]}"
+  #set -x
   :; fn_bak "${a_write_path_nms[@]}"
   #: 'END OF fn_createdatafile';:
 #}
@@ -931,10 +948,10 @@ then
 fi
 
   # <>
-  :; fn_write_arrays a_shell_scripts a_crunches_with_hashbang_comments \
-    a_all_other_files a_incorrect_endianness \
-    a_non_rpm_system_crunches a_non_rpm_user_crunches 
-  :; fn_write_vars 'B' each_sorted_f list_crunchbangs all_files_index od_o{0,1} X first_line count
+  #:; fn_write_arrays a_shell_scripts a_crunches_with_hashbang_comments \
+    #a_all_other_files a_incorrect_endianness \
+    #a_non_rpm_system_crunches a_non_rpm_user_crunches 
+  #:; fn_write_vars 'C' each_sorted_f list_crunchbangs all_files_index od_o{0,1} X first_line count
 
   : '<>'
   #exit "$LINENO"
@@ -947,12 +964,19 @@ fi
 
 :;: 'CENTRAL TASK, 1 OF 2: Filter the list of crashbangs with the list' 
 :   '  of shells.'
+
+:;: central task 1 of 2: header
+{ printf '# SC-scrpts-list -- %s\n' "${timecode%-*}" 
+  printf '# %s\n' "$( declare -p a_relevant_search_dirs )" 
+} | 
+  tee --output-error='exit' "${list_crunchbangs}_SC-scrpts-list"
+  
 grep --extended-regexp '/bin/'"${shells}"'.*% % % %' \
   "${list_crunchbangs}" > "${list_crunchbangs}_SC-scrpts-list" ||
     fn_erx "$LINENO"
-:; fn_bak "${list_crunchbangs}_SC-scrpts-list"
 rsync -ca "${list_crunchbangs}_SC-scrpts-list" /tmp ||
   fn_erx "$LINENO"
+:; fn_bak "${list_crunchbangs}_SC-scrpts-list" /tmp/*_SC-scrpts-list
 
   : '<>'
   ls -l "${list_crunchbangs}"*
