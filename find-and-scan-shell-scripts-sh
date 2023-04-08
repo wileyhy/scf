@@ -404,6 +404,7 @@ if [[ ! -v a_all_files ]]; then
     sudo find "${a_relevant_search_dirs[@]}" -mindepth 1 -type f -print0 \
       2> /dev/null )
   :; fn_write_arrays a_all_files
+fi
 
 :;: 'Sort the original array and test it.'
 mapfile -d '' -t a_all_files_sorted < <(
