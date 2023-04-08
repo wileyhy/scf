@@ -3,8 +3,6 @@
 # Written in bash version 5.1 on Fedora 37
 
 
-###  SECTION A  ###
-
 :;: Implementation-dependent arguments for opts parsable by -shellcheck-
 severity=error
 shells='(sh|bash|dash|ksh)'
@@ -52,10 +50,6 @@ if [[ "$#" -gt 0 ]]; then
 fi
 
 :;: Use -sudo-
-
-  : '<>'
-  date
-
 if ! sudo -v; then
   printf '\n\tValidation failed of user\x27s \x60sudo\x60 timestamp; ' 
   printf 'exiting.\n\n' 
@@ -74,10 +68,6 @@ for poss_lk_d in "${a_poss_proces_lock_dirs[@]}"; do
     break
   fi
 done; 
-
-  :;: '<>'
-  #declare -p random_n a_poss_proces_lock_dirs poss_lk_d proc_lok_d_nm proc_lk_f_nm process_lock; 
-  #set -x
 
 # shellcheck disable=SC2154
 trap '
