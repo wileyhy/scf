@@ -363,7 +363,7 @@ mapfile -t a_maj8s < <(
   #declare -p a_maj8s
   #exit "$LINENO"
 
-a_maj8s_copy=( "${a_maj8s[@]}" )
+#a_maj8s_copy=( "${a_maj8s[@]}" )
 I=${#a_maj8s[@]}; 
 for ((i=0;i<I;i++)); do 
   #echo $i: "${a_maj8s[$i]}"; 
@@ -443,16 +443,18 @@ fi
 
 # prevent the FS root '/' from becoming the mountpoint
 mountpoint="$( 
-  sudo findmnt --ascii --bytes --canonicalize --df --list --types "$fstype_list" --noheadings --notruncate --nofsroot --output maj:min,size,target | 
-    grep -Ev ' /'$ | 
+  for m in "${a_mp[@]}"; do 
+    [[ -n "$m" ]] && 
+      sudo findmnt --ascii --bytes --canonicalize --df --list \
+          --types "$fstype_list" --noheadings --notruncate --nofsroot \
+          --output maj:min,size,target --mountpoint "$m"; 
+  done | 
     sort -rnk2 | 
-    awk '$1 ~ /8:/ { print $3 }' |
-    head -n1 )"
+    awk 'NR==1 { print $3 }' )
 
-# BUG: the mountpoint cannot be the process lock
 
-[[ -z "${mountpoint}" ]] &&
-  mountpoint="$process_lock"
+[[ -n "$mountpoint" ]] ||
+  fn_erx "$LINENO"
 main_d="${mountpoint}/scf.d"
 data_subd="${main_d}/latest_data"
 curr_time_ssubd="${data_subd}/t_${timecode}"
