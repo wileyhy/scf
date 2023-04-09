@@ -11,9 +11,15 @@ severity=error
 shells='(sh|bash|dash|ksh)'
 
 :;: Environment variables
-PATH="$( /usr/bin/command -p getconf PATH ):/usr/bin:/usr/sbin:${PATH}"
+#   Note: -bash- doesnt decend subdirs of PATH
+#   Note: if executed by a restricted shell, this assignment to PATH will 
+# fail with an error message, and will ignore all of the rest of the 
+# commands on same script line as the PATH assignment.    
+PATH="$( /usr/bin/command -p getconf PATH ):/usr/bin:/usr/sbin:${PATH}" ||
+  exit "$LINENO"
 LC_ALL=C.UTF-8
 LC_COLLATE=C
+export PATH LC_ALL LC_COLLATE
 
 :;: Option parsing
 fn_usage(){
@@ -300,6 +306,8 @@ else
   fn_erx $LINENO '*Unreachable code*'
 fi
 
+# Bug: maintenance issue! Compound command
+
 # prevent the FS root / from becoming the mountpoint
 mountpoint="$( 
   for m in "${a_mp[@]}"; do 
@@ -420,6 +428,8 @@ mapfile -d '' -t a_relevant_search_dirs < <(
 #if [[ ! -v a_all_files ]]; then
   
     : '<>'
+    #   Note: GNU -find- by default will not search symlinks from CLI,
+    #     ie, /bin or /sbin
     a_relevant_search_dirs=( /usr/sbin )
     #a_relevant_search_dirs=( /usr/sbin /usr/bin )
 
@@ -453,6 +463,12 @@ mapfile -d '' -t a_all_files_sorted < <(
 # shellcheck disable=SC2034
 count=${#a_all_files_sorted[@]}
 unset IFS
+
+# get the most recent tx number from `dnf history`
+#dnf_history_number="$( 
+  #dnf history info 0 | 
+    #awk '/^Transaction ID/ { print $4 }' ||
+      #_erx "${LINENO}" )"
 
   :;: '<>'
   [[ -f /tmp/"${list_crunchbangs##*/}" ]] &&
@@ -493,6 +509,8 @@ then
 
     #   Note: inordinately long interpreter paths are rare, but do occur.
     #   Note: `od` command is POSIX compliant
+    #   Note: POSIX `od` doesn't have GNU's '--strings' option, so use 
+    #     the `strings` command separately.
 
     :;: 'Read from disk in binary the first two bytes of each' 
     :   'each_sorted_f in the list and output it in hexadecimal.'
@@ -602,6 +620,15 @@ then
   
   :; fn_bak "${a_write_path_nms[@]}"
 fi
+
+# TODO: verify interpreters
+
+# Do all of the interpreters exist on disk?
+#mapfile -d '' -t interpreters < <(
+# sudo head "$list_crunchbangs" | 
+#   grep ^'#!' | 
+#   sed -e 's,#!,,g' -e 's,<.*,,g' -e 's,[[:space:]]*$,,g' -e 's, -.*,,g'| 
+#   cat -Aen
 
 
 # SECTION D

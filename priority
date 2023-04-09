@@ -1,0 +1,60 @@
+# priority, ie, score findings
+#   purpose -- sys admining, security
+#.    L pre-curated lists? 
+#.    L keyword for man -k search?
+#.    dnf groups?
+#   ubiquity -- datasets, each major distro
+#.    command -p
+#     L sqlite
+#   how likely to be exec'd
+#.    full disk search 
+#     per fsroot dir search, no syms
+#     in PATH
+#.      non-sym vs follow sym, via find
+#       compgen knows of it
+#.      command -p knows of it - also ubiquity
+#.      found w only getconf PATH
+#     sourcable scripts wo #!'s -- file output, ascii text
+#.      Have no #! & No execute bit set, per POSIX
+#     L default vs everything installs?
+#     L distro stats on most popular pkg installs?
+#   bugginess of scripts
+#.    bash -n
+#     SC "score" -- array or disk files, per target file
+#.    Additional linters online
+#     L kcov (avail in repos) --
+#     L bashdb (na in repos) -- 
+#   reliableness of ID'ing scripts
+#     by #!
+#       D character encoding -- historically resolved issue
+#       D endianness -- rare issue
+#     by `file` magic
+#     L by active use
+#     L   atimes vs ctimes, of ascii files per `file`
+#.    L   read 1st 128 byyes w dd? to avoid atime change? 
+#.    L     file's byte location on disk?
+#.    L     how to get time stats wo changing them 
+
+# sort by rpm
+# -r [rpm|all]
+# -d [history integer]
+# -V verify rpm
+# -P search files in PATH
+# -h use `hash` to track usage
+# -i verify interpreter
+# -c verify crashbang
+# -D use persistent file structure
+# -v verbose
+# -h help
+# -s find / include source scripts
+# -N do not write anything to disk
+# -S score results
+# -a alphanumeric sort
+
+
+
+# https://unix.stackexchange.com/questions/171346/security-implications-of-forgetting-to-quote-a-variable-in-bash-posix-shells
+#
+# setgid / setuid scripts or interpreters
+# system() in php/perl/python
+# 
