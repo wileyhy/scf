@@ -497,19 +497,19 @@ then
     fi
   done
   
-  :; fn_bak "${curr_time_ssubd}"/file_out
+  :; fn_bak "${curr_time_ssubd}/file_out"
 
 
-  :;: 'fn_createdatafile: Open a timestamped file & append into it the list' 
-  :   ' of filenames and their crashbangs.' 
+  :;: Open a timestamped file & append into it the list
+  :    of filenames and their crashbangs.
 
   :;: Exporting is necessary of the array names from the above scan 
   export a_all_files_sorted a_file_DNE a_incorrect_endianness  a_crunches_with_hashbang_comments a_non_rpm_user_crunches a_non_rpm_system_crunches a_shell_scripts a_all_other_files a_relevant_search_dirs
   
-  :;: 'fn_createdatafile: data files'
+  :;: data files
   a_write_path_nms=( "${list_crunchbangs:=crunchbangs}" /tmp/"${list_crunchbangs##*/}" )
 
-  :;: 'fn_createdatafile: if any data files already exist, keep them'
+  :;: if any data files already exist, keep them
   for any_existing_f in "${a_write_path_nms[@]}"; do
     if [[ -f "$any_existing_f" ]] && [[ ! -L "$any_existing_f" ]]; then
       mv "$any_existing_f" "${any_existing_f}.${$}.${random_n}" ||
@@ -517,43 +517,42 @@ then
     fi
   done
 
-  :;: fn_createdatafile: create the original list_crunchbangs
+  :;: create the original list_crunchbangs
   touch "${a_write_path_nms[@]}"
 
-  :;: fn_createdatafile: header
-  { printf '# crunchbangs -- %s\n' "${timecode%-*}" 
+  :;: header
+  { 
+    printf '# crunchbangs -- %s\n' "${timecode%-*}" 
     printf '# %s\n' "$( declare -p a_relevant_search_dirs )" 
-  } | 
-    tee --output-error='exit' "${a_write_path_nms[@]}"
+  } | tee --output-error='exit' "${a_write_path_nms[@]}"
   
-  :;: fn_createdatafile: printing contents of a_shell_scripts array
+  :;: printing contents of a_shell_scripts array
   printf '%s\n' "${a_shell_scripts[@]}" |
     tee --append --output-error=exit "${a_write_path_nms[@]}"
   :; fn_bak "${a_write_path_nms[@]}"
-
 fi
 
 
-:;: 'CENTRAL TASK, 1 OF 2: Filter the list of crashbangs with the list' 
-:   '  of shells.'
+:;: CENTRAL TASK, 1 OF 2: Filter the list of crashbangs with the list
+:     of shells.
 
 :;: central task 1 of 2: header
-{ printf '# SC-scrpts-list -- %s\n' "${timecode%-*}" 
+{ 
+  printf '# SC-scrpts-list -- %s\n' "${timecode%-*}" 
   printf '# %s\n' "$( declare -p a_relevant_search_dirs )" 
-} | 
-  tee --output-error='exit' "${list_crunchbangs}_SC-scrpts-list"
+} | tee --output-error='exit' "${list_crunchbangs}_SC-scrpts-list"
   
 grep --extended-regexp '/bin/'"${shells}"'.*% % % %' \
-  "${list_crunchbangs}" > "${list_crunchbangs}_SC-scrpts-list" ||
+  "$list_crunchbangs" > "${list_crunchbangs}_SC-scrpts-list" ||
     fn_erx "$LINENO"
 rsync -ca "${list_crunchbangs}_SC-scrpts-list" /tmp ||
   fn_erx "$LINENO"
 :; fn_bak "${list_crunchbangs}_SC-scrpts-list" /tmp/*_SC-scrpts-list
 
 
-:;: 'MAIN TASK, 2 of 2: with ShellCheck scan each script for errors'
+:;: MAIN TASK, 2 of 2: with ShellCheck scan each script for errors
   
-:;: 'A hell world of pipelines:'
+:;: A hell world of pipelines
 mapfile -d '' -t a_each_abspath_scriptnm < <( 
   cut -d '%' -f5- "${list_crunchbangs}_SC-scrpts-list" | 
     sed 's,^ *,,' | 
@@ -566,7 +565,7 @@ mapfile -t a_each_script_list_sorted < <(
     sort -gr | 
     awk '{ print $2 }' )
 
-iterator_2=0; 
+iterator_2=0
 {
   for sorted_script in "${!a_each_script_list_sorted[@]}"; do 
     mapfile -d '' -t a_each_script_SC_results < <( 
@@ -576,18 +575,18 @@ iterator_2=0;
         grep --extended-regexp -o "SC[0-9a-zA-Z\ \t():,.'-$&#\!]*" | 
         cut -b -64 | 
         sort --general-numeric-sort | 
-        uniq --count ; printf '\0' ); 
+        uniq --count ; printf '\0' )
 
     if [[ -n "${a_each_script_SC_results[*]:0:1}" ]]; then 
-      printf '\n%-4d%s\n' $((iterator_2++)) "${a_each_script_list_sorted[$sorted_script]}"; 
-      printf '%s' "${a_each_script_SC_results[@]}"; 
-    fi; 
-  done;
+      printf '\n%-4d%s\n' $((iterator_2++)) "${a_each_script_list_sorted[$sorted_script]}"
+      printf '%s' "${a_each_script_SC_results[@]}"
+    fi
+  done
 } | tee -a "${list_crunchbangs}_found_scripts_with_indices"
 
 :; fn_bak "${list_crunchbangs}_found_scripts_with_indices"
 
-:;: 'Write semi-permanent archives'
+:;: Write semi-permanent archives
 rsync -ca "${list_crunchbangs}_found_scripts_with_indices" "$main_d" ||
   fn_erx "$LINENO"
 rsync -ca "${list_crunchbangs}_found_scripts_with_indices" /tmp ||
