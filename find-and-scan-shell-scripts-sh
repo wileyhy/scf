@@ -222,6 +222,10 @@ fn_write_arrays(){
 # and print any which have both any detected filesystem and no detected
 # mountpoint.
 
+# SOLVED? BUG: needs a test for whether or not there are any unmounted
+# USB drives. automatically using '/' as mountpoint is, in this case,
+# ie, on a live usb, not so good of an idea.
+
 # get the list of attached SCSI devices
 mapfile -t a_maj8s < <( 
   lsblk --ascii --include 8 --noempty --noheadings --paths \
@@ -416,6 +420,12 @@ fi
 # BUG:  Reduce Search Time
 
 :;: Gather filenames from local attached disk storage
+
+#   Note: earlier work: If a prior record of the relevant_search_dirs 
+# array exists, and if that prior record matches the new record, then 
+# it's possible the all_files list would be the same, too. So if the new 
+# relevant_search_dirs list is new, then do the full all_files search 
+# again. But if they're the same, then ...
 
 :;: 'in any event, create a new record for a_relevant_search_dirs and..'
 mapfile -d '' -t a_relevant_search_dirs < <(
