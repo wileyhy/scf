@@ -485,8 +485,8 @@ mapfile -d '' -t a_relevant_search_dirs < <(
     : '<>'
     #   Note: GNU -find- by default will not search symlinks from CLI,
     #     ie, /bin or /sbin
-    a_relevant_search_dirs=( /usr/sbin )
-    #a_relevant_search_dirs=( /usr/sbin /usr/bin )
+    #a_relevant_search_dirs=( /usr/sbin )
+    a_relevant_search_dirs=( /usr/sbin /usr/bin )
 
   :;: Find all relevant files on disk.
   
@@ -542,7 +542,7 @@ then
   for all_files_index in "${!a_all_files_sorted[@]}"; do
 
     :;: LOOP progress meter;:
-    printf '%d of %d files\r' "$all_files_index" "$count"
+    printf '%d of %d files\r' $(( all_files_index + 1 )) "$count"
     each_sorted_f="${a_all_files_sorted[${all_files_index}]}"
     
     :;: each_sorted_f must exist
@@ -741,7 +741,7 @@ iterator_2=0
       shellcheck -S "$severity" \
           "${a_each_script_list_sorted_by_linect[$sorted_script]}" | 
         grep --fixed-strings --invert-match 'shellcheck.net' | 
-        grep --extended-regexp -o "SC[0-9a-zA-Z\ \t():,.'-$&#\!]*" | 
+        grep --extended-regexp -o "SC[0-9a-zA-Z\ \t():,.'$&#\!-]*" | 
         cut -b -64 | 
         sort --general-numeric-sort | 
         uniq --count # no pipe intended
