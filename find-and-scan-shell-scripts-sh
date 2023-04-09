@@ -516,7 +516,7 @@ mapfile -d '' -t a_all_files_sorted < <(
 
 :;: Add some brevity, and write the completed arrays to disk
 # shellcheck disable=SC2034
-count=${#a_all_files_sorted[@]}
+total_count="$( printf "%'d" "${#a_all_files_sorted[@]}" )"
 unset IFS
 
 # get the most recent tx number from `dnf history`
@@ -542,7 +542,8 @@ then
   for all_files_index in "${!a_all_files_sorted[@]}"; do
 
     :;: LOOP progress meter;:
-    printf '%d of %d files\r' $(( all_files_index + 1 )) "$count"
+    count_this_loop="$( printf "%'d" $(( all_files_index + 1 )) )"
+    printf '%d of %d files\r' $(( all_files_index + 1 )) "$total_count"
     each_sorted_f="${a_all_files_sorted[${all_files_index}]}"
     
     :;: each_sorted_f must exist
