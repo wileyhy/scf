@@ -3,6 +3,8 @@
 # Written in bash version 5.1 on Fedora 37
 
 
+# SECTION A
+
 :;: Implementation-dependent arguments for opts parsable by -shellcheck-
 severity=error
 # shellcheck disable=SC2034
@@ -184,6 +186,7 @@ fn_num(){
 fn_write_arrays(){
   : fn_write_arrays
   # Usage: fn_write_arrays [arrays]
+  # Note: Default directory is -curr_time_ssubd-.
 
   :;: fn_write_arrays: Write each array to disk.
   #   Note: `tee` without -a will overwrite an existing file
@@ -206,6 +209,12 @@ fn_write_arrays(){
 
 
 :;: Assign varnames and paths for the data directories
+#   Note: In case of large log files, programatically select a save di-
+# rectory, attached to the local disk, where any output can be saved; 
+# prefer USB flash drives.
+#   List all SCSI device (major number 8) partitions (ending with [0-9]), 
+# and print any which have both any detected filesystem and no detected
+# mountpoint.
 
 # get the list of attached SCSI devices
 mapfile -t a_maj8s < <( 
@@ -255,6 +264,8 @@ then
     printf 'systems unmounted and available.\n\n'
     printf '\t\t %s \n' "${a_maj8s[@]}"
     printf ' \n'
+
+    # BUG: needs a timeout and a default value. use `read`?
 
     select mount_exit in Ignore 'Mount all' Exit; do
 
@@ -323,6 +334,15 @@ case "$filesystem_type" in
 esac
   
 :;: on XFS
+# Nearly all of the `sudo` commands below are allowing rw access, of
+# this script's data_subd, so simply using ACL's will reduce the overuse
+# of `sudo`. This section takes the "$mountpoint" variable, portions
+# each subdirectory name into an array index, and tests each subdi-
+# rectory from the FS root up for readability by the user running
+# this script (ie, a regular user). As the absolute path is recon-
+# structed, when a non-readable directory is found, a recursive "r-x"
+# ACL is written, and then a recursive "rwx" is written for the
+# "$main_d".
 if [[ ! -r "$main_d" ]]; then
   
   mapfile -d / -t a_acl_name_indiv_dir <<< "$mountpoint"; 
@@ -383,6 +403,10 @@ if [[ ! -d "${curr_time_ssubd}" ]]; then
 fi
 
 
+# SECTION B
+
+# BUG:  Reduce Search Time
+
 :;: Gather filenames from local attached disk storage
 
 :;: 'in any event, create a new record for a_relevant_search_dirs and..'
@@ -421,6 +445,10 @@ mapfile -d '' -t a_all_files_sorted < <(
   fn_erx $LINENO
 
 
+# SECTION C
+
+# Bug? Can more indices and fewer files be used?
+
 :;: Add some brevity, and write the completed arrays to disk
 # shellcheck disable=SC2034
 count=${#a_all_files_sorted[@]}
@@ -436,6 +464,8 @@ if [[ ! -f "/tmp/${list_crunchbangs##*/}" ]] ||
   [[ -L "/tmp/${list_crunchbangs##*/}" ]]; 
 then
 
+  #   Note: this loop can take 30-90 minutes!
+
   :;: Sort out the scripts, ie, any file beginning 
   :   with a crashbang from the rest of the files
   for all_files_index in "${!a_all_files_sorted[@]}"; do
@@ -450,11 +480,20 @@ then
       continue
     fi
 
+    # TODO: check for empty files, make a list of them
+
     :;: run -file- on each each_sorted_f
     { printf '+ %-8d: ' "$all_files_index" 
       sudo file -pk "$each_sorted_f"
     } | tee -a "${curr_time_ssubd}/file_out" > /dev/null
  
+    # Bug: avoid as many disk writes as possible. 
+    # Bug: use indices to reference each type? 
+    #    RO all files array? 
+
+    #   Note: inordinately long interpreter paths are rare, but do occur.
+    #   Note: `od` command is POSIX compliant
+
     :;: 'Read from disk in binary the first two bytes of each' 
     :   'each_sorted_f in the list and output it in hexadecimal.'
     read -r leftover_words_b byte_0 byte_1 leftover_words_b < <( 
@@ -476,6 +515,8 @@ then
       if [[ "${byte_0}${byte_1}" == 2123 ]]; then
         a_incorrect_endianness+=( [all_files_index]="$each_sorted_f" )
 
+      # BUG: expect non-printable characters
+
       :;: Crunchbang found. Use -read-, and hope
       :   there wont be any non-printable characters.
       else
@@ -489,6 +530,8 @@ then
             [all_files_index]="$each_sorted_f" )
           continue
         fi
+
+        #   Note: with only /bin/sbin, this if-fi block doesn't execute
 
         :;: Issue: crashbang files which originate
         :   outside of the rpm package manager
@@ -508,8 +551,8 @@ then
       fi
       
       # TODO: Add "$all_files_index" to content of "a_shell_scripts"
-      :;: 'Make a record in RAM of the relevant'
-      :   filenames and their crashbangs.
+
+      :;: 'Make an array of the relevant filenames and their crashbangs.'
       a_shell_scripts+=( [all_files_index]="$( \
         printf '%-50s   %% %% %% %%   %s\n' "$first_line" \
           "$each_sorted_f" )" )
@@ -561,6 +604,10 @@ then
 fi
 
 
+# SECTION D
+
+# Make the data readable and useable.
+
 :;: CENTRAL TASK, 1 OF 2: Filter the list of crashbangs with the list
 :     of shells.
 
@@ -583,11 +630,19 @@ rsync -ca "${list_crunchbangs}_SC-scrpts-list" /tmp ||
 # TODO: keep "$all_files_index" tracked with content all the way through
 # into the "_found_scripts_with_indices" file
 
+# Bug? line 1 of script could contain percent symbols
+
 :;: A hell world of pipelines
 mapfile -d '' -t a_each_abspath_scriptnm < <( 
   cut -d '%' -f5- "${list_crunchbangs}_SC-scrpts-list" | 
     sed 's,^ *,,' | 
     tr '\n' '\0' )
+  # Wk: awk , multi-char delim, remv lead+trail wspc - redef $0 ?, printf
+  # grep -Eo | tr
+
+# Bug: rename variable "$c" below
+# Bug: why sort by line count? More text, more bugs? How to prior mult 
+#   factors?
 
 mapfile -t a_each_script_list_sorted_by_linect < <( 
   for c in "${a_each_abspath_scriptnm[@]}"; do 
@@ -596,8 +651,10 @@ mapfile -t a_each_script_list_sorted_by_linect < <(
     sort -gr | 
     awk '{ print $2 }' )
 
+# Bug? 1st grep extra?
+
 iterator_2=0
-{ for sorted_script in "${!a_each_script_list_sorted_by_linect[@]}"; do 
+{ for sorted_script in "${!a_each_script_list_sorted_by_linect[@]}"; do     
     mapfile -d '' -t a_each_script_SC_results < <( 
       shellcheck -S "$severity" \
           "${a_each_script_list_sorted_by_linect[$sorted_script]}" | 
@@ -626,4 +683,19 @@ rsync -ca "${list_crunchbangs}_found_scripts_with_indices" /tmp ||
 
 exit 0
 
+
+
+# scan 'a_all_other_files' for anything that isn't an ELF file
+# . /run/media/*/*/scf.d/latest_data/t_*/a_all_other_files
+# for f in "${a_all_other_files[@]}"; do sudo file -pk "$f" | grep -v 'ELF 64-bit LSB '; done
+
+# scan 'a_all_files_sorted' for proper sorting
+# . /run/media/*/*/scf.d/latest_data/t_*/a_all_files_sorted
+# fn_num a_all_files_sorted
+# sudo command -p printf '' | sudo tee ./a_all_files_sorted_printed; for g in "${a_all_files_sorted[@]}"; do sudo -p command printf '%s\n' "$g" | sudo tee -a ./a_all_files_sorted_printed ; done
+
+
+# check 'file_out' for anything odd
+# grep -v 'ELF 64-bit' ./scf.d/latest_data/t_2023-04-03_084130/file_out | grep 'read permission'
+# grep -v 'ELF 64-bit' ./scf.d/latest_data/t_2023-04-03_084130/file_out | grep -v 'read permission' | grep -v 'script text exec'
 
