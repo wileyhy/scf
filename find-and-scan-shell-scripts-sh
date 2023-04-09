@@ -14,9 +14,9 @@ LC_COLLATE=C
 
 :;: Option parsing
 fn_usage(){
-  : fn_usage
   # Usage:  fn_usage [exit-code]
-  cat <<-\EOF
+  : fn_usage
+  cat <<-EOF
     
     SCF - Shell Check Find, version 1.0 (for redhat-linux)
     Find and scan shell scripts depending on severity level. 
@@ -27,13 +27,13 @@ fn_usage(){
 
 EOF
   : 'END OF fn_usage';:
-  exit "${1}"
+  exit $1
 }
 
-if [[ "$#" -gt 0 ]]; then
+if [[ $# -gt 0 ]]; then
   cli_input="${1:0:2}"
 
-  case "${cli_input}" in
+  case "$cli_input" in
     --) printf 0a09486170707920456173746572210a0a | 
           xxd -r -p
         exit 0;;
@@ -52,52 +52,58 @@ fi
 if ! sudo -v; then
   printf '\n\tValidation failed of user\x27s \x60sudo\x60 timestamp; ' 
   printf 'exiting.\n\n' 
-  exit "$LINENO"
+  exit $LINENO
 fi
 
 :;: Process lock
-random_n="$RANDOM"; 
-proc_lk_f_nm=".$$.${random_n}.lock"; 
+random_n=$RANDOM
+proc_lk_f_nm=".$$.${random_n}.lock"
 a_poss_proces_lock_dirs=( [0]="$XDG_RUNTIME_DIR" [1]="$HOME" 
-  [2]="$TMPDIR" [3]=/tmp [4]=/var/tmp ); 
+  [2]="$TMPDIR" [3]=/tmp [4]=/var/tmp )
 
 for poss_lk_d in "${a_poss_proces_lock_dirs[@]}"; do 
+  
   if [[ -d "$poss_lk_d" ]]; then
     process_lock="${poss_lk_d}/${proc_lk_f_nm}"
     break
   fi
-done; 
+done
 
 # shellcheck disable=SC2154
 trap '
+  
   for poss_lk_d in "${a_poss_proces_lock_dirs[@]}"; do 
     proclock="${poss_lk_d}/${proc_lk_f_nm}"
+    
     if [[ -d "$proclock" ]] && [[ ! -L "$proclock" ]]; then 
-      rm -rf -- "$proclock"; 
-    fi;
+      rm -rf -- "$proclock"
+    fi
   done
 
   # Remove this script-s ACL-s
   if [[ -v acl_execd_setfacl ]]; then 
+    
     if [[ -v acl_abs_path ]]; then 
-      sudo setfacl -R -x u:"$UID" "$acl_abs_path" ||
+      sudo setfacl -R -x u:$UID "$acl_abs_path" ||
         echo Error: setfacl failed, line $LINENO
+    
     elif [[ -v mountpoint ]]; then
-      sudo setfacl -R -x u:"$UID" "$mountpoint" ||
+      sudo setfacl -R -x u:$UID "$mountpoint" ||
         echo Error: setfacl failed, line $LINENO
     fi
   fi
 
-  trap - EXIT TERM INT; 
-  kill -s INT "$$"
+  trap - EXIT TERM INT
+  kill -s INT $$
 ' EXIT TERM INT 
 
 if ! mkdir "$process_lock" 2> /dev/null; then
-  { printf '\n\tCannot acquire process lock: <%s>.\n' "$process_lock"
+  { 
+    printf '\n\tCannot acquire process lock: <%s>.\n' "$process_lock"
     printf '\tID: %s\n' "$USER"
     printf 'Exiting.\n\n' 
   } 1>&2
-  exit "$LINENO"
+  exit $LINENO
 fi
 
 :;: User variables
@@ -108,7 +114,7 @@ timecode="$( builtin printf '%(%F_%H%M%S)T' )"
 fn_age_file(){
   : fn_age_file
 
-    :;: '<>'
+    :;: '<> ===== BUG? ===== sb   [[ ! -f   ???'
     [[ -f "$1" ]] ||
       return 1
 
@@ -132,44 +138,45 @@ fn_age_file(){
           cut -d ' ' -f1 )"
       
       [[ -n "${loc_A_hashes_prev_files["$loc_aging_hash_new"]}" ]] && 
-        : END OF fn_age_file;:
+        : 'END OF fn_age_file';:
         return 0
     fi
   done
 
   loc_aging_mtime="$( stat -c%Y "$1" )"
-  mv "${1}" "${1}.${loc_aging_mtime}" ||
-    fn_erx fn_age_file "$1";
-  : END OF fn_age_file;:
+  mv "$1" "${1}.${loc_aging_mtime}" ||
+    fn_erx _age_file "$1"
+  : 'END OF fn_age_file';:
 }
-fn_bak(){ 
-  : fn_bak
-
+fn_bak(){
   # test verifying existence of input
+  : fn_bak
+  
   for loc_filename_a in "$@"; do 
-    if [[ -f "${loc_filename_a}" ]]; then 
+    
+    if [[ -f "$loc_filename_a" ]]; then 
       rsync -acq "${loc_filename_a}"{,.bak} ||
         fn_erx "$LINENO"
     else
-      fn_erx "$LINENO" file DNE "${loc_filename_a}" 
+      fn_erx "$LINENO" file DNE "$loc_filename_a" 
     fi
   done
-  : END OF fn_bak;:
+  : 'END OF fn_bak';:
 }
-fn_erx(){ 
-  local loc_exit_code="$?" # this assignment must be the first command
+fn_erx(){
+  local loc_exit_code=$? # this assignment must be the first command
   : fn_erx
   echo -e Error: "$@" 
-  : END OF fn_erx;:
-  exit "$loc_exit_code"
+  : 'END OF fn_erx';:
+  exit $loc_exit_code
 }
 fn_num(){ 
   : fn_num
   for loc_unquotd_array_nm_a in "$@"; do
     local -n loc_nameref="$loc_unquotd_array_nm_a" 
-    echo "${#loc_nameref[@]}"
+    echo ${#loc_nameref[@]}
   done
-  : END OF fn_num;:
+  : 'END OF fn_num';:
 }
 fn_write_arrays(){
   : fn_write_arrays
@@ -184,11 +191,11 @@ fn_write_arrays(){
       declare -p "$loc_unquotd_array_nm_b" | 
         tee --output-error=exit "$loc_write_f_b" > /dev/null
     else
-      fn_erx "$LINENO" VAR "$loc_unquotd_array_nm_b" DNE
+      fn_erx $LINENO, variable "$loc_unquotd_array_nm_b" DNE
     fi
     :; fn_bak "$loc_write_f_b"
   done
-  : END OF fn_write_arrays;:
+  : 'END OF fn_write_arrays';:
 }
 
 
@@ -196,10 +203,10 @@ fn_write_arrays(){
 
 # get the list of attached SCSI devices
 mapfile -t a_maj8s < <( 
-  lsblk --ascii --include 8 --noempty --noheadings --paths --output path --list /dev/sd[b-z][0-9] ); 
+  lsblk --ascii --include 8 --noempty --noheadings --paths --output path --list /dev/sd[b-z][0-9] )
 
-I=${#a_maj8s[@]}; 
-for ((i=0;i<I;i++)); do 
+I=${#a_maj8s[@]}
+for (( i=0; i<I; i++ )); do 
 
   # get per-device info on fstype, uuid and mountpoints
   # shellcheck disable=SC2016
@@ -209,15 +216,15 @@ for ((i=0;i<I;i++)); do
 
   # shellcheck disable=SC2016
   read -r 'a_mp[$i]' < <( 
-    lsblk --noheadings --output mountpoints "${a_maj8s[$i]}" ); 
+    lsblk --noheadings --output mountpoints "${a_maj8s[$i]}" )
 
   # of the found SCSI devices, if there is no FS, then disregard it...
   [[ -z "${a_fs[$i]}" ]] && 
-    unset a_maj8s'[$i]'; 
+    unset 'a_maj8s[$i]'; 
     
   # ...and if there is a mountpoint, also disregard that
   [[ -n "${a_mp[$i]}" ]] && 
-    unset a_maj8s'[$i]'
+    unset 'a_maj8s[$i]'
 done
 
 # if there arent any available mountpoints, but there are some fs-s
@@ -226,18 +233,18 @@ for mp in "${a_mp[@]}"; do [[ -n "$mp" ]] && a_avail_mp+=( "$mp" ); done
 for fs in "${a_fs[@]}"; do [[ -n "$fs" ]] && a_avail_fs+=( "$fs" ); done
 
 if { 
-  [[ "${#a_avail_mp[@]}" -eq 0 ]] && [[ "${#a_avail_fs[@]}" -gt 0 ]];
+  [[ ${#a_avail_mp[@]} -eq 0 ]] && [[ ${#a_avail_fs[@]} -gt 0 ]]
     } || 
-  [[ "${#a_avail_mp[@]}" -lt "${#a_avail_fs[@]}" ]]; 
+  [[ ${#a_avail_mp[@]} -lt ${#a_avail_fs[@]} ]]
 then
   
   # if there are any partitions left in the 'a_maj8s' array, then...
   # shellcheck disable=SC2154
-  if [[ "${#a_maj8s[@]}" -gt 0 ]]; then
+  if [[ ${#a_maj8s[@]} -gt 0 ]]; then
 
     # 
-    printf '\n\t There are _%d_ SCSI filesystems ' "${#a_avail_mp[@]}"
-    printf 'mounted and _%d_ additional SCSI \n\t file' "${#a_maj8s[@]}" 
+    printf '\n\t There are _%d_ SCSI filesystems ' ${#a_avail_mp[@]}
+    printf 'mounted and _%d_ additional SCSI \n\t file' ${#a_maj8s[@]} 
     printf 'systems unmounted and available.\n\n'
     printf '\t\t %s \n' "${a_maj8s[@]}"
     printf ' \n'
@@ -245,49 +252,49 @@ then
     select mount_exit in Ignore 'Mount all' Exit; do
 
       case "$mount_exit" in
-        Exit) exit 0;;
-        Ignore) break;;
+        Exit)        exit 0;;
+        Ignore)      break;;
         'Mount all')
 
           # mount the found partitions
-          for j in "${!a_maj8s[@]}"; do 
+          for j in ${!a_maj8s[@]}; do 
 
             # create a mountpoint
             a_mp+=( [j]="/run/media/${USER}/${a_uu[j]}" )
             sudo mkdir --parents "${a_mp[$j]}" ||
-              fn_erx "$LINENO"
+              fn_erx $LINENO
 
             # mount the device
             sudo mount -o nosuid,nodev,noexec,rw \
                 "${a_maj8s[$j]}" "${a_mp[$j]}" ||
-              fn_erx "$LINENO"
+              fn_erx $LINENO
           done
           break
           ;;
-        *) fn_erx "$LINENO" '*Unreachable code*'
+        *) fn_erx $LINENO '*Unreachable code*'
       esac
     done
   fi
-elif [[ "${#a_avail_mp[@]}" -eq "${#a_avail_fs[@]}" ]]; then
+elif [[ ${#a_avail_mp[@]} -eq ${#a_avail_fs[@]} ]]; then
   true
 else
-  fn_erx "$LINENO" '*Unreachable code*'
+  fn_erx $LINENO '*Unreachable code*'
 fi
 
-# prevent the FS root '/' from becoming the mountpoint
+# prevent the FS root / from becoming the mountpoint
 mountpoint="$( 
   for m in "${a_mp[@]}"; do 
     [[ -n "$m" ]] && 
       sudo findmnt --ascii --bytes --canonicalize --df --list \
           --types "$fstype_list" --noheadings --notruncate --nofsroot \
-          --output maj:min,size,target --mountpoint "$m"; 
+          --output maj:min,size,target --mountpoint "$m"
   done | 
     sort -rnk2 | 
     awk 'NR==1 { print $3 }' )"
 
 
 [[ -n "$mountpoint" ]] ||
-  fn_erx "$LINENO"
+  fn_erx $LINENO
 main_d="${mountpoint}/scf.d"
 data_subd="${main_d}/latest_data"
 curr_time_ssubd="${data_subd}/t_${timecode}"
@@ -298,184 +305,180 @@ read -r filesystem_type device < <(
     --output fstype,source --mountpoint "$mountpoint" )
 umask 077
 
-:;: 'reduce use of -sudo- in this script by setting up ACL-s'
+:;: reduce use of -sudo- in this script by setting up ACLs
 case "$filesystem_type" in
-  'xfs')      true;;
+  xfs)      true;;
   ext[2-4])   tune2fs -l "$device" | 
-                grep -i 'acl'
-              fn_erx "$LINENO" TODO;;
-  *)          fn_erx "$LINENO" TODO;;
+                grep -i acl
+              fn_erx $LINENO TODO;;
+  *)          fn_erx $LINENO TODO;;
 esac
   
-:;: 'on XFS'
+:;: on XFS
 if [[ ! -r "$main_d" ]]; then
   
-  mapfile -d '/' -t a_acl_name_indiv_dir <<< "${mountpoint}"; 
-  a_acl_name_indiv_dir[0]='/'
+  mapfile -d / -t a_acl_name_indiv_dir <<< "$mountpoint"; 
+  a_acl_name_indiv_dir[0]=/
   a_acl_name_indiv_dir[-1]="${a_acl_name_indiv_dir[-1]//$'\n'}"
-  acl_each_dir=${#a_acl_name_indiv_dir[@]}; 
+  acl_each_dir=${#a_acl_name_indiv_dir[@]}
   
-  for (( iterator_1 = 0 ; iterator_1 < acl_each_dir ; iterator_1++ )); do 
-    acl_abs_path+="/${a_acl_name_indiv_dir[iterator_1]}"; 
-    acl_abs_path="$( realpath -e "$acl_abs_path" )"; 
+  for (( iterator_1=0; iterator_1<acl_each_dir; iterator_1++ )); do 
+    acl_abs_path+="/${a_acl_name_indiv_dir[iterator_1]}"
+    acl_abs_path="$( realpath -e "$acl_abs_path" )"
     
     if [[ ! -r "$acl_abs_path" ]]; then 
       sudo mkdir --parents "$main_d" ||
-        fn_erx "$LINENO"
-      acl_execd_setfacl='y'
+        fn_erx $LINENO
+      
+      acl_execd_setfacl=y
       export acl_execd_setfacl # SC2034, while trap-s setfacl blk is #-d
       
       if ! sudo setfacl -R -m "$USER":r-x "$acl_abs_path"; then
-        fn_erx 'setfacl failed, acl_abs_path:' "$acl_abs_path"
+        fn_erx setfacl failed, acl_abs_path: "$acl_abs_path"
+      
       elif ! sudo setfacl -R -m "$USER":rwx "${main_d%/*}"; then
-        fn_erx 'setfacl failed, \x24{maind%/*}:' "${main_d%/*}"
+        fn_erx setfacl failed, '\x24{maind%/*}:' "${main_d%/*}"
       fi
     fi 
   done 
 fi
 
-:;: 'make sure -data_subd- is a directory OR create the -data_subd- dir '
-: 'if necessary'
+:;: make sure -data_subd- is a directory OR create the -data_subd- dir 
+:   if necessary
 [[ -d "$data_subd" ]] ||
   mkdir "$data_subd"
 
-:;: 'Label the current data as -latest.-'
+:;: Label the current data as -latest.-
 #   Note: `find` sees dirs and symlinks as separate things 
 mapfile -d '' -t a_previous_time_dirs < <( 
   find "${data_subd}" -mindepth 1 -maxdepth 1 -type d -a \! -type l \
     -name 't_*' -print0 )
 
-:;: 'if -prev_time_ssubd- is empty, then delete it; otherwise -mv- it out'
-:   ' of the -latest- dir'
+:;: if -prev_time_ssubd- is empty, then delete it; otherwise -mv- it out
+:    of the -latest- dir
 for prev_time_ssubd in "${a_previous_time_dirs[@]}"; do 
-  rmdir --ignore-fail-on-non-empty "$prev_time_ssubd";
+  rmdir --ignore-fail-on-non-empty "$prev_time_ssubd"
 
-  : 'of previous prev_time_ssubd' 
+  : of previous prev_time_ssubd 
   #   Note: with `test`, dirs and symlinks can refer to the same inode
-  if [[ -e "$prev_time_ssubd" ]] && [[ ! -L "$prev_time_ssubd" ]]; then
+  if [[ -d "$prev_time_ssubd" ]] && [[ ! -L "$prev_time_ssubd" ]]; then
     mv "${a_previous_time_dirs[@]}" "$main_d"
   else
     continue
   fi
 done
 
-: 'of curr_time_ssubd'
+: of curr_time_ssubd
 if [[ ! -d "${curr_time_ssubd}" ]]; then
-  mkdir "${curr_time_ssubd}" ||
-    fn_erx "${LINENO}"
+  mkdir "$curr_time_ssubd" ||
+    fn_erx $LINENO
 fi
 
 
-:;: 'Gather filenames from local attached disk storage'
+:;: Gather filenames from local attached disk storage
 
-:;: 'in any event, create a new record for a_relevant_search_dirs and...'
+:;: in any event, create a new record for a_relevant_search_dirs and...
 mapfile -d '' -t a_relevant_search_dirs < <(
   sudo find / -mindepth 1 -maxdepth 1 -type d \! -empty \
     \( \! -name proc -a \! -name sys -a \! -iname 'scf*' \) \
     -print0 2> /dev/null )
 :; fn_write_arrays a_relevant_search_dirs
 
-:;: 'If we must run -find- for a_all_files.'
+:;: If we must run -find- for a_all_files.
 if [[ ! -v a_all_files ]]; then
   
     : '<>'
     a_relevant_search_dirs=( /usr/sbin )
     #a_relevant_search_dirs=( /usr/sbin /usr/bin )
   
-  :;: 'Find all relevant files on disk.'
+  :;: Find all relevant files on disk.
   mapfile -d '' -t a_all_files < <( 
     sudo find "${a_relevant_search_dirs[@]}" -mindepth 1 -type f -print0 \
       2> /dev/null )
+
   :; fn_write_arrays a_all_files
 fi
 
-:;: 'Sort the original array and test it.'
+:;: Sort the original array and test it.
 mapfile -d '' -t a_all_files_sorted < <(
   printf '%s\0' "${a_all_files[@]}" |
     sort --zero-terminated )
 
-:;: 'Do the second comparison.' 
-[[ "$( fn_num a_all_files )" -eq "$( fn_num a_all_files_sorted )" ]] ||
-  fn_erx "${LINENO}"
+:;: Do the comparison. 
+[[ $( fn_num a_all_files ) -eq $( fn_num a_all_files_sorted ) ]] ||
+  fn_erx $LINENO
 
 
-:;: 'Add some brevity, and write the completed arrays to disk'
-count="${#a_all_files_sorted[@]}"
+:;: Add some brevity, and write the completed arrays to disk
+count=${#a_all_files_sorted[@]}
 unset IFS
 
   :;: '<>'
   [[ -f /tmp/"${list_crunchbangs##*/}" ]] &&
-    fn_age_file /tmp/"${list_crunchbangs##*/}"
+    fn_age_file "/tmp/${list_crunchbangs##*/}"
 
-:;: 'if the full list exists (of files on disk which begin with crash-'
-:   ' bangs), then skip the 30-90 minute search phase.'
-if [[ ! -f /tmp/"${list_crunchbangs##*/}" ]] || 
-  [[ -L /tmp/"${list_crunchbangs##*/}" ]]; 
-then
-  
+:;: if the full list exists (of files on disk which begin with crash-
+:    bangs), then skip the 30-90 minute search phase.
+if [[ ! -f "/tmp/${list_crunchbangs##*/}" ]] || [[ -L "/tmp/${list_crunchbangs##*/}" ]]; then
 
-  :;: 'fn_scan_local_disks: Sort out the scripts, ie, any file beginning' 
-  :   'with a crashbang from the rest of the files'
-  for all_files_index in "${!a_all_files_sorted[@]}"; do
+  :;: Sort out the scripts, ie, any file beginning 
+  :   with a crashbang from the rest of the files
+  for all_files_index in ${!a_all_files_sorted[@]}; do
 
-    :;: 'fn_scan_local_disks: LOOP';:
-    printf '%d of %d files\r' "$all_files_index" "$count"
+    :;: LOOP progress meter;:
+    printf '%d of %d files\r' $all_files_index $count
     each_sorted_f="${a_all_files_sorted[${all_files_index}]}"
     
-    :;: 'fn_scan_local_disks: each_sorted_f must exist'
+    :;: each_sorted_f must exist
     if [[ ! -e "$each_sorted_f" ]]; then
-      set -x
       a_file_DNE+=( "$each_sorted_f" )
       continue
-      set -
     fi
 
-    :;: 'fn_scan_local_disks: run -file- on each each_sorted_f'
+    :;: run -file- on each each_sorted_f
     { 
-      printf '+ %-8d: ' "$all_files_index"; 
-      sudo file -pk "$each_sorted_f";
-    } | 
-      tee -a "${curr_time_ssubd}/file_out"
+      printf '+ %-8d: ' "$all_files_index" 
+      sudo file -pk "$each_sorted_f"
+    } | tee -a "${curr_time_ssubd}/file_out"
  
-    :;: 'fn_scan_local_disks: Read from disk in binary the first two bytes' 
-    :   'of each each_sorted_f in the list and output it in hexadecimal.'
+    :;: Read from disk in binary the first two bytes
+    :   of each each_sorted_f in the list and output it in hexadecimal.
     read -r leftover_words_b byte_0 byte_1 leftover_words_b < <( 
       sudo od -j 0 -N 2 -t x1z -v "$each_sorted_f" || 
-        fn_erx "$LINENO" "$all_files_index" "$each_sorted_f" )
+        fn_erx L:$LINENO I:$all_files_index "$each_sorted_f" )
     export leftover_words_b # SC2034
     
-    :;: 'fn_scan_local_disks: If -od_o- contains some non-zero data, as it'
-    :   ' should,'
+    :;: If -od_o- contains some non-zero data, as it should...
     if [[ -z "$byte_0" ]]; then
-      fn_erx "L:$LINENO I:$all_files_index <${each_sorted_f}>" '*theoretically unreachable code*';
+      fn_erx L:$LINENO I:$all_files_index "<${each_sorted_f}>" '*theoretically unreachable code*'
 
     # compare the hexadecimal representations to
     # find any crashbangs.
     elif [[ "${byte_0}${byte_1}" == @(2321|2123) ]]; then
 
-      :;: 'fn_scan_local_disks: Issue: a big endian file format, possibly'
-      :   ' a DB file, etc.'
-      if [[ "${byte_0}${byte_1}" == '2123' ]]; then
+      :;: Issue: a big endian file format, possibly
+      :    a DB file, etc.
+      if [[ "${byte_0}${byte_1}" == 2123 ]]; then
         a_incorrect_endianness+=( [all_files_index]="$each_sorted_f" )
 
-      :;: 'fn_scan_local_disks: Crunchbang found. Use -read-, and hope'
-      :   'there won-t be any non-printable characters.'
+      :;: fn_scan_local_disks: Crunchbang found. Use -read-, and hope
+      :   there won-t be any non-printable characters.
       else
         IFS= read -r first_line < "$each_sorted_f" ||
-          fn_erx "$LINENO" "$all_files_index" "$each_sorted_f";
+          fn_erx L:$LINENO I:$all_files_index "$each_sorted_f"
 
-        :;: 'fn_scan_local_disks: Issue: the files with -#!comment- as the'
-        :   'initial bytes. These aren-t scripts, so restart the loop.'
+        :;: Issue: the files with -#!comment- as the
+        :   initial bytes. These aren-t scripts, so restart the loop.
         if [[ "$first_line" =~ ^'#!comment' ]]; then
           a_crunches_with_hashbang_comments+=( [all_files_index]="$each_sorted_f" )
           continue
         fi
 
-        :;: 'fn_scan_local_disks: Issue: crashbang files which originate'
-        :   'outside of the rpm package manager'
+        :;: Issue: crashbang files which originate
+        :   outside of the rpm package manager
         if ! rpm -qf "$each_sorted_f" 2> /dev/null 1>&2; then
 
-          :;: 'fn_scan_local_disks: user and system files from outside -rpm-'
+          :;: user and system files from outside -rpm-
           if [[ "$each_sorted_f" = /@(root|home|run/media)/* ]]; then
             a_non_rpm_user_crunches+=( [all_files_index]="$each_sorted_f" )
             continue
@@ -487,8 +490,8 @@ then
         fi
       fi
       
-      :;: 'fn_scan_local_disks: Make a record in RAM of the relevant'
-      :   'filenames and their crashbangs.'
+      :;: fn_scan_local_disks: Make a record in RAM of the relevant
+      :   filenames and their crashbangs.
       a_shell_scripts+=( [all_files_index]="$( \
         printf '%-50s   %% %% %% %%   %s\n' "$first_line" "$each_sorted_f" )" )
 
@@ -507,10 +510,11 @@ then
   export a_all_files_sorted a_file_DNE a_incorrect_endianness  a_crunches_with_hashbang_comments a_non_rpm_user_crunches a_non_rpm_system_crunches a_shell_scripts a_all_other_files a_relevant_search_dirs
   
   :;: data files
-  a_write_path_nms=( "${list_crunchbangs:=crunchbangs}" /tmp/"${list_crunchbangs##*/}" )
+  a_write_path_nms=( "${list_crunchbangs:=crunchbangs}" "/tmp/${list_crunchbangs##*/}" )
 
   :;: if any data files already exist, keep them
   for any_existing_f in "${a_write_path_nms[@]}"; do
+  
     if [[ -f "$any_existing_f" ]] && [[ ! -L "$any_existing_f" ]]; then
       mv "$any_existing_f" "${any_existing_f}.${$}.${random_n}" ||
         fn_erx "$LINENO"
@@ -521,14 +525,14 @@ then
   touch "${a_write_path_nms[@]}"
 
   :;: header
-  { 
-    printf '# crunchbangs -- %s\n' "${timecode%-*}" 
+  { printf '# crunchbangs -- %s\n' "${timecode%-*}" 
     printf '# %s\n' "$( declare -p a_relevant_search_dirs )" 
-  } | tee --output-error='exit' "${a_write_path_nms[@]}"
+  } | tee --output-error=exit "${a_write_path_nms[@]}"
   
   :;: printing contents of a_shell_scripts array
   printf '%s\n' "${a_shell_scripts[@]}" |
     tee --append --output-error=exit "${a_write_path_nms[@]}"
+  
   :; fn_bak "${a_write_path_nms[@]}"
 fi
 
@@ -536,17 +540,16 @@ fi
 :;: CENTRAL TASK, 1 OF 2: Filter the list of crashbangs with the list
 :     of shells.
 
-:;: central task 1 of 2: header
-{ 
-  printf '# SC-scrpts-list -- %s\n' "${timecode%-*}" 
+:;: header
+{ printf '# SC-scrpts-list -- %s\n' "${timecode%-*}" 
   printf '# %s\n' "$( declare -p a_relevant_search_dirs )" 
-} | tee --output-error='exit' "${list_crunchbangs}_SC-scrpts-list"
+} | tee --output-error=exit "${list_crunchbangs}_SC-scrpts-list"
   
 grep --extended-regexp '/bin/'"${shells}"'.*% % % %' \
   "$list_crunchbangs" > "${list_crunchbangs}_SC-scrpts-list" ||
-    fn_erx "$LINENO"
+    fn_erx $LINENO
 rsync -ca "${list_crunchbangs}_SC-scrpts-list" /tmp ||
-  fn_erx "$LINENO"
+  fn_erx $LINENO
 :; fn_bak "${list_crunchbangs}_SC-scrpts-list" /tmp/*_SC-scrpts-list
 
 
@@ -566,8 +569,7 @@ mapfile -t a_each_script_list_sorted < <(
     awk '{ print $2 }' )
 
 iterator_2=0
-{
-  for sorted_script in "${!a_each_script_list_sorted[@]}"; do 
+{ for sorted_script in ${!a_each_script_list_sorted[@]}; do 
     mapfile -d '' -t a_each_script_SC_results < <( 
       shellcheck -S "$severity" \
           "${a_each_script_list_sorted[$sorted_script]}" | 
@@ -575,7 +577,8 @@ iterator_2=0
         grep --extended-regexp -o "SC[0-9a-zA-Z\ \t():,.'-$&#\!]*" | 
         cut -b -64 | 
         sort --general-numeric-sort | 
-        uniq --count ; printf '\0' )
+        uniq --count # no pipe intended
+        printf '\0' )
 
     if [[ -n "${a_each_script_SC_results[*]:0:1}" ]]; then 
       printf '\n%-4d%s\n' $((iterator_2++)) "${a_each_script_list_sorted[$sorted_script]}"
@@ -588,8 +591,8 @@ iterator_2=0
 
 :;: Write semi-permanent archives
 rsync -ca "${list_crunchbangs}_found_scripts_with_indices" "$main_d" ||
-  fn_erx "$LINENO"
+  fn_erx $LINENO
 rsync -ca "${list_crunchbangs}_found_scripts_with_indices" /tmp ||
-  fn_erx "$LINENO"
+  fn_erx $LINENO
 
 exit 0
