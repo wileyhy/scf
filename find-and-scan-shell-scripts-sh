@@ -739,6 +739,9 @@ mapfile -t a_each_script_list_sorted_by_linect < <(
 
 # Bug? 1st grep extra?
 
+  :;: '<>'
+  set -x
+
 iterator_2=0
 { for sorted_script in "${!a_each_script_list_sorted_by_linect[@]}"; do     
     mapfile -d '' -t a_each_script_SC_results < <( 
@@ -759,19 +762,18 @@ iterator_2=0
   done
 } | tee -a "${list_crunchbangs}_found_scripts" > /dev/null
 
-:; fn_bak      "${list_crunchbangs}_found_scripts"
-:; fn_age_file "${list_crunchbangs}_found_scripts"
-
 
 :;: Write semi-permanent archives
 
-:; fn_bak "${main_d}/${list_crunchbangs##*/}_found_scripts"
-:; fn_bak "/tmp/${list_crunchbangs##*/}_found_scripts"
-
+:; fn_bak      "${list_crunchbangs}_found_scripts"
 rsync -ca "${list_crunchbangs}_found_scripts" "$main_d" || fn_erx $LINENO
 rsync -ca "${list_crunchbangs}_found_scripts" /tmp || fn_erx $LINENO
+:; fn_age_file "${list_crunchbangs}_found_scripts"
 
+:; fn_bak      "${main_d}/${list_crunchbangs##*/}_found_scripts"
 :; fn_age_file "${main_d}/${list_crunchbangs##*/}_found_scripts"
+
+:; fn_bak      "/tmp/${list_crunchbangs##*/}_found_scripts"
 :; fn_age_file "/tmp/${list_crunchbangs##*/}_found_scripts"
 
 exit 0
