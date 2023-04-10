@@ -1,5 +1,5 @@
 #!/bin/bash
-# find-and-scan-shell-scripts-sh
+script_nm=find-and-scan-shell-scripts-sh
 # Written in bash version 5.1 on Fedora 37
 
 
@@ -24,6 +24,13 @@ PATH="$( /usr/bin/command -p getconf PATH ):/usr/bin:/usr/sbin:${PATH}" ||
 export LC_COLLATE LC_CTYPE LC_NUMERIC PATH
 
 :;: Option parsing
+fn_erx(){
+  local loc_exit_code=$? # this assignment must be the first command
+  : fn_erx
+  echo -e Error: "$@" 
+  : 'END OF fn_erx';:
+  exit $loc_exit_code
+}
 fn_usage(){
   # Usage:  fn_usage [exit-code]
   : fn_usage
@@ -44,6 +51,7 @@ EOF
 
 if [[ $# -gt 0 ]]; then
   cli_input="${1:0:2}"
+  sudoers_str='liveuser localhost-live=NOPASSWD: /usr/bin/sudo -v'
 
   # shellcheck disable=SC2034
   case "$cli_input" in
@@ -57,7 +65,68 @@ if [[ $# -gt 0 ]]; then
         exit 0;;
     -w) severity=warning;;
     -h) :; fn_usage 0;;
-    s[eivwh]) echo foo;;
+
+    # Disable sudoers access
+    -S) #1045e723 
+      set -x
+      sudo -v
+    
+      # this script must be accessible
+      if [[ "$script_nm" == "${0##*/}" ]] &&
+        grep -q e8fb31c6c58730b3a9662a0026c9c0ef "$0"
+      then
+        
+        # remove access line from sudoers
+        sud_line="$( 
+          sudo grep -n "$sudoers_str" /etc/sudoers | 
+            cut -d':' -f1 )"
+        [[ -n "$sud_line" ]] ||
+          fn_erx "$LINENO"
+        
+        sudo sed -i "${sud_line}d" /etc/sudoers   || fn_erx "$LINENO"
+        sudo visudo -cs >/dev/null 2>&1           || fn_erx "$LINENO"
+        sudo grep -q "$sudoers_str" /etc/sudoers  && fn_erx "$LINENO"
+        echo sudoers is locked
+
+        # enable -s flag
+
+
+        # diable this flag
+
+
+        exit 0
+      fi
+        ;;
+    # Enable sudoers access
+    -s) echo TODO; exit;;    -s) #646cc4e0 
+      set -x
+      sudo -v
+      
+      # and again, this script must be accessible
+      if [[ "$script_nm" == "${0##*/}" ]] &&
+        grep -q e8fb31c6c58730b3a9662a0026c9c0ef "$0"
+      then
+        
+        # if the access line IS in sudoers...
+        if sudo grep -q "$sudoers_str" /etc/sudoers; then
+        
+          # ...then disable this option
+          sudo sed -i \
+            's,^ *-s) #646cc4e0,    -s) echo TODO; exit;;&,' "$0" ||
+              fn_erx "$LINENO"
+        
+        # but if the access line is NOT in sudoers, then put it there
+        else
+          echo "$sudoers_str" |
+            sudo tee -a /etc/sudoers > /dev/null    || fn_erx "$LINENO"
+          sudo visudo -cs >/dev/null 2>&1           || fn_erx "$LINENO"
+          sudo grep -q "$sudoers_str" /etc/sudoers  || fn_erx "$LINENO"
+          echo sudoers is setup
+        fi
+      else
+        fn_erx "$LINENO" 'it cannot be done'
+      fi
+      exit 0;;
     *)  :; fn_usage 1;;
   esac
 fi
@@ -204,13 +273,6 @@ fn_bak(){
     fi
   done
   : 'END OF fn_bak';:
-}
-fn_erx(){
-  local loc_exit_code=$? # this assignment must be the first command
-  : fn_erx
-  echo -e Error: "$@" 
-  : 'END OF fn_erx';:
-  exit $loc_exit_code
 }
 fn_num(){ 
   : fn_num
@@ -528,9 +590,12 @@ unset IFS
     #awk '/^Transaction ID/ { print $4 }' ||
       #_erx "${LINENO}" )"
 
+  set -x
   :;: '<>'
   [[ -f /tmp/"${list_crunchbangs##*/}" ]] &&
     fn_age_file "/tmp/${list_crunchbangs##*/}"
+
+# tests tmp file
 
 :;: if the full list exists -- of files on disk which begin with crash-
 :    bangs -- skip the 30-90 minute search phase.
@@ -678,7 +743,18 @@ then
   printf '%s\n' "${a_shell_scripts[@]}" |
     tee --append --output-error=exit "${a_write_path_nms[@]}" > /dev/null
   
+  set -x
   :; fn_bak "${a_write_path_nms[@]}"
+  set -
+
+else
+
+  # the time_dir needs a copy of the crunchbangs file, also.  copy it in 
+  # from the hopefully correct backup in /tmp
+  if [[ ! -f "$list_crunchbangs" ]]; then
+    rsync -ca "/tmp/${list_crunchbangs##*/}" "$list_crunchbangs" || 
+      fn_erx "$LINENO"
+  fi
 fi
 
 # TODO: verify interpreters
@@ -698,12 +774,15 @@ fi
 :;: CENTRAL TASK, 1 OF 2: Filter the list of crashbangs with the list
 :     of shells.
 
+  declare -p list_crunchbangs
+
 :;: header
 { printf '# SC-scrpts-list -- %s\n' "${timecode%-*}" 
   printf '# %s\n' "$( declare -p a_relevant_search_dirs )" 
 } | tee --output-error=exit "${list_crunchbangs}_SC-scrpts-list" \
   > /dev/null
-  
+
+# pulls from time_dir
 grep --extended-regexp '/bin/'"${shells}"'.*% % % %' \
   "$list_crunchbangs" > "${list_crunchbangs}_SC-scrpts-list" ||
     fn_erx $LINENO
@@ -755,6 +834,9 @@ iterator_2=0
         uniq --count # no pipe intended
         printf '\0' )
 
+      :;: '<>'
+      declare -p a_each_script_SC_results
+
     if [[ -n "${a_each_script_SC_results[*]:0:1}" ]]; then 
       printf '\n%-4d%s\n' $((iterator_2++)) \
         "${a_each_script_list_sorted_by_linect[$sorted_script]}"
@@ -763,6 +845,7 @@ iterator_2=0
   done
 } | tee -a "${list_crunchbangs}_found_scripts" > /dev/null
 
+  #exit "$LINENO"
 
 :;: Write semi-permanent archives
 
