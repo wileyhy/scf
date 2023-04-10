@@ -373,10 +373,10 @@ else
 fi
 
 
-  :;: '<>' 
-  set -x
-  declare -p a_mp a_avail_mp
-  exit "$LINENO"
+  #:;: '<>' 
+  #set -x
+  #declare -p a_mp a_avail_mp
+  #exit "$LINENO"
 
 # Bug: maintenance issue! Compound command
 
@@ -390,7 +390,7 @@ mountpoint="$(
     sort -rnk2 | 
     awk 'NR==1 { print $3 }' )"
 
-  exit "$LINENO"
+  #exit "$LINENO"
 
 
 [[ -n "$mountpoint" ]] ||
@@ -549,7 +549,7 @@ unset IFS
     #awk '/^Transaction ID/ { print $4 }' ||
       #_erx "${LINENO}" )"
 
-  set -x
+  #set -x
   :;: '<>'
   [[ -f /tmp/"${list_crunchbangs##*/}" ]] &&
     fn_age_file "/tmp/${list_crunchbangs##*/}"
@@ -702,9 +702,9 @@ then
   printf '%s\n' "${a_shell_scripts[@]}" |
     tee --append --output-error=exit "${a_write_path_nms[@]}" > /dev/null
   
-  set -x
+  #set -x
   :; fn_bak "${a_write_path_nms[@]}"
-  set -
+  #set -
 
 else
 
@@ -733,7 +733,7 @@ fi
 :;: CENTRAL TASK, 1 OF 2: Filter the list of crashbangs with the list
 :     of shells.
 
-  declare -p list_crunchbangs
+  #declare -p list_crunchbangs
 
 :;: header
 { printf '# SC-scrpts-list -- %s\n' "${timecode%-*}" 
@@ -779,7 +779,7 @@ mapfile -t a_each_script_list_sorted_by_linect < <(
 # Bug? 1st grep extra?
 
   :;: '<>'
-  set -x
+  #set -x
 
 iterator_2=0
 { for sorted_script in "${!a_each_script_list_sorted_by_linect[@]}"; do     
@@ -794,7 +794,7 @@ iterator_2=0
         printf '\0' )
 
       :;: '<>'
-      declare -p a_each_script_SC_results
+      #declare -p a_each_script_SC_results
 
     if [[ -n "${a_each_script_SC_results[*]:0:1}" ]]; then 
       printf '\n%-4d%s\n' $((iterator_2++)) \
