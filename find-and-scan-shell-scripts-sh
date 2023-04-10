@@ -172,12 +172,14 @@ if [[ $# -gt 0 ]]; then
   esac
 fi
 
+
 :;: Use -sudo-
 if ! sudo -v; then
   printf '\n\tValidation failed of user\x27s \x60sudo\x60 timestamp; ' 
   printf 'exiting.\n\n' 
   exit $LINENO
 fi
+
 
 :;: Process lock
 random_n=$RANDOM
@@ -230,6 +232,7 @@ if ! mkdir "$process_lock" 2> /dev/null; then
   exit $LINENO
 fi
 
+
 :;: User variables
 fstype_list='btrfs,exfat,ext3,ext4,fat32,ntfs,xfs'
 timecode="$( builtin printf '%(%F_%H%M%S)T' )"
@@ -263,6 +266,8 @@ timecode="$( builtin printf '%(%F_%H%M%S)T' )"
 # loc_A_hashes_prev_files loc_a_previous_aged_files
 
 
+
+# SECTION B
 
 :;: Assign varnames and paths for the data directories
 #   Note: In case of large log files, programatically select a save di-
@@ -465,7 +470,7 @@ if [[ ! -d "${curr_time_ssubd}" ]]; then
 fi
 
 
-# SECTION B
+# SECTION C
 
 # BUG:  Reduce Search Time
 
@@ -515,7 +520,7 @@ mapfile -d '' -t a_all_files_sorted < <(
   fn_erx $LINENO
 
 
-# SECTION C
+# SECTION D
 
 # Bug? Can more indices and fewer files be used?
 
@@ -707,7 +712,7 @@ fi
 #   cat -Aen
 
 
-# SECTION D
+# SECTION E
 
 # Make the data readable and useable.
 
