@@ -24,7 +24,7 @@ for f in /root/.bashrc /home/liveuser/.bashrc; do
   if ! sudo grep -q "$bashrc_str" "$f"; then
     sudo cp -a "$f" "${f}~"
     echo "$bashrc_str" | 
-      sudo tee -a "$f"
+      sudo tee -a "$f" > /dev/null
   fi
 done
       
@@ -60,7 +60,7 @@ sudo git config --system init.defaultBranch 'main'
 
 gitmesg=/etc/.gitmessage_system
 sudo touch "$gitmesg"
-cat <<EOF | sudo tee "$gitmesg"
+cat <<EOF | sudo tee "$gitmesg" > /dev/null
 Subject line (try to keep under 50 characters)
 
 Multi-line description of commit,
@@ -72,7 +72,7 @@ sudo git config --system commit.template "$gitmesg"
 
 
 gitignr=/etc/.gitignore_system
-cat <<EOF | sudo tee "$gitignr"
+cat <<EOF | sudo tee "$gitignr" > /dev/null
 *~
 .*.swp
 .DS_Store
@@ -80,7 +80,7 @@ EOF
 sudo git config --system core.excludesfile "$gitignr"
 
 umask 177
-cat <<EOF | sudo tee /root/.vimrc
+cat <<EOF | sudo tee /root/.vimrc > /dev/null
 " per google:
 set number
 
@@ -119,7 +119,7 @@ sudo git config --system color.ui 'auto'
 
 
 mapfile -d '' -t conf_f < <( 
-  find /home/liveuser -type f -name 'set-up-git_v[0-9]*_user' -print0 )
+  find /home/liveuser -type f -name 'set-up-git_user' -print0 )
 
 if [[ "${#conf_f[@]}" -ne 1 ]]; then
   echo 'now do the regular user bit'
