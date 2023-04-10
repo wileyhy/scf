@@ -308,11 +308,16 @@ for (( i=0; i<I; i++ )); do
     unset 'a_maj8s[$i]'
 done
 
-# if there arent any available mountpoints, but there are some fs-s
-# or if there are some extra fs-s attached which arent mounted
+# create some additional arrays for counting existing values
 for mp in "${a_mp[@]}"; do [[ -n "$mp" ]] && a_avail_mp+=( "$mp" ); done
 for fs in "${a_fs[@]}"; do [[ -n "$fs" ]] && a_avail_fs+=( "$fs" ); done
 
+
+  #:;: '<>'
+  #set -x
+
+# if there arent any available mountpoints, but there are some fs-s
+# -OR- if there are some extra fs-s attached which arent mounted
 if { 
   [[ ${#a_avail_mp[@]} -eq 0 ]] && [[ ${#a_avail_fs[@]} -gt 0 ]]
     } || 
@@ -365,18 +370,25 @@ else
   fn_erx $LINENO '*Unreachable code*'
 fi
 
+
+  :;: '<>' 
+  set -x
+  #exit "$LINENO"
+  declare -p a_mp a_avail_mp
+
 # Bug: maintenance issue! Compound command
 
 # prevent the FS root / from becoming the mountpoint
 mountpoint="$( 
-  for m in "${a_mp[@]}"; do 
-    [[ -n "$m" ]] && 
+  for m in "${a_avail_mp[@]}"; do 
       sudo findmnt --ascii --bytes --canonicalize --df --list \
           --types "$fstype_list" --noheadings --notruncate --nofsroot \
-          --output maj:min,size,target --mountpoint "$m"
+          --output maj:min,avail,target --mountpoint "$m"
   done | 
     sort -rnk2 | 
     awk 'NR==1 { print $3 }' )"
+
+  exit "$LINENO"
 
 
 [[ -n "$mountpoint" ]] ||
