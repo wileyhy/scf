@@ -5,7 +5,8 @@ if [[ "$UID" == 0 ]]; then
   echo must be a regular user and use sudo
   exit 1
 else
-  sudo -v
+  sudo -v ||
+    exit 1
 fi
 
 
@@ -18,9 +19,11 @@ fi
 #   git commit --amend --reset-author
 
 umask 071
-for f in ~/.bashrc /home/liveuser/.bashrc; do 
-  if ! grep -q 'EDITOR=/usr/bin/vim' "$f"; then
-    echo 'EDITOR=/usr/bin/vim' | 
+bashrc_str='EDITOR=/usr/bin/vim; BROWSER=/usr/bin/firefox'
+for f in /root/.bashrc /home/liveuser/.bashrc; do 
+  if ! sudo grep -q "$bashrc_str" "$f"; then
+    sudo cp -a "$f" "${f}~"
+    echo "$bashrc_str" | 
       sudo tee -a "$f"
   fi
 done
@@ -77,7 +80,7 @@ EOF
 sudo git config --system core.excludesfile "$gitignr"
 
 umask 177
-cat <<EOF>~/.vimrc
+cat <<EOF | sudo tee /root/.vimrc
 " per google:
 set number
 
@@ -96,7 +99,7 @@ for f in /etc/git* /etc/.git*; do
   sudo chmod 0604 "$f"
 done
 
-for f in "$gitmesg" "$gitignr" ~/.vimrc; do
+for f in "$gitmesg" "$gitignr" /root/.vimrc; do
   sudo rsync -ca "$f" /home/liveuser
   sudo chown 1000:1000 "/home/liveuser/${f##*/}"
   sudo chmod 0400 "/home/liveuser/${f##*/}"
@@ -116,7 +119,7 @@ sudo git config --system color.ui 'auto'
 
 
 mapfile -d '' -t conf_f < <( 
-  sudo find ~ -type f -name 'set-up-git_v[0-9]*_user' -print0 )
+  find /home/liveuser -type f -name 'set-up-git_v[0-9]*_user' -print0 )
 
 if [[ "${#conf_f[@]}" -ne 1 ]]; then
   echo 'now do the regular user bit'

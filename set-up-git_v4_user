@@ -21,6 +21,8 @@ cd ~/MYPROJECT || {
 }
 
 # Log in & clone repo
+gh auth logout
+
 gh auth login ||
   exit "$LINENO"
 
@@ -29,7 +31,7 @@ if [[ ! -d ~/MYPROJECT/scf ]]; then
     exit "$LINENO"
 fi
 
-echo 'Now run this command:'
-echo 'cd ./MYPROJECT/scf; git status'
+printf '\n\t Now run this command: \n'
+printf '\n\t cd ./MYPROJECT/scf; git status \n\n'
 
 
