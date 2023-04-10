@@ -1,5 +1,5 @@
 #!/bin/bash
-script_nm=find-and-scan-shell-scripts-sh
+# find-and-scan-shell-scripts-sh
 # Written in bash version 5.1 on Fedora 37
 
 
@@ -22,6 +22,8 @@ LC_NUMERIC="en_US.UTF-8" # for commas
 PATH="$( /usr/bin/command -p getconf PATH ):/usr/bin:/usr/sbin:${PATH}" ||
   exit "$LINENO"
 export LC_COLLATE LC_CTYPE LC_NUMERIC PATH
+
+
 
 :;: Option parsing
 fn_erx(){
@@ -51,7 +53,6 @@ EOF
 
 if [[ $# -gt 0 ]]; then
   cli_input="${1:0:2}"
-  sudoers_str='liveuser localhost-live=NOPASSWD: /usr/bin/sudo -v'
 
   # shellcheck disable=SC2034
   case "$cli_input" in
@@ -65,68 +66,6 @@ if [[ $# -gt 0 ]]; then
         exit 0;;
     -w) severity=warning;;
     -h) :; fn_usage 0;;
-
-    # Disable sudoers access
-    -S) #1045e723 
-      set -x
-      sudo -v
-    
-      # this script must be accessible
-      if [[ "$script_nm" == "${0##*/}" ]] &&
-        grep -q e8fb31c6c58730b3a9662a0026c9c0ef "$0"
-      then
-        
-        # remove access line from sudoers
-        sud_line="$( 
-          sudo grep -n "$sudoers_str" /etc/sudoers | 
-            cut -d':' -f1 )"
-        [[ -n "$sud_line" ]] ||
-          fn_erx "$LINENO"
-        
-        sudo sed -i "${sud_line}d" /etc/sudoers   || fn_erx "$LINENO"
-        sudo visudo -cs >/dev/null 2>&1           || fn_erx "$LINENO"
-        sudo grep -q "$sudoers_str" /etc/sudoers  && fn_erx "$LINENO"
-        echo sudoers is locked
-
-        # enable -s flag
-
-
-        # diable this flag
-
-
-        exit 0
-      fi
-        ;;
-    # Enable sudoers access
-    -s) echo TODO; exit;;    -s) #646cc4e0 
-      set -x
-      sudo -v
-      
-      # and again, this script must be accessible
-      if [[ "$script_nm" == "${0##*/}" ]] &&
-        grep -q e8fb31c6c58730b3a9662a0026c9c0ef "$0"
-      then
-        
-        # if the access line IS in sudoers...
-        if sudo grep -q "$sudoers_str" /etc/sudoers; then
-        
-          # ...then disable this option
-          sudo sed -i \
-            's,^ *-s) #646cc4e0,    -s) echo TODO; exit;;&,' "$0" ||
-              fn_erx "$LINENO"
-        
-        # but if the access line is NOT in sudoers, then put it there
-        else
-          echo "$sudoers_str" |
-            sudo tee -a /etc/sudoers > /dev/null    || fn_erx "$LINENO"
-          sudo visudo -cs >/dev/null 2>&1           || fn_erx "$LINENO"
-          sudo grep -q "$sudoers_str" /etc/sudoers  || fn_erx "$LINENO"
-          echo sudoers is setup
-        fi
-      else
-        fn_erx "$LINENO" 'it cannot be done'
-      fi
-      exit 0;;
     *)  :; fn_usage 1;;
   esac
 fi
