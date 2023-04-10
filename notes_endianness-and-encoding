@@ -1,0 +1,175 @@
+#! /bin/bash
+
+# Reasoning: the endianness of any '#!'/ASCII scripts, in practical 
+# terms, doesn't matter, because the shell will try to execute a 
+# byte-swabbed script as-is, without turning the '!#' the right way
+# around. So endianness, for this project, just really doesn't matter. 
+# Skip it. -- late March 2023, WY
+
+
+# see also dd xxd dc3dd dcfldd
+
+###### 09 April 2023, Easter Sunday
+#   later addition:
+# https://mywiki.wooledge.org/BashPitfalls\
+#   #On_UTF-8_and_Byte-Order_Marks_.28BOM.29
+# https://unix.stackexchange.com/questions/87745/what-does-lc-all-c-do
+#
+# based on `dnf search [utf16|utf7]`... it looks like perl could do it
+#
+######
+
+
+
+od_endianness=( big little )
+
+strings_unicode=( default invalid locale escape hex highlight )
+
+strings_encoding=( s S b l B L )
+
+
+# GNU strings options
+#   --all                     -a|-
+#   --data                    -d
+#   --print-file-name         -f
+#   --bytes                   -n|-[min-len]
+#   --radix                   -t
+#     -t o                    -o
+#   --encoding                -e
+#   --unicode                 -U
+#   --target                  -T
+#   --include-all-whitespace  -w
+#   --output-separator        -s
+#   @file                     #
+
+
+# GNU od options
+#   --address-radix           -A
+#   --endian                  #
+#   --skip-bytes              -j
+#   --read-bytes              -N
+#   --strings                 -S
+#   --format                  -t
+#     -t a                    -a
+#     -t o1                   -b
+#     -t c                    -c
+#     -t u2                   -d
+#     -t fF                   -f
+#     -t dI                   -i
+#     -t dL                   -l
+#     -t o2                   -o
+#     -t d2                   -s
+#     -t x2                   -x
+#   --output-duplicates       -v
+#   --width                   -w
+#   --traditional             #
+
+
+
+# 1.  select for endianness --  od --endianness
+# 2.  select for all data --    strings --all
+# 3.  select for encoding --    strings --encoding
+# 4.  select for unicode --     strings --unicode
+# 5.  select for output --      od --format
+#
+
+
+
+# Of all files identified as 'utf' anything, how many aren't utf-8?
+mapfile -d '' -t all_files < <( find / -type f -print0 2> /dev/null )
+{ for f in "${all_files[@]}"; do file -knpr "$f" | grep -i utf | grep -iv 'utf-8'; done; } | tee -a /root/file-utf-test_out
+watch -d 'ps aux | grep -ie [b]ash -e [f]ile | grep -Fe " pts/1 "; wc /root/file-utf-test_out'
+
+
+
+
+###
+# https://stackoverflow.com/questions/67341863/are-file-formats-independent-of-endian-of-system
+#
+
+
+
+#   1. this endianness pipeline: possibly POSIX + AIX + HPUX compliant; 
+#         https://serverfault.com/questions/163487/how-to-tell-if-a-linux-system-is-big-endian-or-little-endian
+#endianness="$( 
+#  echo I | 
+#    tr -d '[:space:]' | 
+#    od -to2 | 
+#    head -n1 | 
+#    awk '{print $2}' | 
+#    cut -c6 || 
+#      _erx "${LINENO}" )" 
+#if [[ "${endianness}" == 1 ]]; then
+#  endianness='little'
+#else
+#  endianness='big'
+#fi
+
+# End notes
+#   2. Note: GNU version: # od --address-radix=x --endian="${endianness}" --skip-bytes=0 --read-bytes=2 --format=x2z --width=2 [FILE]
+
+#!🍺
+
+exit
+
+
+# for getting the crunchbang
+dd bs=1 count=2 if=./test status=none | strings -a -w -n1 -e S -U x | head -n 1 | cat -E ; echo
+
+# for getting the full (or most of) 1st line
+dd bs=1 count=4096 if=./test status=none | strings -a -w -n1 -e S -U x | head -n 1 | cat -E ; echo
+
+
+
+# `od` 
+reset; 
+for V in '-v' ''; do 
+  for E in 'big' 'little'; do 
+    for X in a b c d f i l o s x; do 
+      printf '\n%s %s %s\n' "$V" "$E" "$X"; 
+      od -N 32 ${V} --endian="${E}" -"${X}" ./test ; 
+    done; 
+  done; 
+done; 
+ 
+
+# `strings` with `dd`
+reset; 
+for E in s S b l B L; do 
+  for U in d i l e x h; do 
+    printf '%s %s\n' "$E" "$U"; 
+    dd bs=1 count=512 if=./test status=none | 
+      strings -a -n1 -e "$E" -U "$U"; 
+    echo; 
+  done; 
+done
+
+
+
+# `dd` | `od` | `strings` 
+reset; 
+# strings -e
+for E in s S b l B L; 
+do 
+  # strings -U
+  for U in d i l e x h; 
+  do 
+    # od -v
+    for V in '-v' ''; 
+    do
+      # od, format type shortcut
+      for X in a b c d f i l o s x; 
+      do 
+        # od --endian
+        for EN in 'big' 'little'; 
+        do
+          printf '%s %s %s %s %s\n' "$E" "$U" "$V" "$EN" "$X"; 
+          dd bs=1 count=512 if=./test status=none | 
+            od -N 32 ${V} --endian="${EN}" -"${X}" |
+            strings -a -n1 -e "$E" -U "$U"; 
+          echo; 
+        done;
+      done;
+    done;
+  done; 
+done
