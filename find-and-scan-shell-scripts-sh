@@ -349,7 +349,6 @@ then
           for j in ${!a_maj8s[@]}; do 
 
             # create a mountpoint
-            a_mp+=( [j]="/run/media/${USER}/${a_uu[j]}" )
             sudo mkdir --parents "${a_mp[$j]}" ||
               fn_erx $LINENO
 
@@ -357,6 +356,10 @@ then
             sudo mount -o nosuid,nodev,noexec,rw \
                 "${a_maj8s[$j]}" "${a_mp[$j]}" ||
               fn_erx $LINENO
+            
+            # update the lists
+            a_mp+=(       [j]="/run/media/${USER}/${a_uu[j]}" )
+            a_avail_mp+=( [j]="/run/media/${USER}/${a_uu[j]}" )
           done
           break
           ;;
@@ -373,8 +376,8 @@ fi
 
   :;: '<>' 
   set -x
-  #exit "$LINENO"
   declare -p a_mp a_avail_mp
+  exit "$LINENO"
 
 # Bug: maintenance issue! Compound command
 
