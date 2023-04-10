@@ -10,6 +10,7 @@ severity=error
 # shellcheck disable=SC2034
 shells='(sh|bash|dash|ksh)'
 
+
 :;: Environment variables
 #   Note: -bash- doesnt decend subdirs of PATH
 #   Note: if executed by a restricted shell, this assignment to PATH will 
@@ -24,14 +25,73 @@ PATH="$( /usr/bin/command -p getconf PATH ):/usr/bin:/usr/sbin:${PATH}" ||
 export LC_COLLATE LC_CTYPE LC_NUMERIC PATH
 
 
+:;: Functions
+fn_age_file(){
+  : fn_age_file
 
-:;: Option parsing
+    :;: '<> ===== BUG? ===== sb   [[ ! -f   ???'
+    [[ -f "$1" ]] ||
+      return 1
+
+  local -A loc_A_hashes_prev_files
+  mapfile -d '' -t loc_a_previous_aged_files < <( 
+    find "${1%/*}" -type f -regextype egrep \
+      -regex ".*/${1##*/}\.([0-9]){10}" -print0 2> /dev/null ) 
+
+  # if the new hash is already present in the assoc
+  # array, then the new file is a dup
+  for loc_prevsly_aged in "${loc_a_previous_aged_files[@]}"; do 
+    
+    if [[ -f "$loc_prevsly_aged" ]]; then
+      
+      loc_A_hashes_prev_files["$( 
+        md5sum "$loc_prevsly_aged" | 
+          cut -d ' ' -f1 )"]="$loc_prevsly_aged" 
+      
+      loc_aging_hash_new="$( 
+        md5sum "$1" | 
+          cut -d ' ' -f1 )"
+      
+      [[ -n "${loc_A_hashes_prev_files["$loc_aging_hash_new"]}" ]] && 
+        : 'END OF fn_age_file';:
+        return 0
+    fi
+  done
+
+  loc_aging_mtime="$( stat -c%Y "$1" )"
+  mv "$1" "${1}.${loc_aging_mtime}" ||
+    fn_erx _age_file "$1"
+  : 'END OF fn_age_file';:
+}
+fn_bak(){
+  # test verifying existence of input
+  : fn_bak
+  
+  for loc_filename_a in "$@"; do 
+    
+    if [[ -f "$loc_filename_a" ]]; then 
+      rsync -acq "${loc_filename_a}"{,.bak} ||
+        fn_erx "$LINENO"
+    else
+      fn_erx "$LINENO" file DNE "$loc_filename_a" 
+    fi
+  done
+  : 'END OF fn_bak';:
+}
 fn_erx(){
   local loc_exit_code=$? # this assignment must be the first command
   : fn_erx
   echo -e Error: "$@" 
   : 'END OF fn_erx';:
   exit $loc_exit_code
+}
+fn_num(){ 
+  : fn_num
+  for loc_unquotd_array_nm_a in "$@"; do
+    local -n loc_nameref="$loc_unquotd_array_nm_a" 
+    echo ${#loc_nameref[@]}
+  done
+  : 'END OF fn_num';:
 }
 fn_usage(){
   # Usage:  fn_usage [exit-code]
@@ -50,7 +110,49 @@ EOF
   # shellcheck disable=SC2086
   exit $1
 }
+fn_write_arrays(){
+  : fn_write_arrays
+  # Usage: fn_write_arrays [arrays]
+  # Note: Default directory is -curr_time_ssubd-.
 
+  :;: fn_write_arrays: Write each array to disk.
+  #   Note: `tee` without -a will overwrite an existing file
+  for loc_unquotd_array_nm_b in "$@"; do 
+    loc_write_f_b="${curr_time_ssubd}/${loc_unquotd_array_nm_b}"
+
+    # BUG: mixing variable and array. sb a nameref
+
+    if [[ -v "$loc_unquotd_array_nm_b" ]]; then
+      
+      declare -p "$loc_unquotd_array_nm_b" | 
+        tee --output-error='exit' "$loc_write_f_b" > /dev/null
+    else
+      fn_erx $LINENO, variable "$loc_unquotd_array_nm_b" DNE
+    fi
+    :; fn_bak "$loc_write_f_b"
+  done
+  : 'END OF fn_write_arrays';:
+}
+fn_write_vars(){
+  # Usage: fn_write_vars [loc_script_section_nm] [raw variable names]
+  : fn_write_vars
+  #local loc_script_section_nm loc_write_f_a
+  loc_script_section_nm="$1"
+  loc_write_f_a="${curr_time_ssubd}/${loc_script_section_nm}_vars"
+  shift
+  [[ -e "$loc_write_f_a" ]] &&
+    fn_age_file "$loc_write_f_a"
+  declare -p "$@" 2> /dev/null |
+    tee --output-error=exit "$loc_write_f_a" > /dev/null
+  :; fn_bak "$loc_write_f_a"
+  #declare -p loc_script_section_nm loc_write_f_a 
+  : END OF fn_write_vars;:
+}
+# List of functions
+# fn_age_file fn_bak fn_erx fn_num fn_usage fn_write_arrays fn_write_vars
+
+
+:;: Option parsing
 if [[ $# -gt 0 ]]; then
   cli_input="${1:0:2}"
 
@@ -160,107 +262,6 @@ timecode="$( builtin printf '%(%F_%H%M%S)T' )"
 # List of arrays, local scope
 # loc_A_hashes_prev_files loc_a_previous_aged_files
 
-:;: Functions
-fn_age_file(){
-  : fn_age_file
-
-    :;: '<> ===== BUG? ===== sb   [[ ! -f   ???'
-    [[ -f "$1" ]] ||
-      return 1
-
-  local -A loc_A_hashes_prev_files
-  mapfile -d '' -t loc_a_previous_aged_files < <( 
-    find "${1%/*}" -type f -regextype egrep \
-      -regex ".*/${1##*/}\.([0-9]){10}" -print0 2> /dev/null ) 
-
-  # if the new hash is already present in the assoc
-  # array, then the new file is a dup
-  for loc_prevsly_aged in "${loc_a_previous_aged_files[@]}"; do 
-    
-    if [[ -f "$loc_prevsly_aged" ]]; then
-      
-      loc_A_hashes_prev_files["$( 
-        md5sum "$loc_prevsly_aged" | 
-          cut -d ' ' -f1 )"]="$loc_prevsly_aged" 
-      
-      loc_aging_hash_new="$( 
-        md5sum "$1" | 
-          cut -d ' ' -f1 )"
-      
-      [[ -n "${loc_A_hashes_prev_files["$loc_aging_hash_new"]}" ]] && 
-        : 'END OF fn_age_file';:
-        return 0
-    fi
-  done
-
-  loc_aging_mtime="$( stat -c%Y "$1" )"
-  mv "$1" "${1}.${loc_aging_mtime}" ||
-    fn_erx _age_file "$1"
-  : 'END OF fn_age_file';:
-}
-fn_bak(){
-  # test verifying existence of input
-  : fn_bak
-  
-  for loc_filename_a in "$@"; do 
-    
-    if [[ -f "$loc_filename_a" ]]; then 
-      rsync -acq "${loc_filename_a}"{,.bak} ||
-        fn_erx "$LINENO"
-    else
-      fn_erx "$LINENO" file DNE "$loc_filename_a" 
-    fi
-  done
-  : 'END OF fn_bak';:
-}
-fn_num(){ 
-  : fn_num
-  for loc_unquotd_array_nm_a in "$@"; do
-    local -n loc_nameref="$loc_unquotd_array_nm_a" 
-    echo ${#loc_nameref[@]}
-  done
-  : 'END OF fn_num';:
-}
-fn_write_arrays(){
-  : fn_write_arrays
-  # Usage: fn_write_arrays [arrays]
-  # Note: Default directory is -curr_time_ssubd-.
-
-  :;: fn_write_arrays: Write each array to disk.
-  #   Note: `tee` without -a will overwrite an existing file
-  for loc_unquotd_array_nm_b in "$@"; do 
-    loc_write_f_b="${curr_time_ssubd}/${loc_unquotd_array_nm_b}"
-
-    # BUG: mixing variable and array. sb a nameref
-
-    if [[ -v "$loc_unquotd_array_nm_b" ]]; then
-      
-      declare -p "$loc_unquotd_array_nm_b" | 
-        tee --output-error='exit' "$loc_write_f_b" > /dev/null
-    else
-      fn_erx $LINENO, variable "$loc_unquotd_array_nm_b" DNE
-    fi
-    :; fn_bak "$loc_write_f_b"
-  done
-  : 'END OF fn_write_arrays';:
-}
-# Usage: fn_write_vars [loc_script_section_nm] [raw variable names]
-fn_write_vars(){
-  : fn_write_vars
-  #local loc_script_section_nm loc_write_f_a
-  loc_script_section_nm="$1"
-  loc_write_f_a="${curr_time_ssubd}/${loc_script_section_nm}_vars"
-  shift
-  [[ -e "$loc_write_f_a" ]] &&
-    fn_age_file "$loc_write_f_a"
-  declare -p "$@" 2> /dev/null |
-    tee --output-error=exit "$loc_write_f_a" > /dev/null
-  :; fn_bak "$loc_write_f_a"
-  #declare -p loc_script_section_nm loc_write_f_a 
-  : END OF fn_write_vars;:
-}
-# List of functions
-# fn_age_file fn_bak fn_erx fn_num fn_usage fn_write_arrays fn_write_vars
 
 
 :;: Assign varnames and paths for the data directories
