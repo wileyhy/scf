@@ -57,6 +57,7 @@ if [[ $# -gt 0 ]]; then
         exit 0;;
     -w) severity=warning;;
     -h) :; fn_usage 0;;
+    s[eivwh]) echo foo;;
     *)  :; fn_usage 1;;
   esac
 fi
@@ -162,7 +163,7 @@ fn_age_file(){
   local -A loc_A_hashes_prev_files
   mapfile -d '' -t loc_a_previous_aged_files < <( 
     find "${1%/*}" -type f -regextype egrep \
-      -regex ".*/${1##*/}\.([0-9]){10}" 2> /dev/null ) 
+      -regex ".*/${1##*/}\.([0-9]){10}" -print0 2> /dev/null ) 
 
   # if the new hash is already present in the assoc
   # array, then the new file is a dup
@@ -499,7 +500,7 @@ mapfile -d '' -t a_relevant_search_dirs < <(
   :; fn_write_arrays a_all_files
 #fi
 
-:;: Sort the original array and test it.
+:;: 'Sort the original array and test it.'
 mapfile -d '' -t a_all_files_sorted < <(
   printf '%s\0' "${a_all_files[@]}" |
     sort --zero-terminated )
@@ -776,7 +777,7 @@ rsync -ca "${list_crunchbangs}_found_scripts" /tmp || fn_erx $LINENO
 :; fn_bak      "/tmp/${list_crunchbangs##*/}_found_scripts"
 :; fn_age_file "/tmp/${list_crunchbangs##*/}_found_scripts"
 
-exit 0
+exit 00
 
 
 
