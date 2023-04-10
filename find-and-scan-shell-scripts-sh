@@ -273,7 +273,6 @@ timecode="$( builtin printf '%(%F_%H%M%S)T' )"
 #   Note: In case of large log files, programatically select a save di-
 # rectory, attached to the local disk, where any output can be saved; 
 # prefer USB flash drives.
-#   List all SCSI device (major number 8) partitions (ending with [0-9]), 
 # and print any which have both any detected filesystem and no detected
 # mountpoint.
 
@@ -281,7 +280,7 @@ timecode="$( builtin printf '%(%F_%H%M%S)T' )"
 # USB drives. automatically using '/' as mountpoint is, in this case,
 # ie, on a live usb, not so good of an idea.
 
-# get the list of attached SCSI devices
+# List all SCSI device (major number 8) partitions (ending with [0-9])
 mapfile -t a_maj8s < <( 
   lsblk --ascii --include 8 --noempty --noheadings --paths \
     --output path --list /dev/sd[b-z][0-9] )
@@ -289,13 +288,14 @@ mapfile -t a_maj8s < <(
 I=${#a_maj8s[@]}
 for (( i=0; i<I; i++ )); do 
 
-  # get per-device info on fstype, uuid and mountpoints
-  # shellcheck disable=SC2016
+  # Get per-device info on fstype and uuid
+  #   shellcheck disable=SC2016
   read -r 'a_fs[$i]' 'a_uu[$i]' < <( 
     sudo wipefs --no-act --output type,uuid --noheadings \
       --types "$fstype_list" "${a_maj8s[$i]}" )
 
-  # shellcheck disable=SC2016
+  # Get per-device info on mountpoints
+  #   shellcheck disable=SC2016
   read -r 'a_mp[$i]' < <( 
     lsblk --noheadings --output mountpoints "${a_maj8s[$i]}" )
 
@@ -359,7 +359,6 @@ then
             
             # update the lists
             a_mp+=(       [j]="/run/media/${USER}/${a_uu[j]}" )
-            a_avail_mp+=( [j]="/run/media/${USER}/${a_uu[j]}" )
           done
           break
           ;;
