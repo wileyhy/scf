@@ -15,11 +15,13 @@ shells='(sh|bash|dash|ksh)'
 #   Note: if executed by a restricted shell, this assignment to PATH will 
 # fail with an error message, and will ignore all of the rest of the 
 # commands on same script line as the PATH assignment.    
+unset LC_ALL
+LC_COLLATE="C.UTF-8" # for predictable `sort`ing
+LC_CTYPE="C.UTF-8"   # "   "            "
+LC_NUMERIC="en_US.UTF-8" # for commas
 PATH="$( /usr/bin/command -p getconf PATH ):/usr/bin:/usr/sbin:${PATH}" ||
   exit "$LINENO"
-LC_ALL=C.UTF-8
-LC_COLLATE=C
-export PATH LC_ALL LC_COLLATE
+export LC_COLLATE LC_CTYPE LC_NUMERIC PATH
 
 :;: Option parsing
 fn_usage(){
@@ -488,7 +490,7 @@ mapfile -d '' -t a_relevant_search_dirs < <(
     #a_relevant_search_dirs=( /usr/sbin )
     a_relevant_search_dirs=( /usr/sbin /usr/bin )
 
-  :;: Find all relevant files on disk.
+  :;: Find all files on disk. Even the empty ones.
   
   mapfile -d '' -t a_all_files < <( 
     sudo find "${a_relevant_search_dirs[@]}" -mindepth 1 -type f \
@@ -541,12 +543,13 @@ then
   :   with a crashbang from the rest of the files
   for all_files_index in "${!a_all_files_sorted[@]}"; do
 
-    :;: LOOP progress meter;:
+    :;: Loop progress meter;:
     count_this_loop="$( printf "%'d" $(( all_files_index + 1 )) )"
-    printf '%d of %d files\r' $(( all_files_index + 1 )) "$total_count"
+    printf '%s of %s files\r' "$count_this_loop" "$total_count"
+
+    :;: each_sorted_f must exist
     each_sorted_f="${a_all_files_sorted[${all_files_index}]}"
     
-    :;: each_sorted_f must exist
     if [[ ! -e "$each_sorted_f" ]]; then
       a_file_DNE+=( "$each_sorted_f" )
       continue
