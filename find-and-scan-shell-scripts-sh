@@ -5,7 +5,7 @@
 
 # SECTION A
 
-:;: Implementation-dependent arguments for opts parsable by -shellcheck-
+:;: 'Implementation-dependent arguments for opts parsable by -shellcheck-'
 severity=error
 # shellcheck disable=SC2034
 shells='(sh|bash|dash|ksh)'
@@ -714,7 +714,7 @@ rsync -ca "${list_crunchbangs}_SC-scrpts-list" /tmp ||
 :;: MAIN TASK, 2 of 2: with ShellCheck scan each script for errors
   
 # TODO: keep "$all_files_index" tracked with content all the way through
-# into the "_found_scripts_with_indices" file
+# into the "_found_scripts" file
 
 # Bug? line 1 of script could contain percent symbols
 
@@ -757,15 +757,22 @@ iterator_2=0
       printf '%s' "${a_each_script_SC_results[@]}"
     fi
   done
-} | tee -a "${list_crunchbangs}_found_scripts_with_indices" > /dev/null
+} | tee -a "${list_crunchbangs}_found_scripts" > /dev/null
 
-:; fn_bak "${list_crunchbangs}_found_scripts_with_indices"
+:; fn_bak      "${list_crunchbangs}_found_scripts"
+:; fn_age_file "${list_crunchbangs}_found_scripts"
+
 
 :;: Write semi-permanent archives
-rsync -ca "${list_crunchbangs}_found_scripts_with_indices" "$main_d" ||
-  fn_erx $LINENO
-rsync -ca "${list_crunchbangs}_found_scripts_with_indices" /tmp ||
-  fn_erx $LINENO
+
+:; fn_bak "${main_d}/${list_crunchbangs##*/}_found_scripts"
+:; fn_bak "/tmp/${list_crunchbangs##*/}_found_scripts"
+
+rsync -ca "${list_crunchbangs}_found_scripts" "$main_d" || fn_erx $LINENO
+rsync -ca "${list_crunchbangs}_found_scripts" /tmp || fn_erx $LINENO
+
+:; fn_age_file "${main_d}/${list_crunchbangs##*/}_found_scripts"
+:; fn_age_file "/tmp/${list_crunchbangs##*/}_found_scripts"
 
 exit 0
 
