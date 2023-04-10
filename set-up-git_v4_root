@@ -1,10 +1,12 @@
 #!/bin/bash -x
 
 
-[[ "$UID" == 0 ]] || {
-  echo must be root
+if [[ "$UID" == 0 ]]; then 
+  echo must be a regular user and use sudo
   exit 1
-}
+else
+  sudo -v
+fi
 
 
 
@@ -15,46 +17,47 @@
 #   https://stackoverflow.com/questions/43378060/meaning-of-the-github-message-push-declined-due-to-email-privacy-restrictions
 #   git commit --amend --reset-author
 
-umask 077
+umask 071
 for f in ~/.bashrc /home/liveuser/.bashrc; do 
   if ! grep -q 'EDITOR=/usr/bin/vim' "$f"; then
-    echo 'EDITOR=/usr/bin/vim'
+    echo 'EDITOR=/usr/bin/vim' | 
+      sudo tee -a "$f"
   fi
 done
       
-ping -c 1 8.8.8.8 ||
+sudo ping -c 1 8.8.8.8 ||
   exit "$LINENO"
-timedatectl set-local-rtc 0
-timedatectl set-timezone America/Vancouver
-systemctl start chronyd.service
-chronyc makestep
+sudo timedatectl set-local-rtc 0
+sudo timedatectl set-timezone America/Vancouver
+sudo systemctl start chronyd.service
+sudo chronyc makestep
 
 
 
 
 # Install git
-dnf -y --security upgrade; 
-dnf -y install info ShellCheck git gh kcov
+sudo dnf -y --security upgrade; 
+sudo dnf -y install info ShellCheck git gh kcov
 
 
 
 
 # Basic settings
-git config --system user.name "Wiley Young" # Necc
-git config --system user.email '84648683+wileyhy@users.noreply.github.com' # Necc
+sudo git config --system user.name "Wiley Young" # Necc
+sudo git config --system user.email '84648683+wileyhy@users.noreply.github.com' # Necc
 
-git config --system core.editor vim
-git config --system core.pager '/usr/bin/less'
-git config --system help.autocorrect '300'
-git config --system init.defaultBranch 'main'
+sudo git config --system core.editor vim
+sudo git config --system core.pager '/usr/bin/less'
+sudo git config --system help.autocorrect '300'
+sudo git config --system init.defaultBranch 'main'
 
 
 
 # Create some files
-umask 173
 
 gitmesg=/etc/.gitmessage_system
-cat <<EOF>"$gitmesg"
+sudo touch "$gitmesg"
+cat <<EOF | sudo tee "$gitmesg"
 Subject line (try to keep under 50 characters)
 
 Multi-line description of commit,
@@ -62,16 +65,16 @@ feel free to be detailed.
 
 [Ticket: X]
 EOF
-git config --system commit.template "$gitmesg"
+sudo git config --system commit.template "$gitmesg"
 
 
 gitignr=/etc/.gitignore_system
-cat <<EOF>"$gitignr"
+cat <<EOF | sudo tee "$gitignr"
 *~
 .*.swp
 .DS_Store
 EOF
-git config --system core.excludesfile "$gitignr"
+sudo git config --system core.excludesfile "$gitignr"
 
 umask 177
 cat <<EOF>~/.vimrc
@@ -90,13 +93,13 @@ EOF
 
 
 for f in /etc/git* /etc/.git*; do
-  chmod 0604 "$f"
+  sudo chmod 0604 "$f"
 done
 
 for f in "$gitmesg" "$gitignr" ~/.vimrc; do
-  rsync -ca "$f" /home/liveuser
-  chown 1000:1000 "/home/liveuser/${f##*/}"
-  chmod 0400 "/home/liveuser/${f##*/}"
+  sudo rsync -ca "$f" /home/liveuser
+  sudo chown 1000:1000 "/home/liveuser/${f##*/}"
+  sudo chmod 0400 "/home/liveuser/${f##*/}"
 done
 
 
@@ -104,23 +107,23 @@ done
 # Colors
 # git ui colors: normal black red green yellow blue magenta cyan white
 # git ui attributes: bold dim ul (underline blink reverse
-git config --system color.diff 'always'
-git config --system color.diff.meta 'blue black bold'
-git config --system color.interactive 'always'
-git config --system color.status 'always'
-git config --system color.ui 'true'
-git config --system color.ui 'auto'
+sudo git config --system color.diff 'always'
+sudo git config --system color.diff.meta 'blue black bold'
+sudo git config --system color.interactive 'always'
+sudo git config --system color.status 'always'
+sudo git config --system color.ui 'true'
+sudo git config --system color.ui 'auto'
 
 
 mapfile -d '' -t conf_f < <( 
-  find ~ -type f -name 'set-up-git_v[0-9]*_user' -print0 )
+  sudo find ~ -type f -name 'set-up-git_v[0-9]*_user' -print0 )
 
 if [[ "${#conf_f[@]}" -ne 1 ]]; then
   echo 'now do the regular user bit'
 elif [[ -f "${conf_f[*]}" ]]; then
-  chown 1000:1000 "${conf_f[*]}"
-  chmod 0700 "${conf_f[*]}"
-  rsync -ca "${conf_f[*]}" /home/liveuser
+  sudo chown 1000:1000 "${conf_f[*]}"
+  sudo chmod 0700 "${conf_f[*]}"
+  sudo rsync -ca "${conf_f[*]}" /home/liveuser
   echo now execute "/home/liveuser/${conf_f[*]##*/}" as liveuser
 else
   echo need ./set-up-git_v[0-9]*_user 
