@@ -361,6 +361,9 @@ then
           done
         fi
       done
+    else
+      echo Remembering your decision to: "$mount_exit" any additional \
+        partitions.
     fi
   fi
 elif [[ ${#a_avail_mp[@]} -eq ${#a_avail_fs[@]} ]]; then
@@ -532,7 +535,8 @@ mapfile -d '' -t a_relevant_search_dirs < <(
     #   Note: GNU -find- by default will not search symlinks from CLI,
     #     ie, /bin or /sbin
     #a_relevant_search_dirs=( /usr/sbin )
-    a_relevant_search_dirs=( /usr/sbin /usr/bin )
+    #a_relevant_search_dirs=( /usr/sbin /usr/bin )
+    a_relevant_search_dirs=( /usr/sbin /usr/bin /etc )
 
   :;: Find all files on disk. Even the empty ones.
   
@@ -603,6 +607,10 @@ then
     fi
 
     # TODO: check for empty files, make a list of them
+    if [[ ! -s "$each_sorted_f" ]]; then
+      a_empty_files+=("$each_sorted_f" )
+      continue
+    fi
 
     :;: run -file- on each each_sorted_f
     { printf '+ %-8d: ' "$all_files_index" 
