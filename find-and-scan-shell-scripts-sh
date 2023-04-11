@@ -362,7 +362,7 @@ then
         fi
       done
     else
-      printf '\n\t Remembering your decision to "<${mount_exit}>" any'
+      printf '\n\t Remembering your decision to <%s> any' "$mount_exit"
       printf ' additional partitions.\n\n'
     fi
   fi
@@ -536,7 +536,8 @@ mapfile -d '' -t a_relevant_search_dirs < <(
     #     ie, /bin or /sbin
     #a_relevant_search_dirs=( /usr/sbin )
     #a_relevant_search_dirs=( /usr/sbin /usr/bin )
-    a_relevant_search_dirs=( /usr/sbin /usr/bin /etc )
+    #a_relevant_search_dirs=( /usr/sbin /usr/bin /etc )
+    a_relevant_search_dirs=( /usr/sbin /usr/bin /etc /var )
 
   :;: Find all files on disk. Even the empty ones.
   
