@@ -362,8 +362,8 @@ then
         fi
       done
     else
-      echo Remembering your decision to: "$mount_exit" any additional \
-        partitions.
+      printf '\n\t Remembering your decision to "<${mount_exit}>" any'
+      printf ' additional partitions.\n\n'
     fi
   fi
 elif [[ ${#a_avail_mp[@]} -eq ${#a_avail_fs[@]} ]]; then
