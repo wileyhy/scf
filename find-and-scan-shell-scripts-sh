@@ -315,6 +315,7 @@ for fs in "${a_fs[@]}"; do [[ -n "$fs" ]] && a_avail_fs+=( "$fs" ); done
 
   #:;: '<>'
   #set -x
+scfrc=~/.scfrc
 
 # if there arent any available mountpoints, but there are some fs-s
 # -OR- if there are some extra fs-s attached which arent mounted
@@ -328,43 +329,39 @@ then
   # shellcheck disable=SC2154
   if [[ ${#a_maj8s[@]} -gt 0 ]]; then
 
-    # 
-    printf '\n\t There are _%d_ SCSI filesystems ' ${#a_avail_mp[@]}
-    printf 'mounted and _%d_ additional SCSI \n\t file' ${#a_maj8s[@]} 
-    printf 'systems unmounted and available.\n\n'
-    printf '\t\t %s \n' "${a_maj8s[@]}"
-    printf ' \n'
+    # shellcheck disable=SC1090
+    [[ -f "$scfrc" ]] &&
+      source "$scfrc"
 
-    # BUG: needs a timeout and a default value. use `read`?
+    if [[ -z "$mount_exit" ]]; then 
 
-    select mount_exit in Ignore 'Mount all' Exit; do
+      # 
+      printf '\n\t There are _%d_ SCSI filesystems ' ${#a_avail_mp[@]}
+      printf 'mounted and _%d_ additional SCSI \n\t file' ${#a_maj8s[@]} 
+      printf 'systems unmounted and available.\n\n'
+      printf '\t\t %s \n' "${a_maj8s[@]}"
+      printf ' \n'
 
-      case "$mount_exit" in
-        Exit)        exit 0;;
-        Ignore)      break;;
-        'Mount all')
+      # BUG: needs a timeout and a default value. use `read`?
 
-          # mount the found partitions
-          # shellcheck disable=SC2068
-          for j in ${!a_maj8s[@]}; do 
+      select mount_exit in Ignore 'Mount all' Exit; do
 
-            # create a mountpoint
-            sudo mkdir --parents "${a_mp[$j]}" ||
-              fn_erx $LINENO
+        if [[ -n "$mount_exit" ]]; then
 
-            # mount the device
-            sudo mount -o nosuid,nodev,noexec,rw \
-                "${a_maj8s[$j]}" "${a_mp[$j]}" ||
-              fn_erx $LINENO
+          printf '\n\t Remember this selection? (Y/n)\n\n'
+          select rem_yn in Yes No; do
             
-            # update the lists
-            a_mp+=(       [j]="/run/media/${USER}/${a_uu[j]}" )
+            case "$rem_yn" in 
+              Yes|yes|Y|y) 
+                declare -p mount_exit | 
+                  tee -a "$scfrc";;
+              *) :;;
+            esac
+            break 2
           done
-          break
-          ;;
-        *) fn_erx $LINENO '*Unreachable code*'
-      esac
-    done
+        fi
+      done
+    fi
   fi
 elif [[ ${#a_avail_mp[@]} -eq ${#a_avail_fs[@]} ]]; then
   true
@@ -372,6 +369,31 @@ else
   fn_erx $LINENO '*Unreachable code*'
 fi
 
+case "$mount_exit" in
+  Exit)        exit 0;;
+  Ignore)      true;;
+  'Mount all')
+
+	# mount the found partitions
+	# shellcheck disable=SC2068
+	for j in ${!a_maj8s[@]}; do 
+
+	  # create a mountpoint
+	  sudo mkdir --parents "${a_mp[$j]}" ||
+		fn_erx $LINENO
+
+	  # mount the device
+	  sudo mount -o nosuid,nodev,noexec,rw \
+		  "${a_maj8s[$j]}" "${a_mp[$j]}" ||
+		fn_erx $LINENO
+	
+	  # update the lists
+	  a_mp+=(       [j]="/run/media/${USER}/${a_uu[j]}" )
+	done
+	;;
+  *) fn_erx $LINENO '*Unreachable code*'
+esac
+      
 
   #:;: '<>' 
   #set -x
