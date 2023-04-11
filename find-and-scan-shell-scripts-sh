@@ -580,6 +580,9 @@ unset IFS
   [[ -f /tmp/"${list_crunchbangs##*/}" ]] &&
     fn_age_file "/tmp/${list_crunchbangs##*/}"
 
+
+# BUG: the search dirs must be the same, as well as the dnf tx number
+
 # tests tmp file
 
 :;: if the full list exists -- of files on disk which begin with crash-
