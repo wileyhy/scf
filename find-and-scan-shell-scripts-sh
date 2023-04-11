@@ -70,6 +70,9 @@ fn_bak(){
   for loc_filename_a in "$@"; do 
     
     if [[ -f "$loc_filename_a" ]]; then 
+      
+      # Bug: if the destination file exists, then age it first
+      
       rsync -acq "${loc_filename_a}"{,.bak} ||
         fn_erx "$LINENO"
     else
