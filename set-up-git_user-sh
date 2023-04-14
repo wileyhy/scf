@@ -1,0 +1,46 @@
+#!/bin/bash
+# set-up-git_user-sh
+
+
+# Must be a regular user.
+[[ "$UID" == 0 ]] && {
+  printf '\n\t Must be a regular user. \n\n'
+  exit 1
+}
+
+
+# 
+umask 077
+
+if [[ ! -d ~/MYPROJECT ]]; then 
+  mkdir -p ~/MYPROJECT ||
+    exit "$LINENO"
+fi
+
+# Note: in order to clone into any repo, and keep multiple repos 
+# separate, `cd` is required
+cd ~/MYPROJECT || {
+  peintf '\n\t cd failed \n\n'
+  exit 1
+}
+
+
+# Log in & clone repo
+gh auth logout
+gh auth login ||
+  exit "$LINENO"
+
+if [[ ! -d ~/MYPROJECT/scrfi ]]; then
+  git clone -o github https://github.com/wileyhy/scrfi ||
+    exit "$LINENO"
+else
+  cd ~/MYPROJECT/scrfi || {
+    peintf '\n\t cd failed \n\n'
+    exit 1
+  }
+fi
+
+printf '\n\t Now run this command: \n'
+printf '\n\t cd ./MYPROJECT/scrfi; git status \n\n'
+
+
