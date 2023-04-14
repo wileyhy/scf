@@ -472,7 +472,7 @@ if [[ ! -r "$main_d" ]]; then
       [[ ! -r "$acl_abs_path" ]]; 
     then 
       sudo mkdir --parents "$main_d" ||
-        fn_erx $LINENO
+        fn_erx "$LINENO"
       
       acl_execd_setfacl=y
       export acl_execd_setfacl # SC2034, while trap-s setfacl blk is #-d
