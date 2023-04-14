@@ -1,8 +1,10 @@
 #!/bin/bash -x
 
 
+
+# Regular users only
 if [[ "$UID" == 0 ]]; then 
-  echo must be a regular user and use sudo
+  printf '\n\t Must be a regular user and use sudo. \n\n'
   exit 1
 else
   sudo -v ||
@@ -10,24 +12,30 @@ else
 fi
 
 
+## Notes
+:# Online Git Pro book:
+:#   https://git-scm.com/book/en/v2/Git-Basics-Recording-Changes-to-the-Repository
 
-# Online Git Pro book:
-#   https://git-scm.com/book/en/v2/Git-Basics-Recording-Changes-to-the-Repository
+:# fixing `git push` error due to private email
+:#   https://stackoverflow.com/questions/43378060/meaning-of-the-github-message-push-declined-due-to-email-privacy-restrictions
+:#   git commit --amend --reset-author
 
-# fixing `git push` error due to private email
-#   https://stackoverflow.com/questions/43378060/meaning-of-the-github-message-push-declined-due-to-email-privacy-restrictions
-#   git commit --amend --reset-author
 
+## .bashrc
 umask 071
 bashrc_str='EDITOR=/usr/bin/vim; BROWSER=/usr/bin/firefox'
-for f in /root/.bashrc /home/liveuser/.bashrc; do 
+
+for f in /root/.bashrc "/home/*/.bashrc"; do 
+  
   if ! sudo grep -q "$bashrc_str" "$f"; then
     sudo cp -a "$f" "${f}~"
     echo "$bashrc_str" | 
       sudo tee -a "$f" > /dev/null
   fi
 done
-      
+
+
+# Network & time     
 sudo ping -c 1 8.8.8.8 ||
   exit "$LINENO"
 sudo timedatectl set-local-rtc 0
@@ -37,18 +45,15 @@ sudo chronyc makestep
 
 
 
-
-# Install git
-sudo dnf -y --security upgrade; 
+# Install git, etc
+sudo dnf -y --security upgrade 
 sudo dnf -y install info ShellCheck git gh kcov
 
 
 
-
 # Basic settings
-sudo git config --system user.name 'Wiley Young' # Necc
-sudo git config --system user.email '84648683+wileyhy@users.noreply.github.com' # Necc
-
+sudo git config --system user.name 'Wiley Young'
+sudo git config --system user.email '84648683+wileyhy@users.noreply.github.com'
 sudo git config --system core.editor vim
 sudo git config --system core.pager '/usr/bin/less'
 sudo git config --system help.autocorrect '300'
@@ -58,8 +63,10 @@ sudo git config --system init.defaultBranch 'main'
 
 # Create some files
 
+## .gitmessage
 gitmesg=/etc/.gitmessage_system
 sudo touch "$gitmesg"
+
 cat <<EOF | sudo tee "$gitmesg" > /dev/null
 Subject line (try to keep under 50 characters)
 
@@ -71,7 +78,9 @@ EOF
 sudo git config --system commit.template "$gitmesg"
 
 
+## .gitignore
 gitignr=/etc/.gitignore_system
+
 cat <<EOF | sudo tee "$gitignr" > /dev/null
 *~
 .*.swp
@@ -79,6 +88,8 @@ cat <<EOF | sudo tee "$gitignr" > /dev/null
 EOF
 sudo git config --system core.excludesfile "$gitignr"
 
+
+## .vimrc
 umask 177
 cat <<EOF | sudo tee /root/.vimrc > /dev/null
 " per google:
