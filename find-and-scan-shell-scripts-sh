@@ -418,8 +418,9 @@ mountpoint="$(
     sort -rnk2 | 
     awk 'NR==1 { print $3 }' )"
 
+  #:;: '<>' 
   #exit "$LINENO"
-  set -x
+  #set -x
 
 
 [[ -n "$mountpoint" ]] ||
@@ -456,8 +457,9 @@ esac
 if [[ ! -r "$main_d" ]]; then
   
   mapfile -d / -t a_acl_name_indiv_dir <<< "$main_d"; 
-  
-    declare -p main_d mountpoint a_acl_name_indiv_dir
+ 
+    #:;: '<>' 
+    #declare -p main_d mountpoint a_acl_name_indiv_dir
     #exit $LINENO
   
   a_acl_name_indiv_dir[0]=/
