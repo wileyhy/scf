@@ -419,6 +419,7 @@ mountpoint="$(
     awk 'NR==1 { print $3 }' )"
 
   #exit "$LINENO"
+  set -x
 
 
 [[ -n "$mountpoint" ]] ||
@@ -454,7 +455,11 @@ esac
 # "$main_d".
 if [[ ! -r "$main_d" ]]; then
   
-  mapfile -d / -t a_acl_name_indiv_dir <<< "$mountpoint"; 
+  mapfile -d / -t a_acl_name_indiv_dir <<< "$main_d"; 
+  
+    declare -p main_d mountpoint a_acl_name_indiv_dir
+    #exit $LINENO
+  
   a_acl_name_indiv_dir[0]=/
   a_acl_name_indiv_dir[-1]="${a_acl_name_indiv_dir[-1]//$'\n'}"
   acl_each_dir=${#a_acl_name_indiv_dir[@]}
@@ -463,7 +468,9 @@ if [[ ! -r "$main_d" ]]; then
     acl_abs_path+="/${a_acl_name_indiv_dir[iterator_1]}"
     acl_abs_path="$( realpath -e "$acl_abs_path" )"
     
-    if [[ ! -r "$acl_abs_path" ]]; then 
+    if sudo test ! -e "$acl_abs_path" ||
+      [[ ! -r "$acl_abs_path" ]]; 
+    then 
       sudo mkdir --parents "$main_d" ||
         fn_erx $LINENO
       
