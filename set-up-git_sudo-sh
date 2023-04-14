@@ -116,11 +116,17 @@ for f in /etc/git* /etc/.git*; do
 done
 
 
-# Copy root files to liveuser
+## Copy root-user files to liveuser
 for f in "$gitmesg" "$gitignr" /root/.vimrc; do
   sudo rsync -ca "$f" /home/liveuser
   sudo chown 1000:1000 "/home/liveuser/${f##*/}"
   sudo chmod 0400 "/home/liveuser/${f##*/}"
+done
+
+
+## Rename files
+for f in /home/*/.git*_system; do
+  echo mv "$f" "${f%_system}"
 done
 
 
@@ -137,7 +143,7 @@ sudo git config --system color.ui 'auto'
 
 
 
-
+# 
 mapfile -d '' -t conf_f < <( 
   find /home/liveuser -type f -name 'set-up-git_user' -print0 )
 
