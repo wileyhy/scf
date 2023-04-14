@@ -143,18 +143,21 @@ sudo git config --system color.ui 'auto'
 
 
 
-# 
+# Inform user re next step (indempotent script)
 mapfile -d '' -t conf_f < <( 
   find /home/liveuser -type f -name 'set-up-git_user' -print0 )
 
-if [[ "${#conf_f[@]}" -ne 1 ]]; then
-  echo 'now do the regular user bit'
-elif [[ -f "${conf_f[*]}" ]]; then
-  sudo chown 1000:1000 "${conf_f[*]}"
-  sudo chmod 0700 "${conf_f[*]}"
-  sudo rsync -ca "${conf_f[*]}" /home/liveuser
-  echo now execute "/home/liveuser/${conf_f[*]##*/}" as liveuser
-else
-  echo need ./set-up-git_v[0-9]*_user 
-fi
+case "${#conf_f[@]}" in
+  0) echo need ./set-up-git_v[0-9]*_user
+    ;;
+  1) sudo chown 1000:1000 "${conf_f[*]}"
+    sudo chmod 0700 "${conf_f[*]}"
+    :;: 'BUG?'
+    sudo rsync -ca "${conf_f[*]}" /home/liveuser
+    echo now execute "/home/liveuser/${conf_f[*]##*/}" as liveuser
+    ;;
+  *) echo 'now do the regular user bit'
+    ;;
+esac
+  
 
