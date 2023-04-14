@@ -1,4 +1,4 @@
-# README
+# README.md
 
 ## scrfi-sh -- Script Finder
 Prioritize debugging efforts by automating static analysis of scripts.
