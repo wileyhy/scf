@@ -144,6 +144,7 @@ sudo git config --system color.ui 'auto'
 
 
 # Inform user re next step (indempotent script)
+
 mapfile -d '' -t conf_f < <( 
   find /home/liveuser -type f -name 'set-up-git_user' -print0 )
 
@@ -161,3 +162,35 @@ case "${#conf_f[@]}" in
 esac
   
 
+# 
+umask 077
+
+if [[ ! -d ~/MYPROJECT ]]; then 
+  mkdir -p ~/MYPROJECT ||
+    exit "$LINENO"
+fi
+
+# Note: in order to clone into any repo, and keep multiple repos 
+# separate, `cd` is required
+cd ~/MYPROJECT || {
+  peintf '\n\t cd failed \n\n'
+  exit 1
+}
+
+
+# Log in, clone repo and `cd`
+gh auth logout
+gh auth login ||
+  exit "$LINENO"
+
+if [[ ! -d ./scrfi ]] ||
+  [[ ! -f ./scrfi/README.md ]]
+then
+  git clone -o github https://github.com/wileyhy/scrfi ||
+    exit "$LINENO"
+fi
+
+
+# Remind user of commands for the interactive ahell
+printf '\n\t Now run this command: \n'
+printf '\n\t cd ./MYPROJECT/scrfi; git status \n\n'
