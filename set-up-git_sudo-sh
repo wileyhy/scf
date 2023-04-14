@@ -1,5 +1,5 @@
 #!/bin/bash -x
-
+# set-up-git_sudo-sh
 
 
 # Regular users only
@@ -20,19 +20,6 @@ fi
 :#   https://stackoverflow.com/questions/43378060/meaning-of-the-github-message-push-declined-due-to-email-privacy-restrictions
 :#   git commit --amend --reset-author
 
-
-## .bashrc
-umask 071
-bashrc_str='EDITOR=/usr/bin/vim; BROWSER=/usr/bin/firefox'
-
-for f in /root/.bashrc "/home/*/.bashrc"; do 
-  
-  if ! sudo grep -q "$bashrc_str" "$f"; then
-    sudo cp -a "$f" "${f}~"
-    echo "$bashrc_str" | 
-      sudo tee -a "$f" > /dev/null
-  fi
-done
 
 
 # Network & time     
@@ -61,7 +48,21 @@ sudo git config --system init.defaultBranch 'main'
 
 
 
-# Create some files
+# Create / edit some files
+
+## .bashrc
+umask 071
+bashrc_str='EDITOR=/usr/bin/vim; BROWSER=/usr/bin/firefox'
+
+for f in /root/.bashrc "/home/*/.bashrc"; do 
+  
+  if ! sudo grep -q "$bashrc_str" "$f"; then
+    sudo cp -a "$f" "${f}~"
+    echo "$bashrc_str" | 
+      sudo tee -a "$f" > /dev/null
+  fi
+done
+
 
 ## .gitmessage
 gitmesg=/etc/.gitmessage_system
@@ -106,10 +107,16 @@ set expandtab
 EOF
 
 
+
+# Perms & ownership
+
+## Permissions
 for f in /etc/git* /etc/.git*; do
   sudo chmod 0604 "$f"
 done
 
+
+# Copy root files to liveuser
 for f in "$gitmesg" "$gitignr" /root/.vimrc; do
   sudo rsync -ca "$f" /home/liveuser
   sudo chown 1000:1000 "/home/liveuser/${f##*/}"
@@ -127,6 +134,8 @@ sudo git config --system color.interactive 'always'
 sudo git config --system color.status 'always'
 sudo git config --system color.ui 'true'
 sudo git config --system color.ui 'auto'
+
+
 
 
 mapfile -d '' -t conf_f < <( 
