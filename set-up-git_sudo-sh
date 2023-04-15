@@ -21,7 +21,6 @@ fi
 :#   git commit --amend --reset-author
 
 
-
 # Network & time     
 sudo ping -c 1 8.8.8.8 ||
   exit "$LINENO"
@@ -31,11 +30,9 @@ sudo systemctl start chronyd.service
 sudo chronyc makestep
 
 
-
 # Install git, etc
 sudo dnf -y --security upgrade 
 sudo dnf -y install info ShellCheck git gh kcov
-
 
 
 # Basic settings
@@ -45,7 +42,6 @@ sudo git config --system core.editor vim
 sudo git config --system core.pager '/usr/bin/less'
 sudo git config --system help.autocorrect '300'
 sudo git config --system init.defaultBranch 'main'
-
 
 
 # Create / edit some files
@@ -63,7 +59,6 @@ for f in /root/.bashrc "/home/*/.bashrc"; do
   fi
 done
 
-
 ## .gitmessage
 gitmesg=/etc/.gitmessage_system
 sudo touch "$gitmesg"
@@ -78,7 +73,6 @@ feel free to be detailed.
 EOF
 sudo git config --system commit.template "$gitmesg"
 
-
 ## .gitignore
 gitignr=/etc/.gitignore_system
 
@@ -88,7 +82,6 @@ cat <<EOF | sudo tee "$gitignr" > /dev/null
 .DS_Store
 EOF
 sudo git config --system core.excludesfile "$gitignr"
-
 
 ## .vimrc
 umask 177
@@ -107,14 +100,12 @@ set expandtab
 EOF
 
 
-
 # Perms & ownership
 
 ## Permissions
 for f in /etc/git* /etc/.git*; do
   sudo chmod 0604 "$f"
 done
-
 
 ## Copy root-user files to liveuser
 for f in "$gitmesg" "$gitignr" /root/.vimrc; do
@@ -123,15 +114,13 @@ for f in "$gitmesg" "$gitignr" /root/.vimrc; do
   sudo chmod 0400 "/home/liveuser/${f##*/}"
 done
 
-
 ## Rename files
 for f in /home/*/.git*_system; do
   echo mv "$f" "${f%_system}"
 done
 
 
-
-# Colors
+# Console colors
 # git ui colors: normal black red green yellow blue magenta cyan white
 # git ui attributes: bold dim ul (underline blink reverse
 sudo git config --system color.diff 'always'
@@ -142,9 +131,9 @@ sudo git config --system color.ui 'true'
 sudo git config --system color.ui 'auto'
 
 
+# Bug
 
 # Inform user re next step (indempotent script)
-
 mapfile -d '' -t conf_f < <( 
   find /home/liveuser -type f -name 'set-up-git_user' -print0 )
 
@@ -157,12 +146,12 @@ case "${#conf_f[@]}" in
     sudo rsync -ca "${conf_f[*]}" /home/liveuser
     echo now execute "/home/liveuser/${conf_f[*]##*/}" as liveuser
     ;;
-  *) echo 'now do the regular user bit'
-    ;;
+  *) :;;
 esac
-  
 
-# 
+
+
+# make and change into directories
 umask 077
 
 if [[ ! -d ~/MYPROJECT ]]; then 
@@ -178,6 +167,7 @@ cd ~/MYPROJECT || {
 }
 
 
+
 # Log in, clone repo and `cd`
 gh auth logout
 gh auth login ||
@@ -189,6 +179,7 @@ then
   git clone -o github https://github.com/wileyhy/scrfi ||
     exit "$LINENO"
 fi
+
 
 
 # Remind user of commands for the interactive ahell
