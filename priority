@@ -1,28 +1,32 @@
-# priority, ie, score findings
-#   purpose -- sys admining, security
+# priority
+# 
+#. L = Later
+#. D = Done
+#. 
+#   purpose -- sys admining, security, etc
 #.    L pre-curated lists? 
 #.    L keyword for man -k search?
 #.    dnf groups?
 #   ubiquity -- datasets, each major distro
-#.    command -p
+#.    `command -p`
 #     L sqlite
 #   how likely to be exec'd
 #.    full disk search 
 #     per fsroot dir search, no syms
 #     in PATH
 #.      non-sym vs follow sym, via find
-#       compgen knows of it
-#.      command -p knows of it - also ubiquity
+#       `compgen` knows of it
+#.      `command -p` knows of it - also ubiquity
 #.      found w only getconf PATH
-#     sourcable scripts wo #!'s -- file output, ascii text
+#     sourcable scripts wo #!'s -- `file` output, ascii text
 #.      Have no #! & No execute bit set, per POSIX
 #     L default vs everything installs?
 #     L distro stats on most popular pkg installs?
 #   bugginess of scripts
-#.    bash -n
+#.    `bash -n`
 #     SC "score" -- array or disk files, per target file
 #.    Additional linters online
-#     L kcov (avail in repos) --
+#     L kcov (avail in F37 repos) --
 #     L bashdb (na in repos) -- 
 #   reliableness of ID'ing scripts
 #     by #!

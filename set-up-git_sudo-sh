@@ -1,0 +1,187 @@
+#!/bin/bash -x
+# set-up-git_sudo-sh
+
+
+# Regular users only
+if [[ "$UID" == 0 ]]; then 
+  printf '\n\t Must be a regular user and use sudo. \n\n'
+  exit 1
+else
+  sudo -v ||
+    exit 1
+fi
+
+
+## Notes
+: # Online Git Pro book:
+: #   https://git-scm.com/book/en/v2/Git-Basics-Recording-Changes-to-the-Repository
+: #
+: # fixing `git push` error due to private email
+: #   https://stackoverflow.com/questions/43378060/meaning-of-the-github-message-push-declined-due-to-email-privacy-restrictions
+: #   git commit --amend --reset-author
+
+
+# Network & time     
+sudo ping -c 1 8.8.8.8 ||
+  exit "$LINENO"
+sudo timedatectl set-local-rtc 0
+sudo timedatectl set-timezone America/Vancouver
+sudo systemctl start chronyd.service
+sudo chronyc makestep
+
+
+# Install git, etc
+sudo dnf -y --security upgrade 
+sudo dnf -y install info ShellCheck git gh kcov
+
+
+# Basic settings
+sudo git config --system user.name 'Wiley Young'
+sudo git config --system user.email '84648683+wileyhy@users.noreply.github.com'
+sudo git config --system core.editor vim
+sudo git config --system core.pager '/usr/bin/less'
+sudo git config --system help.autocorrect '300'
+sudo git config --system init.defaultBranch 'main'
+
+
+# Create / edit some files
+
+## .bashrc
+umask 071
+bashrc_str='EDITOR=/usr/bin/vim; BROWSER=/usr/bin/firefox'
+
+for f in /root/.bashrc "/home/*/.bashrc"; do 
+  
+  if ! sudo grep -q "$bashrc_str" "$f"; then
+    sudo cp -a "$f" "${f}~"
+    echo "$bashrc_str" | 
+      sudo tee -a "$f" > /dev/null
+  fi
+done
+
+## .gitmessage
+gitmesg=/etc/.gitmessage_system
+sudo touch "$gitmesg"
+
+cat <<EOF | sudo tee "$gitmesg" > /dev/null
+Subject line (try to keep under 50 characters)
+
+Multi-line description of commit,
+feel free to be detailed.
+
+[Ticket: X]
+EOF
+sudo git config --system commit.template "$gitmesg"
+
+## .gitignore
+gitignr=/etc/.gitignore_system
+
+cat <<EOF | sudo tee "$gitignr" > /dev/null
+*~
+.*.swp
+.DS_Store
+EOF
+sudo git config --system core.excludesfile "$gitignr"
+
+## .vimrc
+umask 177
+cat <<EOF | sudo tee /root/.vimrc > /dev/null
+" per google:
+set number
+
+" per https://stackoverflow.com/questions/234564/tab-key-4-spaces-and-auto-indent-after-curly-braces-in-vim
+filetype plugin indent on
+" show existing tab with 2 spaces width
+set tabstop=2
+" when indenting with '>', use 2 spaces width
+set shiftwidth=2
+" On pressing tab, insert 2 spaces
+set expandtab
+EOF
+
+
+# Perms & ownership
+
+## Permissions
+for f in /etc/git* /etc/.git*; do
+  sudo chmod 0604 "$f"
+done
+
+## Copy root-user files to liveuser
+for f in "$gitmesg" "$gitignr" /root/.vimrc; do
+  sudo rsync -ca "$f" /home/liveuser
+  sudo chown 1000:1000 "/home/liveuser/${f##*/}"
+  sudo chmod 0400 "/home/liveuser/${f##*/}"
+done
+
+## Rename files
+for f in /home/*/.git*_system; do
+  echo mv "$f" "${f%_system}"
+done
+
+
+# Console colors
+# git ui colors: normal black red green yellow blue magenta cyan white
+# git ui attributes: bold dim ul (underline blink reverse
+sudo git config --system color.diff 'always'
+sudo git config --system color.diff.meta 'blue black bold'
+sudo git config --system color.interactive 'always'
+sudo git config --system color.status 'always'
+sudo git config --system color.ui 'true'
+sudo git config --system color.ui 'auto'
+
+
+# Bug
+
+# Inform user re next step (indempotent script)
+mapfile -d '' -t conf_f < <( 
+  find /home/liveuser -type f -name 'set-up-git_user' -print0 )
+
+case "${#conf_f[@]}" in
+  0) echo need ./set-up-git_v[0-9]*_user
+    ;;
+  1) sudo chown 1000:1000 "${conf_f[*]}"
+    sudo chmod 0700 "${conf_f[*]}"
+    :;: 'BUG?'
+    sudo rsync -ca "${conf_f[*]}" /home/liveuser
+    echo now execute "/home/liveuser/${conf_f[*]##*/}" as liveuser
+    ;;
+  *) :;;
+esac
+
+
+
+# make and change into directories
+umask 077
+
+if [[ ! -d ~/MYPROJECT ]]; then 
+  mkdir -p ~/MYPROJECT ||
+    exit "$LINENO"
+fi
+
+# Note: in order to clone into any repo, and keep multiple repos 
+# separate, `cd` is required
+cd ~/MYPROJECT || {
+  peintf '\n\t cd failed \n\n'
+  exit 1
+}
+
+
+
+# Log in, clone repo and `cd`
+gh auth logout
+gh auth login ||
+  exit "$LINENO"
+
+if [[ ! -d ./scrfi ]] ||
+  [[ ! -f ./scrfi/README.md ]]
+then
+  git clone -o github https://github.com/wileyhy/scrfi ||
+    exit "$LINENO"
+fi
+
+
+
+# Remind user of commands for the interactive ahell
+printf '\n\t Now run this command: \n'
+printf '\n\t cd ./MYPROJECT/scrfi; git status \n\n'
