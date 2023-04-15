@@ -424,7 +424,7 @@ mountpoint="$(
 
 
 [[ -n "$mountpoint" ]] ||
-  fn_erx $LINENO
+  fn_erx "$LINENO"
 main_d="${mountpoint}/scf.d"
 data_subd="${main_d}/latest_data"
 curr_time_ssubd="${data_subd}/t_${timecode}"
