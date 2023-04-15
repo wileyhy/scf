@@ -13,12 +13,12 @@ fi
 
 
 ## Notes
-:# Online Git Pro book:
-:#   https://git-scm.com/book/en/v2/Git-Basics-Recording-Changes-to-the-Repository
-
-:# fixing `git push` error due to private email
-:#   https://stackoverflow.com/questions/43378060/meaning-of-the-github-message-push-declined-due-to-email-privacy-restrictions
-:#   git commit --amend --reset-author
+: # Online Git Pro book:
+: #   https://git-scm.com/book/en/v2/Git-Basics-Recording-Changes-to-the-Repository
+: #
+: # fixing `git push` error due to private email
+: #   https://stackoverflow.com/questions/43378060/meaning-of-the-github-message-push-declined-due-to-email-privacy-restrictions
+: #   git commit --amend --reset-author
 
 
 # Network & time     
