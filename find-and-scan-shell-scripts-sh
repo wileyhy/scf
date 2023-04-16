@@ -5,6 +5,9 @@
 
 # SECTION A
 
+# TODO: must be regular user
+
+
 :;: 'Implementation-dependent arguments for opts parsable by -shellcheck-'
 severity=error
 # shellcheck disable=SC2034
