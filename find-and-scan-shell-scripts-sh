@@ -176,23 +176,33 @@ EOF
   exit "$1"
 }
 fn_write_arrays(){
-  : fn_write_arrays
   # Usage: fn_write_arrays [arrays]
-  #   Note: Default destination directory is -curr_time_ssubd-.
 
   :;: fn_write_arrays: Write each array to a file on disk.
+  #   Note: Default destination directory is -curr_time_ssubd-.
   #   Note: `tee` without -a will overwrite an existing file
+
+  # for each of multiple input array names
   for loc_unquotd_array_nm_b in "$@"; do 
+
+    # create local variables, for use as both array and string
     local -n loc_nameref_b="$loc_unquotd_array_nm_b"
     loc_array_nm='$loc_unquotd_array_nm_b"
     loc_write_f_b="${curr_time_ssubd}/${loc_array_nm}"
 
     # solved?  BUG: mixing variable and array. sb a nameref
 
+    # Bug? When array correctly is empty. 'declare -p ... > /dev/null ||' ?
+
+    # if the input array holds any data
+    #   Bug: '[[ -v' seems like a better choice?
     if [[ -n "${loc_nameref_b[*]}" ]]; then
-      
+
+      # then write a data file to disk
       declare -p "$loc_array_nm" | 
         tee --output-error='exit' "$loc_write_f_b" > /dev/null
+
+    # if input array holds no data, then print an error and exit
     else
       fn_erx "$LINENO", variable "$loc_unquotd_array_nm_b" empty or DNE
     fi
@@ -204,8 +214,9 @@ fn_write_arrays(){
 }
 fn_write_vars(){
   # Usage: fn_write_vars [loc_script_section_nm] [raw variable names]
-  : fn_write_vars
 
+  # first pos-parm is string used for differentiating filename
+  : fn_write_vars
   loc_script_section_nm="$1"
   loc_write_f_a="${curr_time_ssubd}/${loc_script_section_nm}_vars"
   shift
@@ -224,7 +235,7 @@ fn_write_vars(){
 }
 
 # List of functions
-# fn_age_file fn_bak fn_erx fn_num fn_usage fn_write_arrays fn_write_vars
+#   fn_age_file fn_bak fn_erx fn_num fn_usage fn_write_arrays fn_write_vars
 
 
 :;: Use -sudo-
@@ -236,37 +247,55 @@ fi
 
 
 :;: Process lock
+
+# define basename and absolute path of the lock directory
+#   Note: `mkdir` is an atomic operation
 random_n="$RANDOM"
 proc_lk_f_nm=".$$.${random_n}.lock"
-
 a_poss_proces_lock_dirs=( [0]="$XDG_RUNTIME_DIR" [1]="$HOME" 
   [2]="$TMPDIR" [3]=/tmp [4]=/var/tmp )
 
+# bug? And force iteration in sorted numeric order?
+
+# from among the poosible dirnames 
 for poss_lk_d in "${a_poss_proces_lock_dirs[@]}"; do 
-  
-  if [[ -d "$poss_lk_d" ]]; then
+
+  # use the first one that fulfills certain requirements
+  if [[ -d   "$poss_lk_d" ]] &&
+     [[ ! -L "$poss_lk_d" ]] &&
+     [[ -w   "$poss_lk_d" ]]
+  then
+
+    # define the lock directory
     process_lock="${poss_lk_d}/${proc_lk_f_nm}"
     break
   fi
 done
 
-# Trap on Exit, Term and Int
+# Code for removing the process lock and for redetting the ACL-s must be 
+# executed prior to that of setting up either.
+
+# Set up a trap on signals "exit", "term" and "int"
 # shellcheck disable=SC2154
 trap '
 
-  # [Trap] Delete all possible process directories, if they exist
+  # [Trap] Delete all possible process directories, if they exist. 
+  #   Note: These deletions are safe due to use of the "$random_n" variable.
   for poss_lk_d in "${a_poss_proces_lock_dirs[@]}"; do 
-    proclock="${poss_lk_d}/${proc_lk_f_nm}"
-    
-    if [[ -d "$proclock" ]] && [[ ! -L "$proclock" ]]; then 
-      rm -rf -- "$proclock"
+
+    # [Trap] Abbreviate var, and test & delete lock dirs.
+    pl="${poss_lk_d}/${proc_lk_f_nm}"
+
+    if [[ -d "$pl" ]] && [[ ! -L "$pl" ]]; then 
+      rm -rf -- "$pl"
     fi
   done
 
   # BUG: How do I make sure to avoid deleting any
-  # valid ACL-s 
+  # valid ACL-s ?  Special group?
 
-  # [Trap] Remove any script-s ACL-s
+  # [Trap] Remove any script-s ACL-s based on whether the canary variables
+  # exist.
   if [[ -v acl_execd_setfacl ]]; then 
     
     if [[ -v acl_abs_path ]]; then 
