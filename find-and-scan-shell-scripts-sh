@@ -158,27 +158,6 @@ fn_write_vars(){
 # fn_age_file fn_bak fn_erx fn_num fn_usage fn_write_arrays fn_write_vars
 
 
-:;: Option parsing
-if [[ $# -gt 0 ]]; then
-  cli_input="${1:0:2}"
-
-  # shellcheck disable=SC2034
-  case "$cli_input" in
-    --) printf 0a09486170707920456173746572210a0a | 
-          xxd -r -p
-        exit 0;;
-    -e) severity=error;;
-    -i) severity=info;;
-    -v) printf 0a09224920776f756c642068617665206d61646520746869732073686f727465722c206275742049206469646e27742068617665207468652074696d652e220a09092d2d204d61726b20547761696e0a0a |
-          xxd -r -p
-        exit 0;;
-    -w) severity=warning;;
-    -h) :; fn_usage 0;;
-    *)  :; fn_usage 1;;
-  esac
-fi
-
-
 :;: Use -sudo-
 if ! sudo -v; then
   printf '\n\tValidation failed of user\x27s \x60sudo\x60 timestamp; ' 
@@ -271,6 +250,26 @@ timecode="$( builtin printf '%(%F_%H%M%S)T' )"
 # List of arrays, local scope
 # loc_A_hashes_prev_files loc_a_previous_aged_files
 
+
+:;: Option parsing
+if [[ $# -gt 0 ]]; then
+  cli_input="${1:0:2}"
+
+  # shellcheck disable=SC2034
+  case "$cli_input" in
+    --) printf 0a09486170707920456173746572210a0a | 
+          xxd -r -p
+        exit 0;;
+    -e) severity=error;;
+    -i) severity=info;;
+    -v) printf 0a09224920776f756c642068617665206d61646520746869732073686f727465722c206275742049206469646e27742068617665207468652074696d652e220a09092d2d204d61726b20547761696e0a0a |
+          xxd -r -p
+        exit 0;;
+    -w) severity=warning;;
+    -h) :; fn_usage 0;;
+    *)  :; fn_usage 1;;
+  esac
+fi
 
 
 # SECTION B
