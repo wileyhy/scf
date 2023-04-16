@@ -186,8 +186,10 @@ fn_write_arrays(){
   for loc_unquotd_array_nm_b in "$@"; do 
 
     # create local variables, for use as both array and string
+    #   Note: var "$curr_time_ssubd" includes a trailing forward slash so
+    # that this FN outputs data to PWD should "$curr_time_ssubd" be empty.
     local -n loc_nameref_b="$loc_unquotd_array_nm_b"
-    loc_array_nm='$loc_unquotd_array_nm_b"
+    loc_array_nm="$loc_unquotd_array_nm_b"
     loc_write_f_b="${curr_time_ssubd}/${loc_array_nm}"
 
     # solved?  BUG: mixing variable and array. sb a nameref
@@ -237,6 +239,9 @@ fn_write_vars(){
 # List of functions
 #   fn_age_file fn_bak fn_erx fn_num fn_usage fn_write_arrays fn_write_vars
 
+  :;: '<>'
+  declare -pf fn_write_arrays fn_bak
+  exit "$LINENO"
 
 :;: Use -sudo-
 if ! sudo -v; then
@@ -535,7 +540,7 @@ mountpoint="$(
   fn_erx "$LINENO"
 main_d="${mountpoint}/${script_dirnm}"
 data_subd="${main_d}/latest_data"
-curr_time_ssubd="${data_subd}/t_${timecode}"
+curr_time_ssubd="${data_subd}/t_${timecode}/"
 list_crunchbangs="${curr_time_ssubd}/crunchbangs"
 read -r filesystem_type device < <( 
   sudo findmnt --ascii --bytes --canonicalize --df --list \
@@ -739,9 +744,10 @@ then
     fi
 
     :;: run -file- on each each_sorted_f
+    #   Note: var "$curr_time_ssubd" includes a trailing forward slash
     { printf '+ %-8d: ' "$all_files_index" 
       sudo file -pk "$each_sorted_f"
-    } | tee -a "${curr_time_ssubd}/file_out" > /dev/null
+    } | tee -a "${curr_time_ssubd}file_out" > /dev/null
  
     # Bug: avoid as many disk writes as possible. 
     # Bug: use indices to reference each type? 
