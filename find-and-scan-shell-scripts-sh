@@ -1,14 +1,25 @@
 #!/bin/bash
-# find-and-scan-shell-scripts-sh
+# 
 # Written in bash version 5.1 on Fedora 37
 
 
 # SECTION A
 
+# TODO: must be regular user
+
+
 :;: 'Implementation-dependent arguments for opts parsable by -shellcheck-'
 severity=error
 # shellcheck disable=SC2034
 shells='(sh|bash|dash|ksh)'
+
+
+:;: 'Variables that lend themselves to some customization'
+repo_nm=scrfi
+script_conf=~/."${repo_nm}rc"
+script_nm=find-and-scan-shell-scripts-sh
+script_proper_nm='Script Finder'
+script_version=1.0@
 
 
 :;: Environment variables
@@ -101,7 +112,8 @@ fn_usage(){
   : fn_usage
   cat <<-EOF
     
-    SCF - Shell Check Find, version 1.0 (for redhat-linux)
+    # Q: sb scfi ?
+    scrfi - Script Finder, version 1.0 (for redhat-linux)
     Find and scan shell scripts depending on severity level. 
         Usage:  ./find-and-scan-shell-scripts-sh [-ehiw]
                 -e error          -i info
@@ -151,29 +163,9 @@ fn_write_vars(){
   #declare -p loc_script_section_nm loc_write_f_a 
   : END OF fn_write_vars;:
 }
+
 # List of functions
 # fn_age_file fn_bak fn_erx fn_num fn_usage fn_write_arrays fn_write_vars
-
-
-:;: Option parsing
-if [[ $# -gt 0 ]]; then
-  cli_input="${1:0:2}"
-
-  # shellcheck disable=SC2034
-  case "$cli_input" in
-    --) printf 0a09486170707920456173746572210a0a | 
-          xxd -r -p
-        exit 0;;
-    -e) severity=error;;
-    -i) severity=info;;
-    -v) printf 0a09224920776f756c642068617665206d61646520746869732073686f727465722c206275742049206469646e27742068617665207468652074696d652e220a09092d2d204d61726b20547761696e0a0a |
-          xxd -r -p
-        exit 0;;
-    -w) severity=warning;;
-    -h) :; fn_usage 0;;
-    *)  :; fn_usage 1;;
-  esac
-fi
 
 
 :;: Use -sudo-
@@ -187,6 +179,7 @@ fi
 :;: Process lock
 random_n=$RANDOM
 proc_lk_f_nm=".$$.${random_n}.lock"
+
 a_poss_proces_lock_dirs=( [0]="$XDG_RUNTIME_DIR" [1]="$HOME" 
   [2]="$TMPDIR" [3]=/tmp [4]=/var/tmp )
 
@@ -198,9 +191,11 @@ for poss_lk_d in "${a_poss_proces_lock_dirs[@]}"; do
   fi
 done
 
+# Trap on Exit, Term and Int
 # shellcheck disable=SC2154
 trap '
-  
+
+  # [Trap] Delete all possible process directories, if they exist
   for poss_lk_d in "${a_poss_proces_lock_dirs[@]}"; do 
     proclock="${poss_lk_d}/${proc_lk_f_nm}"
     
@@ -209,13 +204,18 @@ trap '
     fi
   done
 
-  # Remove this script-s ACL-s
+  # BUG: How do I make sure to avoid deleting any
+  # valid ACL's 
+
+  # [Trap] Remove any script-s ACL-s
   if [[ -v acl_execd_setfacl ]]; then 
     
     if [[ -v acl_abs_path ]]; then 
       sudo setfacl -R -x u:$UID "$acl_abs_path" ||
         echo Error: setfacl failed, line $LINENO
-    
+
+    # bug? Should this var be main_d ?
+
     elif [[ -v mountpoint ]]; then
       sudo setfacl -R -x u:$UID "$mountpoint" ||
         echo Error: setfacl failed, line $LINENO
@@ -268,6 +268,26 @@ timecode="$( builtin printf '%(%F_%H%M%S)T' )"
 # List of arrays, local scope
 # loc_A_hashes_prev_files loc_a_previous_aged_files
 
+
+:;: Option parsing
+if [[ $# -gt 0 ]]; then
+  cli_input="${1:0:2}"
+
+  # shellcheck disable=SC2034
+  case "$cli_input" in
+    --) printf 0a09486170707920456173746572210a0a | 
+          xxd -r -p
+        exit 0;;
+    -e) severity=error;;
+    -i) severity=info;;
+    -v) printf 0a09224920776f756c642068617665206d61646520746869732073686f727465722c206275742049206469646e27742068617665207468652074696d652e220a09092d2d204d61726b20547761696e0a0a |
+          xxd -r -p
+        exit 0;;
+    -w) severity=warning;;
+    -h) :; fn_usage 0;;
+    *)  :; fn_usage 1;;
+  esac
+fi
 
 
 # SECTION B
