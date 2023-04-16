@@ -52,7 +52,7 @@ export LC_COLLATE LC_CTYPE LC_NUMERIC PATH
 fn_age_file(){
   : fn_age_file
 
-  :;: 'Target file must exist' 
+  :;: 'Target file must exist. (Also, return with the correct exit code.)' 
   [[ -f "$1" ]] ||
     return
 
@@ -135,16 +135,23 @@ fn_bak(){
 fn_erx(){
   # this assignment must be the first command
   local loc_exit_code=$?
-
   : fn_erx
+
+  # print an error message and exit with the correct exit code
   echo -e Error: "$@" 
   : 'END OF fn_erx';:
   exit "$loc_exit_code"
 }
 fn_num(){ 
   : fn_num
+
+  # for each of multiple input array names
   for loc_unquotd_array_nm_a in "$@"; do
+
+    # set a local name reference variable
     local -n loc_nameref_a="$loc_unquotd_array_nm_a" 
+
+    # and use the nameref to print the number of indices in the input array
     echo ${#loc_nameref_a[@]}
   done
   : 'END OF fn_num';:
@@ -152,6 +159,8 @@ fn_num(){
 fn_usage(){
   # Usage:  fn_usage [exit-code]
   : fn_usage
+
+  # print a usage message and exit with a pre-determined exit code
   cat <<-EOF
     ${repo_nm} - ${script_proper_nm}, version ${script_version} (for 
       redhat-linux)
@@ -169,7 +178,7 @@ EOF
 fn_write_arrays(){
   : fn_write_arrays
   # Usage: fn_write_arrays [arrays]
-  # Note: Default destination directory is -curr_time_ssubd-.
+  #   Note: Default destination directory is -curr_time_ssubd-.
 
   :;: fn_write_arrays: Write each array to a file on disk.
   #   Note: `tee` without -a will overwrite an existing file
