@@ -1,5 +1,5 @@
 #!/bin/bash
-# 
+# Q: name sb scfi ?
 # Written in bash version 5.1 on Fedora 37
 
 
@@ -14,12 +14,13 @@ severity=error
 shells='(sh|bash|dash|ksh)'
 
 
-:;: 'Variables that lend themselves to some customization'
+:;: 'Variables that lend themselves to some customization' # AJAX
 repo_nm=scrfi
 script_conf=~/."${repo_nm}rc"
+script_dirnm="${repo_nm}.d"
 script_nm=find-and-scan-shell-scripts-sh
 script_proper_nm='Script Finder'
-script_version=1.0@
+script_version=1.0
 
 
 :;: Environment variables
@@ -111,11 +112,10 @@ fn_usage(){
   # Usage:  fn_usage [exit-code]
   : fn_usage
   cat <<-EOF
-    
-    # Q: sb scfi ?
-    scrfi - Script Finder, version 1.0 (for redhat-linux)
+    ${repo_nm} - ${script_proper_nm}, version ${script_version} (for 
+      redhat-linux)
     Find and scan shell scripts depending on severity level. 
-        Usage:  ./find-and-scan-shell-scripts-sh [-ehiw]
+        Usage:  ${script_nm} [-ehiw]
                 -e error          -i info
                 -h help           -w warning
     Only the first option is processed.
@@ -205,20 +205,20 @@ trap '
   done
 
   # BUG: How do I make sure to avoid deleting any
-  # valid ACL's 
+  # valid ACL-s 
 
   # [Trap] Remove any script-s ACL-s
   if [[ -v acl_execd_setfacl ]]; then 
     
     if [[ -v acl_abs_path ]]; then 
       sudo setfacl -R -x u:$UID "$acl_abs_path" ||
-        echo Error: setfacl failed, line $LINENO
+        echo Error: setfacl failed, line "$LINENO"
 
     # bug? Should this var be main_d ?
 
     elif [[ -v mountpoint ]]; then
       sudo setfacl -R -x u:$UID "$mountpoint" ||
-        echo Error: setfacl failed, line $LINENO
+        echo Error: setfacl failed, line "$LINENO"
     fi
   fi
 
@@ -232,7 +232,7 @@ if ! mkdir "$process_lock" 2> /dev/null; then
     printf '\tID: %s\n' "$USER"
     printf 'Exiting.\n\n' 
   } 1>&2
-  exit $LINENO
+  exit "$LINENO"
 fi
 
 
@@ -338,7 +338,7 @@ for fs in "${a_fs[@]}"; do [[ -n "$fs" ]] && a_avail_fs+=( "$fs" ); done
 
   #:;: '<>'
   #set -x
-scfrc=~/.scfrc
+script_conf=~/.script_conf
 
 # if there arent any available mountpoints, but there are some fs-s
 # -OR- if there are some extra fs-s attached which arent mounted
@@ -353,8 +353,8 @@ then
   if [[ ${#a_maj8s[@]} -gt 0 ]]; then
 
     # shellcheck disable=SC1090
-    [[ -f "$scfrc" ]] &&
-      source "$scfrc"
+    [[ -f "$script_conf" ]] &&
+      source "$script_conf"
 
     if [[ -z "$mount_exit" ]]; then 
 
@@ -377,7 +377,7 @@ then
             case "$rem_yn" in 
               Yes|yes|Y|y) 
                 declare -p mount_exit | 
-                  tee -a "$scfrc";;
+                  tee -a "$script_conf";;
               *) :;;
             esac
             break 2
@@ -406,18 +406,18 @@ case "$mount_exit" in
 
 	  # create a mountpoint
 	  sudo mkdir --parents "${a_mp[$j]}" ||
-		fn_erx $LINENO
+		fn_erx "$LINENO"
 
 	  # mount the device
 	  sudo mount -o nosuid,nodev,noexec,rw \
 		  "${a_maj8s[$j]}" "${a_mp[$j]}" ||
-		fn_erx $LINENO
+		fn_erx "$LINENO"
 	
 	  # update the lists
 	  a_mp+=(       [j]="/run/media/${USER}/${a_uu[j]}" )
 	done
 	;;
-  *) fn_erx $LINENO '*Unreachable code*'
+  *) fn_erx "$LINENO" '*Unreachable code*'
 esac
       
 
@@ -426,7 +426,7 @@ esac
   #declare -p a_mp a_avail_mp
   #exit "$LINENO"
 
-# Bug: maintenance issue! Compound command
+# Bug: maintenance issue? Compound command
 
 # prevent the FS root / from becoming the mountpoint
 mountpoint="$( 
@@ -445,7 +445,7 @@ mountpoint="$(
 
 [[ -n "$mountpoint" ]] ||
   fn_erx "$LINENO"
-main_d="${mountpoint}/scf.d"
+main_d="${mountpoint}/${script_dirnm}"
 data_subd="${main_d}/latest_data"
 curr_time_ssubd="${data_subd}/t_${timecode}"
 list_crunchbangs="${curr_time_ssubd}/crunchbangs"
@@ -454,6 +454,7 @@ read -r filesystem_type device < <(
     --types "$fstype_list" --noheadings --notruncate --nofsroot \
     --output fstype,source --mountpoint "$mountpoint" )
 umask 077
+
 
 :;: 'reduce use of -sudo- in this script by setting up ACLs'
 case "$filesystem_type" in
@@ -509,8 +510,8 @@ if [[ ! -r "$main_d" ]]; then
   done 
 fi
 
-:;: make sure -data_subd- is a directory OR create the -data_subd- dir 
-:   if necessary
+:;: 'make sure -data_subd- is a directory OR create the -data_subd- dir '
+:   'if necessary'
 [[ -d "$data_subd" ]] ||
   mkdir "$data_subd"
 
@@ -556,11 +557,11 @@ fi
 :;: 'in any event, create a new record for a_relevant_search_dirs and..'
 mapfile -d '' -t a_relevant_search_dirs < <(
   sudo find / -mindepth 1 -maxdepth 1 -type d \! -empty \
-    \( \! -name proc -a \! -name sys -a \! -iname 'scf*' \) \
+    \( \! -name proc -a \! -name sys -a \! -iname "${script_dirnm}*" \) \
     -print0 2> /dev/null )
 :; fn_write_arrays a_relevant_search_dirs
 
-:;: If we must run -find- for a_all_files.
+:;: 'If we must run -find- for a_all_files.'
 #if [[ ! -v a_all_files ]]; then
   
     : '<>'
@@ -891,16 +892,16 @@ exit 00
 
 
 # scan 'a_all_other_files' for anything that isn't an ELF file
-# . /run/media/*/*/scf.d/latest_data/t_*/a_all_other_files
+# . /run/media/*/*/$script_dirnm}/latest_data/t_*/a_all_other_files
 # for f in "${a_all_other_files[@]}"; do sudo file -pk "$f" | grep -v 'ELF 64-bit LSB '; done
 
 # scan 'a_all_files_sorted' for proper sorting
-# . /run/media/*/*/scf.d/latest_data/t_*/a_all_files_sorted
+# . /run/media/*/*/${script_dirnm}/latest_data/t_*/a_all_files_sorted
 # fn_num a_all_files_sorted
 # sudo command -p printf '' | sudo tee ./a_all_files_sorted_printed; for g in "${a_all_files_sorted[@]}"; do sudo -p command printf '%s\n' "$g" | sudo tee -a ./a_all_files_sorted_printed ; done
 
 
 # check 'file_out' for anything odd
-# grep -v 'ELF 64-bit' ./scf.d/latest_data/t_2023-04-03_084130/file_out | grep 'read permission'
-# grep -v 'ELF 64-bit' ./scf.d/latest_data/t_2023-04-03_084130/file_out | grep -v 'read permission' | grep -v 'script text exec'
+# grep -v 'ELF 64-bit' ./${script_dirnm}/latest_data/t_2023-04-03_084130/file_out | grep 'read permission'
+# grep -v 'ELF 64-bit' ./${script_dirnm}/latest_data/t_2023-04-03_084130/file_out | grep -v 'read permission' | grep -v 'script text exec'
 
