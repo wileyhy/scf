@@ -142,7 +142,7 @@ fn_write_arrays(){
       declare -p "$loc_unquotd_array_nm_b" | 
         tee --output-error='exit' "$loc_write_f_b" > /dev/null
     else
-      fn_erx $LINENO, variable "$loc_unquotd_array_nm_b" DNE
+      fn_erx "$LINENO", variable "$loc_unquotd_array_nm_b" DNE
     fi
     :; fn_bak "$loc_write_f_b"
   done
@@ -172,7 +172,7 @@ fn_write_vars(){
 if ! sudo -v; then
   printf '\n\tValidation failed of user\x27s \x60sudo\x60 timestamp; ' 
   printf 'exiting.\n\n' 
-  exit $LINENO
+  exit "$LINENO"
 fi
 
 
@@ -392,7 +392,7 @@ then
 elif [[ ${#a_avail_mp[@]} -eq ${#a_avail_fs[@]} ]]; then
   true
 else
-  fn_erx $LINENO '*Unreachable code*'
+  fn_erx "$LINENO" '*Unreachable code*'
 fi
 
 case "$mount_exit" in
@@ -461,8 +461,8 @@ case "$filesystem_type" in
   xfs)      true;;
   ext[2-4])   tune2fs -l "$device" | 
                 grep -i acl
-              fn_erx $LINENO TODO;;
-  *)          fn_erx $LINENO TODO;;
+              fn_erx "$LINENO" TODO;;
+  *)          fn_erx "$LINENO" TODO;;
 esac
   
 :;: on XFS
@@ -481,7 +481,7 @@ if [[ ! -r "$main_d" ]]; then
  
     #:;: '<>' 
     #declare -p main_d mountpoint a_acl_name_indiv_dir
-    #exit $LINENO
+    #exit "$LINENO"
   
   a_acl_name_indiv_dir[0]=/
   a_acl_name_indiv_dir[-1]="${a_acl_name_indiv_dir[-1]//$'\n'}"
@@ -538,7 +538,7 @@ done
 : of curr_time_ssubd
 if [[ ! -d "${curr_time_ssubd}" ]]; then
   mkdir "$curr_time_ssubd" ||
-    fn_erx $LINENO
+    fn_erx "$LINENO"
 fi
 
 
@@ -812,9 +812,9 @@ fi
 # pulls from time_dir
 grep --extended-regexp '/bin/'"${shells}"'.*% % % %' \
   "$list_crunchbangs" > "${list_crunchbangs}_SC-scrpts-list" ||
-    fn_erx $LINENO
+    fn_erx "$LINENO"
 rsync -ca "${list_crunchbangs}_SC-scrpts-list" /tmp ||
-  fn_erx $LINENO
+  fn_erx "$LINENO"
 :; fn_bak "${list_crunchbangs}_SC-scrpts-list" /tmp/*_SC-scrpts-list
 
 
@@ -877,8 +877,8 @@ iterator_2=0
 :;: Write semi-permanent archives
 
 :; fn_bak      "${list_crunchbangs}_found_scripts"
-rsync -ca "${list_crunchbangs}_found_scripts" "$main_d" || fn_erx $LINENO
-rsync -ca "${list_crunchbangs}_found_scripts" /tmp || fn_erx $LINENO
+rsync -ca "${list_crunchbangs}_found_scripts" "$main_d" || fn_erx "$LINENO"
+rsync -ca "${list_crunchbangs}_found_scripts" /tmp || fn_erx "$LINENO"
 :; fn_age_file "${list_crunchbangs}_found_scripts"
 
 :; fn_bak      "${main_d}/${list_crunchbangs##*/}_found_scripts"
