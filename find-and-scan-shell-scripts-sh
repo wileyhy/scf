@@ -1,5 +1,5 @@
 #!/bin/bash
-# find-and-scan-shell-scripts-sh
+# 
 # Written in bash version 5.1 on Fedora 37
 
 
@@ -12,6 +12,14 @@
 severity=error
 # shellcheck disable=SC2034
 shells='(sh|bash|dash|ksh)'
+
+
+:;: 'Variables that lend themselves to some customization'
+repo_nm=scrfi
+script_conf=~/."${repo_nm}rc"
+script_nm=find-and-scan-shell-scripts-sh
+script_proper_nm='Script Finder'
+script_version=1.0@
 
 
 :;: Environment variables
