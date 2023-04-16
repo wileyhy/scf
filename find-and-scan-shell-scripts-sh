@@ -70,7 +70,7 @@ fn_age_file(){
   # if the new hash is already present in the assoc
   # array, then the new file is a dup
 
-  # build an associative array of hashes (filenames don't matter for 
+  # build an associative array of hashes (filenames need only exist for 
   # this test) of previously aged files. The hash values are array indices.
   # this loop iterates over all found previously hashed files
 
@@ -124,6 +124,8 @@ fn_bak(){
       # write a new .bak file
       rsync -acq "${loc_filename_a}"{,.bak} ||
         fn_erx "$LINENO"
+
+    # if input file DNE, then print an error and exit
     else
       fn_erx "$LINENO" file DNE "$loc_filename_a" 
     fi
@@ -167,7 +169,7 @@ EOF
 fn_write_arrays(){
   : fn_write_arrays
   # Usage: fn_write_arrays [arrays]
-  # Note: Default directory is -curr_time_ssubd-.
+  # Note: Default destination directory is -curr_time_ssubd-.
 
   :;: fn_write_arrays: Write each array to a file on disk.
   #   Note: `tee` without -a will overwrite an existing file
@@ -194,16 +196,21 @@ fn_write_arrays(){
 fn_write_vars(){
   # Usage: fn_write_vars [loc_script_section_nm] [raw variable names]
   : fn_write_vars
-  #local loc_script_section_nm loc_write_f_a
+
   loc_script_section_nm="$1"
   loc_write_f_a="${curr_time_ssubd}/${loc_script_section_nm}_vars"
   shift
+
+  # if the destination file already exists, then age it first
   [[ -e "$loc_write_f_a" ]] &&
     fn_age_file "$loc_write_f_a"
+
+  # write a new data file
   declare -p "$@" 2> /dev/null |
     tee --output-error=exit "$loc_write_f_a" > /dev/null
+
+  # and write a .bak file
   :; fn_bak "$loc_write_f_a"
-  #declare -p loc_script_section_nm loc_write_f_a 
   : END OF fn_write_vars;:
 }
 
@@ -220,7 +227,7 @@ fi
 
 
 :;: Process lock
-random_n=$RANDOM
+random_n="$RANDOM"
 proc_lk_f_nm=".$$.${random_n}.lock"
 
 a_poss_proces_lock_dirs=( [0]="$XDG_RUNTIME_DIR" [1]="$HOME" 
