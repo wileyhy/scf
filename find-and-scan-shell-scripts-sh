@@ -5,7 +5,7 @@
 
 # SECTION A
 
-# Regular users only
+:;: 'Regular users only'
 if [[ "$UID" == 0 ]]; then 
   printf '\n\t Must be a regular user and use sudo. \n\n'
   exit 1
@@ -34,11 +34,15 @@ script_version=1.0
 #   Note: -bash- doesnt decend subdirs of PATH
 #   Note: if executed by a restricted shell, this assignment to PATH will 
 # fail with an error message, and will ignore all of the rest of the 
-# commands on same script line as the PATH assignment.    
+# commands on same script line as the PATH assignment. 
+
+  # Q: including && and || ?
+
 unset LC_ALL
-LC_COLLATE="C.UTF-8" # for predictable `sort`ing
-LC_CTYPE="C.UTF-8"   # "   "            "
-LC_NUMERIC="en_US.UTF-8" # for commas
+LC_COLLATE="C.UTF-8"       # for predictable `sort`ing
+LC_CTYPE="C.UTF-8"         #  "   "            "
+LC_NUMERIC="en_US.UTF-8"   # for commas
+
 PATH="$( /usr/bin/command -p getconf PATH ):/usr/bin:/usr/sbin:${PATH}" ||
   exit "$LINENO"
 export LC_COLLATE LC_CTYPE LC_NUMERIC PATH
@@ -48,37 +52,55 @@ export LC_COLLATE LC_CTYPE LC_NUMERIC PATH
 fn_age_file(){
   : fn_age_file
 
-  :;: 'File must exist' 
-  [[ ! -f "$1" ]] &&
-    return 1
+  :;: 'Target file must exist' 
+  [[ -f "$1" ]] ||
+    return
 
+  # get new hash
   local -A loc_A_hashes_prev_files
+  loc_aging_hash_new="$( 
+    md5sum "$1" | 
+      cut -d ' ' -f1 )"
+
   mapfile -d '' -t loc_a_previous_aged_files < <( 
-    find "${1%/*}" -type f -regextype egrep \
+    find "${1%/*}" -maxdepth 1 -type f -regextype egrep \
       -regex ".*/${1##*/}\.([0-9]){10}" -print0 2> /dev/null ) 
 
   # if the new hash is already present in the assoc
   # array, then the new file is a dup
+
+  # build an associative array of hashes (filenames don't matter for 
+  # this test) of previously aged files. The hash values are array indices.
+  # this loop iterates over all found previously hashed files
   for loc_prevsly_aged in "${loc_a_previous_aged_files[@]}"; do 
     
-    if [[ -f "$loc_prevsly_aged" ]]; then
-      
+    # if the previously aged file holds any data
+    if [[ -s "$loc_prevsly_aged" ]]; then
+
+      # then assign the old hash as an index of the associative array
       loc_A_hashes_prev_files["$( 
         md5sum "$loc_prevsly_aged" | 
           cut -d ' ' -f1 )"]="$loc_prevsly_aged" 
-      
-      loc_aging_hash_new="$( 
-        md5sum "$1" | 
-          cut -d ' ' -f1 )"
-      
-      [[ -n "${loc_A_hashes_prev_files["$loc_aging_hash_new"]}" ]] && 
+
+      # test whether an index of the same value as the new hash already
+      # exists in the associative array
+      if [[ -n "${loc_A_hashes_prev_files["$loc_aging_hash_new"]}" ]]
+      then
+
+        # if such a duplicate hash is found, then return from this function
+        # without copying or moving any files
         : 'END OF fn_age_file';:
-        return 0
+        return
+      fi
+
+    # remove any empty previously aged files
+    else
+      rm -f "$loc_prevsly_aged"
     fi
   done
 
-  loc_aging_mtime="$( stat -c%Y "$1" )"
-  mv "$1" "${1}.${loc_aging_mtime}" ||
+  # if no dup hashes are found, then age the target file with its mtime
+  mv "$1" "${1}.$( stat -c%Y "$1" )" ||
     fn_erx _age_file "$1"
   : 'END OF fn_age_file';:
 }
@@ -259,7 +281,7 @@ timecode="$( builtin printf '%(%F_%H%M%S)T' )"
 # random_n severity shells sorted_script subd_x timecode
 
 # List of variables, local scope
-# loc_aging_hash_new loc_aging_mtime loc_exit_code loc_filename_a 
+# loc_aging_hash_new loc_exit_code loc_filename_a 
 # loc_nameref loc_prevsly_aged loc_script_section_nm 
 # loc_unquotd_array_nm_a loc_unquotd_array_nm_b loc_write_f_a 
 # loc_write_f_b
