@@ -5,7 +5,14 @@
 
 # SECTION A
 
-# TODO: must be regular user
+# Regular users only
+if [[ "$UID" == 0 ]]; then 
+  printf '\n\t Must be a regular user and use sudo. \n\n'
+  exit 1
+else
+  sudo -v ||
+    exit 1
+fi
 
 
 :;: 'Implementation-dependent arguments for opts parsable by -shellcheck-'
@@ -41,9 +48,9 @@ export LC_COLLATE LC_CTYPE LC_NUMERIC PATH
 fn_age_file(){
   : fn_age_file
 
-    :;: '<> ===== BUG? ===== sb   [[ ! -f   ???'
-    [[ -f "$1" ]] ||
-      return 1
+  :;: 'File must exist' 
+  [[ ! -f "$1" ]] &&
+    return 1
 
   local -A loc_A_hashes_prev_files
   mapfile -d '' -t loc_a_previous_aged_files < <( 
