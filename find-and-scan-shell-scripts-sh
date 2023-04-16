@@ -272,8 +272,8 @@ for poss_lk_d in "${a_poss_proces_lock_dirs[@]}"; do
   fi
 done
 
-# Code for removing the process lock and for redetting the ACL-s must be 
-# executed prior to that of setting up either.
+# Code for removing the process lock and for resetting the ACL-s must be 
+# parsed prior to that of setting up either.
 
 # Set up a trap on signals "exit", "term" and "int"
 # shellcheck disable=SC2154
