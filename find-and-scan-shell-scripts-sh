@@ -202,7 +202,7 @@ fn_write_arrays(){
 
       # then write a data file to disk
       declare -p "$loc_array_nm" | 
-        tee --output-error='exit' "$loc_write_f_b" > /dev/null
+        tee --output-error=exit "$loc_write_f_b" > /dev/null
 
     # if input array holds no data, then print an error and exit
     else
@@ -251,8 +251,8 @@ if ! sudo -v; then
 fi
 
 
-  :;: '<>' 
-  set -x
+  #:;: '<>' 
+  #set -x
 
 # ACL group
 #   Note: the "wheel" group is not included on all platforms
@@ -274,6 +274,9 @@ sudo cp -n /etc/login.defs{,~}
 sudo sed -i 's,^#MAX_MEMBERS_PER_GROUP\s*0$,MAX_MEMBERS_PER_GROUP  1,g' \
   /etc/login.defs
 
+  :;: '<>'
+  set -vx
+
 # select values for "$acl_gid" and "$acl_grpnm" which are unlikely to be
 # guessed beforehand, and eliminate the TOCTOU issue as much as possible
 while :; do 
@@ -281,37 +284,37 @@ while :; do
   then
     break
   else
-    unset acl_g{id,rpnm}
+    unset acl_gid acl_grpnm
   fi
 done
-export cl_g{id,rpnm}
+#export cl_g{id,rpnm}
   
   :;: '<>'
-  set -x
+  #set -x
+  set +v
   id -Gn "$USER"
   groups "$USER"
-  exit "$LINENO"
+  declare -p  acl_gid acl_grpnm ||
+    exit "$LINENO"
 
 sudo usermod -aG "$acl_grpnm" "$USER"
 sudo grpck
 
-newgrp "$acl_grpnm" <<EONG
+#newgrp "$acl_grpnm" <<EONG
   
-  :;: '<>'
-  set -x
-  id "$USER"
-  groups "$USER"
-  declare -p cl_g{id,rpnm}
-  groups "$USER" | grep "$acl_grpnm" || fn_erx "$LINENO"
+  #:;: '<>'
+  #set -x
+  #id "$USER"
+  #groups "$USER"
+  #groups "$USER" | grep "$acl_grpnm" || fn_erx "$LINENO"
 
-EONG
+#EONG
 
-  :;: '<>'
+  #:;: '<>'
   #set 
   #env
-  id "$USER"
-  groups "$USER"
-  declare -p cl_g{id,rpnm}
+  #id "$USER"
+  #groups "$USER"
   groups "$USER" | grep "$acl_grpnm" || fn_erx "$LINENO"
   
   mapfile -t gxs < <( 
@@ -324,19 +327,21 @@ EONG
       }; 
   done 
   
-  exit "$LINENO"
+  #exit "$LINENO"
 
 
 
-groups
-/usr/bin/newgrp "$acl_grpnm" <<EONG
+#groups
+#/usr/bin/newgrp "$acl_grpnm" <<EONG
 
-foo=( bar baz )
-declare -p foo
-EONG
+#foo=( bar baz )
+#declare -p foo
+#EONG
 
-declare -p foo
-exit "$LINENO"
+#declare -p foo
+#exit "$LINENO"
+
+
 
 
 #   Note: Code for removing the process lock and for resetting the ACL-s 
@@ -412,7 +417,7 @@ for poss_lk_d in "${a_poss_proces_lock_dirs[@]}"; do
 done
 
 # create the lock directory
-if ! mkdir "$process_lock" 2> /dev/null; then
+if ! mkdir -v "$process_lock" 2> /dev/null; then
   { 
     printf '\n\tCannot acquire process lock: <%s>.\n' "$process_lock"
     printf '\tID: %s\n' "$USER"
@@ -420,6 +425,9 @@ if ! mkdir "$process_lock" 2> /dev/null; then
   } 1>&2
   exit "$LINENO"
 fi
+
+  :;: '<>' 
+  sudo namei -xl "$process_lock"
 
 
 :;: User variables
@@ -591,8 +599,11 @@ case "$mount_exit" in
 	for j in ${!a_maj8s[@]}; do 
 
 	  # create a mountpoint
-	  sudo mkdir --parents "${a_mp[$j]}" ||
+	  sudo mkdir -v --parents "${a_mp[$j]}" ||
 		fn_erx "$LINENO"
+
+      :;: '<>' 
+      sudo namei -xl "${a_mp[$j]}"
 
 	  # mount the device
 	  sudo mount -o nosuid,nodev,noexec,rw \
@@ -650,7 +661,11 @@ case "$filesystem_type" in
               fn_erx "$LINENO" TODO;;
   *)          fn_erx "$LINENO" TODO;;
 esac
-  
+
+
+  :;: '<>'
+  set -x
+
 :;: on XFS
 # Nearly all of the `sudo` commands below are allowing rw access, of
 # this script's data_subd, so simply using ACL's will reduce the overuse
@@ -680,9 +695,14 @@ if [[ ! -r "$main_d" ]]; then
     if sudo test ! -e "$acl_abs_path" ||
       [[ ! -r "$acl_abs_path" ]]; 
     then 
-      sudo mkdir --parents "$main_d" ||
+        : 'test succeeded'
+
+      sudo mkdir -v --parents "$main_d" ||
         fn_erx "$LINENO"
       
+        :;: '<>' 
+        sudo namei -xl "$main_d"
+
       acl_execd_setfacl=y
       export acl_execd_setfacl # SC2034, while trap-s setfacl blk is #-d
       
@@ -692,6 +712,8 @@ if [[ ! -r "$main_d" ]]; then
       elif ! sudo setfacl -R -m "$USER":rwx "${main_d%/*}"; then
         fn_erx setfacl failed, '\x24{maind%/*}:' "${main_d%/*}"
       fi
+    else
+        : 'test failed'
     fi 
   done 
 fi
@@ -699,7 +721,10 @@ fi
 :;: 'make sure -data_subd- is a directory OR create the -data_subd- dir '
 :   'if necessary'
 [[ -d "$data_subd" ]] ||
-  mkdir "$data_subd"
+  mkdir -v "$data_subd"
+
+  :;: '<>' 
+  sudo namei -xl "$data_subd"
 
 :;: Label the current data as -latest.-
 #   Note: `find` sees dirs and symlinks as separate things 
@@ -723,9 +748,13 @@ done
 
 : of curr_time_ssubd
 if [[ ! -d "${curr_time_ssubd}" ]]; then
-  mkdir "$curr_time_ssubd" ||
+  mkdir -v "$curr_time_ssubd" ||
     fn_erx "$LINENO"
 fi
+
+  :;: '<>' 
+  sudo namei -xl "$curr_time_ssubd"
+
 
 
 # SECTION C
