@@ -269,18 +269,15 @@ getconf GID_MIN 2> /dev/null ||
 getconf GID_MAX 2> /dev/null || 
   GID_MAX="$( awk '/MAX/ { print $2 }' <<< "$grep_o" )"
 
-# restrict access to all groups 
-sudo cp -nb /etc/login.defs{,~}
+# restrict access to all groups
+sudo cp -n /etc/login.defs{,~}
 sudo sed -i 's,^#MAX_MEMBERS_PER_GROUP\s*0$,MAX_MEMBERS_PER_GROUP  1,g' \
   /etc/login.defs
 
 # select values for "$acl_gid" and "$acl_grpnm" which are unlikely to be
 # guessed beforehand, and eliminate the TOCTOU issue as much as possible
 while :; do 
-  if sudo groupadd \
-    -g "${acl_gid:="$((  $(($((RANDOM*RANDOM)) % $((GID_MAX-GID_MIN)))) \
-      +GID_MIN  ))"}" \
-    -U "$USER" "${acl_grpnm:="guser_${RANDOM}$$"}"; 
+  if sudo groupadd -g "${acl_gid:="$((  $(($((RANDOM*RANDOM)) % $((${GID_MAX:=60000}-${GID_MIN:=1000})))) +GID_MIN  ))"}" -U "$USER" "${acl_grpnm:="guser_${RANDOM}$$"}"; 
   then
     break
   else
@@ -288,26 +285,58 @@ while :; do
   fi
 done
 export cl_g{id,rpnm}
+  
+  :;: '<>'
+  set -x
+  id -Gn "$USER"
+  groups "$USER"
+  exit "$LINENO"
 
 sudo usermod -aG "$acl_grpnm" "$USER"
 sudo grpck
-env newgrp - "$acl_grpnm"
-set 
-env
 
+newgrp "$acl_grpnm" <<EONG
+  
   :;: '<>'
+  set -x
   id "$USER"
   groups "$USER"
   declare -p cl_g{id,rpnm}
   groups "$USER" | grep "$acl_grpnm" || fn_erx "$LINENO"
+
+EONG
+
+  :;: '<>'
+  #set 
+  #env
+  id "$USER"
+  groups "$USER"
+  declare -p cl_g{id,rpnm}
+  groups "$USER" | grep "$acl_grpnm" || fn_erx "$LINENO"
+  
+  mapfile -t gxs < <( 
+    grep user_ /etc/{group,passwd} | cut -d ':' -f2 )
+  declare -p gxs 
+  for g in "${gxs[@]}"; do 
+    sudo groupdel "$g" || 
+      { echo "$g"; 
+        break;
+      }; 
+  done 
+  
   exit "$LINENO"
 
 
 
 groups
-newgrp "$acl_grpnm"
-  
-  exit "$LINENO"
+/usr/bin/newgrp "$acl_grpnm" <<EONG
+
+foo=( bar baz )
+declare -p foo
+EONG
+
+declare -p foo
+exit "$LINENO"
 
 
 #   Note: Code for removing the process lock and for resetting the ACL-s 
@@ -610,7 +639,7 @@ read -r filesystem_type device < <(
   sudo findmnt --ascii --bytes --canonicalize --df --list \
     --types "$fstype_list" --noheadings --notruncate --nofsroot \
     --output fstype,source --mountpoint "$mountpoint" )
-umask 077
+umask 027
 
 
 :;: 'reduce use of -sudo- in this script by setting up ACLs'
