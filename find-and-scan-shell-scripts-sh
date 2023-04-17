@@ -239,9 +239,9 @@ fn_write_vars(){
 # List of functions
 #   fn_age_file fn_bak fn_erx fn_num fn_usage fn_write_arrays fn_write_vars
 
-  :;: '<>'
-  declare -pf fn_write_arrays fn_bak
-  exit "$LINENO"
+  #:;: '<>'
+  #declare -pf fn_write_arrays fn_bak
+  #exit "$LINENO"
 
 :;: Use -sudo-
 if ! sudo -v; then
@@ -249,6 +249,111 @@ if ! sudo -v; then
   printf 'exiting.\n\n' 
   exit "$LINENO"
 fi
+
+
+  :;: '<>' 
+  set -x
+
+# ACL group
+#   Note: the "wheel" group is not included on all platforms
+
+  :;: '<>'
+  id "$USER"
+  groups "$USER"
+
+# if the env vars GID_MIN and GID_MAX do not exist yet, create them
+grep_o="$(  grep -e ^GID_ /etc/login.defs )"
+
+getconf GID_MIN 2> /dev/null || 
+  GID_MIN="$( awk '/MIN/ { print $2 }' <<< "$grep_o" )"
+getconf GID_MAX 2> /dev/null || 
+  GID_MAX="$( awk '/MAX/ { print $2 }' <<< "$grep_o" )"
+
+# restrict access to all groups 
+sudo cp -nb /etc/login.defs{,~}
+sudo sed -i 's,^#MAX_MEMBERS_PER_GROUP\s*0$,MAX_MEMBERS_PER_GROUP  1,g' \
+  /etc/login.defs
+
+# select values for "$acl_gid" and "$acl_grpnm" which are unlikely to be
+# guessed beforehand, and eliminate the TOCTOU issue as much as possible
+while :; do 
+  if sudo groupadd \
+    -g "${acl_gid:="$((  $(($((RANDOM*RANDOM)) % $((GID_MAX-GID_MIN)))) \
+      +GID_MIN  ))"}" \
+    -U "$USER" "${acl_grpnm:="guser_${RANDOM}$$"}"; 
+  then
+    break
+  else
+    unset acl_g{id,rpnm}
+  fi
+done
+export cl_g{id,rpnm}
+
+sudo usermod -aG "$acl_grpnm" "$USER"
+sudo grpck
+env newgrp - "$acl_grpnm"
+set 
+env
+
+  :;: '<>'
+  id "$USER"
+  groups "$USER"
+  declare -p cl_g{id,rpnm}
+  groups "$USER" | grep "$acl_grpnm" || fn_erx "$LINENO"
+  exit "$LINENO"
+
+
+
+groups
+newgrp "$acl_grpnm"
+  
+  exit "$LINENO"
+
+
+#   Note: Code for removing the process lock and for resetting the ACL-s 
+# must be parsed prior to that of setting up either.
+
+# Set up a trap on signals "exit", "term" and "int"
+# shellcheck disable=SC2154
+trap '
+
+  # [Trap] Delete all possible process directories, if they exist. 
+  #   Note: These deletions are safe due to use of the "$random_n" 
+  #   variable.
+  for poss_lk_d in "${a_poss_proces_lock_dirs[@]}"; do 
+
+    # [Trap] Abbreviate var, then test and delete lock dirs.
+    pl="${poss_lk_d}/${proc_lk_f_nm}"
+
+    if [[ -d "$pl" ]] && [[ ! -L "$pl" ]]; then 
+      rm -rf -- "$pl"
+    fi
+  done
+
+  # BUG: How do I make sure to avoid deleting any
+  # valid ACL-s ?  Special group?
+
+  # [Trap] Remove any script-s ACL-s based on whether the canary variables
+  # exist.
+
+
+  if [[ -v acl_execd_setfacl ]]; then 
+    
+    if [[ -v acl_abs_path ]]; then 
+      sudo setfacl -R -x u:$UID "$acl_abs_path" ||
+        echo Error: setfacl failed, line "$LINENO"
+
+    # bug? Should this var be main_d ?
+
+    elif [[ -v mountpoint ]]; then
+      sudo setfacl -R -x u:$UID "$mountpoint" ||
+        echo Error: setfacl failed, line "$LINENO"
+    fi
+  fi
+
+  trap - EXIT TERM INT
+  kill -s INT $$
+' EXIT TERM INT 
 
 
 :;: Process lock
@@ -277,48 +382,7 @@ for poss_lk_d in "${a_poss_proces_lock_dirs[@]}"; do
   fi
 done
 
-# Code for removing the process lock and for resetting the ACL-s must be 
-# parsed prior to that of setting up either.
-
-# Set up a trap on signals "exit", "term" and "int"
-# shellcheck disable=SC2154
-trap '
-
-  # [Trap] Delete all possible process directories, if they exist. 
-  #   Note: These deletions are safe due to use of the "$random_n" variable.
-  for poss_lk_d in "${a_poss_proces_lock_dirs[@]}"; do 
-
-    # [Trap] Abbreviate var, and test & delete lock dirs.
-    pl="${poss_lk_d}/${proc_lk_f_nm}"
-
-    if [[ -d "$pl" ]] && [[ ! -L "$pl" ]]; then 
-      rm -rf -- "$pl"
-    fi
-  done
-
-  # BUG: How do I make sure to avoid deleting any
-  # valid ACL-s ?  Special group?
-
-  # [Trap] Remove any script-s ACL-s based on whether the canary variables
-  # exist.
-  if [[ -v acl_execd_setfacl ]]; then 
-    
-    if [[ -v acl_abs_path ]]; then 
-      sudo setfacl -R -x u:$UID "$acl_abs_path" ||
-        echo Error: setfacl failed, line "$LINENO"
-
-    # bug? Should this var be main_d ?
-
-    elif [[ -v mountpoint ]]; then
-      sudo setfacl -R -x u:$UID "$mountpoint" ||
-        echo Error: setfacl failed, line "$LINENO"
-    fi
-  fi
-
-  trap - EXIT TERM INT
-  kill -s INT $$
-' EXIT TERM INT 
-
+# create the lock directory
 if ! mkdir "$process_lock" 2> /dev/null; then
   { 
     printf '\n\tCannot acquire process lock: <%s>.\n' "$process_lock"
@@ -907,6 +971,10 @@ fi
 grep --extended-regexp '/bin/'"${shells}"'.*% % % %' \
   "$list_crunchbangs" > "${list_crunchbangs}_SC-scrpts-list" ||
     fn_erx "$LINENO"
+
+:; fn_bak "${list_crunchbangs}_SC-scrpts-list" /tmp/*_SC-scrpts-list
+:; fn_age_file /tmp/*_SC-scrpts-list{,.bak}
+
 rsync -ca "${list_crunchbangs}_SC-scrpts-list" /tmp ||
   fn_erx "$LINENO"
 :; fn_bak "${list_crunchbangs}_SC-scrpts-list" /tmp/*_SC-scrpts-list
