@@ -97,7 +97,7 @@ sudo git config --system init.defaultBranch 'main'
 sudo git config --system --unset gpg.format
 sudo git config --system commit.gpgsign true
 sudo git config --system gpg.program gpg2
-sudo git config --system user.signingkey 3AA5C34371567BD2
+sudo git config --system user.signingkey E287D0CF528591CE
 
 # Console colors
 # git ui colors: normal black red green yellow blue magenta cyan white
