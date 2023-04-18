@@ -196,7 +196,17 @@ gh config set -h github.com git_protocol ssh
 gh config set editor /usr/bin/vim
 
 
+
 echo "$SSH_AUTH_SOCK"
+
+if ps aux | grep -qE '[g]pg-a.*daemon'; then 
+  gpgconf --kill gpg-agent
+fi
+gpg-connect-agent /bye
+
+
+GPG_TTY=$(tty)
+export GPG_TTY
 
 
 # Remind user of commands for the interactive ahell
