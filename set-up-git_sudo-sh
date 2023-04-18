@@ -184,21 +184,27 @@ then
 fi
 
 
-# 
+
+
+
+# GH
+gh config set -h github.com git_protocol ssh
+gh config set editor /usr/bin/vim
 sudo chown 1000:1000  ~/.{gnupg,ssh}
 sudo chmod -R 700     ~/.{gnupg,ssh}
 
 
+# SSH
+echo "$SSH_AUTH_SOCK"
+ps aux | awk '$0 ~ /ssh-agent/ && $0 !~ /startx/ { print $2 }'
+
 eval "$(ssh-agent -s)"
 ssh-add ~/.ssh/id_ed25519
 
-gh config set -h github.com git_protocol ssh
-gh config set editor /usr/bin/vim
 
 
 
-echo "$SSH_AUTH_SOCK"
-
+# GPG
 if ps aux | grep -qE '[g]pg-a.*daemon'; then 
   gpgconf --kill gpg-agent
 fi
@@ -207,6 +213,7 @@ gpg-connect-agent /bye
 
 GPG_TTY=$(tty)
 export GPG_TTY
+
 
 
 # Remind user of commands for the interactive ahell
