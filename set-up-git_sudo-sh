@@ -77,9 +77,9 @@ sudo git config --system init.defaultBranch 'main'
 
 # re Gnupg
 sudo git config --system --unset gpg.format
-sudo git config --system commit.gpgsign true
-sudo git config --system gpg.program gpg2
-sudo git config --system user.signingkey E287D0CF528591CE
+sudo git config --system commit.gpgsign 'true'
+sudo git config --system gpg.program 'gpg2'
+sudo git config --system user.signingkey 'E287D0CF528591CE'
 
 # Console colors
 # git ui colors: normal black red green yellow blue magenta cyan white
@@ -154,7 +154,7 @@ gh config set editor vim
 gh config set browser firefox
 gh config set pager less
 gh config set git_protocol ssh --host github.com
-gh config list
+#gh config list
 
 # Log in
 if ! gh auth status 2> /dev/null; then
@@ -207,7 +207,7 @@ fi
 # Bug? not necc to restart ssh-agent if both of these vars exist?
 declare -p SSH_AUTH_SOCK SSH_AGENT_PID
 
-namei -xl ~/.ssh
+#namei -xl ~/.ssh
 
 mapfile -t ssh_agent_pids < <(
   ps aux | 
@@ -241,7 +241,7 @@ sudo chown 1000:1000  ~/.gnupg ||
   exit "$LINENO"
 sudo chmod -R 700     ~/.gnupg
 
-namei -xl ~/.gnupg
+#namei -xl ~/.gnupg
 
 # shellcheck disable=SC2009
 if ps aux | grep -qE '[g]pg-a.*daemon'; then 
@@ -250,14 +250,13 @@ fi
 
 gpg-connect-agent /bye
 
-command -pv pinentry
+#command -pv pinentry
 
 GPG_TTY=$(tty)
 export GPG_TTY
 
-gpg2 --list-secret-keys --keyid-format=long
+#gpg2 --list-secret-keys --keyid-format=long
 
-git remote -v
 
 
 
