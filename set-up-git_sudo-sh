@@ -1,5 +1,10 @@
 #!/bin/bash -x
 # set-up-git_sudo-sh
+## Notes
+#   Online Git Pro book:
+#     https://git-scm.com/book/en/v2/Git-Basics-Recording-Changes-to-the-Repository
+
+
 
 
 # Regular users only
@@ -11,17 +16,13 @@ else
     exit 1
 fi
 
+# set up an account password
 if [[ "$( sudo grep liveuser /etc/shadow | wc -c )" -lt 35 ]]; then
-  passwd
+  passwd ||
+    exit "$LINENO"
 fi
 
-## Notes
-: # Online Git Pro book:
-: #   https://git-scm.com/book/en/v2/Git-Basics-Recording-Changes-to-the-Repository
-: #
-: # fixing `git push` error due to private email
-: #   https://stackoverflow.com/questions/43378060/meaning-of-the-github-message-push-declined-due-to-email-privacy-restrictions
-: #   git commit --amend --reset-author
+
 
 
 # Network & time     
@@ -33,9 +34,13 @@ sudo systemctl start chronyd.service
 sudo chronyc makestep
 
 
-# Install git, etc
+
+
+# DNF
 sudo dnf -y --security upgrade 
 sudo dnf -y install info ShellCheck git gh kcov
+
+
 
 
 # BASH
@@ -43,7 +48,8 @@ sudo dnf -y install info ShellCheck git gh kcov
 umask 071
 bashrc_str='EDITOR=/usr/bin/vim; BROWSER=/usr/bin/firefox'
 
-for f in /root/.bashrc "/home/*/.bashrc"; do 
+files=( /root/.bashrc /home/*/.bashrc )
+for f in "${files[@]}"; do 
   
   if ! sudo grep -q "$bashrc_str" "$f"; then
     sudo cp -a "$f" "${f}~"
@@ -51,6 +57,7 @@ for f in /root/.bashrc "/home/*/.bashrc"; do
       sudo tee -a "$f" > /dev/null
   fi
 done
+
 
 
 
@@ -71,9 +78,9 @@ set expandtab
 EOF
 
 ## Copy root-user files to liveuser
-  sudo rsync -ca /root/.vimrc /home/liveuser
-  sudo chown 1000:1000 /home/liveuser/.vimrc
-  chmod 0400 /home/liveuser/.vimrc
+sudo rsync -ca /root/.vimrc /home/liveuser
+sudo chown 1000:1000 /home/liveuser/.vimrc
+chmod 0400 /home/liveuser/.vimrc
 
 
 
@@ -86,6 +93,12 @@ sudo git config --system core.pager '/usr/bin/less'
 sudo git config --system help.autocorrect '300'
 sudo git config --system init.defaultBranch 'main'
 
+# re Gnupg
+sudo git config --system --unset gpg.format
+sudo git config --system commit.gpgsign true
+sudo git config --system gpg.program gpg2
+sudo git config --system user.signingkey 3AA5C34371567BD2
+
 # Console colors
 # git ui colors: normal black red green yellow blue magenta cyan white
 # git ui attributes: bold dim ul (underline blink reverse
@@ -96,9 +109,10 @@ sudo git config --system color.status 'always'
 sudo git config --system color.ui 'true'
 sudo git config --system color.ui 'auto'
 
-## .gitmessage
+## .gitmessage and .gitignore
 gitmesg=/etc/.gitmessage_system
-sudo touch "$gitmesg"
+gitignr=/etc/.gitignore_system
+
 cat <<EOF | sudo tee "$gitmesg" > /dev/null
 Subject line (try to keep under 50 characters)
 
@@ -107,19 +121,18 @@ feel free to be detailed.
 
 [Ticket: X]
 EOF
-sudo git config --system commit.template "$gitmesg"
-
-## .gitignore
-gitignr=/etc/.gitignore_system
 cat <<EOF | sudo tee "$gitignr" > /dev/null
 *~
 .*.swp
 .DS_Store
 EOF
+
+sudo git config --system commit.template "$gitmesg"
 sudo git config --system core.excludesfile "$gitignr"
 
 ## Permissions
-for f in /etc/git* /etc/.git*; do
+files=( /etc/git* /etc/.git* )
+for f in "${files[@]}"; do
   sudo chmod 0604 "$f"
 done
 
@@ -131,33 +144,10 @@ for f in "$gitmesg" "$gitignr"; do
 done
 
 ## Rename files
+files=( /home/*/.git*_system )
 for f in /home/*/.git*_system; do
-  echo mv "$f" "${f%_system}"
+  mv "$f" "${f%_system}"
 done
-
-
-
-
-
-# Bug
-
-# Inform user re next step (indempotent script)
-mapfile -d '' -t conf_f < <( 
-  find /home/liveuser -type f -name 'set-up-git_*' -print0 )
-
-case "${#conf_f[@]}" in
-  0) echo need ./set-up-git_v[0-9]*_user
-    ;;
-  1) sudo chown 1000:1000 "${conf_f[*]}"
-    sudo chmod 0700 "${conf_f[*]}"
-    :;: 'BUG?'
-    sudo rsync -ca "${conf_f[*]}" /home/liveuser
-    echo now execute "/home/liveuser/${conf_f[*]##*/}" as liveuser
-    ;;
-  *) :;;
-esac
-
-
 
 # make and change into directories
 umask 077
@@ -171,18 +161,26 @@ fi
 # separate, `cd` is required
 cd ~/MYPROJECT || {
   printf '\n\t cd failed \n\n'
-  exit 1
+  exit "$LINENO"
 }
 
 
 
-# Log in, clone repo and `cd`
 
+# GH
+gh config set editor vim
+gh config set browser firefox
+gh config set pager less
+gh config set git_protocol ssh --host github.com
+gh config list
+
+# Log in
 if ! gh auth status 2> /dev/null; then
   gh auth login ||
     exit "$LINENO"
 fi
 
+# Clone repo
 if [[ ! -d ./scrfi ]] ||
   [[ ! -f ./scrfi/README.md ]]
 then
@@ -190,40 +188,43 @@ then
     exit "$LINENO"
 fi
 
+# Use GitHub CLI as a credential helper
+gh auth setup-git --hostname github.com
 
-
-
-# GH
-gh config set editor /usr/bin/vim
-sudo chown 1000:1000  ~/.ssh
-sudo chmod -R 700     ~/.ssh
-gh ssh-key add /home/liveuser/.ssh/id_ed25519.pub
-gh auth token --hostname github.com
-gh auth status --show-token
-gh auth setup-git
-gh config list
-gh config set editor vim
-gh config set browser firefox
-gh config set pager less
-gh config set git_protocol ssh --host github.com
-gh auth refresh --hostname github.com --scopes read:gpg_key
+# Get SSH key
+gh auth refresh --hostname github.com --scopes admin:public_key
 gh ssh-key list
+
+# Get GPG key
+gh auth refresh --hostname github.com --scopes read:gpg_key
 gh gpg-key list
+
+# Review auth
+gh auth status --show-token
+
 
 
 
 # SSH
-if ! grep -q 'ForwardAgent yes' ~/.ssh/config; then
-  cat << EOF > ~/.ssh/config
-  Host github.com
-    ForwardAgent yes
+sudo chown 1000:1000  ~/.ssh ||
+  "$LINENO"
+sudo chmod -R 700     ~/.ssh
+
+if [[ -e ~/.ssh/config ]]; then 
+  if ! grep -q 'ForwardAgent yes' ~/.ssh/config ; then
+    cat << EOF > ~/.ssh/config
+    Host github.com
+      ForwardAgent yes
 EOF
+  fi
 fi
 
 [[ -e /etc/ssh_config ]] &&
   exit "$LINENO"
 
-echo "$SSH_AUTH_SOCK"
+# Bug? not necc to restart ssh-agent if both of these vars exist?
+declare -p SSH_AUTH_SOCK SSH_AGENT_PID
+
 namei -xl ~/.ssh
 
 mapfile -t ssh_agent_pids < <(
@@ -244,30 +245,35 @@ esac
 
 eval "$(ssh-agent -s)"
 
-ssh-add -L
 ssh-add ~/.ssh/id_ed25519
+
+ssh-add -L
+
 ssh -T git@github.com
 
 
 
 
 # GPG
-sudo chown 1000:1000  ~/.gnupg
+sudo chown 1000:1000  ~/.gnupg ||
+  exit "$LINENO"
 sudo chmod -R 700     ~/.gnupg
+
 namei -xl ~/.gnupg
 
 # shellcheck disable=SC2009
 if ps aux | grep -qE '[g]pg-a.*daemon'; then 
   gpgconf --kill gpg-agent
 fi
+
 gpg-connect-agent /bye
+
 command -pv pinentry
-declare -p SSH_AUTH_SOCK
+
 GPG_TTY=$(tty)
 export GPG_TTY
+
 gpg2 --list-secret-keys --keyid-format=long
-git config --global --unset gpg.format
-git config --global commit.gpgsign true
 
 git remote -v
 
