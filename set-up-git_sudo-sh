@@ -16,30 +16,12 @@ else
     exit 1
 fi
 
-# set up an account password
-if [[ "$( sudo grep liveuser /etc/shadow | wc -c )" -lt 35 ]]; then
-  passwd ||
-    exit "$LINENO"
-fi
-
 
 
 
 # Network & time     
 sudo ping -c 1 8.8.8.8 ||
   exit "$LINENO"
-sudo timedatectl set-local-rtc 0
-sudo timedatectl set-timezone America/Vancouver
-sudo systemctl start chronyd.service
-sudo chronyc makestep
-
-
-
-
-# DNF
-sudo dnf -y --security upgrade 
-sudo dnf -y install info ShellCheck git gh kcov
-
 
 
 
@@ -146,7 +128,7 @@ done
 ## Rename files
 files=( /home/*/.git*_system )
 for f in /home/*/.git*_system; do
-  mv "$f" "${f%_system}"
+  mv -f "$f" "${f%_system}"
 done
 
 # make and change into directories
@@ -176,7 +158,7 @@ gh config list
 
 # Log in
 if ! gh auth status 2> /dev/null; then
-  gh auth login ||
+  gh auth login --git-protocol ssh --hostname github.com --scopes admin:public_key,read:gpg_key --web ||
     exit "$LINENO"
 fi
 
@@ -192,11 +174,11 @@ fi
 gh auth setup-git --hostname github.com
 
 # Get SSH key
-gh auth refresh --hostname github.com --scopes admin:public_key
+#gh auth refresh --hostname github.com --scopes admin:public_key,read:gpg_key
 gh ssh-key list
 
 # Get GPG key
-gh auth refresh --hostname github.com --scopes read:gpg_key
+#gh auth refresh --hostname github.com --scopes read:gpg_key
 gh gpg-key list
 
 # Review auth
