@@ -184,13 +184,19 @@ then
 fi
 
 
+# 
 sudo chown 1000:1000  ~/.{gnupg,ssh}
 sudo chmod -R 700     ~/.{gnupg,ssh}
+
 
 eval "$(ssh-agent -s)"
 ssh-add ~/.ssh/id_ed25519
 
+gh config set -h github.com git_protocol ssh
+gh config set editor /usr/bin/vim
 
+
+echo "$SSH_AUTH_SOCK"
 
 
 # Remind user of commands for the interactive ahell
