@@ -172,9 +172,11 @@ cd ~/MYPROJECT || {
 
 
 # Log in, clone repo and `cd`
-gh auth logout
-gh auth login ||
-  exit "$LINENO"
+
+if ! gh auth status 2> /dev/null; then
+  gh auth login ||
+    exit "$LINENO"
+fi
 
 if [[ ! -d ./scrfi ]] ||
   [[ ! -f ./scrfi/README.md ]]
@@ -187,16 +189,29 @@ fi
 
 
 # GH
-gh config set -h github.com git_protocol ssh
 gh config set editor /usr/bin/vim
 sudo chown 1000:1000  ~/.ssh
 sudo chmod -R 700     ~/.ssh
+gh ssh-key add /home/liveuser/.ssh/id_ed25519.pub
+gh auth token --hostname github.com
+gh auth status --show-token
+gh auth setup-git
+gh config list
+gh config set editor vim
+gh config set browser firefox
+gh config set pager less
+gh config set git_protocol ssh --host github.com
+gh auth refresh --hostname github.com --scopes read:gpg_key
+gh ssh-key list
+gh gpg-key list
+
 
 
 # SSH
 echo "$SSH_AUTH_SOCK"
+namei -xl ~/.ssh
 
-mapfile -t ssh_agent_pids < <( 
+mapfile -t ssh_agent_pids < <(
   ps aux | 
     awk '$0 ~ /ssh-agent/ && $0 !~ /startx/ { print $2 }' )
 
@@ -214,8 +229,17 @@ esac
 
 eval "$(ssh-agent -s)"
 
-
+ssh-add -L
 ssh-add ~/.ssh/id_ed25519
+ssh -T git@github.com
+
+cat << EOF > ~/.ssh/config
+Host github.com
+  ForwardAgent yes
+EOF
+
+[[ -e /etc/ssh_config ]] &&
+  exit "$LINENO"
 
 
 
@@ -223,15 +247,22 @@ ssh-add ~/.ssh/id_ed25519
 # GPG
 sudo chown 1000:1000  ~/.gnupg
 sudo chmod -R 700     ~/.gnupg
+namei -xl ~/.gnupg
 
 if ps aux | grep -qE '[g]pg-a.*daemon'; then 
   gpgconf --kill gpg-agent
 fi
 gpg-connect-agent /bye
-
-
+command -pv pinentry
+declare -p SSH_AUTH_SOCK
 GPG_TTY=$(tty)
 export GPG_TTY
+gpg2 --list-secret-keys --keyid-format=long
+git config --global --unset gpg.format
+git config --global commit.gpgsign true
+
+git remote -v
+
 
 
 
