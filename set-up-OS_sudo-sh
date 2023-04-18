@@ -1,56 +1,46 @@
 #!/bin/bash -x
 # set-up-OS_sudo-sh
+
 ## Notes
-#   Online Git Pro book:
-#     https://git-scm.com/book/en/v2/Git-Basics-Recording-Changes-to-the-Repository
-
-
-
+###   Online Git Pro book:
+###     https://git-scm.com/book/en/v2/Git-Basics-Recording-Changes-to-the-Repository
 
 # Regular users only
-if [[ "$UID" == 0 ]]; then 
+if [[ "${UID}" == 0 ]]; then
   printf '\n\t Must be a regular user and use sudo. \n\n'
   exit 1
 else
-  sudo -v ||
-    exit 1
+  sudo -v \
+    || exit 1
 fi
 
-
-
-
-# Network & time     
+# Network & time
 systemctl start NetworkManager.service
-sudo ping -c 1 -W 15 8.8.8.8 ||
-  exit "$LINENO"
+sudo ping -c 1 -W 15 8.8.8.8 \
+  || exit "${LINENO}"
 sudo timedatectl set-local-rtc 0
 sudo timedatectl set-timezone America/Vancouver
 sudo systemctl start chronyd.service
 sudo chronyc makestep
 
-
-
-
 # DNF
-sudo dnf -y install info ShellCheck git gh kcov
-sudo dnf -y --security upgrade 
-{ set -x; 
-  for s in HUP USR1 USR2 TERM; do 
-    mapfile -t pids_nr < <( 
-      dnf needs-restarting 2> /dev/null | 
-        awk '{ print $1 }' ); 
-    printf '\n\t pids, count: %d\n\n' "${#pids_nr[@]}"; 
-    for p in "${pids_nr[@]}"; do 
-      echo; 
-      sleep 1; 
-      kill -s "$s" "$p"; 
-    done; 
-  done; 
-  set -;
-} & 
+sudo dnf -y install info ShellCheck git gh kcov shfmt
+sudo dnf -y --security upgrade
+{
+  set -x
+  for s in HUP USR1 USR2 TERM; do
+    dnf_o="$(dnf needs-restarting 2>/dev/null)"
+    awk_o="$(awk '{ print $1 }' <<<"${dnf_o:?}")"
+    mapfile -t pids_nr <<<"${awk_o:?}"
+    printf '\n\t pids, count: %d\n\n' "${#pids_nr[@]}"
+    for p in "${pids_nr[@]}"; do
+      echo
+      sleep 1
+      kill -s "${s}" "${p}"
+    done
+  done
+  set -
+} &
 disown
-
-
-
 
 systemctl start NetworkManager.service
