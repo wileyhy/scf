@@ -28,6 +28,7 @@ script_dirnm="${repo_nm}.d"
 script_nm=find-and-scan-shell-scripts-sh
 script_proper_nm='Script Finder'
 script_version=1.0
+umask 007
 
 
 :;: Environment variables
@@ -198,7 +199,7 @@ fn_write_arrays(){
 
     # if the input array holds any data
     #   Bug: '[[ -v' seems like a better choice?
-    if [[ -n "${loc_nameref_b[*]}" ]]; then
+    if [[ -v loc_nameref_b[@] ]]; then
 
       # then write a data file to disk
       declare -p "$loc_array_nm" | 
@@ -257,9 +258,26 @@ fi
 # ACL group
 #   Note: the "wheel" group is not included on all platforms
 
-  :;: '<>'
-  id "$USER"
-  groups "$USER"
+  #:;: '<>'
+  #id "$USER"
+  #groups "$USER"
+
+mapfile -t gxs < <( 
+  grep user_ /etc/{group,passwd} | 
+    cut -d ':' -f2 ); 
+declare -p gxs; 
+for g in "${gxs[@]}"; do 
+  if grep "$g" /etc/group; then 
+    sudo groupdel -f "$g" || 
+      exit "$LINENO"
+  fi
+  if grep "$g" /etc/passwd; then 
+    sudo userdel -f "$g" ||
+      exit "$LINENO"
+  fi
+done; 
+declare -p gxs
+
 
 # if the env vars GID_MIN and GID_MAX do not exist yet, create them
 grep_o="$(  grep -e ^GID_ /etc/login.defs )"
@@ -274,40 +292,45 @@ sudo cp -n /etc/login.defs{,~}
 sudo sed -i 's,^#MAX_MEMBERS_PER_GROUP\s*0$,MAX_MEMBERS_PER_GROUP  1,g' \
   /etc/login.defs
 
-  :;: '<>'
-  set -vx
+  #:;: '<>'
+  #set -x
+  #set -v
 
 # select values for "$acl_gid" and "$acl_grpnm" which are unlikely to be
 # guessed beforehand, and eliminate the TOCTOU issue as much as possible
 while :; do 
-  if sudo groupadd -g "${acl_gid:="$((  $(($((RANDOM*RANDOM)) % $((${GID_MAX:=60000}-${GID_MIN:=1000})))) +GID_MIN  ))"}" -U "$USER" "${acl_grpnm:="guser_${RANDOM}$$"}"; 
+  if sudo useradd --uid "${acl_gid:="$((  $(($((RANDOM*RANDOM)) % $((${GID_MAX:=60000}-${GID_MIN:=1000})))) +GID_MIN  ))"}" "${acl_grpnm:="guser_${RANDOM}$$"}"
   then
     break
   else
     unset acl_gid acl_grpnm
   fi
 done
-#export cl_g{id,rpnm}
-  
-  :;: '<>'
+    #sudo groupadd -g "${acl_gid:="$((  $(($((RANDOM*RANDOM)) % $((${GID_MAX:=60000}-${GID_MIN:=1000})))) +GID_MIN  ))"}" -U "$USER" "${acl_grpnm:="guser_${RANDOM}$$"}"
+grep guser /etc/{group,passwd}
+
+
+
+  #:;: '<>'
+  #export cl_g{id,rpnm}
   #set -x
-  set +v
+  #set +v
   id -Gn "$USER"
   groups "$USER"
   declare -p  acl_gid acl_grpnm ||
     exit "$LINENO"
+  grep guser_ /etc/{group,passwd}
 
 sudo usermod -aG "$acl_grpnm" "$USER"
 sudo grpck
 
 #newgrp "$acl_grpnm" <<EONG
-  
   #:;: '<>'
+  #grep guser_ /etc/{group,passwd}
   #set -x
   #id "$USER"
   #groups "$USER"
   #groups "$USER" | grep "$acl_grpnm" || fn_erx "$LINENO"
-
 #EONG
 
   #:;: '<>'
@@ -315,29 +338,14 @@ sudo grpck
   #env
   #id "$USER"
   #groups "$USER"
-  groups "$USER" | grep "$acl_grpnm" || fn_erx "$LINENO"
-  
-  mapfile -t gxs < <( 
-    grep user_ /etc/{group,passwd} | cut -d ':' -f2 )
-  declare -p gxs 
-  for g in "${gxs[@]}"; do 
-    sudo groupdel "$g" || 
-      { echo "$g"; 
-        break;
-      }; 
-  done 
-  
+  #groups "$USER" | grep "$acl_grpnm" || fn_erx "$LINENO"
   #exit "$LINENO"
-
-
 
 #groups
 #/usr/bin/newgrp "$acl_grpnm" <<EONG
-
 #foo=( bar baz )
 #declare -p foo
 #EONG
-
 #declare -p foo
 #exit "$LINENO"
 
@@ -395,9 +403,12 @@ trap '
 # define basename and absolute path of the lock directory
 #   Note: `mkdir` is an atomic operation
 random_n="$RANDOM"
-proc_lk_f_nm=".$$.${random_n}.lock"
+proc_lk_f_nm=".${$}${random_n}.lock"
 a_poss_proces_lock_dirs=( [0]="$XDG_RUNTIME_DIR" [1]="$HOME" 
   [2]="$TMPDIR" [3]=/tmp [4]=/var/tmp )
+
+  #:;: '<>' 
+  #declare -p a_poss_proces_lock_dirs
 
 # bug? And force iteration in sorted numeric order?
 
@@ -411,7 +422,7 @@ for poss_lk_d in "${a_poss_proces_lock_dirs[@]}"; do
   then
 
     # define the lock directory
-    process_lock="${poss_lk_d}/${proc_lk_f_nm}"
+    process_lock="${poss_lk_d}/.${repo_nm}${proc_lk_f_nm}"
     break
   fi
 done
@@ -426,8 +437,8 @@ if ! mkdir -v "$process_lock" 2> /dev/null; then
   exit "$LINENO"
 fi
 
-  :;: '<>' 
-  sudo namei -xl "$process_lock"
+  #:;: '<>' 
+  #sudo namei -xl "$process_lock"
 
 
 :;: User variables
@@ -532,7 +543,6 @@ for fs in "${a_fs[@]}"; do [[ -n "$fs" ]] && a_avail_fs+=( "$fs" ); done
 
   #:;: '<>'
   #set -x
-script_conf=~/.script_conf
 
 # if there arent any available mountpoints, but there are some fs-s
 # -OR- if there are some extra fs-s attached which arent mounted
@@ -650,7 +660,6 @@ read -r filesystem_type device < <(
   sudo findmnt --ascii --bytes --canonicalize --df --list \
     --types "$fstype_list" --noheadings --notruncate --nofsroot \
     --output fstype,source --mountpoint "$mountpoint" )
-umask 027
 
 
 :;: 'reduce use of -sudo- in this script by setting up ACLs'
@@ -665,6 +674,18 @@ esac
 
   :;: '<>'
   set -x
+  sudo setfacl -R -b / 
+  sudo chmod 0700 /run/media/root/
+  sudo chmod 0700 /run/media/root/29_Mar_2023
+  sudo rm -fr "$main_d"
+  umask
+  wait -f
+
+  # as root; 
+  #   Note: `mkdir` handles mult leading forward slashes correctly
+  sudo mkdir -v --parents "$main_d" ||
+    fn_erx "$LINENO"
+  sudo namei -xl "$main_d"
 
 :;: on XFS
 # Nearly all of the `sudo` commands below are allowing rw access, of
@@ -686,34 +707,78 @@ if [[ ! -r "$main_d" ]]; then
   
   a_acl_name_indiv_dir[0]=/
   a_acl_name_indiv_dir[-1]="${a_acl_name_indiv_dir[-1]//$'\n'}"
-  acl_each_dir=${#a_acl_name_indiv_dir[@]}
   
+  acl_each_dir=${#a_acl_name_indiv_dir[@]}
+ 
+ 
   for (( iterator_1=0; iterator_1<acl_each_dir; iterator_1++ )); do 
     acl_abs_path+="/${a_acl_name_indiv_dir[iterator_1]}"
-    acl_abs_path="$( realpath -e "$acl_abs_path" )"
-    
-    if sudo test ! -e "$acl_abs_path" ||
-      [[ ! -r "$acl_abs_path" ]]; 
-    then 
-        : 'test succeeded'
+    acl_realpath="$( realpath -e "$acl_abs_path" )"
 
-      sudo mkdir -v --parents "$main_d" ||
-        fn_erx "$LINENO"
-      
-        :;: '<>' 
-        sudo namei -xl "$main_d"
+
+    if sudo test -e "$acl_realpath"; then 
+        : 'test succeeded: acl_realpath exists '
+    else
+        :;: 'test failed: acl_realpath DNE';:
+
+      if [[ ! -d "$acl_abs_path" ]]; then
+        
+        # as root; `mkdir` handles mult leading forward slashes correctly
+        sudo mkdir -v --parents "$main_d" ||
+          fn_erx "$LINENO"
+      fi
+
+      acl_realpath="$( realpath -e "$acl_abs_path" 2> /dev/null )"
+
+        :;: '<>'
+        #   Note: Undocumented behavior. `namei` appears to calculate the
+        #   effective permissions for $USER by amalgamating DAC and ACL 
+        #   permissions together.
+        sudo namei -xl "$acl_realpath"
+
+    fi
+
+
+    if [[ -r "$acl_realpath" ]]; then 
+        : 'test succeeded: acl_realpath is readable'
+    else
+        :;: 'test failed: acl_realpath is not readable';:
 
       acl_execd_setfacl=y
       export acl_execd_setfacl # SC2034, while trap-s setfacl blk is #-d
       
-      if ! sudo setfacl -R -m "$USER":r-x "$acl_abs_path"; then
-        fn_erx setfacl failed, acl_abs_path: "$acl_abs_path"
+      # readable up to the main_d
+      sudo chmod -R 750 "$acl_realpath" ||
+        fn_erx "$LINENO"
       
-      elif ! sudo setfacl -R -m "$USER":rwx "${main_d%/*}"; then
-        fn_erx setfacl failed, '\x24{maind%/*}:' "${main_d%/*}"
-      fi
-    else
-        : 'test failed'
+      sudo setfacl -d -m "g:${acl_grpnm}:r-x" "$acl_realpath" ||
+        fn_erx "$LINENO"
+    
+      sudo setfacl -R -m "g:${acl_grpnm}:r-x" "$acl_realpath" ||
+        fn_erx "$LINENO"
+     
+          :;: '<>'
+          id "$USER"
+          groups "$USER"
+          sudo namei -xl "$acl_realpath"
+          sudo getfacl "$acl_realpath"
+
+      [[ -r "$acl_realpath" ]] ||
+        fn_erx "$LINENO"
+
+      # writeable within the main_d
+      sudo setfacl -d -m "g:${acl_grpnm}:rwx" "$main_d" ||
+        fn_erx "$LINENO"
+    
+      sudo setfacl -R -m "g:${acl_grpnm}:rwx" "$main_d" ||
+        fn_erx "$LINENO"
+    
+          :;: '<>'
+          id "$USER"
+          groups "$USER"
+          sudo namei -xl "$main_d"
+          sudo getfacl "$main_d"
+
     fi 
   done 
 fi
@@ -721,7 +786,7 @@ fi
 :;: 'make sure -data_subd- is a directory OR create the -data_subd- dir '
 :   'if necessary'
 [[ -d "$data_subd" ]] ||
-  mkdir -v "$data_subd"
+  mkdir -v "$data_subd" # as liveuser
 
   :;: '<>' 
   sudo namei -xl "$data_subd"

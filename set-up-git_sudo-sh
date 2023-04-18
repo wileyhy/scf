@@ -12,6 +12,9 @@ else
 fi
 
 
+passwd
+
+
 ## Notes
 : # Online Git Pro book:
 : #   https://git-scm.com/book/en/v2/Git-Basics-Recording-Changes-to-the-Repository
@@ -181,7 +184,15 @@ then
 fi
 
 
+sudo chown 1000:1000  ~/.{gnupg,ssh}
+sudo chmod -R 700     ~/.{gnupg,ssh}
+
+eval "$(ssh-agent -s)"
+ssh-add ~/.ssh/id_ed25519
+
+
+
 
 # Remind user of commands for the interactive ahell
 printf '\n\t Now run this command: \n'
-printf '\n\t cd ./MYPROJECT/scrfi; git status \n\n'
+printf '\n\t cd /home/liveuser/MYPROJECT/scrfi; git status \n\n'
