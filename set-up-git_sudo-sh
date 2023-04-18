@@ -189,21 +189,41 @@ fi
 # GH
 gh config set -h github.com git_protocol ssh
 gh config set editor /usr/bin/vim
-sudo chown 1000:1000  ~/.{gnupg,ssh}
-sudo chmod -R 700     ~/.{gnupg,ssh}
+sudo chown 1000:1000  ~/.ssh
+sudo chmod -R 700     ~/.ssh
 
 
 # SSH
 echo "$SSH_AUTH_SOCK"
-ps aux | awk '$0 ~ /ssh-agent/ && $0 !~ /startx/ { print $2 }'
+
+mapfile -t ssh_agent_pids < <( 
+  ps aux | 
+    awk '$0 ~ /ssh-agent/ && $0 !~ /startx/ { print $2 }' )
+
+case "${#ssh_agent_pids[@]}" in 
+  0)  :;;
+  1)  if [[ -v SSH_AGENT_PID ]]; then
+        ssh-agent -k
+      else
+        kill "${ssh_agent_pids[*]}"
+      fi
+  *)  for p in "${ssh_agent_pids[@]}"; do
+        kill "$p"
+      done
+esac
 
 eval "$(ssh-agent -s)"
+
+
 ssh-add ~/.ssh/id_ed25519
 
 
 
 
 # GPG
+sudo chown 1000:1000  ~/.gnupg
+sudo chmod -R 700     ~/.gnupg
+
 if ps aux | grep -qE '[g]pg-a.*daemon'; then 
   gpgconf --kill gpg-agent
 fi
