@@ -11,9 +11,9 @@ else
     exit 1
 fi
 
-
-passwd
-
+if [[ "$( sudo grep liveuser /etc/shadow | wc -c )" -lt 35 ]]; then
+  passwd
+fi
 
 ## Notes
 : # Online Git Pro book:
@@ -38,17 +38,7 @@ sudo dnf -y --security upgrade
 sudo dnf -y install info ShellCheck git gh kcov
 
 
-# Basic settings
-sudo git config --system user.name 'Wiley Young'
-sudo git config --system user.email '84648683+wileyhy@users.noreply.github.com'
-sudo git config --system core.editor vim
-sudo git config --system core.pager '/usr/bin/less'
-sudo git config --system help.autocorrect '300'
-sudo git config --system init.defaultBranch 'main'
-
-
-# Create / edit some files
-
+# BASH
 ## .bashrc
 umask 071
 bashrc_str='EDITOR=/usr/bin/vim; BROWSER=/usr/bin/firefox'
@@ -62,31 +52,9 @@ for f in /root/.bashrc "/home/*/.bashrc"; do
   fi
 done
 
-## .gitmessage
-gitmesg=/etc/.gitmessage_system
-sudo touch "$gitmesg"
 
-cat <<EOF | sudo tee "$gitmesg" > /dev/null
-Subject line (try to keep under 50 characters)
 
-Multi-line description of commit,
-feel free to be detailed.
-
-[Ticket: X]
-EOF
-sudo git config --system commit.template "$gitmesg"
-
-## .gitignore
-gitignr=/etc/.gitignore_system
-
-cat <<EOF | sudo tee "$gitignr" > /dev/null
-*~
-.*.swp
-.DS_Store
-EOF
-sudo git config --system core.excludesfile "$gitignr"
-
-## .vimrc
+# VIM
 umask 177
 cat <<EOF | sudo tee /root/.vimrc > /dev/null
 " per google:
@@ -102,26 +70,21 @@ set shiftwidth=2
 set expandtab
 EOF
 
-
-# Perms & ownership
-
-## Permissions
-for f in /etc/git* /etc/.git*; do
-  sudo chmod 0604 "$f"
-done
-
 ## Copy root-user files to liveuser
-for f in "$gitmesg" "$gitignr" /root/.vimrc; do
-  sudo rsync -ca "$f" /home/liveuser
-  sudo chown 1000:1000 "/home/liveuser/${f##*/}"
-  sudo chmod 0400 "/home/liveuser/${f##*/}"
-done
+  sudo rsync -ca /root/.vimrc /home/liveuser
+  sudo chown 1000:1000 /home/liveuser/.vimrc
+  chmod 0400 /home/liveuser/.vimrc
 
-## Rename files
-for f in /home/*/.git*_system; do
-  echo mv "$f" "${f%_system}"
-done
 
+
+
+# GIT
+sudo git config --system user.name 'Wiley Young'
+sudo git config --system user.email '84648683+wileyhy@users.noreply.github.com'
+sudo git config --system core.editor 'vim'
+sudo git config --system core.pager '/usr/bin/less'
+sudo git config --system help.autocorrect '300'
+sudo git config --system init.defaultBranch 'main'
 
 # Console colors
 # git ui colors: normal black red green yellow blue magenta cyan white
@@ -133,12 +96,54 @@ sudo git config --system color.status 'always'
 sudo git config --system color.ui 'true'
 sudo git config --system color.ui 'auto'
 
+## .gitmessage
+gitmesg=/etc/.gitmessage_system
+sudo touch "$gitmesg"
+cat <<EOF | sudo tee "$gitmesg" > /dev/null
+Subject line (try to keep under 50 characters)
+
+Multi-line description of commit,
+feel free to be detailed.
+
+[Ticket: X]
+EOF
+sudo git config --system commit.template "$gitmesg"
+
+## .gitignore
+gitignr=/etc/.gitignore_system
+cat <<EOF | sudo tee "$gitignr" > /dev/null
+*~
+.*.swp
+.DS_Store
+EOF
+sudo git config --system core.excludesfile "$gitignr"
+
+## Permissions
+for f in /etc/git* /etc/.git*; do
+  sudo chmod 0604 "$f"
+done
+
+## Copy root-user files to liveuser
+for f in "$gitmesg" "$gitignr"; do
+  sudo rsync -ca "$f" /home/liveuser
+  sudo chown 1000:1000 "/home/liveuser/${f##*/}"
+  chmod 0400 "/home/liveuser/${f##*/}"
+done
+
+## Rename files
+for f in /home/*/.git*_system; do
+  echo mv "$f" "${f%_system}"
+done
+
+
+
+
 
 # Bug
 
 # Inform user re next step (indempotent script)
 mapfile -d '' -t conf_f < <( 
-  find /home/liveuser -type f -name 'set-up-git_user' -print0 )
+  find /home/liveuser -type f -name 'set-up-git_*' -print0 )
 
 case "${#conf_f[@]}" in
   0) echo need ./set-up-git_v[0-9]*_user
@@ -165,7 +170,7 @@ fi
 # Note: in order to clone into any repo, and keep multiple repos 
 # separate, `cd` is required
 cd ~/MYPROJECT || {
-  peintf '\n\t cd failed \n\n'
+  printf '\n\t cd failed \n\n'
   exit 1
 }
 
@@ -208,6 +213,16 @@ gh gpg-key list
 
 
 # SSH
+if ! grep -q 'ForwardAgent yes' ~/.ssh/config; then
+  cat << EOF > ~/.ssh/config
+  Host github.com
+    ForwardAgent yes
+EOF
+fi
+
+[[ -e /etc/ssh_config ]] &&
+  exit "$LINENO"
+
 echo "$SSH_AUTH_SOCK"
 namei -xl ~/.ssh
 
@@ -221,10 +236,10 @@ case "${#ssh_agent_pids[@]}" in
         ssh-agent -k
       else
         kill "${ssh_agent_pids[*]}"
-      fi
+      fi;;
   *)  for p in "${ssh_agent_pids[@]}"; do
         kill "$p"
-      done
+      done;;
 esac
 
 eval "$(ssh-agent -s)"
@@ -232,14 +247,6 @@ eval "$(ssh-agent -s)"
 ssh-add -L
 ssh-add ~/.ssh/id_ed25519
 ssh -T git@github.com
-
-cat << EOF > ~/.ssh/config
-Host github.com
-  ForwardAgent yes
-EOF
-
-[[ -e /etc/ssh_config ]] &&
-  exit "$LINENO"
 
 
 
@@ -249,6 +256,7 @@ sudo chown 1000:1000  ~/.gnupg
 sudo chmod -R 700     ~/.gnupg
 namei -xl ~/.gnupg
 
+# shellcheck disable=SC2009
 if ps aux | grep -qE '[g]pg-a.*daemon'; then 
   gpgconf --kill gpg-agent
 fi
@@ -266,6 +274,6 @@ git remote -v
 
 
 
-# Remind user of commands for the interactive ahell
+# Remind user of commands for the interactive shell
 printf '\n\t Now run this command: \n'
 printf '\n\t cd /home/liveuser/MYPROJECT/scrfi; git status \n\n'
