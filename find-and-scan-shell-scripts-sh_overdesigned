@@ -482,43 +482,6 @@ trap '
   kill -s INT $$
 ' EXIT TERM INT
 
-:
-: Process lock
-
-# define basename and absolute path of the lock directory
-#   Note: `mkdir` is an atomic operation
-random_n="${RANDOM}"
-proc_lk_f_nm=".${$}${random_n}.lock"
-a_poss_proces_lock_dirs=([0]="${XDG_RUNTIME_DIR}" [1]="${HOME}"
-  [2]="${TMPDIR}" [3]=/tmp [4]=/var/tmp)
-
-#:_ 
-#declare -p a_poss_proces_lock_dirs
-
-# from among the poosible dirnames
-for poss_lk_d in "${a_poss_proces_lock_dirs[@]}"; do
-
-  # use the first one that fulfills certain requirements
-  if [[ -d "${poss_lk_d}" ]] \
-    && [[ ! -L "${poss_lk_d}" ]] \
-    && [[ -w "${poss_lk_d}" ]]; then
-
-    # define the lock directory
-    process_lock="${poss_lk_d}/.${repo_nm}${proc_lk_f_nm}"
-    break
-  fi
-done
-
-# create the lock directory
-if ! mkdir -m 0000 "${process_lock}" 2>/dev/null; then
-  {
-    printf '\n\tCannot acquire process lock: <%s>.\n' "${process_lock}"
-    printf '\tID: %s\n' "${USER}"
-    printf 'Exiting.\n\n'
-  } 1>&2
-  L_
-fi
-
 #:_ 
 #S_ namei -xl "${process_lock}"
 
@@ -1403,3 +1366,5 @@ exit 00
 # check 'file_out' for anything odd
 # grep -v 'ELF 64-bit' ./${script_dirnm}/latest_data/t_2023-04-03_084130/file_out | grep 'read permission'
 # grep -v 'ELF 64-bit' ./${script_dirnm}/latest_data/t_2023-04-03_084130/file_out | grep -v 'read permission' | grep -v 'script text exec'
+
+
