@@ -26,7 +26,6 @@ shells='(sh|bash|dash|ksh)'
 :
 : 'Variables that lend themselves to some customization' # AJAX
 repo_nm=scrfi
-#script_conf=~/."${repo_nm}rc"
 script_dirnm="${repo_nm}.d"
 script_nm=find-and-scan-shell-scripts-sh
 script_proper_nm='Script Finder'
@@ -35,13 +34,6 @@ umask 007
 
 :
 : Aliases
-#   Note: some quite neat things about using aliases in scripts:
-#     (1) they'll print LINENO corrctly without having to type it
-#       a million times.
-#     (2) in XTRACE output, any commands that used an alias get
-#       printed twice. The alias adds an additional round of 
-#       parameter(?) expansion, so you get to see the fully parsed
-#       command line.
 shopt -s expand_aliases
 alias :_=':;: "<>"' \
       A_='fn_age_file ' \
@@ -59,13 +51,6 @@ alias :_=':;: "<>"' \
 
 :
 : Environment variables
-#   Note: -bash- doesnt decend subdirs of PATH
-#   Note: if executed by a restricted shell, this assignment to PATH will
-# fail with an error message, and will ignore all of the rest of the
-# commands on same script line as the PATH assignment.
-
-# Q: including && and || ?
-
 unset LC_ALL
 LC_COLLATE="C.UTF-8"     # for predictable sorting
 LC_CTYPE="C.UTF-8"       #  "   "           "
@@ -77,68 +62,6 @@ export LC_COLLATE LC_CTYPE LC_NUMERIC PATH
 
 :
 : Functions
-#fn_age_file() {
-  #: fn_age_file
-
-  #:
-  #: 'Target file must exist. (Also, return with the correct exit code.)'
-  #[[ -f "${1}" ]] \
-    #|| return
-
-  ## get new hash
-  #local -A loc_A_hashes_prev_files
-  #loc_md5_o1="$(md5sum "${1}")"
-  #loc_cut_o1="$(cut -d ' ' -f1 <<<"${loc_md5_o1}")"
-  #loc_aging_hash_new="${loc_cut_o1}"
-
-  ## get a list of previously aged files in the same directory
-  ## shellcheck disable=SC2312
-  #mapfile -d '' -t loc_a_previous_aged_files < <(
-    #find "${1%/*}" -maxdepth 1 -type f -regextype egrep \
-      #-regex ".*/${1##*/}\.([0-9]){10}" -print0 2>/dev/null \
-  #)
-
-  ## if the new hash is already present in the assoc
-  ## array, then the new file is a dup
-
-  ## build an associative array of hashes (filenames need only exist for
-  ## this test) of previously aged files. The hash values are array indices.
-  ## this loop iterates over all found previously hashed files
-
-  #for loc_prevsly_aged in "${loc_a_previous_aged_files[@]}"; do
-
-    ## if the previously aged file holds any data
-    #if [[ -s "${loc_prevsly_aged}" ]]; then
-
-      ## then assign the old hash as an index of the associative array
-      #loc_md5_o2="$(md5sum "${1}")"
-      #loc_cut_o2="$(cut -d ' ' -f1 <<<"${loc_md5_o2}")"
-      #loc_A_hashes_prev_files["${loc_cut_o2}"]="${loc_prevsly_aged}"
-
-      ## test whether an index of the same value as the new hash already
-      ## exists in the associative array
-      #if [[ -n "${loc_A_hashes_prev_files["${loc_aging_hash_new}"]}" ]]; then
-
-        ## if such a duplicate hash is found, then return from this function
-        ## without copying or moving any files
-        #: 'END OF fn_age_file'
-        #:
-        #return
-      #fi
-
-    ## remove any empty previously aged files
-    #else
-      #rm -f "${loc_prevsly_aged}"
-    #fi
-  #done
-
-  ## if no dup hashes are found, then age the target file with its mtime
-  #loc_stat_o="$(stat -c%Y "${1}")"
-  #mv "${1}" "${1}.${loc_stat_o}" \
-    #|| fn_erx _age_file "${1}"
-  #: 'END OF fn_age_file'
-  #:
-#}
 fn_bak() {
   : fn_bak
 
@@ -154,7 +77,6 @@ fn_bak() {
         
         if [[ -s "${loc_filename_a}.bak" ]]; then
           return
-          #A_ "${loc_filename_a}.bak"
         else
           S_ rm -f "${loc_filename_a}.bak"
         fi
@@ -227,15 +149,11 @@ fn_write_arrays() {
 
   :
   : fn_write_arrays: Write each array to a file on disk.
-  #   Note: Default destination directory is -curr_time_ssubd-.
-  #   Note: `tee` without -a will overwrite an existing file
 
   # for each of multiple input array names
   for loc_unquotd_array_nm_b in "${@}"; do
 
     # create local variables, for use as both array and string
-    #   Note: var "$curr_time_ssubd" includes a trailing forward slash so
-    # that this FN outputs data to PWD should "$curr_time_ssubd" be empty.
     local -n loc_nameref_b="${loc_unquotd_array_nm_b}"
     loc_array_nm="${loc_unquotd_array_nm_b}"
     loc_write_f_b="${curr_time_ssubd}/${loc_array_nm}"
@@ -245,7 +163,6 @@ fn_write_arrays() {
     # Bug? When array correctly is empty. 'declare -p ... > /dev/null ||' ?
 
     # if the input array holds any data
-    #   Bug: '[[ -v' seems like a better choice?
     if [[ -v loc_nameref_b[@] ]]; then
 
       # then write a data file to disk
@@ -276,7 +193,6 @@ fn_write_vars() {
   # if the destination file already exists, then age it first
   [[ -e "${loc_write_f_a}" ]] \
     && return
-    #&& A_ "${loc_write_f_a}"
 
   # write a new data file
   declare -p "${@}" 2>/dev/null \
@@ -288,15 +204,6 @@ fn_write_vars() {
   : END OF fn_write_vars
   :
 }
-
-# List of functions
-#   A_ B_ fn_erx N_ U_ W_ fn_write_vars
-
-#:_
-#X_
-#declare -pf W_ B_
-#L_
-#I_
 
 :
 : Use -sudo-
@@ -323,139 +230,12 @@ mapfile -d '' -t filenames_with_newlines < <( S_ find / -name '*
 *' -print0 2> /dev/null )
 : 'filenames_with_newlines:' "${#filenames_with_newlines[@]}"
 
-#:_ 
-#X_
-
-## ACL group
-##   Note: the "wheel" group is not included on all platforms
-
-##:_ 
-#id "$USER"
-#groups "$USER"
-
-## get a list of any existing "guser15724_" users
-#declare -A gxs f d 
-#grep_o="$(grep guser15724_ /etc/{group,passwd})"
-#cut_o="$(cut -d ':' -f2 <<< "${grep_o}")"
-
-## use an Assoc array (gxs) to filter out duplicates
-#while read -r; do
-  #gxs["${REPLY}"]='x'
-#done <<< "${cut_o}"
-
-#:_
-#X_
-#D_ grep_o cut_o gxs
-##L_
-
-## if 
-#S_ usermod -G liveuser liveuser \
-  #|| L_
-
-#if [[ -n "${gxs[*]}" ]]; then
-  #for g in "${!gxs[@]}"; do
-    #if grep "${g}" /etc/passwd; then
-      #S_ userdel -f "${g}" \
-        #|| L_
-    #fi
-    #if grep "${g}" /etc/group; then
-      #S_ groupdel -f "${g}" \
-        #|| L_
-    #fi
-    #grep -q "${g}" /etc/{group,passwd} \
-      #&& L_
-    #d+=([$g]="/home/${g}")
-    #if [[ -d "${d[$g]}" ]]; then
-      #S_ rm -fr "${d[$g]}" \
-        #|| L_
-    #fi
-    #f+=([$g]="/var/spool/mail/${g}")
-    #if [[ -f "${f[$g]}" ]]; then
-      #S_ rm -f "${f[$g]}" \
-        #|| L_
-    #fi 
-  #done
-#fi
-
-#D_ g gxs f d 
-##L_
-
-## if the env vars GID_MIN and GID_MAX do not exist yet, create them
-#grep_o="$(grep -e ^GID_ /etc/login.defs)"
-
-#getconf GID_MIN 2>/dev/null \
-  #|| GID_MIN="$(awk '/MIN/ { print $2 }' <<<"${grep_o}")"
-#getconf GID_MAX 2>/dev/null \
-  #|| GID_MAX="$(awk '/MAX/ { print $2 }' <<<"${grep_o}")"
-
-## restrict access to all groups
-#S_ cp -n /etc/login.defs{,~}
-#S_ sed -i 's,^#MAX_MEMBERS_PER_GROUP\s*0$,MAX_MEMBERS_PER_GROUP  1,g' \
-  #/etc/login.defs
-
-##:_ 
-##X_
-##set -v
-
-## select values for "$acl_gid" and "$acl_grpnm" which are unlikely to be
-## guessed beforehand, and eliminate the TOCTOU issue as much as possible
-#while :; do
-  #if S_ useradd --uid "${acl_gid:="$(($(($((RANDOM * RANDOM)) % $((${GID_MAX:=60000} - ${GID_MIN:=1000})))) + GID_MIN))"}" "${acl_grpnm:="guser15724_${RANDOM}${$}"}"; then
-    #break
-  #else
-    #unset acl_gid acl_grpnm
-  #fi
-#done
-##S_ groupadd -g "${acl_gid:="$((  $(($((RANDOM*RANDOM)) % $((${GID_MAX:=60000}-${GID_MIN:=1000})))) +GID_MIN  ))"}" -U "$USER" "${acl_grpnm:="guser15724_${RANDOM}$$"}"
-#grep guser15724 /etc/{group,passwd}
-
-##:_ 
-##export cl_g{id,rpnm}
-##X_
-##set +v
-##id -Gn "${USER}"
-##grep guser15724_ /etc/{group,passwd}
-##declare -p acl_gid acl_grpnm \
-  ##|| L_
-
-#groups "${USER}"
-#S_ usermod -aG "${acl_grpnm}" "${USER}"
-#S_ grpck
-#groups "$USER"
-
-##newgrp "$acl_grpnm" <<EONG
-##:_ 
-##grep guser15724_ /etc/{group,passwd}
-##X_
-##id "$USER"
-##groups "$USER" | grep "$acl_grpnm" || fn_erx "$LINENO"
-##EONG
-##:_ 
-##set
-##env
-##id "$USER"
-##groups "$USER"
-##groups "$USER" | grep "$acl_grpnm" || fn_erx "$LINENO"
-##exit "$LINENO"
-##groups
-##/usr/bin/newgrp "$acl_grpnm" <<EONG
-##foo=( bar baz )
-##declare -p foo
-##EONG
-##declare -p foo
-##exit "$LINENO"
-
-#   Note: Code for removing the process lock and for resetting the ACL-s
-# must be parsed prior to that of setting up either.
-
 # Set up a trap on signals "exit", "term" and "int"
 # shellcheck disable=SC2154
 trap '
   set -
 
   # [Trap] Delete all possible process directories, if they exist. 
-  #   Note: These deletions are safe due to use of the "$random_n" 
-  #   variable.
   for poss_lk_d in "${a_poss_proces_lock_dirs[@]}"; do 
 
     # [Trap] Abbreviate var, then test and delete lock dirs.
@@ -467,13 +247,8 @@ trap '
     fi
   done
 
-  # BUG: How do I make sure to avoid deleting any
-  # valid ACL-s ?  Special group?
-
   # [Trap] Remove any script-s ACL-s based on whether the canary variables
   # exist.
-
-
   if [[ -v acl_execd_setfacl ]]; then 
     
     if [[ -v acl_abs_path ]]; then 
@@ -492,78 +267,9 @@ trap '
   kill -s INT $$
 ' EXIT TERM INT
 
-#:
-#: Process lock
-
-## define basename and absolute path of the lock directory
-##   Note: `mkdir` is an atomic operation
-#random_n="${RANDOM}"
-#proc_lk_f_nm=".${$}${random_n}.lock"
-#a_poss_proces_lock_dirs=([0]="${XDG_RUNTIME_DIR}" [1]="${HOME}"
-  #[2]="${TMPDIR}" [3]=/tmp [4]=/var/tmp)
-
-##:_ 
-##declare -p a_poss_proces_lock_dirs
-
-## from among the poosible dirnames
-#for poss_lk_d in "${a_poss_proces_lock_dirs[@]}"; do
-
-  ## use the first one that fulfills certain requirements
-  #if [[ -d "${poss_lk_d}" ]] \
-    #&& [[ ! -L "${poss_lk_d}" ]] \
-    #&& [[ -w "${poss_lk_d}" ]]; then
-
-    ## define the lock directory
-    #process_lock="${poss_lk_d}/.${repo_nm}${proc_lk_f_nm}"
-    #break
-  #fi
-#done
-
-## create the lock directory
-#if ! mkdir -m 0000 "${process_lock}" 2>/dev/null; then
-  #{
-    #printf '\n\tCannot acquire process lock: <%s>.\n' "${process_lock}"
-    #printf '\tID: %s\n' "${USER}"
-    #printf 'Exiting.\n\n'
-  #} 1>&2
-  #L_
-#fi
-
-#:_ 
-#S_ namei -xl "${process_lock}"
-
 :
 : User variables
-#fstype_list='btrfs,exfat,ext3,ext4,fat32,ntfs,xfs'
 timecode="$(builtin printf '%(%F_%H%M%S)T')"
-
-# List of variables, global scope
-# LC_ALL LC_COLLATE PATH all_files_index any_existing_f array_count_new_a
-# array_count_new_b array_count_old_a array_count_old_b acl_abs_path
-# byte_0 byte_1 byte_count cli_input curr_time_ssubd count data_subd
-# device acl_each_dir each_sorted_f acl_execd_setfacl filesystem_type
-# first_line fstype_list hash_new_a hash_new_b hash_old_a hash_old_b
-# iterator_1 iterator_2 leftover_words_a leftover_words_b list_crunchbangs
-# list_dirs_search list_files_all main_d mountpoint mtime_age_in_hours
-# must_find_all_files must_scan_relevant_dirs prev_time_ssubd process_lock
-# random_n severity shells sorted_script subd_x timecode
-
-# List of variables, local scope
-# loc_aging_hash_new loc_exit_code loc_filename_a
-# loc_nameref_a loc_nameref_b loc_prevsly_aged loc_script_section_nm
-# loc_unquotd_array_nm_a loc_unquotd_array_nm_b loc_write_f_a
-# loc_write_f_b
-
-# List of arrays, global scope
-# a_acl_name_indiv_dir a_all_files a_all_files_sorted a_all_other_files
-# a_crunches_with_hashbang_comments a_each_abspath_scriptnm
-# a_each_script_list_sorted a_each_script_SC_results a_file_DNE
-# a_incorrect_endianness a_non_rpm_system_crunches a_non_rpm_user_crunches
-# a_poss_write_devices a_previous_time_dirs a_relevant_search_dirs
-# a_shell_scripts a_write_path_nms
-
-# List of arrays, local scope
-# loc_A_hashes_prev_files loc_a_previous_aged_files
 
 :
 : Option parsing
@@ -602,238 +308,17 @@ fi
 X_
 :
 : 'Assign varnames and paths for the data directories'
-#   Note: In case of large log files, programatically select a save di-
-# rectory, attached to the local disk, where any output can be saved;
-# prefer USB flash drives.
-# and print any which have both any detected filesystem and no detected
-# mountpoint.
-
-# SOLVED? BUG: needs a test for whether or not there are any unmounted
-# USB drives. automatically using '/' as mountpoint is, in this case,
-# ie, on a live usb, not so good of an idea.
-
-# List all SCSI device (major number 8) partitions (ending with [0-9])
-
-#lsblk_o="$(lsblk --ascii --include 8 --noempty --noheadings --paths --output path --list /dev/sd[b-z][0-9])"
-#mapfile -t a_maj8s <<< "${lsblk_o}"
-
-#I=${#a_maj8s[@]}
-
-#:_
-#D_ lsblk_o a_maj8s I
-
-#for ((i = 0; i < I; i++)); do
-
-  ## Get per-device info on fstype and uuid
-  ##   shellcheck disable=SC2016
-  #wipefs_o+=([i]="$(S_ wipefs --no-act --output type,uuid --noheadings --types "${fstype_list}" "${a_maj8s[i]}")")
-  ##wipefs_o="$(S_ wipefs --no-act --output type,uuid --noheadings --types "${fstype_list}" "${a_maj8s[i]}")"
-  
-  #:_
-  #D_ i wipefs_o
-
-  #read -r 'a_fs[i]' 'a_uu[i]' <<< "${wipefs_o[i]}"
-
-  #:_
-  D_ a_fs a_uu
-
-  ## Get per-device info on mountpoints
-  ##   shellcheck disable=SC2016
-  #a_mp+=([i]="$(lsblk --noheadings --output mountpoints "${a_maj8s[i]}")")
-
-  #:_
-  #D_ a_mp
-
-  ## of the found SCSI devices, if there is no FS, then disregard it...
-  #[[ -n "${a_fs[i]}" ]] \
-    #|| unset 'a_maj8s[i]'
-
-  ## ...and if there is a mountpoint, also disregard that
-  #[[ -n "${a_mp[i]}" ]] \
-    #&& unset 'a_maj8s[i]'
-
-  #:;:;:
-  #D_ i a_maj8s wipefs_o a_mp a_fs a_uu 
-  #:;:;:
-#done
-
-## Bug? the previous harmonization of indices is not preserved
-
-## create some additional arrays for counting existing values
-#for mp in "${a_mp[@]}"; do [[ -n "${mp}" ]] && a_avail_mp+=("${mp}"); done
-#for fs in "${a_fs[@]}"; do [[ -n "${fs}" ]] && a_avail_fs+=("${fs}"); done
-
-#D_ a_maj8s wipefs_o a_mp a_fs a_uu a_avail_mp a_avail_fs
-#:_ 
-#I_
-#X_
-
-## if there arent any available mountpoints, but there are some fs-s
-## -OR- if there are some extra fs-s attached which arent mounted
-#if {
-  #[[ ${#a_avail_mp[@]} -eq 0 ]] && [[ ${#a_avail_fs[@]} -gt 0 ]]
-#} \
-  #|| [[ ${#a_avail_mp[@]} -lt ${#a_avail_fs[@]} ]]; then
-
-  ## if there are any partitions left in the 'a_maj8s' array, then...
-  ## shellcheck disable=SC2154
-  #if [[ ${#a_maj8s[@]} -gt 0 ]]; then
-
-    ## shellcheck disable=SC1090
-    #[[ -f "${script_conf}" ]] \
-      #&& source "${script_conf}"
-
-    #if [[ -z "${mount_exit}" ]]; then
-
-      ##
-      #printf '\n\t There are _%d_ SCSI filesystems ' ${#a_avail_mp[@]}
-      #printf 'mounted and _%d_ additional SCSI \n\t file' ${#a_maj8s[@]}
-      #printf 'systems unmounted and available.\n\n'
-      #printf '\t\t %s \n' "${a_maj8s[@]}"
-      #printf ' \n'
-
-      ## BUG: needs a timeout and a default value. use `read`?
-
-      #select mount_exit in Ignore 'Mount all' Exit; do
-
-        #if [[ -n "${mount_exit}" ]]; then
-
-          #printf '\n\t Remember this selection? (Y/n)\n\n'
-          #select rem_yn in Yes No; do
-
-            #case "${rem_yn}" in
-              #Yes | yes | Y | y)
-                #declare -p mount_exit \
-                  #| S_ tee -a "${script_conf}"
-                #;;
-              #*) : ;;
-            #esac
-            #break 2
-          #done
-        #fi
-      #done
-    #else
-      #printf '\n\t Remembering your decision to <%s> any' "${mount_exit}"
-      #printf ' additional \n\t partitions.\n\n'
-    #fi
-  #fi
-#elif [[ ${#a_avail_mp[@]} -eq ${#a_avail_fs[@]} ]]; then
-  #true
-#else
-  #I_ '*Unreachable code*'
-#fi
-
-#:_
-#I_
-
-#case "${mount_exit}" in
-  #Exit) exit 0 ;;
-  #Ignore) true ;;
-  #'Mount all')
-
-    ## mount the found partitions
-    ## shellcheck disable=SC2068
-    #for j in ${!a_maj8s[@]}; do
-
-      ## create a mountpoint
-      #S_ mkdir -v --parents "${a_mp[j]}" \
-        #|| I_
-
-      #:
-      #: '<>'
-      #S_ namei -xl "${a_mp[j]}"
-
-      ## mount the device
-      #S_ mount -o nosuid,nodev,noexec,rw \
-        #"${a_maj8s[j]}" "${a_mp[j]}" \
-        #|| I_
-
-      ## update the lists
-      #a_mp+=([j]="/run/media/${USER}/${a_uu[j]}")
-    #done
-    #;;
-  #*) I_ '*Unreachable code*' ;;
-#esac
-
-##:_ 
-##X_
-##declare -p a_mp a_avail_mp
-##exit "$LINENO"
-
-## Bug: maintenance issue? Compound command
-
-## prevent the FS root / from becoming the mountpoint
-#tmpf="$(mktemp)"
-
-#for m in "${a_avail_mp[@]}"; do
-    #S_ findmnt --ascii --bytes --canonicalize --df --list --types "${fstype_list}" --noheadings --notruncate --nofsroot --output maj:min,avail,target --mountpoint "${m}"
-#done >> "${tmpf}"
-#sort_o="$(sort -rnk2 < "${tmpf}")"
-#awk_o="$(awk 'NR==1 { print ${3} }' < "${sort_o}")"
-#mountpoint="${awk_o}"
-#rm -f "${tmpf}"
-
-#:_ 
-#exit "$LINENO"
-#X_
-
 mountpoint=/run/media/root/29_Mar_2023
-#[[ -n "${mountpoint}" ]] \
-  #|| I_
 main_d="${mountpoint}/${script_dirnm}"
 data_subd="${main_d}/latest_data"
 curr_time_ssubd="${data_subd}/t_${timecode}/"
 list_crunchbangs="${curr_time_ssubd}/crunchbangs"
-#findmnt_o="$(S_ findmnt --ascii --bytes --canonicalize --df --list --types "${fstype_list}" --noheadings --notruncate --nofsroot --output fstype,source --mountpoint "${mountpoint}")"
-#read -r filesystem_type device <<< "${findmnt_o}"
 
-#:
-#: 'reduce use of -sudo- in this script by setting up ACLs'
-#case "${filesystem_type}" in
-  #xfs) true ;;
-  #ext[2-4])
-    #tune2fs_o="$(tune2fs -l "${device}")"
-    #grep_o="$(grep -i acl <<< "${tune2fs_o}")"
-    #echo "${grep_o}"
-    #I_ TODO
-    #;;
-  #*) I_ TODO ;;
-#esac
 
-#:
-#: '<>'
-#X_
-#S_ setfacl -R -b /
-#S_ chmod 0700 /run/media/root/
-#S_ chmod 0700 /run/media/root/29_Mar_2023
-#S_ rm -fr "${main_d}"
-#umask
-#wait -f
-
-## as root;
-##   Note: `mkdir` handles mult leading forward slashes correctly
-#S_ mkdir -v --parents "${main_d}" \
-  #|| I_
-#S_ namei -xl "${main_d}"
-
-:
-: on XFS
-# Nearly all of the `sudo` commands below are allowing rw access, of
-# this script's data_subd, so simply using ACL's will reduce the overuse
-# of `sudo`. This section takes the "$mountpoint" variable, portions
-# each subdirectory name into an array index, and tests each subdi-
-# rectory from the FS root up for readability by the user running
-# this script (ie, a regular user). As the absolute path is recon-
-# structed, when a non-readable directory is found, a recursive "r-x"
-# ACL is written, and then a recursive "rwx" is written for the
-# "$main_d".
+: 'Reduce use of sudo'
 if [[ ! -r "${main_d}" ]]; then
 
   mapfile -d / -t a_acl_name_indiv_dir <<<"${main_d}"
-
-  #:_ 
-  #declare -p main_d mountpoint a_acl_name_indiv_dir
-  #exit "$LINENO"
 
   a_acl_name_indiv_dir[0]=/
   a_acl_name_indiv_dir[-1]="${a_acl_name_indiv_dir[-1]//$'\n'/}"
@@ -853,7 +338,6 @@ if [[ ! -r "${main_d}" ]]; then
 
       if [[ ! -d "${acl_abs_path}" ]]; then
 
-        # as root; `mkdir` handles mult leading forward slashes correctly
         S_ mkdir -v --parents "${main_d}" \
           || I_
       fi
@@ -862,9 +346,6 @@ if [[ ! -r "${main_d}" ]]; then
 
       :
       : '<>'
-      #   Note: Undocumented behavior. `namei` appears to calculate the
-      #   effective permissions for $USER by amalgamating DAC and ACL
-      #   permissions together.
       S_ namei -xl "${acl_realpath}"
 
     fi
@@ -930,7 +411,6 @@ S_ namei -xl "${data_subd}"
 
 :
 : Label the current data as -latest.-
-#   Note: `find` sees dirs and symlinks as separate things
 # shellcheck disable=SC2312
 mapfile -d '' -t a_previous_time_dirs < <(
   find "${data_subd}" -mindepth 1 -maxdepth 1 -type d -a \! -type l \
@@ -944,7 +424,6 @@ for prev_time_ssubd in "${a_previous_time_dirs[@]}"; do
   rmdir --ignore-fail-on-non-empty "${prev_time_ssubd}"
 
   : of previous prev_time_ssubd
-  #   Note: with `test`, dirs and symlinks can refer to the same inode
   if [[ -d "${prev_time_ssubd}" ]] && [[ ! -L "${prev_time_ssubd}" ]]; then
     mv "${a_previous_time_dirs[@]}" "${main_d}"
   else
@@ -964,17 +443,8 @@ S_ namei -xl "${curr_time_ssubd}"
 
 # SECTION C
 
-# BUG:  Reduce Search Time
-
 :
 : 'Gather filenames from local attached disk storage'
-
-#   Note: earlier work: If a prior record of the relevant_search_dirs
-# array exists, and if that prior record matches the new record, then
-# it's possible the all_files list would be the same, too. So if the new
-# relevant_search_dirs list is new, then do the full all_files search
-# again. But if they're the same, then ...
-
 :
 : 'in any event, create a new record for a_relevant_search_dirs and..'
 # shellcheck disable=SC2312
@@ -988,11 +458,8 @@ W_ a_relevant_search_dirs
 
 :
 : 'run -find- for a_all_files.'
-#if [[ ! -v a_all_files ]]; then
 
 : '<>'
-#   Note: GNU -find- by default will not search symlinks from CLI,
-#     ie, /bin or /sbin
 a_relevant_search_dirs=( /usr/sbin )
 #a_relevant_search_dirs=( /usr/sbin /usr/bin )
 #a_relevant_search_dirs=( /usr/sbin /usr/bin /etc )
@@ -1009,7 +476,6 @@ mapfile -d '' -t a_all_files < <(
 
 :
 W_ a_all_files
-#fi
 
 :
 : 'Sort the original array and test it.'
@@ -1022,13 +488,6 @@ mapfile -d '' -t a_all_files_sorted < <(
 :
 W_ a_all_files_sorted
 
-#:
-#: Do the comparison.
-#num_a="$(N_ a_all_files)"
-#num_b="$(N_ a_all_files_sorted)"
-#[[ "${num_a}" -eq "${num_b}" ]] \
-  #|| I_
-
 # SECTION D
 
 # Bug? Can more indices and fewer files be used?
@@ -1039,13 +498,6 @@ W_ a_all_files_sorted
 total_count="$(printf "%'d" "${#a_all_files_sorted[@]}")"
 unset IFS
 
-# get the most recent tx number from `dnf history`
-#dnf_history_number="$(
-#dnf history info 0 |
-#awk '/^Transaction ID/ { print $4 }' ||
-#_erx "${LINENO}" )"
-
-#X_
 :
 : '<>'
 [[ -f /tmp/"${list_crunchbangs##*/}" ]] \
@@ -1054,15 +506,12 @@ unset IFS
 # BUG: the search dirs must be the same, as well as the dnf tx number
 
 # tests tmp file
-
 :
-: if the full list exists -- of files on disk which begin with crash-
-: bangs -- skip the 30-90 minute search phase.
+: 'if the full list exists -- of files on disk which begin with crash-'
+: 'bangs -- skip the 30-90 minute search phase.'
 if [[ ! -f "/tmp/${list_crunchbangs##*/}" ]] \
   || [[ -L "/tmp/${list_crunchbangs##*/}" ]]
 then
-
-  #   Note: this loop can take 30-90 minutes!
 
   :
   : Sort out the scripts, ie, any file beginning
@@ -1086,7 +535,7 @@ then
       continue
     fi
 
-    # TODO: check for empty files, make a list of them
+    # check for empty files, make a list of them
     if [[ ! -s "${each_sorted_f}" ]]; 
     then
       a_empty_files+=("${each_sorted_f}")
@@ -1095,7 +544,6 @@ then
 
     :
     : # run -file- on each each_sorted_f
-    #   Note: var "$curr_time_ssubd" includes a trailing forward slash
     printf '+ %-8d: ' "${all_files_index}" \
       | S_ tee -a "${curr_time_ssubd}file_out" >/dev/null
       
@@ -1111,12 +559,6 @@ then
 
     # Bug: avoid as many disk writes as possible.
     # Bug: use indices to reference each type?
-    #    RO all files array?
-
-    #   Note: inordinately long interpreter paths are rare, but do occur.
-    #   Note: `od` command is POSIX compliant
-    #   Note: POSIX `od` doesn't have GNU's '--strings' option, so use
-    #     the `strings` command separately.
 
     :
     : # 'Read from disk in binary the first two bytes of each'
@@ -1127,10 +569,6 @@ then
       || fn_erx "L:${LINENO} I:${all_files_index} ${each_sorted_f}"
     read -r leftover_words_b byte_0 byte_1 leftover_words_b <<< "${od_o}" 
 
-    #read -r leftover_words_b byte_0 byte_1 leftover_words_b < <(
-      #S_ od -j 0 -N 2 -t x1z -v "${each_sorted_f}" \
-        #|| fn_erx "L:${LINENO} I:${all_files_index} ${each_sorted_f}"
-    #)
     export leftover_words_b # SC2034
 
     :
@@ -1256,10 +694,8 @@ then
   printf '%s\n' "${a_shell_scripts[@]}" \
     | S_ tee --append --output-error=exit "${a_write_path_nms[@]}" >/dev/null
 
-  #X_
   :
   B_ "${a_write_path_nms[@]}"
-  #set -
 
 else
 
@@ -1274,23 +710,10 @@ fi
 
 # TODO: verify interpreters
 
-# Do all of the interpreters exist on disk?
-#mapfile -d '' -t interpreters < <(
-# S_ head "$list_crunchbangs" |
-#   grep ^'#!' |
-#   sed -e 's,#!,,g' -e 's,<.*,,g' -e 's,[[:space:]]*$,,g' -e 's, -.*,,g'|
-#   cat -Aen
-
 # SECTION E
-
-# Make the data readable and useable.
-
 :
 : CENTRAL TASK, 1 OF 2: Filter the list of crashbangs with the list
 : of shells.
-
-#declare -p list_crunchbangs
-
 :
 : header
 {
@@ -1307,7 +730,6 @@ S_ grep --extended-regexp '/bin/'"${shells}"'.*% % % %' "${list_crunchbangs}" \
 :
 B_ "${list_crunchbangs}_SC-scrpts-list" /tmp/*_SC-scrpts-list
 :
-#A_ /tmp/*_SC-scrpts-list{,.bak}
 
 S_ rsync -ca "${list_crunchbangs}_SC-scrpts-list" /tmp \
   || I_
@@ -1342,7 +764,6 @@ a_each_abspath_scriptnm=("${a_each_abspath_scriptnm[@]##* }")
 # Bug: why sort by line count? More text, more bugs? How to prior mult
 #   factors?
 
-#tmpf="$(mktemp)"
 :
 wc_o="$(S_ wc -l "${a_each_abspath_scriptnm[@]}")"
 :
@@ -1358,7 +779,6 @@ mapfile -t a_each_script_list_sorted_by_linect <<< "${awk_o}" # ie properly
 
 :
 : '<>'
-#X_
 
 iterator_2=0
 {
@@ -1378,7 +798,6 @@ iterator_2=0
 
     :
     : '<>'
-    #declare -p a_each_script_SC_results
 
     if [[ -n "${a_each_script_SC_results[*]:0:1}" ]]; then
       printf '\n%-4d%s\n' $((iterator_2++)) \
@@ -1388,7 +807,6 @@ iterator_2=0
   done
 } | S_ tee -a "${list_crunchbangs}_found_scripts" >/dev/null
 
-#exit "$LINENO"
 
 :
 : Write semi-permanent archives
@@ -1400,29 +818,14 @@ S_ rsync -ca "${list_crunchbangs}_found_scripts" "${main_d}" \
 S_ rsync -ca "${list_crunchbangs}_found_scripts" /tmp \
   || I_
 :
-#A_ "${list_crunchbangs}_found_scripts"
 
 :
 B_ "${main_d}/${list_crunchbangs##*/}_found_scripts"
 :
-#A_ "${main_d}/${list_crunchbangs##*/}_found_scripts"
 
 :
 B_ "/tmp/${list_crunchbangs##*/}_found_scripts"
 :
-#A_ "/tmp/${list_crunchbangs##*/}_found_scripts"
 
 exit 00
 
-# scan 'a_all_other_files' for anything that isn't an ELF file
-# . /run/media/*/*/$script_dirnm}/latest_data/t_*/a_all_other_files
-# for f in "${a_all_other_files[@]}"; do S_ file -pk "$f" | grep -v 'ELF 64-bit LSB '; done
-
-# scan 'a_all_files_sorted' for proper sorting
-# . /run/media/*/*/${script_dirnm}/latest_data/t_*/a_all_files_sorted
-# N_ a_all_files_sorted
-# S_ command -p printf '' | S_ tee ./a_all_files_sorted_printed; for g in "${a_all_files_sorted[@]}"; do S_ -p command printf '%s\n' "$g" | S_ tee -a ./a_all_files_sorted_printed ; done
-
-# check 'file_out' for anything odd
-# grep -v 'ELF 64-bit' ./${script_dirnm}/latest_data/t_2023-04-03_084130/file_out | grep 'read permission'
-# grep -v 'ELF 64-bit' ./${script_dirnm}/latest_data/t_2023-04-03_084130/file_out | grep -v 'read permission' | grep -v 'script text exec'
