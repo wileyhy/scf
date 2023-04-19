@@ -26,12 +26,36 @@ shells='(sh|bash|dash|ksh)'
 :
 : 'Variables that lend themselves to some customization' # AJAX
 repo_nm=scrfi
-script_conf=~/."${repo_nm}rc"
+#script_conf=~/."${repo_nm}rc"
 script_dirnm="${repo_nm}.d"
 script_nm=find-and-scan-shell-scripts-sh
 script_proper_nm='Script Finder'
 script_version=1.0
 umask 007
+
+:
+: Aliases
+#   Note: some quite neat things about using aliases in scripts:
+#     (1) they'll print LINENO corrctly without having to type it
+#       a million times.
+#     (2) in XTRACE output, any commands that used an alias get
+#       printed twice. The alias adds an additional round of 
+#       parameter(?) expansion, so you get to see the fully parsed
+#       command line.
+shopt -s expand_aliases
+alias :_=':;: "<>"' \
+      A_='fn_age_file ' \
+      B_='fn_bak ' \
+      D_='declare -p ' \
+      I_='fn_erx "${LINENO}" ' \
+      L_='exit "${LINENO}"' \
+      N_='fn_num ' \
+      S_='sudo ' \
+      U_='fn_usage ' \
+      V_='fn_write_vars ' \
+      W_='fn_write_arrays ' \
+      X_='set -x'
+:
 
 :
 : Environment variables
@@ -122,22 +146,30 @@ fn_bak() {
   for loc_filename_a in "${@}"; do
 
     # test verifying existence of input
-    if [[ -f "${loc_filename_a}" ]]; then
+    if S_ test -f "${loc_filename_a}"; then
 
       # if the destination (.bak) file already exists,
       # then age it first.
       if [[ -f "${loc_filename_a}.bak" ]]; then
-        return
-        #A_ "${loc_filename_a}.bak"
+        
+        if [[ -s "${loc_filename_a}.bak" ]]; then
+          return
+          #A_ "${loc_filename_a}.bak"
+        else
+          S_ rm -f "${loc_filename_a}.bak"
+        fi
       fi
 
       # write a new .bak file
-      rsync -acq "${loc_filename_a}"{,.bak} \
+      S_ rsync -acq "${loc_filename_a}"{,.bak} \
         || I_
 
     # if input file DNE, then print an error and exit
     else
-      I_ file DNE "${loc_filename_a}"
+      { 
+        echo WARNING: file DNE "${loc_filename_a}"
+        return
+      }
     fi
   done
   : 'END OF fn_bak'
@@ -218,7 +250,7 @@ fn_write_arrays() {
 
       # then write a data file to disk
       declare -p "${loc_array_nm}" \
-        | tee --output-error=exit "${loc_write_f_b}" >/dev/null
+        | S_ tee --output-error=exit "${loc_write_f_b}" >/dev/null
 
     # if input array holds no data, then print an error and exit
     else
@@ -248,7 +280,7 @@ fn_write_vars() {
 
   # write a new data file
   declare -p "${@}" 2>/dev/null \
-    | tee --output-error=exit "${loc_write_f_a}" >/dev/null
+    | S_ tee --output-error=exit "${loc_write_f_a}" >/dev/null
 
   # and write a .bak file
   :
@@ -259,30 +291,6 @@ fn_write_vars() {
 
 # List of functions
 #   A_ B_ fn_erx N_ U_ W_ fn_write_vars
-
-:
-: Aliases
-#   Note: some quite neat things about using aliases in scripts:
-#     (1) they'll print LINENO corrctly without having to type it
-#       a million times.
-#     (2) in XTRACE output, any commands that used an alias get
-#       printed twice. The alias adds an additional round of 
-#       parameter(?) expansion, so you get to see the fully parsed
-#       command line.
-shopt -s expand_aliases
-alias :_=':;: "<>"' \
-      A_='fn_age_file ' \
-      B_='fn_bak ' \
-      D_='declare -p ' \
-      I_='fn_erx "${LINENO}" ' \
-      L_='exit "${LINENO}"' \
-      N_='fn_num ' \
-      S_='sudo ' \
-      U_='fn_usage ' \
-      V_='fn_write_vars ' \
-      W_='fn_write_arrays ' \
-      X_='set -x'
-:
 
 #:_
 #X_
@@ -526,7 +534,7 @@ trap '
 
 :
 : User variables
-fstype_list='btrfs,exfat,ext3,ext4,fat32,ntfs,xfs'
+#fstype_list='btrfs,exfat,ext3,ext4,fat32,ntfs,xfs'
 timecode="$(builtin printf '%(%F_%H%M%S)T')"
 
 # List of variables, global scope
@@ -696,7 +704,7 @@ X_
             #case "${rem_yn}" in
               #Yes | yes | Y | y)
                 #declare -p mount_exit \
-                  #| tee -a "${script_conf}"
+                  #| S_ tee -a "${script_conf}"
                 #;;
               #*) : ;;
             #esac
@@ -808,106 +816,107 @@ list_crunchbangs="${curr_time_ssubd}/crunchbangs"
   #|| I_
 #S_ namei -xl "${main_d}"
 
-#:
-#: on XFS
-## Nearly all of the `sudo` commands below are allowing rw access, of
-## this script's data_subd, so simply using ACL's will reduce the overuse
-## of `sudo`. This section takes the "$mountpoint" variable, portions
-## each subdirectory name into an array index, and tests each subdi-
-## rectory from the FS root up for readability by the user running
-## this script (ie, a regular user). As the absolute path is recon-
-## structed, when a non-readable directory is found, a recursive "r-x"
-## ACL is written, and then a recursive "rwx" is written for the
-## "$main_d".
-#if [[ ! -r "${main_d}" ]]; then
+:
+: on XFS
+# Nearly all of the `sudo` commands below are allowing rw access, of
+# this script's data_subd, so simply using ACL's will reduce the overuse
+# of `sudo`. This section takes the "$mountpoint" variable, portions
+# each subdirectory name into an array index, and tests each subdi-
+# rectory from the FS root up for readability by the user running
+# this script (ie, a regular user). As the absolute path is recon-
+# structed, when a non-readable directory is found, a recursive "r-x"
+# ACL is written, and then a recursive "rwx" is written for the
+# "$main_d".
+if [[ ! -r "${main_d}" ]]; then
 
-  #mapfile -d / -t a_acl_name_indiv_dir <<<"${main_d}"
+  mapfile -d / -t a_acl_name_indiv_dir <<<"${main_d}"
 
-  ##:_ 
-  ##declare -p main_d mountpoint a_acl_name_indiv_dir
-  ##exit "$LINENO"
+  #:_ 
+  #declare -p main_d mountpoint a_acl_name_indiv_dir
+  #exit "$LINENO"
 
-  #a_acl_name_indiv_dir[0]=/
-  #a_acl_name_indiv_dir[-1]="${a_acl_name_indiv_dir[-1]//$'\n'/}"
+  a_acl_name_indiv_dir[0]=/
+  a_acl_name_indiv_dir[-1]="${a_acl_name_indiv_dir[-1]//$'\n'/}"
 
-  #acl_each_dir=${#a_acl_name_indiv_dir[@]}
+  acl_each_dir=${#a_acl_name_indiv_dir[@]}
 
-  #for ((iterator_1 = 0; iterator_1 < acl_each_dir; iterator_1++)); do
-    #acl_abs_path+="/${a_acl_name_indiv_dir[iterator_1]}"
-    #acl_realpath="$(realpath -e "${acl_abs_path}")"
+  for ((iterator_1 = 0; iterator_1 < acl_each_dir; iterator_1++)); do
+    acl_abs_path+="/${a_acl_name_indiv_dir[iterator_1]}"
+    acl_realpath="$(realpath -e "${acl_abs_path}")"
 
-    #if S_ test -e "${acl_realpath}"; then
-      #: 'test succeeded: acl_realpath exists '
-    #else
-      #:
-      #: 'test failed: acl_realpath DNE'
-      #:
+    if S_ test -e "${acl_realpath}"; then
+      : 'test succeeded: acl_realpath exists '
+    else
+      :
+      : 'test failed: acl_realpath DNE'
+      :
 
-      #if [[ ! -d "${acl_abs_path}" ]]; then
+      if [[ ! -d "${acl_abs_path}" ]]; then
 
-        ## as root; `mkdir` handles mult leading forward slashes correctly
-        #S_ mkdir -v --parents "${main_d}" \
-          #|| I_
-      #fi
+        # as root; `mkdir` handles mult leading forward slashes correctly
+        S_ mkdir -v --parents "${main_d}" \
+          || I_
+      fi
 
-      #acl_realpath="$(realpath -e "${acl_abs_path}" 2>/dev/null)"
+      acl_realpath="$(realpath -e "${acl_abs_path}" 2>/dev/null)"
 
-      #:
-      #: '<>'
-      ##   Note: Undocumented behavior. `namei` appears to calculate the
-      ##   effective permissions for $USER by amalgamating DAC and ACL
-      ##   permissions together.
-      #S_ namei -xl "${acl_realpath}"
+      :
+      : '<>'
+      #   Note: Undocumented behavior. `namei` appears to calculate the
+      #   effective permissions for $USER by amalgamating DAC and ACL
+      #   permissions together.
+      S_ namei -xl "${acl_realpath}"
 
-    #fi
+    fi
 
-    #if [[ -r "${acl_realpath}" ]]; then
-      #: 'test succeeded: acl_realpath is readable'
-    #else
-      #:
-      #: 'test failed: acl_realpath is not readable'
-      #:
+    if [[ -r "${acl_realpath}" ]]; then
+      : 'test succeeded: acl_realpath is readable'
+    else
+      :
+      : 'test failed: acl_realpath is not readable'
+      :
 
-      #acl_execd_setfacl=y
-      #export acl_execd_setfacl # SC2034, while trap-s setfacl blk is #-d
+      acl_execd_setfacl=y
+      export acl_execd_setfacl # SC2034, while trap-s setfacl blk is #-d
 
-      ## readable up to the main_d
-      #S_ chmod -R 750 "${acl_realpath}" \
-        #|| I_
+      # readable up to the main_d
+      S_ chmod -R 750 "${acl_realpath}" \
+        || I_
 
-      #S_ setfacl -d -m "g:${acl_grpnm}:r-x" "${acl_realpath}" \
-        #|| I_
+      S_ setfacl -d -m "${USER}:r-x" "${acl_realpath}" \
+        || I_
 
-      #S_ setfacl -R -m "g:${acl_grpnm}:r-x" "${acl_realpath}" \
-        #|| I_
+      S_ setfacl -m "${USER}:r-x" "${acl_realpath}" \
+        || I_
 
-      #:
-      #: '<>'
-      #id "${USER}"
-      #groups "${USER}"
-      #S_ namei -xl "${acl_realpath}"
-      #S_ getfacl "${acl_realpath}"
+      :
+      : '<>'
+      id "${USER}"
+      groups "${USER}"
+      S_ namei -xl "${acl_realpath}"
+      S_ getfacl "${acl_realpath}"
 
-      #[[ -r "${acl_realpath}" ]] \
-        #|| I_
+      [[ -r "${acl_realpath}" ]] \
+        || I_
 
-      ## writeable within the main_d
-      #S_ setfacl -d -m "g:${acl_grpnm}:rwx" "${main_d}" \
-        #|| I_
+    fi
+  done
 
-      #S_ setfacl -R -m "g:${acl_grpnm}:rwx" "${main_d}" \
-        #|| I_
+  # writeable within the main_d
+  S_ setfacl -d -m "${USER}:rwx" "${main_d}" \
+    || I_
 
-      #:
-      #: '<>'
-      #id "${USER}"
-      #groups "${USER}"
-      #S_ namei -xl "${main_d}"
-      #S_ getfacl "${main_d}"
+  S_ setfacl -R -m "${USER}:rwx" "${main_d}" \
+    || I_
 
-    #fi
-  #done
-#fi
+  :
+  : '<>'
+  id "${USER}"
+  groups "${USER}"
+  S_ namei -xl "${main_d}"
+  S_ getfacl "${main_d}"
+
+fi
 
 :
 : 'make sure -data_subd- is a directory OR create the -data_subd- dir '
@@ -945,7 +954,7 @@ done
 
 : of curr_time_ssubd
 if [[ ! -d "${curr_time_ssubd}" ]]; then
-  mkdir -v "${curr_time_ssubd}" \
+  S_ mkdir -pv "${curr_time_ssubd}" \
     || I_
 fi
 
@@ -984,11 +993,11 @@ W_ a_relevant_search_dirs
 : '<>'
 #   Note: GNU -find- by default will not search symlinks from CLI,
 #     ie, /bin or /sbin
-#a_relevant_search_dirs=( /usr/sbin )
+a_relevant_search_dirs=( /usr/sbin )
 #a_relevant_search_dirs=( /usr/sbin /usr/bin )
 #a_relevant_search_dirs=( /usr/sbin /usr/bin /etc )
 #a_relevant_search_dirs=( /usr/sbin /usr/bin /etc /var )
-a_relevant_search_dirs=(/usr/sbin /usr/bin /etc /var /root)
+#a_relevant_search_dirs=(/usr/sbin /usr/bin /etc /var /root)
 
 :
 : Find all files on disk. Even the empty ones.
@@ -1062,13 +1071,13 @@ then
   do
 
     :
-    : Loop progress meter
+    : # Loop progress meter
     :
     count_this_loop="$(printf "%'d" $((all_files_index + 1)))"
     printf '%s of %s files\r' "${count_this_loop}" "${total_count}"
 
     :
-    : each_sorted_f must exist
+    : # each_sorted_f must exist
     each_sorted_f="${a_all_files_sorted[all_files_index]}"
 
     if [[ ! -e "${each_sorted_f}" ]]; 
@@ -1085,19 +1094,19 @@ then
     fi
 
     :
-    : run -file- on each each_sorted_f
+    : # run -file- on each each_sorted_f
     #   Note: var "$curr_time_ssubd" includes a trailing forward slash
     printf '+ %-8d: ' "${all_files_index}" \
-      | tee -a "${curr_time_ssubd}file_out" >/dev/null
+      | S_ tee -a "${curr_time_ssubd}file_out" >/dev/null
       
     file_o="$(S_ file -pk "${each_sorted_f}" 2>&1)"
-    err_msg="ERROR: -file- produced zero output for:  <${each_sorted_f}>"
     
     if [[ -n "${file_o}" ]]; 
     then
-      tee -a "${curr_time_ssubd}file_out" <<< "${file_o}"  > /dev/null
+      S_ tee -a "${curr_time_ssubd}file_out" <<< "${file_o}"  > /dev/null
     else
-      tee -a "${curr_time_ssubd}file_out" <<< "${err_msg}" > /dev/null
+      err_msg="ERROR: -file- produced zero output for:  <${each_sorted_f}>"
+      S_ tee -a "${curr_time_ssubd}file_out" <<< "${err_msg}" > /dev/null
     fi
 
     # Bug: avoid as many disk writes as possible.
@@ -1110,8 +1119,8 @@ then
     #     the `strings` command separately.
 
     :
-    : 'Read from disk in binary the first two bytes of each'
-    : 'each_sorted_f in the list and output it in hexadecimal.'
+    : # 'Read from disk in binary the first two bytes of each'
+    : # 'each_sorted_f in the list and output it in hexadecimal.'
     od_o="$(S_ od -j 0 -N 2 -t x1z -v "${each_sorted_f}" \
       || fn_erx "L:${LINENO} I:${all_files_index} ${each_sorted_f}")"
     [[ -n "${od_o}" ]] \
@@ -1125,7 +1134,7 @@ then
     export leftover_words_b # SC2034
 
     :
-    : If -od_o- contains some non-zero data, as it should...
+    : # If -od_o- contains some non-zero data, as it should...
     if [[ -z "${byte_0}" ]]; 
     then
       fn_erx "L:${LINENO} I:${all_files_index} <${each_sorted_f}>" \
@@ -1137,8 +1146,8 @@ then
     then
 
       :
-      : Issue: a big endian file format, possibly
-      : a DB file, etc.
+      : # Issue: a big endian file format, possibly
+      : # a DB file, etc.
       if [[ "${byte_0}${byte_1}" == 2123 ]]; 
       then
         a_incorrect_endianness+=([all_files_index]="${each_sorted_f}")
@@ -1233,19 +1242,19 @@ then
 
   :
   : create the original list_crunchbangs
-  touch "${a_write_path_nms[@]}"
+  S_ touch "${a_write_path_nms[@]}"
 
   :
   : header
   {
     printf '# crunchbangs -- %s\n' "${timecode%-*}"
     printf '# %s\n' "$(declare -p a_relevant_search_dirs)"
-  } | tee --output-error=exit "${a_write_path_nms[@]}" >/dev/null
+  } | S_ tee --output-error=exit "${a_write_path_nms[@]}" >/dev/null
 
   :
   : printing contents of a_shell_scripts array
   printf '%s\n' "${a_shell_scripts[@]}" \
-    | tee --append --output-error=exit "${a_write_path_nms[@]}" >/dev/null
+    | S_ tee --append --output-error=exit "${a_write_path_nms[@]}" >/dev/null
 
   #X_
   :
@@ -1258,7 +1267,7 @@ else
   # from the hopefully correct backup in /tmp
   if [[ ! -f "${list_crunchbangs}" ]]; 
   then
-    rsync -ca "/tmp/${list_crunchbangs##*/}" "${list_crunchbangs}" \
+    S_ rsync -ca "/tmp/${list_crunchbangs##*/}" "${list_crunchbangs}" \
       || I_
   fi
 fi
@@ -1287,12 +1296,12 @@ fi
 {
   printf '# SC-scrpts-list -- %s\n' "${timecode%-*}"
   printf '# %s\n' "$(declare -p a_relevant_search_dirs)"
-} | tee --output-error=exit "${list_crunchbangs}_SC-scrpts-list" \
+} | S_ tee --output-error=exit "${list_crunchbangs}_SC-scrpts-list" \
   >/dev/null
 
 # pulls from time_dir
-grep --extended-regexp '/bin/'"${shells}"'.*% % % %' \
-  "${list_crunchbangs}" >"${list_crunchbangs}_SC-scrpts-list" \
+S_ grep --extended-regexp '/bin/'"${shells}"'.*% % % %' "${list_crunchbangs}" \
+  | S_ tee -a "${list_crunchbangs}_SC-scrpts-list" \
   || I_
 
 :
@@ -1300,7 +1309,7 @@ B_ "${list_crunchbangs}_SC-scrpts-list" /tmp/*_SC-scrpts-list
 :
 #A_ /tmp/*_SC-scrpts-list{,.bak}
 
-rsync -ca "${list_crunchbangs}_SC-scrpts-list" /tmp \
+S_ rsync -ca "${list_crunchbangs}_SC-scrpts-list" /tmp \
   || I_
 :
 B_ "${list_crunchbangs}_SC-scrpts-list" /tmp/*_SC-scrpts-list
@@ -1317,8 +1326,13 @@ B_ "${list_crunchbangs}_SC-scrpts-list" /tmp/*_SC-scrpts-list
 : A hell world of pipelines
 #   Q: how to translate the correct newlines into nulls to separate the 
 #   filenames when reading from a file?  awk?
-cut_o="$(cut -d '%' -f5- "${list_crunchbangs}_SC-scrpts-list")"
+:
+grep_o="$(S_ grep ^'#!' "${list_crunchbangs}_SC-scrpts-list")"
+:
+cut_o="$(cut -d '%' -f5- <<< "${grep_o}")"
+:
 mapfile -t a_each_abspath_scriptnm <<< "${cut_o}"
+:
 a_each_abspath_scriptnm=("${a_each_abspath_scriptnm[@]##* }")
 
 # Wk: awk , multi-char delim, remv lead+trail wspc - redef $0 ?, printf
@@ -1328,11 +1342,16 @@ a_each_abspath_scriptnm=("${a_each_abspath_scriptnm[@]##* }")
 # Bug: why sort by line count? More text, more bugs? How to prior mult
 #   factors?
 
-tmpf="$(mktemp)"
-wc_o="$(wc -l "${a_each_abspath_scriptnm[@]}")"
+#tmpf="$(mktemp)"
+:
+wc_o="$(S_ wc -l "${a_each_abspath_scriptnm[@]}")"
+:
 wc_o="${wc_o%$'\n*'}" # Remove 'totals' line.
+:
 sort_o="$(sort -gr <<< "${wc_o}")"
+:
 awk_o="$(awk '{ print $2 }' <<< "${sort_o}")"
+:
 mapfile -t a_each_script_list_sorted_by_linect <<< "${awk_o}" # ie properly
 
 # Bug? 1st grep extra?
@@ -1343,7 +1362,9 @@ mapfile -t a_each_script_list_sorted_by_linect <<< "${awk_o}" # ie properly
 
 iterator_2=0
 {
+  :
   for sorted_script in "${!a_each_script_list_sorted_by_linect[@]}"; do
+    :
     mapfile -d '' -t a_each_script_SC_results < <(
       shellcheck -S "${severity}" \
         "${a_each_script_list_sorted_by_linect[sorted_script]}" \
@@ -1358,15 +1379,14 @@ iterator_2=0
     :
     : '<>'
     #declare -p a_each_script_SC_results
-    iterator_2=$((iterator_2++))
 
     if [[ -n "${a_each_script_SC_results[*]:0:1}" ]]; then
-      printf '\n%-4d%s\n' "${iterator_2}" \
+      printf '\n%-4d%s\n' $((iterator_2++)) \
         "${a_each_script_list_sorted_by_linect[sorted_script]}"
       printf '%s' "${a_each_script_SC_results[@]}"
     fi
   done
-} | tee -a "${list_crunchbangs}_found_scripts" >/dev/null
+} | S_ tee -a "${list_crunchbangs}_found_scripts" >/dev/null
 
 #exit "$LINENO"
 
@@ -1375,9 +1395,9 @@ iterator_2=0
 
 :
 B_ "${list_crunchbangs}_found_scripts"
-rsync -ca "${list_crunchbangs}_found_scripts" "${main_d}" \
+S_ rsync -ca "${list_crunchbangs}_found_scripts" "${main_d}" \
   || I_
-rsync -ca "${list_crunchbangs}_found_scripts" /tmp \
+S_ rsync -ca "${list_crunchbangs}_found_scripts" /tmp \
   || I_
 :
 #A_ "${list_crunchbangs}_found_scripts"
