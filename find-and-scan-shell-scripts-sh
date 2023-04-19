@@ -43,9 +43,9 @@ umask 007
 # Q: including && and || ?
 
 unset LC_ALL
-LC_COLLATE="C.UTF-8"     # for predictable `sort`ing
-LC_CTYPE="C.UTF-8"       #  "   "            "
-LC_NUMERIC="en_US.UTF-8" # for commas
+LC_COLLATE="C.UTF-8"     # for predictable sorting
+LC_CTYPE="C.UTF-8"       #  "   "           "
+LC_NUMERIC="en_US.UTF-8" # for commas in large numbers
 
 PATH="$(/usr/bin/command -p getconf PATH):/usr/bin:/usr/sbin:${PATH}" \
   || L_
@@ -53,68 +53,68 @@ export LC_COLLATE LC_CTYPE LC_NUMERIC PATH
 
 :
 : Functions
-fn_age_file() {
-  : fn_age_file
+#fn_age_file() {
+  #: fn_age_file
 
-  :
-  : 'Target file must exist. (Also, return with the correct exit code.)'
-  [[ -f "${1}" ]] \
-    || return
+  #:
+  #: 'Target file must exist. (Also, return with the correct exit code.)'
+  #[[ -f "${1}" ]] \
+    #|| return
 
-  # get new hash
-  local -A loc_A_hashes_prev_files
-  loc_md5_o1="$(md5sum "${1}")"
-  loc_cut_o1="$(cut -d ' ' -f1 <<<"${loc_md5_o1}")"
-  loc_aging_hash_new="${loc_cut_o1}"
+  ## get new hash
+  #local -A loc_A_hashes_prev_files
+  #loc_md5_o1="$(md5sum "${1}")"
+  #loc_cut_o1="$(cut -d ' ' -f1 <<<"${loc_md5_o1}")"
+  #loc_aging_hash_new="${loc_cut_o1}"
 
-  # get a list of previously aged files in the same directory
-  # shellcheck disable=SC2312
-  mapfile -d '' -t loc_a_previous_aged_files < <(
-    find "${1%/*}" -maxdepth 1 -type f -regextype egrep \
-      -regex ".*/${1##*/}\.([0-9]){10}" -print0 2>/dev/null \
-  )
+  ## get a list of previously aged files in the same directory
+  ## shellcheck disable=SC2312
+  #mapfile -d '' -t loc_a_previous_aged_files < <(
+    #find "${1%/*}" -maxdepth 1 -type f -regextype egrep \
+      #-regex ".*/${1##*/}\.([0-9]){10}" -print0 2>/dev/null \
+  #)
 
-  # if the new hash is already present in the assoc
-  # array, then the new file is a dup
+  ## if the new hash is already present in the assoc
+  ## array, then the new file is a dup
 
-  # build an associative array of hashes (filenames need only exist for
-  # this test) of previously aged files. The hash values are array indices.
-  # this loop iterates over all found previously hashed files
+  ## build an associative array of hashes (filenames need only exist for
+  ## this test) of previously aged files. The hash values are array indices.
+  ## this loop iterates over all found previously hashed files
 
-  for loc_prevsly_aged in "${loc_a_previous_aged_files[@]}"; do
+  #for loc_prevsly_aged in "${loc_a_previous_aged_files[@]}"; do
 
-    # if the previously aged file holds any data
-    if [[ -s "${loc_prevsly_aged}" ]]; then
+    ## if the previously aged file holds any data
+    #if [[ -s "${loc_prevsly_aged}" ]]; then
 
-      # then assign the old hash as an index of the associative array
-      loc_md5_o2="$(md5sum "${1}")"
-      loc_cut_o2="$(cut -d ' ' -f1 <<<"${loc_md5_o2}")"
-      loc_A_hashes_prev_files["${loc_cut_o2}"]="${loc_prevsly_aged}"
+      ## then assign the old hash as an index of the associative array
+      #loc_md5_o2="$(md5sum "${1}")"
+      #loc_cut_o2="$(cut -d ' ' -f1 <<<"${loc_md5_o2}")"
+      #loc_A_hashes_prev_files["${loc_cut_o2}"]="${loc_prevsly_aged}"
 
-      # test whether an index of the same value as the new hash already
-      # exists in the associative array
-      if [[ -n "${loc_A_hashes_prev_files["${loc_aging_hash_new}"]}" ]]; then
+      ## test whether an index of the same value as the new hash already
+      ## exists in the associative array
+      #if [[ -n "${loc_A_hashes_prev_files["${loc_aging_hash_new}"]}" ]]; then
 
-        # if such a duplicate hash is found, then return from this function
-        # without copying or moving any files
-        : 'END OF fn_age_file'
-        :
-        return
-      fi
+        ## if such a duplicate hash is found, then return from this function
+        ## without copying or moving any files
+        #: 'END OF fn_age_file'
+        #:
+        #return
+      #fi
 
-    # remove any empty previously aged files
-    else
-      rm -f "${loc_prevsly_aged}"
-    fi
-  done
+    ## remove any empty previously aged files
+    #else
+      #rm -f "${loc_prevsly_aged}"
+    #fi
+  #done
 
-  # if no dup hashes are found, then age the target file with its mtime
-  loc_stat_o="$(stat -c%Y "${1}")"
-  mv "${1}" "${1}.${loc_stat_o}" \
-    || fn_erx _age_file "${1}"
-  : 'END OF fn_age_file'
-  :
-}
+  ## if no dup hashes are found, then age the target file with its mtime
+  #loc_stat_o="$(stat -c%Y "${1}")"
+  #mv "${1}" "${1}.${loc_stat_o}" \
+    #|| fn_erx _age_file "${1}"
+  #: 'END OF fn_age_file'
+  #:
+#}
 fn_bak() {
   : fn_bak
 
@@ -127,7 +127,8 @@ fn_bak() {
       # if the destination (.bak) file already exists,
       # then age it first.
       if [[ -f "${loc_filename_a}.bak" ]]; then
-        A_ "${loc_filename_a}.bak"
+        return
+        #A_ "${loc_filename_a}.bak"
       fi
 
       # write a new .bak file
@@ -242,7 +243,8 @@ fn_write_vars() {
 
   # if the destination file already exists, then age it first
   [[ -e "${loc_write_f_a}" ]] \
-    && A_ "${loc_write_f_a}"
+    && return
+    #&& A_ "${loc_write_f_a}"
 
   # write a new data file
   declare -p "${@}" 2>/dev/null \
@@ -1038,7 +1040,7 @@ unset IFS
 :
 : '<>'
 [[ -f /tmp/"${list_crunchbangs##*/}" ]] \
-  && A_ "/tmp/${list_crunchbangs##*/}"
+  && rm -f "/tmp/${list_crunchbangs##*/}"
 
 # BUG: the search dirs must be the same, as well as the dnf tx number
 
@@ -1296,7 +1298,7 @@ grep --extended-regexp '/bin/'"${shells}"'.*% % % %' \
 :
 B_ "${list_crunchbangs}_SC-scrpts-list" /tmp/*_SC-scrpts-list
 :
-A_ /tmp/*_SC-scrpts-list{,.bak}
+#A_ /tmp/*_SC-scrpts-list{,.bak}
 
 rsync -ca "${list_crunchbangs}_SC-scrpts-list" /tmp \
   || I_
@@ -1378,17 +1380,17 @@ rsync -ca "${list_crunchbangs}_found_scripts" "${main_d}" \
 rsync -ca "${list_crunchbangs}_found_scripts" /tmp \
   || I_
 :
-A_ "${list_crunchbangs}_found_scripts"
+#A_ "${list_crunchbangs}_found_scripts"
 
 :
 B_ "${main_d}/${list_crunchbangs##*/}_found_scripts"
 :
-A_ "${main_d}/${list_crunchbangs##*/}_found_scripts"
+#A_ "${main_d}/${list_crunchbangs##*/}_found_scripts"
 
 :
 B_ "/tmp/${list_crunchbangs##*/}_found_scripts"
 :
-A_ "/tmp/${list_crunchbangs##*/}_found_scripts"
+#A_ "/tmp/${list_crunchbangs##*/}_found_scripts"
 
 exit 00
 
