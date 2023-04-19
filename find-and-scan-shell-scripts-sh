@@ -482,42 +482,42 @@ trap '
   kill -s INT $$
 ' EXIT TERM INT
 
-:
-: Process lock
+#:
+#: Process lock
 
-# define basename and absolute path of the lock directory
-#   Note: `mkdir` is an atomic operation
-random_n="${RANDOM}"
-proc_lk_f_nm=".${$}${random_n}.lock"
-a_poss_proces_lock_dirs=([0]="${XDG_RUNTIME_DIR}" [1]="${HOME}"
-  [2]="${TMPDIR}" [3]=/tmp [4]=/var/tmp)
+## define basename and absolute path of the lock directory
+##   Note: `mkdir` is an atomic operation
+#random_n="${RANDOM}"
+#proc_lk_f_nm=".${$}${random_n}.lock"
+#a_poss_proces_lock_dirs=([0]="${XDG_RUNTIME_DIR}" [1]="${HOME}"
+  #[2]="${TMPDIR}" [3]=/tmp [4]=/var/tmp)
 
-#:_ 
-#declare -p a_poss_proces_lock_dirs
+##:_ 
+##declare -p a_poss_proces_lock_dirs
 
-# from among the poosible dirnames
-for poss_lk_d in "${a_poss_proces_lock_dirs[@]}"; do
+## from among the poosible dirnames
+#for poss_lk_d in "${a_poss_proces_lock_dirs[@]}"; do
 
-  # use the first one that fulfills certain requirements
-  if [[ -d "${poss_lk_d}" ]] \
-    && [[ ! -L "${poss_lk_d}" ]] \
-    && [[ -w "${poss_lk_d}" ]]; then
+  ## use the first one that fulfills certain requirements
+  #if [[ -d "${poss_lk_d}" ]] \
+    #&& [[ ! -L "${poss_lk_d}" ]] \
+    #&& [[ -w "${poss_lk_d}" ]]; then
 
-    # define the lock directory
-    process_lock="${poss_lk_d}/.${repo_nm}${proc_lk_f_nm}"
-    break
-  fi
-done
+    ## define the lock directory
+    #process_lock="${poss_lk_d}/.${repo_nm}${proc_lk_f_nm}"
+    #break
+  #fi
+#done
 
-# create the lock directory
-if ! mkdir -m 0000 "${process_lock}" 2>/dev/null; then
-  {
-    printf '\n\tCannot acquire process lock: <%s>.\n' "${process_lock}"
-    printf '\tID: %s\n' "${USER}"
-    printf 'Exiting.\n\n'
-  } 1>&2
-  L_
-fi
+## create the lock directory
+#if ! mkdir -m 0000 "${process_lock}" 2>/dev/null; then
+  #{
+    #printf '\n\tCannot acquire process lock: <%s>.\n' "${process_lock}"
+    #printf '\tID: %s\n' "${USER}"
+    #printf 'Exiting.\n\n'
+  #} 1>&2
+  #L_
+#fi
 
 #:_ 
 #S_ namei -xl "${process_lock}"
@@ -604,307 +604,308 @@ X_
 
 # List all SCSI device (major number 8) partitions (ending with [0-9])
 
-lsblk_o="$(lsblk --ascii --include 8 --noempty --noheadings --paths --output path --list /dev/sd[b-z][0-9])"
-mapfile -t a_maj8s <<< "${lsblk_o}"
+#lsblk_o="$(lsblk --ascii --include 8 --noempty --noheadings --paths --output path --list /dev/sd[b-z][0-9])"
+#mapfile -t a_maj8s <<< "${lsblk_o}"
 
-I=${#a_maj8s[@]}
+#I=${#a_maj8s[@]}
 
-:_
-D_ lsblk_o a_maj8s I
+#:_
+#D_ lsblk_o a_maj8s I
 
-for ((i = 0; i < I; i++)); do
+#for ((i = 0; i < I; i++)); do
 
-  # Get per-device info on fstype and uuid
-  #   shellcheck disable=SC2016
-  wipefs_o+=([i]="$(S_ wipefs --no-act --output type,uuid --noheadings --types "${fstype_list}" "${a_maj8s[i]}")")
-  #wipefs_o="$(S_ wipefs --no-act --output type,uuid --noheadings --types "${fstype_list}" "${a_maj8s[i]}")"
+  ## Get per-device info on fstype and uuid
+  ##   shellcheck disable=SC2016
+  #wipefs_o+=([i]="$(S_ wipefs --no-act --output type,uuid --noheadings --types "${fstype_list}" "${a_maj8s[i]}")")
+  ##wipefs_o="$(S_ wipefs --no-act --output type,uuid --noheadings --types "${fstype_list}" "${a_maj8s[i]}")"
   
-  :_
-  D_ i wipefs_o
+  #:_
+  #D_ i wipefs_o
 
-  read -r 'a_fs[i]' 'a_uu[i]' <<< "${wipefs_o[i]}"
+  #read -r 'a_fs[i]' 'a_uu[i]' <<< "${wipefs_o[i]}"
 
-  :_
+  #:_
   D_ a_fs a_uu
 
-  # Get per-device info on mountpoints
-  #   shellcheck disable=SC2016
-  a_mp+=([i]="$(lsblk --noheadings --output mountpoints "${a_maj8s[i]}")")
+  ## Get per-device info on mountpoints
+  ##   shellcheck disable=SC2016
+  #a_mp+=([i]="$(lsblk --noheadings --output mountpoints "${a_maj8s[i]}")")
 
-  :_
-  D_ a_mp
+  #:_
+  #D_ a_mp
 
-  # of the found SCSI devices, if there is no FS, then disregard it...
-  [[ -n "${a_fs[i]}" ]] \
-    || unset 'a_maj8s[i]'
+  ## of the found SCSI devices, if there is no FS, then disregard it...
+  #[[ -n "${a_fs[i]}" ]] \
+    #|| unset 'a_maj8s[i]'
 
-  # ...and if there is a mountpoint, also disregard that
-  [[ -n "${a_mp[i]}" ]] \
-    && unset 'a_maj8s[i]'
+  ## ...and if there is a mountpoint, also disregard that
+  #[[ -n "${a_mp[i]}" ]] \
+    #&& unset 'a_maj8s[i]'
 
-  :;:;:
-  D_ i a_maj8s wipefs_o a_mp a_fs a_uu 
-  :;:;:
-done
+  #:;:;:
+  #D_ i a_maj8s wipefs_o a_mp a_fs a_uu 
+  #:;:;:
+#done
 
-# Bug? the previous harmonization of indices is not preserved
+## Bug? the previous harmonization of indices is not preserved
 
-# create some additional arrays for counting existing values
-for mp in "${a_mp[@]}"; do [[ -n "${mp}" ]] && a_avail_mp+=("${mp}"); done
-for fs in "${a_fs[@]}"; do [[ -n "${fs}" ]] && a_avail_fs+=("${fs}"); done
+## create some additional arrays for counting existing values
+#for mp in "${a_mp[@]}"; do [[ -n "${mp}" ]] && a_avail_mp+=("${mp}"); done
+#for fs in "${a_fs[@]}"; do [[ -n "${fs}" ]] && a_avail_fs+=("${fs}"); done
 
-D_ a_maj8s wipefs_o a_mp a_fs a_uu a_avail_mp a_avail_fs
-:_ 
-I_
-X_
-
-# if there arent any available mountpoints, but there are some fs-s
-# -OR- if there are some extra fs-s attached which arent mounted
-if {
-  [[ ${#a_avail_mp[@]} -eq 0 ]] && [[ ${#a_avail_fs[@]} -gt 0 ]]
-} \
-  || [[ ${#a_avail_mp[@]} -lt ${#a_avail_fs[@]} ]]; then
-
-  # if there are any partitions left in the 'a_maj8s' array, then...
-  # shellcheck disable=SC2154
-  if [[ ${#a_maj8s[@]} -gt 0 ]]; then
-
-    # shellcheck disable=SC1090
-    [[ -f "${script_conf}" ]] \
-      && source "${script_conf}"
-
-    if [[ -z "${mount_exit}" ]]; then
-
-      #
-      printf '\n\t There are _%d_ SCSI filesystems ' ${#a_avail_mp[@]}
-      printf 'mounted and _%d_ additional SCSI \n\t file' ${#a_maj8s[@]}
-      printf 'systems unmounted and available.\n\n'
-      printf '\t\t %s \n' "${a_maj8s[@]}"
-      printf ' \n'
-
-      # BUG: needs a timeout and a default value. use `read`?
-
-      select mount_exit in Ignore 'Mount all' Exit; do
-
-        if [[ -n "${mount_exit}" ]]; then
-
-          printf '\n\t Remember this selection? (Y/n)\n\n'
-          select rem_yn in Yes No; do
-
-            case "${rem_yn}" in
-              Yes | yes | Y | y)
-                declare -p mount_exit \
-                  | tee -a "${script_conf}"
-                ;;
-              *) : ;;
-            esac
-            break 2
-          done
-        fi
-      done
-    else
-      printf '\n\t Remembering your decision to <%s> any' "${mount_exit}"
-      printf ' additional \n\t partitions.\n\n'
-    fi
-  fi
-elif [[ ${#a_avail_mp[@]} -eq ${#a_avail_fs[@]} ]]; then
-  true
-else
-  I_ '*Unreachable code*'
-fi
-
-:_
-I_
-
-case "${mount_exit}" in
-  Exit) exit 0 ;;
-  Ignore) true ;;
-  'Mount all')
-
-    # mount the found partitions
-    # shellcheck disable=SC2068
-    for j in ${!a_maj8s[@]}; do
-
-      # create a mountpoint
-      S_ mkdir -v --parents "${a_mp[j]}" \
-        || I_
-
-      :
-      : '<>'
-      S_ namei -xl "${a_mp[j]}"
-
-      # mount the device
-      S_ mount -o nosuid,nodev,noexec,rw \
-        "${a_maj8s[j]}" "${a_mp[j]}" \
-        || I_
-
-      # update the lists
-      a_mp+=([j]="/run/media/${USER}/${a_uu[j]}")
-    done
-    ;;
-  *) I_ '*Unreachable code*' ;;
-esac
-
+#D_ a_maj8s wipefs_o a_mp a_fs a_uu a_avail_mp a_avail_fs
 #:_ 
-#X_
-#declare -p a_mp a_avail_mp
-#exit "$LINENO"
-
-# Bug: maintenance issue? Compound command
-
-# prevent the FS root / from becoming the mountpoint
-tmpf="$(mktemp)"
-
-for m in "${a_avail_mp[@]}"; do
-    S_ findmnt --ascii --bytes --canonicalize --df --list --types "${fstype_list}" --noheadings --notruncate --nofsroot --output maj:min,avail,target --mountpoint "${m}"
-done >> "${tmpf}"
-sort_o="$(sort -rnk2 < "${tmpf}")"
-awk_o="$(awk 'NR==1 { print ${3} }' < "${sort_o}")"
-mountpoint="${awk_o}"
-rm -f "${tmpf}"
-
-#:_ 
-#exit "$LINENO"
+#I_
 #X_
 
-[[ -n "${mountpoint}" ]] \
-  || I_
+## if there arent any available mountpoints, but there are some fs-s
+## -OR- if there are some extra fs-s attached which arent mounted
+#if {
+  #[[ ${#a_avail_mp[@]} -eq 0 ]] && [[ ${#a_avail_fs[@]} -gt 0 ]]
+#} \
+  #|| [[ ${#a_avail_mp[@]} -lt ${#a_avail_fs[@]} ]]; then
+
+  ## if there are any partitions left in the 'a_maj8s' array, then...
+  ## shellcheck disable=SC2154
+  #if [[ ${#a_maj8s[@]} -gt 0 ]]; then
+
+    ## shellcheck disable=SC1090
+    #[[ -f "${script_conf}" ]] \
+      #&& source "${script_conf}"
+
+    #if [[ -z "${mount_exit}" ]]; then
+
+      ##
+      #printf '\n\t There are _%d_ SCSI filesystems ' ${#a_avail_mp[@]}
+      #printf 'mounted and _%d_ additional SCSI \n\t file' ${#a_maj8s[@]}
+      #printf 'systems unmounted and available.\n\n'
+      #printf '\t\t %s \n' "${a_maj8s[@]}"
+      #printf ' \n'
+
+      ## BUG: needs a timeout and a default value. use `read`?
+
+      #select mount_exit in Ignore 'Mount all' Exit; do
+
+        #if [[ -n "${mount_exit}" ]]; then
+
+          #printf '\n\t Remember this selection? (Y/n)\n\n'
+          #select rem_yn in Yes No; do
+
+            #case "${rem_yn}" in
+              #Yes | yes | Y | y)
+                #declare -p mount_exit \
+                  #| tee -a "${script_conf}"
+                #;;
+              #*) : ;;
+            #esac
+            #break 2
+          #done
+        #fi
+      #done
+    #else
+      #printf '\n\t Remembering your decision to <%s> any' "${mount_exit}"
+      #printf ' additional \n\t partitions.\n\n'
+    #fi
+  #fi
+#elif [[ ${#a_avail_mp[@]} -eq ${#a_avail_fs[@]} ]]; then
+  #true
+#else
+  #I_ '*Unreachable code*'
+#fi
+
+#:_
+#I_
+
+#case "${mount_exit}" in
+  #Exit) exit 0 ;;
+  #Ignore) true ;;
+  #'Mount all')
+
+    ## mount the found partitions
+    ## shellcheck disable=SC2068
+    #for j in ${!a_maj8s[@]}; do
+
+      ## create a mountpoint
+      #S_ mkdir -v --parents "${a_mp[j]}" \
+        #|| I_
+
+      #:
+      #: '<>'
+      #S_ namei -xl "${a_mp[j]}"
+
+      ## mount the device
+      #S_ mount -o nosuid,nodev,noexec,rw \
+        #"${a_maj8s[j]}" "${a_mp[j]}" \
+        #|| I_
+
+      ## update the lists
+      #a_mp+=([j]="/run/media/${USER}/${a_uu[j]}")
+    #done
+    #;;
+  #*) I_ '*Unreachable code*' ;;
+#esac
+
+##:_ 
+##X_
+##declare -p a_mp a_avail_mp
+##exit "$LINENO"
+
+## Bug: maintenance issue? Compound command
+
+## prevent the FS root / from becoming the mountpoint
+#tmpf="$(mktemp)"
+
+#for m in "${a_avail_mp[@]}"; do
+    #S_ findmnt --ascii --bytes --canonicalize --df --list --types "${fstype_list}" --noheadings --notruncate --nofsroot --output maj:min,avail,target --mountpoint "${m}"
+#done >> "${tmpf}"
+#sort_o="$(sort -rnk2 < "${tmpf}")"
+#awk_o="$(awk 'NR==1 { print ${3} }' < "${sort_o}")"
+#mountpoint="${awk_o}"
+#rm -f "${tmpf}"
+
+#:_ 
+#exit "$LINENO"
+#X_
+
+mountpoint=/run/media/root/29_Mar_2023
+#[[ -n "${mountpoint}" ]] \
+  #|| I_
 main_d="${mountpoint}/${script_dirnm}"
 data_subd="${main_d}/latest_data"
 curr_time_ssubd="${data_subd}/t_${timecode}/"
 list_crunchbangs="${curr_time_ssubd}/crunchbangs"
-findmnt_o="$(S_ findmnt --ascii --bytes --canonicalize --df --list --types "${fstype_list}" --noheadings --notruncate --nofsroot --output fstype,source --mountpoint "${mountpoint}")"
-read -r filesystem_type device <<< "${findmnt_o}"
+#findmnt_o="$(S_ findmnt --ascii --bytes --canonicalize --df --list --types "${fstype_list}" --noheadings --notruncate --nofsroot --output fstype,source --mountpoint "${mountpoint}")"
+#read -r filesystem_type device <<< "${findmnt_o}"
 
-:
-: 'reduce use of -sudo- in this script by setting up ACLs'
-case "${filesystem_type}" in
-  xfs) true ;;
-  ext[2-4])
-    tune2fs_o="$(tune2fs -l "${device}")"
-    grep_o="$(grep -i acl <<< "${tune2fs_o}")"
-    echo "${grep_o}"
-    I_ TODO
-    ;;
-  *) I_ TODO ;;
-esac
+#:
+#: 'reduce use of -sudo- in this script by setting up ACLs'
+#case "${filesystem_type}" in
+  #xfs) true ;;
+  #ext[2-4])
+    #tune2fs_o="$(tune2fs -l "${device}")"
+    #grep_o="$(grep -i acl <<< "${tune2fs_o}")"
+    #echo "${grep_o}"
+    #I_ TODO
+    #;;
+  #*) I_ TODO ;;
+#esac
 
-:
-: '<>'
-X_
-S_ setfacl -R -b /
-S_ chmod 0700 /run/media/root/
-S_ chmod 0700 /run/media/root/29_Mar_2023
-S_ rm -fr "${main_d}"
-umask
-wait -f
+#:
+#: '<>'
+#X_
+#S_ setfacl -R -b /
+#S_ chmod 0700 /run/media/root/
+#S_ chmod 0700 /run/media/root/29_Mar_2023
+#S_ rm -fr "${main_d}"
+#umask
+#wait -f
 
-# as root;
-#   Note: `mkdir` handles mult leading forward slashes correctly
-S_ mkdir -v --parents "${main_d}" \
-  || I_
-S_ namei -xl "${main_d}"
+## as root;
+##   Note: `mkdir` handles mult leading forward slashes correctly
+#S_ mkdir -v --parents "${main_d}" \
+  #|| I_
+#S_ namei -xl "${main_d}"
 
-:
-: on XFS
-# Nearly all of the `sudo` commands below are allowing rw access, of
-# this script's data_subd, so simply using ACL's will reduce the overuse
-# of `sudo`. This section takes the "$mountpoint" variable, portions
-# each subdirectory name into an array index, and tests each subdi-
-# rectory from the FS root up for readability by the user running
-# this script (ie, a regular user). As the absolute path is recon-
-# structed, when a non-readable directory is found, a recursive "r-x"
-# ACL is written, and then a recursive "rwx" is written for the
-# "$main_d".
-if [[ ! -r "${main_d}" ]]; then
+#:
+#: on XFS
+## Nearly all of the `sudo` commands below are allowing rw access, of
+## this script's data_subd, so simply using ACL's will reduce the overuse
+## of `sudo`. This section takes the "$mountpoint" variable, portions
+## each subdirectory name into an array index, and tests each subdi-
+## rectory from the FS root up for readability by the user running
+## this script (ie, a regular user). As the absolute path is recon-
+## structed, when a non-readable directory is found, a recursive "r-x"
+## ACL is written, and then a recursive "rwx" is written for the
+## "$main_d".
+#if [[ ! -r "${main_d}" ]]; then
 
-  mapfile -d / -t a_acl_name_indiv_dir <<<"${main_d}"
+  #mapfile -d / -t a_acl_name_indiv_dir <<<"${main_d}"
 
-  #:_ 
-  #declare -p main_d mountpoint a_acl_name_indiv_dir
-  #exit "$LINENO"
+  ##:_ 
+  ##declare -p main_d mountpoint a_acl_name_indiv_dir
+  ##exit "$LINENO"
 
-  a_acl_name_indiv_dir[0]=/
-  a_acl_name_indiv_dir[-1]="${a_acl_name_indiv_dir[-1]//$'\n'/}"
+  #a_acl_name_indiv_dir[0]=/
+  #a_acl_name_indiv_dir[-1]="${a_acl_name_indiv_dir[-1]//$'\n'/}"
 
-  acl_each_dir=${#a_acl_name_indiv_dir[@]}
+  #acl_each_dir=${#a_acl_name_indiv_dir[@]}
 
-  for ((iterator_1 = 0; iterator_1 < acl_each_dir; iterator_1++)); do
-    acl_abs_path+="/${a_acl_name_indiv_dir[iterator_1]}"
-    acl_realpath="$(realpath -e "${acl_abs_path}")"
+  #for ((iterator_1 = 0; iterator_1 < acl_each_dir; iterator_1++)); do
+    #acl_abs_path+="/${a_acl_name_indiv_dir[iterator_1]}"
+    #acl_realpath="$(realpath -e "${acl_abs_path}")"
 
-    if S_ test -e "${acl_realpath}"; then
-      : 'test succeeded: acl_realpath exists '
-    else
-      :
-      : 'test failed: acl_realpath DNE'
-      :
+    #if S_ test -e "${acl_realpath}"; then
+      #: 'test succeeded: acl_realpath exists '
+    #else
+      #:
+      #: 'test failed: acl_realpath DNE'
+      #:
 
-      if [[ ! -d "${acl_abs_path}" ]]; then
+      #if [[ ! -d "${acl_abs_path}" ]]; then
 
-        # as root; `mkdir` handles mult leading forward slashes correctly
-        S_ mkdir -v --parents "${main_d}" \
-          || I_
-      fi
+        ## as root; `mkdir` handles mult leading forward slashes correctly
+        #S_ mkdir -v --parents "${main_d}" \
+          #|| I_
+      #fi
 
-      acl_realpath="$(realpath -e "${acl_abs_path}" 2>/dev/null)"
+      #acl_realpath="$(realpath -e "${acl_abs_path}" 2>/dev/null)"
 
-      :
-      : '<>'
-      #   Note: Undocumented behavior. `namei` appears to calculate the
-      #   effective permissions for $USER by amalgamating DAC and ACL
-      #   permissions together.
-      S_ namei -xl "${acl_realpath}"
+      #:
+      #: '<>'
+      ##   Note: Undocumented behavior. `namei` appears to calculate the
+      ##   effective permissions for $USER by amalgamating DAC and ACL
+      ##   permissions together.
+      #S_ namei -xl "${acl_realpath}"
 
-    fi
+    #fi
 
-    if [[ -r "${acl_realpath}" ]]; then
-      : 'test succeeded: acl_realpath is readable'
-    else
-      :
-      : 'test failed: acl_realpath is not readable'
-      :
+    #if [[ -r "${acl_realpath}" ]]; then
+      #: 'test succeeded: acl_realpath is readable'
+    #else
+      #:
+      #: 'test failed: acl_realpath is not readable'
+      #:
 
-      acl_execd_setfacl=y
-      export acl_execd_setfacl # SC2034, while trap-s setfacl blk is #-d
+      #acl_execd_setfacl=y
+      #export acl_execd_setfacl # SC2034, while trap-s setfacl blk is #-d
 
-      # readable up to the main_d
-      S_ chmod -R 750 "${acl_realpath}" \
-        || I_
+      ## readable up to the main_d
+      #S_ chmod -R 750 "${acl_realpath}" \
+        #|| I_
 
-      S_ setfacl -d -m "g:${acl_grpnm}:r-x" "${acl_realpath}" \
-        || I_
+      #S_ setfacl -d -m "g:${acl_grpnm}:r-x" "${acl_realpath}" \
+        #|| I_
 
-      S_ setfacl -R -m "g:${acl_grpnm}:r-x" "${acl_realpath}" \
-        || I_
+      #S_ setfacl -R -m "g:${acl_grpnm}:r-x" "${acl_realpath}" \
+        #|| I_
 
-      :
-      : '<>'
-      id "${USER}"
-      groups "${USER}"
-      S_ namei -xl "${acl_realpath}"
-      S_ getfacl "${acl_realpath}"
+      #:
+      #: '<>'
+      #id "${USER}"
+      #groups "${USER}"
+      #S_ namei -xl "${acl_realpath}"
+      #S_ getfacl "${acl_realpath}"
 
-      [[ -r "${acl_realpath}" ]] \
-        || I_
+      #[[ -r "${acl_realpath}" ]] \
+        #|| I_
 
-      # writeable within the main_d
-      S_ setfacl -d -m "g:${acl_grpnm}:rwx" "${main_d}" \
-        || I_
+      ## writeable within the main_d
+      #S_ setfacl -d -m "g:${acl_grpnm}:rwx" "${main_d}" \
+        #|| I_
 
-      S_ setfacl -R -m "g:${acl_grpnm}:rwx" "${main_d}" \
-        || I_
+      #S_ setfacl -R -m "g:${acl_grpnm}:rwx" "${main_d}" \
+        #|| I_
 
-      :
-      : '<>'
-      id "${USER}"
-      groups "${USER}"
-      S_ namei -xl "${main_d}"
-      S_ getfacl "${main_d}"
+      #:
+      #: '<>'
+      #id "${USER}"
+      #groups "${USER}"
+      #S_ namei -xl "${main_d}"
+      #S_ getfacl "${main_d}"
 
-    fi
-  done
-fi
+    #fi
+  #done
+#fi
 
 :
 : 'make sure -data_subd- is a directory OR create the -data_subd- dir '
@@ -955,7 +956,7 @@ S_ namei -xl "${curr_time_ssubd}"
 # BUG:  Reduce Search Time
 
 :
-: Gather filenames from local attached disk storage
+: 'Gather filenames from local attached disk storage'
 
 #   Note: earlier work: If a prior record of the relevant_search_dirs
 # array exists, and if that prior record matches the new record, then
@@ -975,7 +976,7 @@ mapfile -d '' -t a_relevant_search_dirs < <(
 W_ a_relevant_search_dirs
 
 :
-: 'If we must run -find- for a_all_files.'
+: 'run -find- for a_all_files.'
 #if [[ ! -v a_all_files ]]; then
 
 : '<>'
@@ -1010,12 +1011,12 @@ mapfile -d '' -t a_all_files_sorted < <(
 :
 W_ a_all_files_sorted
 
-:
-: Do the comparison.
-num_a="$(N_ a_all_files)"
-num_b="$(N_ a_all_files_sorted)"
-[[ "${num_a}" -eq "${num_b}" ]] \
-  || I_
+#:
+#: Do the comparison.
+#num_a="$(N_ a_all_files)"
+#num_b="$(N_ a_all_files_sorted)"
+#[[ "${num_a}" -eq "${num_b}" ]] \
+  #|| I_
 
 # SECTION D
 
