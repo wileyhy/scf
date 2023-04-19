@@ -194,7 +194,7 @@ fi
   && exit "${LINENO}"
 
 ### Bug? not necc to restart ssh-agent if both of these vars exist?
-### shellcheck disable=SC2154
+# shellcheck disable=SC2154
 declare -p SSH_AUTH_SOCK SSH_AGENT_PID
 
 ps_o="$(ps aux)"
