@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 # Q: name sb scfi ?
 # Written in bash version 5.1 on Fedora 37
 
@@ -31,6 +31,11 @@ script_nm=find-and-scan-shell-scripts-sh
 script_proper_nm='Script Finder'
 script_version=1.0
 umask 007
+#a_relevant_search_dirs=( /usr/sbin ); abbrev_rel_search_dirs=s
+#a_relevant_search_dirs=( /usr/sbin /usr/bin ); abbrev_rel_search_dirs=sb
+#a_relevant_search_dirs=( /usr/sbin /usr/bin /etc ); abbrev_rel_search_dirs=sbe
+#a_relevant_search_dirs=( /usr/sbin /usr/bin /etc /var ); abbrev_rel_search_dirs=sbev
+a_relevant_search_dirs=(/usr/sbin /usr/bin /etc /var /root); abbrev_rel_search_dirs=sbevr
 
 :
 : Aliases
@@ -213,22 +218,22 @@ if ! S_ -v; then
   L_
 fi
 
-:
-: Lets just solve this darned new-line issue
+#:
+#: Lets just solve this darned new-line issue
 
-#   Note: the in-command newline is intentional
-# shellcheck disable=SC2312 
-mapfile -d '' -t filenames_with_newlines < <( S_ find / -name '*
-*' -print0 2> /dev/null ) # Posix compatible per Stack Overflow
+##   Note: the in-command newline is intentional
+## shellcheck disable=SC2312 
+#mapfile -d '' -t filenames_with_newlines < <( S_ find / -name '*
+#*' -print0 2> /dev/null ) # Posix compatible per Stack Overflow
 
-for f in "${filenames_with_newlines[@]}"; do 
-  S_ mv "${f}" "${f//$'\n'/}"; 
-done
+#for f in "${filenames_with_newlines[@]}"; do 
+  #S_ mv "${f}" "${f//$'\n'/}"; 
+#done
 
-# shellcheck disable=SC2312
-mapfile -d '' -t filenames_with_newlines < <( S_ find / -name '*
-*' -print0 2> /dev/null )
-: 'filenames_with_newlines:' "${#filenames_with_newlines[@]}"
+## shellcheck disable=SC2312
+#mapfile -d '' -t filenames_with_newlines < <( S_ find / -name '*
+#*' -print0 2> /dev/null )
+#: 'filenames_with_newlines:' "${#filenames_with_newlines[@]}"
 
 # Set up a trap on signals "exit", "term" and "int"
 # shellcheck disable=SC2154
@@ -313,6 +318,7 @@ main_d="${mountpoint}/${script_dirnm}"
 data_subd="${main_d}/latest_data"
 curr_time_ssubd="${data_subd}/t_${timecode}/"
 list_crunchbangs="${curr_time_ssubd}/crunchbangs"
+found_scrpts_f="${list_crunchbangs}_found_scripts_${severity:0:1}_${abbrev_rel_search_dirs}"
 
 
 : 'Reduce use of sudo'
@@ -446,25 +452,18 @@ S_ namei -xl "${curr_time_ssubd}"
 :
 : 'Gather filenames from local attached disk storage'
 :
-: 'in any event, create a new record for a_relevant_search_dirs and..'
-# shellcheck disable=SC2312
-mapfile -d '' -t a_relevant_search_dirs < <(
-  S_ find / -mindepth 1 -maxdepth 1 -type d \! -empty \
-    \( \! -name proc -a \! -name sys -a \! -iname "${script_dirnm}*" \) \
-    -print0 2>/dev/null
-)
+#: 'in any event, create a new record for a_relevant_search_dirs and..'
+## shellcheck disable=SC2312
+#mapfile -d '' -t a_relevant_search_dirs < <(
+  #S_ find / -mindepth 1 -maxdepth 1 -type d \! -empty \
+    #\( \! -name proc -a \! -name sys -a \! -iname "${script_dirnm}*" \) \
+    #-print0 2>/dev/null
+#)
 :
 W_ a_relevant_search_dirs
 
 :
 : 'run -find- for a_all_files.'
-
-: '<>'
-a_relevant_search_dirs=( /usr/sbin )
-#a_relevant_search_dirs=( /usr/sbin /usr/bin )
-#a_relevant_search_dirs=( /usr/sbin /usr/bin /etc )
-#a_relevant_search_dirs=( /usr/sbin /usr/bin /etc /var )
-#a_relevant_search_dirs=(/usr/sbin /usr/bin /etc /var /root)
 
 :
 : Find all files on disk. Even the empty ones.
@@ -774,12 +773,10 @@ sort_o="$(sort -gr <<< "${wc_o}")"
 awk_o="$(awk '{ print $2 }' <<< "${sort_o}")"
 :
 mapfile -t a_each_script_list_sorted_by_linect <<< "${awk_o}" # ie properly
-
 # Bug? 1st grep extra?
-
 :
-: '<>'
 
+found_scrpts_f="${list_crunchbangs}_found_scripts_${severity:0:1}_${abbrev_rel_search_dirs}"
 iterator_2=0
 {
   :
@@ -789,43 +786,36 @@ iterator_2=0
       shellcheck -S "${severity}" \
         "${a_each_script_list_sorted_by_linect[sorted_script]}" \
         | grep --fixed-strings --invert-match 'shellcheck.net' \
-        | grep --extended-regexp -o "SC[]0-9a-zA-Z\ \t():,.'$&#\!\[-]*" \
+        | grep --extended-regexp -o "SC[0-9]{4}.*" \
         | cut -b -64 \
-        | sort --general-numeric-sort \
-        | uniq --count # end of pipe intended
+        | sort -g \
+        | uniq -c \
+        | sort -k3 # end of pipe intended
       printf '\0'
     )
-
     :
-    : '<>'
-
     if [[ -n "${a_each_script_SC_results[*]:0:1}" ]]; then
       printf '\n%-4d%s\n' $((iterator_2++)) \
         "${a_each_script_list_sorted_by_linect[sorted_script]}"
       printf '%s' "${a_each_script_SC_results[@]}"
     fi
   done
-} | S_ tee -a "${list_crunchbangs}_found_scripts" >/dev/null
-
+} | S_ tee -a "${found_scrpts_f}" > /dev/null
 
 :
 : Write semi-permanent archives
-
 :
-B_ "${list_crunchbangs}_found_scripts"
-S_ rsync -ca "${list_crunchbangs}_found_scripts" "${main_d}" \
+B_ "${found_scrpts_f}"
+S_ rsync -ca "${found_scrpts_f}" "${main_d}" \
   || I_
-S_ rsync -ca "${list_crunchbangs}_found_scripts" /tmp \
+S_ rsync -ca "${found_scrpts_f}" /tmp \
   || I_
 :
-
 :
-B_ "${main_d}/${list_crunchbangs##*/}_found_scripts"
+B_ "${main_d}/${found_scrpts_f##*/}"
 :
-
 :
-B_ "/tmp/${list_crunchbangs##*/}_found_scripts"
+B_ "/tmp/${found_scrpts_f##*/}"
 :
-
 exit 00
 
