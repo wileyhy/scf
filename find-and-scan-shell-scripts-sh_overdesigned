@@ -2,6 +2,9 @@
 # Q: name sb scfi ?
 # Written in bash version 5.1 on Fedora 37
 
+# Notes: This script is overdesigned. "Keep your goal in mind."
+#   https://www.navitor.com/blog/pursuit-perfection-overdesigning/
+
 # SECTION A
 
 :
@@ -257,6 +260,13 @@ fn_write_vars() {
 
 :
 : Aliases
+#   Note: some quite neat things about using aliases in scripts:
+#     (1) they'll print LINENO corrctly without having to type it
+#       a million times.
+#     (2) in XTRACE output, any commands that used an alias get
+#       printed twice. The alias adds an additional round of 
+#       parameter(?) expansion, so you get to see the fully parsed
+#       command line.
 shopt -s expand_aliases
 alias :_=':;: "<>"' \
       A_='fn_age_file ' \
@@ -306,124 +316,124 @@ mapfile -d '' -t filenames_with_newlines < <( S_ find / -name '*
 #:_ 
 #X_
 
-# ACL group
-#   Note: the "wheel" group is not included on all platforms
+## ACL group
+##   Note: the "wheel" group is not included on all platforms
 
-#:_ 
-id "$USER"
-groups "$USER"
-
-# get a list of any existing "guser15724_" users
-declare -A gxs f d 
-grep_o="$(grep guser15724_ /etc/{group,passwd})"
-cut_o="$(cut -d ':' -f2 <<< "${grep_o}")"
-
-# use an Assoc array (gxs) to filter out duplicates
-while read -r; do
-  gxs["${REPLY}"]='x'
-done <<< "${cut_o}"
-
-:_
-X_
-D_ grep_o cut_o gxs
-#L_
-
-# if 
-S_ usermod -G liveuser liveuser \
-  || L_
-
-if [[ -n "${gxs[*]}" ]]; then
-  for g in "${!gxs[@]}"; do
-    if grep "${g}" /etc/passwd; then
-      S_ userdel -f "${g}" \
-        || L_
-    fi
-    if grep "${g}" /etc/group; then
-      S_ groupdel -f "${g}" \
-        || L_
-    fi
-    grep -q "${g}" /etc/{group,passwd} \
-      && L_
-    d+=([$g]="/home/${g}")
-    if [[ -d "${d[$g]}" ]]; then
-      S_ rm -fr "${d[$g]}" \
-        || L_
-    fi
-    f+=([$g]="/var/spool/mail/${g}")
-    if [[ -f "${f[$g]}" ]]; then
-      S_ rm -f "${f[$g]}" \
-        || L_
-    fi 
-  done
-fi
-
-D_ g gxs f d 
-#L_
-
-# if the env vars GID_MIN and GID_MAX do not exist yet, create them
-grep_o="$(grep -e ^GID_ /etc/login.defs)"
-
-getconf GID_MIN 2>/dev/null \
-  || GID_MIN="$(awk '/MIN/ { print $2 }' <<<"${grep_o}")"
-getconf GID_MAX 2>/dev/null \
-  || GID_MAX="$(awk '/MAX/ { print $2 }' <<<"${grep_o}")"
-
-# restrict access to all groups
-S_ cp -n /etc/login.defs{,~}
-S_ sed -i 's,^#MAX_MEMBERS_PER_GROUP\s*0$,MAX_MEMBERS_PER_GROUP  1,g' \
-  /etc/login.defs
-
-#:_ 
-#X_
-#set -v
-
-# select values for "$acl_gid" and "$acl_grpnm" which are unlikely to be
-# guessed beforehand, and eliminate the TOCTOU issue as much as possible
-while :; do
-  if S_ useradd --uid "${acl_gid:="$(($(($((RANDOM * RANDOM)) % $((${GID_MAX:=60000} - ${GID_MIN:=1000})))) + GID_MIN))"}" "${acl_grpnm:="guser15724_${RANDOM}${$}"}"; then
-    break
-  else
-    unset acl_gid acl_grpnm
-  fi
-done
-#S_ groupadd -g "${acl_gid:="$((  $(($((RANDOM*RANDOM)) % $((${GID_MAX:=60000}-${GID_MIN:=1000})))) +GID_MIN  ))"}" -U "$USER" "${acl_grpnm:="guser15724_${RANDOM}$$"}"
-grep guser15724 /etc/{group,passwd}
-
-#:_ 
-#export cl_g{id,rpnm}
-#X_
-#set +v
-#id -Gn "${USER}"
-#grep guser15724_ /etc/{group,passwd}
-#declare -p acl_gid acl_grpnm \
-  #|| L_
-
-groups "${USER}"
-S_ usermod -aG "${acl_grpnm}" "${USER}"
-S_ grpck
-groups "$USER"
-
-#newgrp "$acl_grpnm" <<EONG
-#:_ 
-#grep guser15724_ /etc/{group,passwd}
-#X_
-#id "$USER"
-#groups "$USER" | grep "$acl_grpnm" || fn_erx "$LINENO"
-#EONG
-#:_ 
-#set
-#env
+##:_ 
 #id "$USER"
 #groups "$USER"
-#groups "$USER" | grep "$acl_grpnm" || fn_erx "$LINENO"
-#exit "$LINENO"
-#groups
-#/usr/bin/newgrp "$acl_grpnm" <<EONG
-#foo=( bar baz )
-#declare -p foo
-#EONG
-#declare -p foo
-#exit "$LINENO"
+
+## get a list of any existing "guser15724_" users
+#declare -A gxs f d 
+#grep_o="$(grep guser15724_ /etc/{group,passwd})"
+#cut_o="$(cut -d ':' -f2 <<< "${grep_o}")"
+
+## use an Assoc array (gxs) to filter out duplicates
+#while read -r; do
+  #gxs["${REPLY}"]='x'
+#done <<< "${cut_o}"
+
+#:_
+#X_
+#D_ grep_o cut_o gxs
+##L_
+
+## if 
+#S_ usermod -G liveuser liveuser \
+  #|| L_
+
+#if [[ -n "${gxs[*]}" ]]; then
+  #for g in "${!gxs[@]}"; do
+    #if grep "${g}" /etc/passwd; then
+      #S_ userdel -f "${g}" \
+        #|| L_
+    #fi
+    #if grep "${g}" /etc/group; then
+      #S_ groupdel -f "${g}" \
+        #|| L_
+    #fi
+    #grep -q "${g}" /etc/{group,passwd} \
+      #&& L_
+    #d+=([$g]="/home/${g}")
+    #if [[ -d "${d[$g]}" ]]; then
+      #S_ rm -fr "${d[$g]}" \
+        #|| L_
+    #fi
+    #f+=([$g]="/var/spool/mail/${g}")
+    #if [[ -f "${f[$g]}" ]]; then
+      #S_ rm -f "${f[$g]}" \
+        #|| L_
+    #fi 
+  #done
+#fi
+
+#D_ g gxs f d 
+##L_
+
+## if the env vars GID_MIN and GID_MAX do not exist yet, create them
+#grep_o="$(grep -e ^GID_ /etc/login.defs)"
+
+#getconf GID_MIN 2>/dev/null \
+  #|| GID_MIN="$(awk '/MIN/ { print $2 }' <<<"${grep_o}")"
+#getconf GID_MAX 2>/dev/null \
+  #|| GID_MAX="$(awk '/MAX/ { print $2 }' <<<"${grep_o}")"
+
+## restrict access to all groups
+#S_ cp -n /etc/login.defs{,~}
+#S_ sed -i 's,^#MAX_MEMBERS_PER_GROUP\s*0$,MAX_MEMBERS_PER_GROUP  1,g' \
+  #/etc/login.defs
+
+##:_ 
+##X_
+##set -v
+
+## select values for "$acl_gid" and "$acl_grpnm" which are unlikely to be
+## guessed beforehand, and eliminate the TOCTOU issue as much as possible
+#while :; do
+  #if S_ useradd --uid "${acl_gid:="$(($(($((RANDOM * RANDOM)) % $((${GID_MAX:=60000} - ${GID_MIN:=1000})))) + GID_MIN))"}" "${acl_grpnm:="guser15724_${RANDOM}${$}"}"; then
+    #break
+  #else
+    #unset acl_gid acl_grpnm
+  #fi
+#done
+##S_ groupadd -g "${acl_gid:="$((  $(($((RANDOM*RANDOM)) % $((${GID_MAX:=60000}-${GID_MIN:=1000})))) +GID_MIN  ))"}" -U "$USER" "${acl_grpnm:="guser15724_${RANDOM}$$"}"
+#grep guser15724 /etc/{group,passwd}
+
+##:_ 
+##export cl_g{id,rpnm}
+##X_
+##set +v
+##id -Gn "${USER}"
+##grep guser15724_ /etc/{group,passwd}
+##declare -p acl_gid acl_grpnm \
+  ##|| L_
+
+#groups "${USER}"
+#S_ usermod -aG "${acl_grpnm}" "${USER}"
+#S_ grpck
+#groups "$USER"
+
+##newgrp "$acl_grpnm" <<EONG
+##:_ 
+##grep guser15724_ /etc/{group,passwd}
+##X_
+##id "$USER"
+##groups "$USER" | grep "$acl_grpnm" || fn_erx "$LINENO"
+##EONG
+##:_ 
+##set
+##env
+##id "$USER"
+##groups "$USER"
+##groups "$USER" | grep "$acl_grpnm" || fn_erx "$LINENO"
+##exit "$LINENO"
+##groups
+##/usr/bin/newgrp "$acl_grpnm" <<EONG
+##foo=( bar baz )
+##declare -p foo
+##EONG
+##declare -p foo
+##exit "$LINENO"
 
 #   Note: Code for removing the process lock and for resetting the ACL-s
 # must be parsed prior to that of setting up either.
@@ -484,8 +494,6 @@ a_poss_proces_lock_dirs=([0]="${XDG_RUNTIME_DIR}" [1]="${HOME}"
 
 #:_ 
 #declare -p a_poss_proces_lock_dirs
-
-# bug? And force iteration in sorted numeric order?
 
 # from among the poosible dirnames
 for poss_lk_d in "${a_poss_proces_lock_dirs[@]}"; do
@@ -635,9 +643,11 @@ for ((i = 0; i < I; i++)); do
     && unset 'a_maj8s[i]'
 
   :;:;:
-  D_ i a_maj8s wipefs_o a_mp a_fs a_uu a_avail_mp a_avail_fs
+  D_ i a_maj8s wipefs_o a_mp a_fs a_uu 
   :;:;:
 done
+
+# Bug? the previous harmonization of indices is not preserved
 
 # create some additional arrays for counting existing values
 for mp in "${a_mp[@]}"; do [[ -n "${mp}" ]] && a_avail_mp+=("${mp}"); done
