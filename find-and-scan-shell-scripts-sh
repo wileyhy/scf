@@ -668,45 +668,45 @@ then
         fi
       fi
       :
-      # TODO: Add "$all_files_index" to content of "a_shell_scripts"
-      :
       #X_; :_
       :
       : 'Make an array of the relevant filenames and their crashbangs.'
-      a_shell_scripts+=([all_files_index]="$(
-        printf "%'-12d %%=%%=%%=%% %-50s %%=%%=%%=%% %s\n" \
-          "${all_files_index}" "${first_line_printable}" "${each_sorted_f}"
-      )")
-        #   Note: an additional single quote here because printf's 
-        #   trickery fools our Mr Vim
+      a_shell_scripts+=([all_files_index]="$(printf \
+        "%'-12d %%=%%=%%=%% %-50s %%=%%=%%=%% %s\n" \
+          "${all_files_index}" "${first_line_printable}" \
+          "${each_sorted_f}")"
+        )
       :
       #:_; D_ a_shell_scripts all_files_index first_line_printable each_sorted_f; L_
-      :
     else
-      a_all_other_files+=([all_files_index]="${each_sorted_f}")
+      :
+      : 'all others'
+      a_all_other_files+=([all_files_index]="$(printf \
+        "%'-12d %%=%%=%%=%% %s\n" "${all_files_index}" \
+          "${each_sorted_f}")"
+        )
     fi
   done
   :
   #X_; :_; D_ a_shell_scripts all_files_index first_line_printable each_sorted_f; L_
+  
   :
-  : 'Open a timestamped file and append into it the list'
-  : 'of filenames and their crashbangs.'
+  : 'Open a timestamped file and append into it the list of filenames' 
+  : 'and their crashbangs.'
   :
   : 'Exporting is necessary of the array names from the above scan'
   a_arrays=( a_all_files a_all_files_sorted a_file_DNE a_empty_files a_bin_file_output a_bin_od_output a_incorrect_endianness a_crunches_with_hashbang_comments a_non_rpm_user_crunches a_non_rpm_system_crunches a_shell_scripts a_all_other_files a_write_path_nms )
   export  "${a_arrays[@]}"
   :
-  W_ "${a_arrays[@]}"
-  B_ "${curr_time_ssubd}/file_out"
-  #L_
+  W_ "${a_arrays[@]}"; 
+  B_ "${curr_time_ssubd}/file_out"; 
+  #L_;
   :
   : 'if any data files already exist, keep them'
-  for any_existing_f in "${a_write_path_nms[@]}"; 
-  do
+  for any_existing_f in "${a_write_path_nms[@]}"; do
     :
-    if [[ -f "${any_existing_f}" ]] && [[ ! -L "${any_existing_f}" ]]; 
-    then
-      mv "${any_existing_f}" "${any_existing_f}.${$}.${random_n}" \
+    if [[ -f "${any_existing_f}" ]] && [[ ! -L "${any_existing_f}" ]]; then
+      S_ mv "${any_existing_f}" "${any_existing_f}.${$}.${random_n}" \
         || I_
     fi
   done
@@ -714,16 +714,15 @@ then
   : 'create the original list_crunchbangs'
   S_ touch "${a_write_path_nms[@]}"
   :
-  : 'file header'
+  : 'write a file header'
   {
     printf '# crunchbangs -- %s\n' "${timecode%-*}"
     printf '# %s\n' "$(declare -p a_relevant_search_dirs)"
-  } | S_ T_ "${a_write_path_nms[@]}" >/dev/null
+  } | S_ T_ "${a_write_path_nms[@]}" > /dev/null
   :
-  : printing contents of a_shell_scripts array
+  : 'printing contents of a_shell_scripts array, with backup'
   printf '%s\n' "${a_shell_scripts[@]}" \
-    | S_ T_ -a "${a_write_path_nms[@]}" >/dev/null
-    :
+    | S_ T_ -a "${a_write_path_nms[@]}" > /dev/null
   B_ "${a_write_path_nms[@]}"
   :
 else
@@ -737,13 +736,18 @@ else
   fi
 fi
 :
-:_; W_ a_write_path_nms; X_; S_ head "/tmp/${list_crunchbangs##*/}"; L_;
+W_ a_write_path_nms; 
+:
+X_; :_; S_ head "/tmp/${list_crunchbangs##*/}"; 
+#L_;
+:
+
 :
 : 'Verify inter^preters'
 :
 # shellcheck disable=SC2016
 mapfile -t a_interpreters < <( 
-  S_ awk 'BEGIN { FS = "% % % %" } ; /^#!/ { print $1 }' \
+  S_ awk 'BEGIN { FS = "%=%=%=%" } ; /#!/ { print $2 }' \
     "/tmp/${list_crunchbangs##*/}" \
     | awk 'BEGIN { FS = " -" } ; { print $1 }' \
     | sed 's, *,,g' \
@@ -752,7 +756,8 @@ mapfile -t a_interpreters < <(
     || I_ "P:${PIPESTATUS[*]}"
   )
 :
-:_; D_ a_interpreters; L_
+:_; D_ a_interpreters; 
+#L_
 :
 mapfile -t a_interps_rps < <(
   S_ realpath -e "${a_interpreters[@]}" \
@@ -762,28 +767,32 @@ mapfile -t a_interps_rps < <(
 {
 for b in "${!a_interps_rps[@]}"; do 
   printf '%-32s' "${a_interps_rps[b]}"; 
+  :
   if command -pv "${a_interps_rps[b]}" > /dev/null; then 
     m="exists on disk"; 
   else 
     m="DNE on disk"; 
   fi; 
-    interps_disk_repo+=([b]="${b} : ${a_interps_rps[b]} : ${m}")
-    printf '%-8s' "${m}"; 
-  echo; 
+  :
+  interps_disk_repo+=([b]="${b} : ${a_interps_rps[b]} : ${m}")
+  printf '%-8s' "${m}"; 
+  :
   dnf_po="$( dnf provides "${a_interps_rps[b]}" \
     | awk '/x86_64|i686/ { print $1 }' \
     | sort -u 
     )"; 
+    :
   if [[ -n "$dnf_po" ]]; then 
     m="exists in repos"; 
   else 
     m="DNE in repos"; 
-  fi; 
-    interps_disk_repo+=([b+100]="${b} : ${a_interps_rps[b]} : ${m}")
-    printf '\t\t\t\t%s\n' "${m}"; 
+  fi;
+  :
+  interps_disk_repo+=([b+100]="${b} : ${a_interps_rps[b]} : ${m}")
+  printf '\t\t\t\t%s\n' "${m}"; 
   printf '%s\n' "$dnf_po"; 
   unset dnf_po; 
-  echo; 
+  :
 done
 } | S_ T_ -a "${curr_time_ssubd}a_interpreters" > /dev/null
 :
@@ -794,20 +803,20 @@ L_
 :
 # SECTION E
 :
-: CENTRAL TASK, 1 OF 2: Filter the list of crashbangs with the list
-: of shells.
+: 'CENTRAL TASK, 1 OF 2: Filter the list of crashbangs with the list'
+: 'of shells.'
 :
 : 'file header'
 {
   printf '# SC-scrpts-list -- %s\n' "${timecode%-*}"
-  printf '# %s\n' "$(declare -p a_relevant_search_dirs)"
+  printf '# %s\n' "$(D_ a_relevant_search_dirs)"
 } | S_ T_ "${list_crunchbangs}_SC-scrpts-list" > /dev/null
-  :
+:
 # pulls from time_dir
-S_ grep -E '/bin/'"${shells}"'.*% % % %' "${list_crunchbangs}" \
+S_ grep -E '/bin/'"${shells}"'.*%=%=%=%' "${list_crunchbangs}" \
   | S_ tee -a "${list_crunchbangs}_SC-scrpts-list" \
   || I_
-  :
+:
 B_ "${list_crunchbangs}_SC-scrpts-list" /tmp/*_SC-scrpts-list
 :
 S_ rsync -ca "${list_crunchbangs}_SC-scrpts-list" /tmp \
@@ -815,7 +824,12 @@ S_ rsync -ca "${list_crunchbangs}_SC-scrpts-list" /tmp \
 :
 B_ "${list_crunchbangs}_SC-scrpts-list" /tmp/*_SC-scrpts-list
 :
-: 'MAIN TASK, 2 of 2: with ShellCheck scan each script for errors'
+X_; :_; W_ timecode list_crunchbangs shells 
+L_
+:
+
+:
+: 'CENTRAL TASK, 2 of 2: with ShellCheck scan each script for errors'
 :
 # TODO: keep "$all_files_index" tracked with content all the way through
 #   into the "_found_scripts" file
@@ -823,7 +837,7 @@ B_ "${list_crunchbangs}_SC-scrpts-list" /tmp/*_SC-scrpts-list
 :
 : 'A hell world of pipelines'
 #   Q: how to translate the correct newlines into nulls to separate the 
-#   filenames when reading from a file?  awk?
+#   filenames when reading from a file?  awk? files _can_ contain \n-s
 :
 grep_o="$(S_ grep ^'#!' "${list_crunchbangs}_SC-scrpts-list")"
 :
