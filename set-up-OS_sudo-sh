@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 # set-up-OS_sudo-sh
 
 ## Notes
@@ -15,9 +15,18 @@ else
 fi
 
 # Network & time
-systemctl start NetworkManager.service
-sudo ping -c 1 -W 15 8.8.8.8 \
-  || exit "${LINENO}"
+if ! sudo ping -c 1 -W 15 8.8.8.8; then
+  printf '\n\tAttempting to connect...\n\n'
+  sudo systemctl start NetworkManager.service
+  wait -f
+  sleep 15
+  if ! sudo ping -c 1 -W 15 8.8.8.8; then 
+    printf '\n\tGiving up; Exiting.\n\n'
+    exit "${LINENO}"
+  else
+    printf '\n\tSuccess!\n\n'
+  fi
+fi
 sudo timedatectl set-local-rtc 0
 sudo timedatectl set-timezone America/Vancouver
 sudo systemctl start chronyd.service
@@ -26,21 +35,35 @@ sudo chronyc makestep
 # DNF
 sudo dnf -y install info ShellCheck git gh kcov shfmt
 sudo dnf -y --security upgrade
-{
-  set -x
-  for s in HUP USR1 USR2 TERM; do
-    dnf_o="$(dnf needs-restarting 2>/dev/null)"
-    awk_o="$(awk '{ print $1 }' <<<"${dnf_o:?}")"
-    mapfile -t pids_nr <<<"${awk_o:?}"
-    printf '\n\t pids, count: %d\n\n' "${#pids_nr[@]}"
-    for p in "${pids_nr[@]}"; do
-      echo
-      sleep 1
-      kill -s "${s}" "${p}"
-    done
-  done
-  set -
-} &
-disown
+#set -x
+dnf_o="$(sudo dnf needs-restarting 2>/dev/null)"
+awk_o="$(awk '{ print $1 }' <<<"${dnf_o:?}")"
 
-systemctl start NetworkManager.service
+if [[ -n "${dnf_o}" ]] && [[ -n "${awk_o}" ]]; then 
+  mapfile -t pids_nr <<<"${awk_o:?}"
+
+  if [[ "${#pids_nr[@]}" -gt 1 ]]; then
+    printf '\n\t PID-s, count: %d\n\n' "${#pids_nr[@]}"
+    sleep 1
+    printf '\t Backgrounding and disowning -kill- loops.\n\n'
+    sleep 3
+    {
+      for s in HUP USR1 TERM; do
+
+        for p in "${pids_nr[@]}"; do
+          sleep 1
+          printf '\n\t[script:] + sudo kill -s %s %d' "${s}" "${p}"
+          sudo kill -s "${s}" "${p}"
+        done;
+      done;
+      printf '\n\n\tScript complete. [Press ENTER.]\n\n'
+    } &
+    disown
+  elif [[ "${pids_nr[@]}" -eq 1 ]]; then 
+    printf '\n\t The remaining "needs-restarting" process cannot be '
+    printf 'restarted \n\t without rebooting the machine.\n'
+    printf '\n\t %s \n\n' "${dnf_o}"
+    printf '\n\n\tScript complete.\n\n'
+  fi
+fi;
+

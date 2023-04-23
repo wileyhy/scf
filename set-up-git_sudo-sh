@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 # set-up-git_sudo-sh
 
 ## Notes
@@ -15,8 +15,13 @@ else
 fi
 
 # Network & time
-sudo ping -c 1 8.8.8.8 \
-  || exit "${LINENO}"
+if ! sudo ping -c 1 -W 15 8.8.8.8; then
+  sudo systemctl start NetworkManager.service
+  wait -f
+  sleep 15
+  sudo ping -c 1 -W 15 8.8.8.8 \
+    || exit "${LINENO}"
+fi
 
 # BASH
 ## .bashrc
@@ -49,7 +54,7 @@ set shiftwidth=2
 " On pressing tab, insert 2 spaces
 set expandtab
 EOF
-sudo tee /root/.vimrc <<<"${tmpf}" >/dev/null
+sudo tee /root/.vimrc < "${tmpf}" >/dev/null
 rm -f "${tmpf}"
 
 ## Copy root-user files to liveuser
@@ -200,22 +205,28 @@ declare -p SSH_AUTH_SOCK SSH_AGENT_PID
 ps_o="$(ps aux)"
 awk_o="$(awk '$0 ~ /ssh-agent/ && $0 !~ /startx/ { print $2 }' \
   <<<"${ps_o:?}")"
-mapfile -t ssh_agent_pids <<<"${awk_o:?}"
+if [[ -n "${awk_o}" ]]; then 
+  mapfile -t ssh_agent_pids <<<"${awk_o:?}"
+fi
+unset ps_o awk_o
 
-case "${#ssh_agent_pids[@]}" in
-  0) : ;;
-  1) if [[ -v SSH_AGENT_PID ]]; then
-    ssh-agent -k
-  else
-    kill "${ssh_agent_pids[*]}"
-  fi ;;
-  *) for p in "${ssh_agent_pids[@]}"; do
-    kill "${p}"
-  done ;;
-esac
+if [[ "${#ssh_agent_pids[@]}" -gt 0 ]]; then
+  case "${#ssh_agent_pids[@]}" in
+    0) : ;;
+    1) if [[ -v SSH_AGENT_PID ]]; then
+      ssh-agent -k
+    else
+      kill "${ssh_agent_pids[*]}"
+    fi ;;
+    *) for p in "${ssh_agent_pids[@]}"; do
+      kill "${p}"
+    done ;;
+  esac
+fi
 
 ssh_agent_o="$(ssh-agent -s)"
 eval "${ssh_agent_o}"
+unset ssh_agent_o
 
 ssh-add ~/.ssh/id_ed25519
 ssh-add -L
@@ -231,6 +242,7 @@ ps_o="$(ps aux)"
 if grep -qE '[g]pg-a.*daemon' <<<"${ps_o}"; then
   gpgconf --kill gpg-agent
 fi
+unset ps_o
 
 gpg-connect-agent /bye
 
