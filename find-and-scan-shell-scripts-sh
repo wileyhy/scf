@@ -531,7 +531,7 @@ total_count="$(printf "%'d" "${#a_all_files_sorted[@]}")"
 unset IFS
 :
 [[ -f /tmp/"${list_crunchbangs##*/}" ]] \
-  && rm -f "/tmp/${list_crunchbangs##*/}"
+  && S_ rm -f "/tmp/${list_crunchbangs##*/}"
 :
 # BUG: the search dirs must be the same, as well as the dnf tx number
 :
@@ -738,13 +738,16 @@ fi
 :
 W_ a_write_path_nms; 
 :
-X_; :_; S_ head "/tmp/${list_crunchbangs##*/}"; 
+#X_; :_; 
+S_ head "/tmp/${list_crunchbangs##*/}"; 
 #L_;
 :
 
 :
 : 'Verify inter^preters'
 :
+: 'Get the list of interpreters from the list of crunchbangs.'
+#   Note: new indices starting from 0
 # shellcheck disable=SC2016
 mapfile -t a_interpreters < <( 
   S_ awk 'BEGIN { FS = "%=%=%=%" } ; /#!/ { print $2 }' \
@@ -759,11 +762,32 @@ mapfile -t a_interpreters < <(
 :_; D_ a_interpreters; 
 #L_
 :
+: 'Ways to find an interpreter if it-s available on disk:'
+:
+# Bug: `realpath -e` and `command -v` are redundant
+:
+for program in "${a_interpreters[@]}"; do
+  : 'command -pv'
+  command_o="$(command -pv "${program}" 2>&1)"
+  
+  if [[ -n "${command_o}" ]]; then 
+    realpath_o="$(realpath -e "${command_o}" 2> /dev/null)"
+    
+    if [[ -f "${realpath_o}" ]]; then 
+      a_interps_rps+=("${realpath_o}")
+      m="exists on disk"; 
+      break
+    fi
+  fi
+done  
+
+#   Note: new indices starting from 0
 mapfile -t a_interps_rps < <(
   S_ realpath -e "${a_interpreters[@]}" \
     | sort -u
   )
 :
+D_ a_interps_rps; L_
 {
 for b in "${!a_interps_rps[@]}"; do 
   printf '%-32s' "${a_interps_rps[b]}"; 
@@ -774,10 +798,10 @@ for b in "${!a_interps_rps[@]}"; do
     m="DNE on disk"; 
   fi; 
   :
-  interps_disk_repo+=([b]="${b} : ${a_interps_rps[b]} : ${m}")
+  a_interps_disk_repo+=([b]="${b} : ${a_interps_rps[b]} : ${m}")
   printf '%-8s' "${m}"; 
   :
-  dnf_po="$( dnf provides "${a_interps_rps[b]}" \
+  dnf_po="$( sudo dnf provides "${a_interps_rps[b]}" \
     | awk '/x86_64|i686/ { print $1 }' \
     | sort -u 
     )"; 
@@ -788,7 +812,7 @@ for b in "${!a_interps_rps[@]}"; do
     m="DNE in repos"; 
   fi;
   :
-  interps_disk_repo+=([b+100]="${b} : ${a_interps_rps[b]} : ${m}")
+  a_interps_disk_repo+=([b+100]="${b} : ${a_interps_rps[b]} : ${m}")
   printf '\t\t\t\t%s\n' "${m}"; 
   printf '%s\n' "$dnf_po"; 
   unset dnf_po; 
@@ -796,7 +820,8 @@ for b in "${!a_interps_rps[@]}"; do
 done
 } | S_ T_ -a "${curr_time_ssubd}a_interpreters" > /dev/null
 :
-:_; X_; W_ a_write_path_nms a_interpreters a_interps_rps
+#X_; :_; 
+W_ a_write_path_nms a_interpreters a_interps_rps a_interps_disk_repo
 L_
 :
 
