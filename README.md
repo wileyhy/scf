@@ -1,7 +1,7 @@
 # README.md
 
 ## scrfi-sh -- Script Finder
-Prioritize debugging efforts by automating static analysis of scripts.
+Prioritize debugging efforts by identifying scripts and automating static analysis.
 
 ## Provisional license: Apache 2.0
 
