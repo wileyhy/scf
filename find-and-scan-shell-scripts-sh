@@ -1,9 +1,8 @@
 #!/bin/bash
-# Q: name sb scfi ?
+# Q: name sb scfi ? scf ?
 # Written in bash version 5.1 on Fedora 37
 
-# Notes: This script is overdesigned. "Keep your goal in mind."
-#   https://www.navitor.com/blog/pursuit-perfection-overdesigning/
+# Note: Keep your goal in mind.
 
 # SECTION A
 :
@@ -74,7 +73,7 @@ for d in "${a_poss_proces_lock_dirs[@]}"; do
   if [[ -d "${d}" ]]; then
     
     mapfile -d '' -t lkds < <( 
-      sudo find "${d}" -type d -empty -name ".${repo_nm}.[0-9a-zA-Z_-]*.lock" \
+      S_ find "${d}" -type d -empty -name ".${repo_nm}.[0-9a-zA-Z_-]*.lock" \
         -print0 2> /dev/null)
     :
     : 'lkds, count:' "${#lkds[@]}"
@@ -104,7 +103,7 @@ fn_bak() {
   for loc_filename_a in "${@}"; do
 
     # test verifying existence of input
-    if S_ test -f "${loc_filename_a}"; then
+    if S_ test -f -- "${loc_filename_a}"; then
 
       # if the destination (.bak) file already exists,
       # then age it first.
@@ -113,12 +112,12 @@ fn_bak() {
         if [[ -s "${loc_filename_a}.bak" ]]; then
           return
         else
-          S_ rm -f "${loc_filename_a}.bak"
+          S_ rm -f -- "${loc_filename_a}.bak"
         fi
       fi
 
       # write a new .bak file
-      S_ rsync -acq "${loc_filename_a}"{,.bak} \
+      S_ rsync -acq -- "${loc_filename_a}"{,.bak} \
         || I_
 
     # if input file DNE, then print an error and exit
@@ -187,7 +186,7 @@ fn_write_arrays() {
   loc_write_d_b="${curr_time_ssubd}arrays"
 
   if [[ ! -d "${loc_write_d_b}" ]]; then
-    S_ mkdir -p "${loc_write_d_b}" \
+    S_ mkdir -p -- "${loc_write_d_b}" \
       || I_
   fi
 
@@ -214,7 +213,7 @@ fn_write_arrays() {
     :
     # then write a data file to disk
     declare -p "${loc_array_nm}" \
-      | S_ T_ "${loc_write_f_b}" > /dev/null
+      | S_ T_ -- "${loc_write_f_b}" > /dev/null
 
     # write a backup of the new data file
     :
@@ -238,7 +237,7 @@ fn_write_vars() {
 
   # write a new data file
   declare -p "${@}" 2>/dev/null \
-    | S_ T_ "${loc_write_f_a}" >/dev/null
+    | S_ T_ -- "${loc_write_f_a}" >/dev/null
 
   # and write a .bak file
   :
@@ -276,13 +275,13 @@ trap '
   if [[ -v acl_execd_setfacl ]]; then 
     : 
     if [[ -v acl_abs_path ]]; then 
-      S_ setfacl -R -x "u:${UID}" "${acl_abs_path}" ||
+      S_ setfacl -R -x "u:${UID}" -- "${acl_abs_path}" ||
         echo Error: setfacl failed, line "${LINENO}"
       :
     # bug? Should this var be main_d ?
       :
     elif [[ -v mountpoint ]]; then
-      S_ setfacl -R -x "u:${UID}" "${mountpoint}" ||
+      S_ setfacl -R -x "u:${UID}" -- "${mountpoint}" ||
         echo Error: setfacl failed, line "${LINENO}"
     fi
   fi
@@ -325,7 +324,7 @@ if ! mkdir -m 0000 "${process_lock_d}" 2>/dev/null; then
   L_
 fi
 :
-#:_; D_ process_lock_d; S_ namei -xl "${process_lock_d}"; L_
+#:_; D_ process_lock_d; S_ namei -xl -- "${process_lock_d}"; L_
 :
 : User variables
 timecode="$(builtin printf '%(%F_%H%M%S)T')"
@@ -390,7 +389,7 @@ if [[ ! -r "${main_d}" ]]; then
     acl_abs_path+="/${a_acl_name_indiv_dir[iterator_1]}"
     acl_realpath="$(realpath -e "${acl_abs_path}")"
     :
-    if S_ test -e "${acl_realpath}"; then
+    if S_ test -e -- "${acl_realpath}"; then
       : 'test succeeded: acl_realpath exists '
     else
       :
@@ -398,14 +397,14 @@ if [[ ! -r "${main_d}" ]]; then
       :
       if [[ ! -d "${acl_abs_path}" ]]; then
         :
-        S_ mkdir -p "${main_d}" \
+        S_ mkdir -p -- "${main_d}" \
           || I_
       fi
       :
       acl_realpath="$(realpath -e "${acl_abs_path}" 2>/dev/null)"
       :
       #:_
-      #S_ namei -xl "${acl_realpath}"
+      #S_ namei -xl -- "${acl_realpath}"
       :
     fi
     :
@@ -419,20 +418,20 @@ if [[ ! -r "${main_d}" ]]; then
       export acl_execd_setfacl # SC2034, while trap-s setfacl blk is #-d
       :
       # readable up to the main_d
-      S_ chmod -R 750 "${acl_realpath}" \
+      S_ chmod -R 750 -- "${acl_realpath}" \
         || I_
         :
-      S_ setfacl -d -m "${USER}:r-x" "${acl_realpath}" \
+      S_ setfacl -d -m "${USER}:r-x" -- "${acl_realpath}" \
         || I_
         :
-      S_ setfacl -m "${USER}:r-x" "${acl_realpath}" \
+      S_ setfacl -m "${USER}:r-x" -- "${acl_realpath}" \
         || I_
         :
       #:_
       #id "${USER}"
       #groups "${USER}"
-      #S_ namei -xl "${acl_realpath}"
-      #S_ getfacl "${acl_realpath}"
+      #S_ namei -xl -- "${acl_realpath}"
+      #S_ getfacl -- "${acl_realpath}"
       :
       [[ -r "${acl_realpath}" ]] \
         || I_
@@ -440,17 +439,17 @@ if [[ ! -r "${main_d}" ]]; then
   done
   :
   # writeable within the main_d
-  S_ setfacl -d -m "${USER}:rwx" "${main_d}" \
+  S_ setfacl -d -m "${USER}:rwx" -- "${main_d}" \
     || I_
     :
-  S_ setfacl -R -m "${USER}:rwx" "${main_d}" \
+  S_ setfacl -R -m "${USER}:rwx" -- "${main_d}" \
     || I_
     :
   #:_
   #id "${USER}"
   #groups "${USER}"
-  #S_ namei -xl "${main_d}"
-  #S_ getfacl "${main_d}"
+  #S_ namei -xl -- "${main_d}"
+  #S_ getfacl -- "${main_d}"
   :
 fi
 :
@@ -460,7 +459,7 @@ fi
   || mkdir "${data_subd}" # as liveuser
   :
 #:_
-#S_ namei -xl "${data_subd}"
+#S_ namei -xl -- "${data_subd}"
 :
 : Label the current data as -latest.-
 # shellcheck disable=SC2312
@@ -476,7 +475,7 @@ for prev_time_ssubd in "${a_previous_time_dirs[@]}"; do
   :
   : of previous prev_time_ssubd
   if [[ -d "${prev_time_ssubd}" ]] && [[ ! -L "${prev_time_ssubd}" ]]; then
-    S_ mv "${a_previous_time_dirs[@]}" "${main_d}"
+    S_ mv -- "${a_previous_time_dirs[@]}" "${main_d}"
   else
     continue
   fi
@@ -484,12 +483,12 @@ done
 :
 : of curr_time_ssubd
 if [[ ! -d "${curr_time_ssubd}" ]]; then
-  S_ mkdir -p "${curr_time_ssubd}" \
+  S_ mkdir -p -- "${curr_time_ssubd}" \
     || I_
 fi
 :
 #:_
-#S_ namei -xl "${curr_time_ssubd}"
+#S_ namei -xl -- "${curr_time_ssubd}"
 :
 # SECTION C
 :
@@ -531,7 +530,7 @@ total_count="$(printf "%'d" "${#a_all_files_sorted[@]}")"
 unset IFS
 :
 [[ -f /tmp/"${list_crunchbangs##*/}" ]] \
-  && S_ rm -f "/tmp/${list_crunchbangs##*/}"
+  && S_ rm -f -- "/tmp/${list_crunchbangs##*/}"
 :
 # BUG: the search dirs must be the same, as well as the dnf tx number
 :
@@ -569,18 +568,18 @@ then
     :
     : '-file- magic'
     printf '+ %-8d: ' "${all_files_index}" \
-      | S_ tee -a "${curr_time_ssubd}file_out" > /dev/null
+      | S_ tee -a -- "${curr_time_ssubd}file_out" > /dev/null
       :
-    file_o="$(S_ file -pk "${each_sorted_f}" 2>&1)"
+    file_o="$(S_ file -pk -- "${each_sorted_f}" 2>&1)"
     file_o="${file_o%%64-bit LSB *}"
     a_bin_file_output+=([all_files_index]="${file_o}")
     :
     if [[ -n "${file_o}" ]]; 
     then
-      S_ tee -a "${curr_time_ssubd}file_out" <<< "${file_o}" > /dev/null
+      S_ tee -a -- "${curr_time_ssubd}file_out" <<< "${file_o}" > /dev/null
     else
       err_msg="WARNING: -file- produced 0 output:  <${each_sorted_f}>"
-      S_ tee -a "${curr_time_ssubd}file_out" <<< "${err_msg}" > /dev/null
+      S_ tee -a -- "${curr_time_ssubd}file_out" <<< "${err_msg}" > /dev/null
     fi
     :
     # Bug: keep `od` output in an array
@@ -591,7 +590,7 @@ then
       :
       #X_
       :_
-    od_o="$(S_ od -j 0 -N 2 -t x1z -v "${each_sorted_f}"\
+    od_o="$(S_ od -j 0 -N 2 -t x1z -v -- "${each_sorted_f}"\
       | tr -s ' ' \
       | awk '{ print $2, $3, $4 }' \
       | tr -d '\n' \
@@ -706,23 +705,23 @@ then
   for any_existing_f in "${a_write_path_nms[@]}"; do
     :
     if [[ -f "${any_existing_f}" ]] && [[ ! -L "${any_existing_f}" ]]; then
-      S_ mv "${any_existing_f}" "${any_existing_f}.${$}.${random_n}" \
+      S_ mv -- "${any_existing_f}" "${any_existing_f}.${$}.${random_n}" \
         || I_
     fi
   done
   :
   : 'create the original list_crunchbangs'
-  S_ touch "${a_write_path_nms[@]}"
+  S_ touch -- "${a_write_path_nms[@]}"
   :
   : 'write a file header'
   {
     printf '# crunchbangs -- %s\n' "${timecode%-*}"
     printf '# %s\n' "$(declare -p a_relevant_search_dirs)"
-  } | S_ T_ "${a_write_path_nms[@]}" > /dev/null
+  } | S_ T_ -- "${a_write_path_nms[@]}" > /dev/null
   :
   : 'printing contents of a_shell_scripts array, with backup'
   printf '%s\n' "${a_shell_scripts[@]}" \
-    | S_ T_ -a "${a_write_path_nms[@]}" > /dev/null
+    | S_ T_ -a -- "${a_write_path_nms[@]}" > /dev/null
   B_ "${a_write_path_nms[@]}"
   :
 else
@@ -731,7 +730,7 @@ else
   # from the hopefully correct backup in /tmp
   if [[ ! -f "${list_crunchbangs}" ]]; 
   then
-    S_ rsync -ca "/tmp/${list_crunchbangs##*/}" "${list_crunchbangs}" \
+    S_ rsync -ca -- "/tmp/${list_crunchbangs##*/}" "${list_crunchbangs}" \
       || I_
   fi
 fi
@@ -739,7 +738,7 @@ fi
 W_ a_write_path_nms; 
 :
 #X_; :_; 
-S_ head "/tmp/${list_crunchbangs##*/}"; 
+S_ head -- "/tmp/${list_crunchbangs##*/}"; 
 #L_;
 :
 
@@ -750,7 +749,7 @@ S_ head "/tmp/${list_crunchbangs##*/}";
 #   Note: new indices starting from 0
 # shellcheck disable=SC2016
 mapfile -t a_interpreters < <( 
-  S_ awk 'BEGIN { FS = "%=%=%=%" } ; /#!/ { print $2 }' \
+  S_ awk 'BEGIN { FS = "%=%=%=%" } ; /#!/ { print $2 }' -- \
     "/tmp/${list_crunchbangs##*/}" \
     | awk 'BEGIN { FS = " -" } ; { print $1 }' \
     | sed 's, *,,g' \
@@ -783,7 +782,7 @@ done
 
 #   Note: new indices starting from 0
 mapfile -t a_interps_rps < <(
-  S_ realpath -e "${a_interpreters[@]}" \
+  S_ realpath -e -- "${a_interpreters[@]}" \
     | sort -u
   )
 :
@@ -801,7 +800,7 @@ for b in "${!a_interps_rps[@]}"; do
   a_interps_disk_repo+=([b]="${b} : ${a_interps_rps[b]} : ${m}")
   printf '%-8s' "${m}"; 
   :
-  dnf_po="$( sudo dnf provides "${a_interps_rps[b]}" \
+  dnf_po="$( S_ dnf provides -- "${a_interps_rps[b]}" \
     | awk '/x86_64|i686/ { print $1 }' \
     | sort -u 
     )"; 
@@ -818,7 +817,7 @@ for b in "${!a_interps_rps[@]}"; do
   unset dnf_po; 
   :
 done
-} | S_ T_ -a "${curr_time_ssubd}a_interpreters" > /dev/null
+} | S_ T_ -a -- "${curr_time_ssubd}a_interpreters" > /dev/null
 :
 #X_; :_; 
 W_ a_write_path_nms a_interpreters a_interps_rps a_interps_disk_repo
@@ -835,16 +834,16 @@ L_
 {
   printf '# SC-scrpts-list -- %s\n' "${timecode%-*}"
   printf '# %s\n' "$(D_ a_relevant_search_dirs)"
-} | S_ T_ "${list_crunchbangs}_SC-scrpts-list" > /dev/null
+} | S_ T_ -- "${list_crunchbangs}_SC-scrpts-list" > /dev/null
 :
 # pulls from time_dir
-S_ grep -E '/bin/'"${shells}"'.*%=%=%=%' "${list_crunchbangs}" \
-  | S_ tee -a "${list_crunchbangs}_SC-scrpts-list" \
+S_ grep -E -- '/bin/'"${shells}"'.*%=%=%=%' "${list_crunchbangs}" \
+  | S_ tee -a -- "${list_crunchbangs}_SC-scrpts-list" \
   || I_
 :
 B_ "${list_crunchbangs}_SC-scrpts-list" /tmp/*_SC-scrpts-list
 :
-S_ rsync -ca "${list_crunchbangs}_SC-scrpts-list" /tmp \
+S_ rsync -ca -- "${list_crunchbangs}_SC-scrpts-list" /tmp \
   || I_
 :
 B_ "${list_crunchbangs}_SC-scrpts-list" /tmp/*_SC-scrpts-list
@@ -864,7 +863,7 @@ L_
 #   Q: how to translate the correct newlines into nulls to separate the 
 #   filenames when reading from a file?  awk? files _can_ contain \n-s
 :
-grep_o="$(S_ grep ^'#!' "${list_crunchbangs}_SC-scrpts-list")"
+grep_o="$(S_ grep ^'#!' -- "${list_crunchbangs}_SC-scrpts-list")"
 :
 cut_o="$(cut -d '%' -f5- <<< "${grep_o}")"
 :
@@ -878,7 +877,7 @@ a_each_abspath_scriptnm=("${a_each_abspath_scriptnm[@]##* }")
 # Bug: why sort by line count? More text, more bugs? How to prior mult
 #   factors?
 :
-wc_o="$(S_ wc -l "${a_each_abspath_scriptnm[@]}")"
+wc_o="$(S_ wc -l -- "${a_each_abspath_scriptnm[@]}")"
 :
 wc_o="${wc_o%$'\n*'}" # Remove 'totals' line.
 :
@@ -917,14 +916,14 @@ iterator_2=0
       printf '%s' "${a_each_script_SC_results[@]}"
     fi
   done
-} | S_ tee -a "${found_scrpts_f}" > /dev/null
+} | S_ tee -a -- "${found_scrpts_f}" > /dev/null
 :
 : 'Write semi-permanent archives'
 :
 B_ "${found_scrpts_f}"
-S_ rsync -ca "${found_scrpts_f}" "${main_d}" \
+S_ rsync -ca -- "${found_scrpts_f}" "${main_d}" \
   || I_
-S_ rsync -ca "${found_scrpts_f}" /tmp \
+S_ rsync -ca -- "${found_scrpts_f}" /tmp \
   || I_
   :
 B_ "${main_d}/${found_scrpts_f##*/}"
