@@ -1,21 +1,27 @@
-#!/bin/bash
+#!/bin/bash -x
 # set-up-git_sudo-sh
 
 ## Notes
 ###   Online Git Pro book:
 ###     https://git-scm.com/book/en/v2/Git-Basics-Recording-Changes-to-the-Repository
 
+# Frequently changing variables
+dev_d=~/MYPROJECT
+repo_nm=scrfi
+
 # Regular users only
 if [[ "${UID}" == 0 ]]; then
   printf '\n\t Must be a regular user and use sudo. \n\n'
   exit "${LINENO}"
-else
+  else
   sudo -v \
     || exit "${LINENO}"
 fi
 
-# Clean environment
-unset files bashrc_str f tmpf gitmesg gitignr \
+# Clean environment (re command injection)
+unset files bashrc_str f tmpf gitmesg gitignr ps_o \
+  || exit "${LINENO}"
+PATH='/usr/bin:/usr/sbin' \
   || exit "${LINENO}"
 
 # Network & time
@@ -30,22 +36,23 @@ fi
 # BASH
 ## .bashrc
 umask 071
-bashrc_str='EDITOR=/usr/bin/vim; BROWSER=/usr/bin/firefox'
+bashrc_str='EDITOR=/usr/bin/vim; BROWSER=/usr/bin/firefox;'
 
 files=(/root/.bashrc /home/*/.bashrc)
 for f in "${files[@]}"; do
 
-  if ! sudo grep -q "${bashrc_str}" "${f}"; then
-    sudo cp -a "${f}" "${f}~"
+  if ! sudo grep -q -- "${bashrc_str}" "${f}"; then
+    sudo cp -a -- "${f}" "${f}~"
     echo "${bashrc_str}" \
-      | sudo tee -a "${f}" >/dev/null
+      | sudo tee -a -- "${f}" >/dev/null
   fi
 done
+unset files f
 
 # VIM
 umask 177
 tmpf="$(mktemp)"
-cat <<EOF > "${tmpf}"
+cat << EOF > "${tmpf}"
 " per google:
 set number
 
@@ -60,12 +67,13 @@ set expandtab
 EOF
 # shellcheck disable=SC2024
 sudo tee /root/.vimrc < "${tmpf}" > /dev/null
-rm -f "${tmpf}"
+rm -f -- "${tmpf}"
+unset tmpf
 
-## Copy root-user files to liveuser
-sudo rsync -ca /root/.vimrc /home/liveuser
-sudo chown 1000:1000 /home/liveuser/.vimrc
-chmod 0400 /home/liveuser/.vimrc
+## Copy root-user files to $USER
+sudo rsync -ca /root/.vimrc "/home/${USER}"
+sudo chown 1000:1000 "/home/${USER}/.vimrc"
+chmod 0400 "/home/${USER}/.vimrc"
 
 # GIT
 sudo git config --system user.name 'Wiley Young'
@@ -97,7 +105,7 @@ gitignr=/etc/.gitignore_system
 
 ## (message)
 tmpf="$(mktemp)"
-cat <<EOF >"${tmpf}"
+cat << EOF > "${tmpf}"
 Subject line (try to keep under 50 characters)
 
 Multi-line description of commit,
@@ -105,18 +113,20 @@ feel free to be detailed.
 
 [Ticket: X]
 EOF
-sudo tee "${gitmesg}" <<<"${tmpf}" >/dev/null
-rm -f "${tmpf}"
+sudo tee -- "${gitmesg}" <<< "${tmpf}" > /dev/null
+rm -f -- "${tmpf}"
+unset tmpf
 
 ## (ignore)
 tmpf="$(mktemp)"
-cat <<EOF >"${tmpf}"
+cat << EOF > "${tmpf}"
 *~
 .*.swp
 .DS_Store
 EOF
-sudo tee "${gitignr}" <<<"${tmpf}" >/dev/null
+sudo tee -- "${gitignr}" <<< "${tmpf}" > /dev/null
 rm -f -- "${tmpf}"
+unset tmpf
 
 sudo git config --system commit.template "${gitmesg}"
 sudo git config --system core.excludesfile "${gitignr}"
@@ -124,36 +134,40 @@ sudo git config --system core.excludesfile "${gitignr}"
 ## Permissions
 files=(/etc/git* /etc/.git*)
 for f in "${files[@]}"; do
-  sudo chmod 0604 "${f}"
+  sudo chmod 0604 -- "${f}"
 done
+unset files f
 
-## Copy root-user files to liveuser
+## Copy root-user files to $USER
 for f in "${gitmesg}" "${gitignr}"; do
-  sudo rsync -ca "${f}" /home/liveuser
-  sudo chown 1000:1000 "/home/liveuser/${f##*/}"
-  chmod 0400 "/home/liveuser/${f##*/}"
+  sudo rsync -ca -- "${f}" "/home/${USER}"
+  sudo chown 1000:1000 -- "/home/${USER}/${f##*/}"
+  chmod 0400 "/home/${USER}/${f##*/}"
 done
-
-# BUG: Dup btw files array and for loop
+unset f
 
 ## Rename files
 files=(/home/*/.git*_system)
-for f in /home/*/.git*_system; do
-  mv -f "${f}" "${f%_system}"
+for f in "${files[@]}"; do
+  sudo mv -f -- "${f}" "${f%_system}"
 done
+unset files f 
 
 ## make and change into directories
 umask 077
 
-if [[ ! -d ~/MYPROJECT ]]; then
-  mkdir -p ~/MYPROJECT \
+if [[ ! -d "${dev_d}" ]]; then
+  mkdir -p "${dev_d}" \
     || exit "${LINENO}"
 fi
 
 ### Note: in order to clone into any repo, and keep multiple repos
 ### separate, `cd` is required
-cd ~/MYPROJECT \
+cd "${dev_d}" \
   || exit "${LINENO}"
+
+# TODO:
+#   Parse output of `gh config list`
 
 # GH
 gh config set editor 'vim'
@@ -161,28 +175,29 @@ gh config set browser 'firefox'
 gh config set pager 'less'
 gh config set git_protocol 'ssh' --host 'github.com'
 
+## Use GitHub CLI as a credential helper
+gh auth setup-git --hostname 'github.com'
+
 # Log in
 if ! gh auth status 2> /dev/null; then
   gh auth login --git-protocol 'ssh' --hostname 'github.com' --scopes 'admin:public_key,read:gpg_key' --web \
     || exit "${LINENO}"
 fi
 
+# TODO:
+#   Parse `gh auth status`, re add'l scopes
+#gh auth refresh --hostname 'github.com' --scopes 'admin:public_key,read:gpg_key'
+
 # Clone repo
-if [[ ! -d ./scrfi ]] \
-  || [[ ! -f ./scrfi/README.md ]]; then
-  git clone -o 'github' https://github.com/wileyhy/scrfi \
+if [[ ! -d ./"${repo_nm}" ]] \
+  || [[ ! -f ./"${repo_nm}"/README.md ]]; 
+then
+  git clone -o 'github' https://github.com/wileyhy/"${repo_nm}" \
     || exit "${LINENO}"
 fi
 
-## Use GitHub CLI as a credential helper
-gh auth setup-git --hostname 'github.com'
-
-## Get SSH key
-#gh auth refresh --hostname 'github.com' --scopes 'admin:public_key,read:gpg_key'
+## Get SSH & GPG keys
 gh ssh-key list
-
-## Get GPG key
-#gh auth refresh --hostname 'github.com' --scopes 'read:gpg_key'
 gh gpg-key list
 
 ## Review auth
@@ -190,13 +205,13 @@ gh auth status --show-token
 
 # SSH
 sudo chown 1000:1000 ~/.ssh \
-  || "${LINENO}"
+|| "${LINENO}"
 sudo chmod -R 700 ~/.ssh
 
 if [[ -e ~/.ssh/config ]]; then
   if ! grep -q 'ForwardAgent yes' ~/.ssh/config; then
-    cat <<EOF >~/.ssh/config
-    Host github.com
+    cat << EOF > ~/.ssh/config
+      Host github.com
       ForwardAgent yes
 EOF
   fi
@@ -206,38 +221,39 @@ fi
   && exit "${LINENO}"
 
 ### Bug? not necc to restart ssh-agent if both of these vars exist?
-# shellcheck disable=SC2154
-declare -p SSH_AUTH_SOCK SSH_AGENT_PID
+if [[ -z "${SSH_AUTH_SOCK}" ]] \
+  || [[ -z "${SSH_AGENT_PID}" ]];
+then
 
-ps_o="$(ps aux)"
-awk_o="$(awk '$0 ~ /ssh-agent/ && $0 !~ /startx/ { print $2 }' \
-  <<<"${ps_o:?}")"
-if [[ -n "${awk_o}" ]]; then 
-  mapfile -t ssh_agent_pids <<<"${awk_o:?}"
-fi
-unset ps_o awk_o
+  # shellcheck disable=SC2154
+  ps_o="$(ps aux)"
+  awk_o="$(awk '$0 ~ /ssh-agent/ && $0 !~ /startx/ { print $2 }' \
+    <<<"${ps_o:?}")"
+  if [[ -n "${awk_o}" ]]; then 
+    mapfile -t ssh_agent_pids <<< "${awk_o:?}"
+  fi
 
-if [[ "${#ssh_agent_pids[@]}" -gt 0 ]]; then
+  if [[ "${#ssh_agent_pids[@]}" -gt 0 ]]; then
   case "${#ssh_agent_pids[@]}" in
-    0) : ;;
-    1) if [[ -v SSH_AGENT_PID ]]; then
-      ssh-agent -k
-    else
-      kill "${ssh_agent_pids[*]}"
-    fi ;;
-    *) for p in "${ssh_agent_pids[@]}"; do
-      kill "${p}"
-    done ;;
+    0)  : ;;
+    1)  if [[ -v SSH_AGENT_PID ]]; then
+          ssh-agent -k
+        else
+          kill "${ssh_agent_pids[*]}"
+        fi ;;
+    *)  for p in "${ssh_agent_pids[@]}"; do
+          kill "${p}"
+        done ;;
   esac
+  fi
+
+  ssh_agent_o="$(ssh-agent -s)"
+  eval "${ssh_agent_o}"
+
+  ssh-add ~/.ssh/id_ed25519
+  ssh-add -L
+  ssh -T git@github.com
 fi
-
-ssh_agent_o="$(ssh-agent -s)"
-eval "${ssh_agent_o}"
-unset ssh_agent_o
-
-ssh-add ~/.ssh/id_ed25519
-ssh-add -L
-ssh -T git@github.com
 
 # GPG
 sudo chown 1000:1000 ~/.gnupg \
@@ -245,17 +261,16 @@ sudo chown 1000:1000 ~/.gnupg \
 sudo chmod -R 700 ~/.gnupg
 
 ### shellcheck disable=SC2009
-ps_o="$(ps aux)"
-if grep -qE '[g]pg-a.*daemon' <<<"${ps_o}"; then
-  gpgconf --kill gpg-agent
+if grep -qE '[g]pg-a.*daemon' <<< "${ps_o}"; then
+gpgconf --kill gpg-agent
 fi
-unset ps_o
 
 gpg-connect-agent /bye
 
-GPG_TTY=$(tty)
+GPG_TTY="$(tty)"
 export GPG_TTY
 
 # Remind user of commands for the interactive shell
 printf '\n\t Now run this command: \n'
-printf '\n\t cd /home/liveuser/MYPROJECT/scrfi; git status \n\n'
+printf '\n\t cd %s/%s; git status \n\n' "${USER}" "${dev_d}" \
+  "${repo_nm}"
