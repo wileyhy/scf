@@ -59,7 +59,7 @@ if [[ -n "${dnf_o}" ]] && [[ -n "${awk_o}" ]]; then
       printf '\n\n\tScript complete. [Press ENTER.]\n\n'
     } &
     disown
-  elif [[ "${pids_nr[@]}" -eq 1 ]]; then 
+  elif [[ "${pids_nr[*]}" -eq 1 ]]; then 
     printf '\n\t The remaining "needs-restarting" process cannot be '
     printf 'restarted \n\t without rebooting the machine.\n'
     printf '\n\t %s \n\n' "${dnf_o}"

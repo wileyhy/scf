@@ -8,11 +8,15 @@
 # Regular users only
 if [[ "${UID}" == 0 ]]; then
   printf '\n\t Must be a regular user and use sudo. \n\n'
-  exit 1
+  exit "${LINENO}"
 else
   sudo -v \
-    || exit 1
+    || exit "${LINENO}"
 fi
+
+# Clean environment
+unset files bashrc_str f tmpf gitmesg gitignr \
+  || exit "${LINENO}"
 
 # Network & time
 if ! sudo ping -c 1 -W 15 8.8.8.8; then
@@ -41,7 +45,7 @@ done
 # VIM
 umask 177
 tmpf="$(mktemp)"
-cat <<EOF >"${tmpf}"
+cat <<EOF > "${tmpf}"
 " per google:
 set number
 
@@ -54,7 +58,8 @@ set shiftwidth=2
 " On pressing tab, insert 2 spaces
 set expandtab
 EOF
-sudo tee /root/.vimrc < "${tmpf}" >/dev/null
+# shellcheck disable=SC2024
+sudo tee /root/.vimrc < "${tmpf}" > /dev/null
 rm -f "${tmpf}"
 
 ## Copy root-user files to liveuser
@@ -111,7 +116,7 @@ cat <<EOF >"${tmpf}"
 .DS_Store
 EOF
 sudo tee "${gitignr}" <<<"${tmpf}" >/dev/null
-rm -f "${tmpf}"
+rm -f -- "${tmpf}"
 
 sudo git config --system commit.template "${gitmesg}"
 sudo git config --system core.excludesfile "${gitignr}"
@@ -149,33 +154,33 @@ cd ~/MYPROJECT \
   || exit "${LINENO}"
 
 # GH
-gh config set editor vim
-gh config set browser firefox
-gh config set pager less
-gh config set git_protocol ssh --host github.com
+gh config set editor 'vim'
+gh config set browser 'firefox'
+gh config set pager 'less'
+gh config set git_protocol 'ssh' --host 'github.com'
 
 # Log in
-if ! gh auth status 2>/dev/null; then
-  gh auth login --git-protocol ssh --hostname github.com --scopes admin:public_key,read:gpg_key --web \
+if ! gh auth status 2> /dev/null; then
+  gh auth login --git-protocol 'ssh' --hostname 'github.com' --scopes 'admin:public_key,read:gpg_key' --web \
     || exit "${LINENO}"
 fi
 
 # Clone repo
 if [[ ! -d ./scrfi ]] \
   || [[ ! -f ./scrfi/README.md ]]; then
-  git clone -o github https://github.com/wileyhy/scrfi \
+  git clone -o 'github' https://github.com/wileyhy/scrfi \
     || exit "${LINENO}"
 fi
 
 ## Use GitHub CLI as a credential helper
-gh auth setup-git --hostname github.com
+gh auth setup-git --hostname 'github.com'
 
 ## Get SSH key
-#gh auth refresh --hostname github.com --scopes admin:public_key,read:gpg_key
+#gh auth refresh --hostname 'github.com' --scopes 'admin:public_key,read:gpg_key'
 gh ssh-key list
 
 ## Get GPG key
-#gh auth refresh --hostname github.com --scopes read:gpg_key
+#gh auth refresh --hostname 'github.com' --scopes 'read:gpg_key'
 gh gpg-key list
 
 ## Review auth
