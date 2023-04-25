@@ -32,7 +32,49 @@ sudo timedatectl set-timezone America/Vancouver
 sudo systemctl start chronyd.service
 sudo chronyc makestep
 
-# DNF
+# Bash
+## .bashrc
+umask 071
+bashrc_str='EDITOR=/usr/bin/vim; BROWSER=/usr/bin/firefox;'
+
+files=(/root/.bashrc /home/*/.bashrc)
+for f in "${files[@]}"; do
+
+  if ! sudo grep -q -- "${bashrc_str}" "${f}"; then
+    sudo cp -a -- "${f}" "${f}~"
+    echo "${bashrc_str}" \
+      | sudo tee -a -- "${f}" > /dev/null
+  fi
+done
+unset files f
+
+# Vim
+umask 177
+tmpf="$(mktemp)"
+cat << EOF > "${tmpf}"
+" per google:
+set number
+
+" per https://stackoverflow.com/questions/234564/tab-key-4-spaces-and-auto-indent-after-curly-braces-in-vim
+filetype plugin indent on
+" show existing tab with 2 spaces width
+set tabstop=2
+" when indenting with '>', use 2 spaces width
+set shiftwidth=2
+" On pressing tab, insert 2 spaces
+set expandtab
+EOF
+# shellcheck disable=SC2024
+sudo tee /root/.vimrc < "${tmpf}" > /dev/null
+rm -f -- "${tmpf}"
+unset tmpf
+
+## Copy root-user files to $USER
+sudo rsync -ca /root/.vimrc "/home/${USER}"
+sudo chown 1000:1000 "/home/${USER}/.vimrc"
+chmod 0400 "/home/${USER}/.vimrc"
+
+# Dnf
 sudo dnf -y install info ShellCheck git gh kcov shfmt
 sudo dnf -y --security upgrade
 #set -x
