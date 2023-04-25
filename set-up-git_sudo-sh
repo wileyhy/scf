@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 # set-up-git_sudo-sh
 
 ## Notes
@@ -25,11 +25,11 @@ PATH='/usr/bin:/usr/sbin' \
   || exit "${LINENO}"
 
 # Network & time
-if ! sudo ping -c 1 -W 15 8.8.8.8; then
+if ! sudo ping -c 1 -W 15 8.8.8.8 > /dev/null; then
   sudo systemctl start NetworkManager.service
   wait -f
   sleep 15
-  sudo ping -c 1 -W 15 8.8.8.8 \
+  sudo ping -c 1 -W 15 8.8.8.8 > /dev/null \
     || exit "${LINENO}"
 fi
 
@@ -272,5 +272,4 @@ export GPG_TTY
 
 # Remind user of commands for the interactive shell
 printf '\n\t Now run this command: \n'
-printf '\n\t cd %s/%s; git status \n\n' "${USER}" "${dev_d}" \
-  "${repo_nm}"
+printf '\n\t cd %s/%s; git status \n\n' "${dev_d}" "${repo_nm}"
