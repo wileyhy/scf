@@ -377,8 +377,9 @@ found_scrpts_f="${list_crunchbangs}_found_scripts_${severity:0:1}_${abbrev_rel_s
 : 'data files'
 a_write_path_nms=("${list_crunchbangs:=crunchbangs}" "/tmp/${list_crunchbangs##*/}")
 :
-# TODO: grep scripts for 'todo's
-# TODO: This section seems buggy.
+# TODOs: grep scripts for 'todo's
+#   - grep for 'shellcheck disable'
+#   - This section seems buggy.
 
 : 'Reduce use of sudo'
 if [[ ! -r "${main_d}" ]]; then
@@ -584,10 +585,14 @@ then
     printf '+ %-8d: ' "${all_files_index}" \
       | S_ tee -a -- "${curr_time_ssubd}file_out" > /dev/null
       :
-    file_o="$(S_ file -pk -- "${each_sorted_f}" 2>&1)"
+    file_o="$(S_ file -pk -- "${each_sorted_f}" 2>&1)" # Bug: needs erx
     file_o="${file_o%%64-bit LSB *}"
     a_bin_file_output+=([all_files_index]="${file_o}")
     :
+    # Bug? Needs tracking index? One array or file, one line per fso,
+    #. use symbols or csv to indicate test results, w common indices
+    # Bug: [[ -n sb right after exec file
+
     if [[ -n "${file_o}" ]]; 
     then
       S_ tee -a -- "${curr_time_ssubd}file_out" <<< "${file_o}" > /dev/null
@@ -599,13 +604,15 @@ then
     # Bug: keep `od` output in an array
     # Bug: avoid as many disk writes as possible. 
     #.  Write out only stats?
-    # Bug: use indices to reference each type?
+    # Bug: use indices to reference each type? Store array diffs btw loop?
+    #. Time loss to disk io? Run file in parallel? Read each file once and
+    #. use var for both od and file?
     :
     : 'two bytes each'
       :
       #X_; :_
 
-      # fix?: mapfile -d '' -t -O "${all_files_index}" a_od_o
+      # fix?: mapfile -d '' -t -O "${all_files_index}" a_od_output
 
     od_o="$(S_ od -j 0 -N 2 -t x1z -v -- "${each_sorted_f}"\
       | tr -s ' ' \
@@ -644,10 +651,13 @@ then
       then
         a_incorrect_endianness+=([all_files_index]="${each_sorted_f}")
         :
-        # BUG: expect non-printable characters
       else
         :
         : 'Crunchbangs'
+
+        # q, does strings recognize unicode? Color codes? Cr's? Etc
+        # test dd vs strings
+
         strings_o="$(strings -n1 < "${each_sorted_f}" \
           | head -n1 \
           | cut -b -$((2**14)) \
@@ -668,6 +678,9 @@ then
         :
         #   Note: with only /bin/sbin, this if-fi block doesn't execute
         :
+
+        # FR: sort also per-rpm, awk script, probably
+
         : 'outside of rpm'
         if ! rpm -qf "${each_sorted_f}" 2>/dev/null 1>&2; 
         then
@@ -686,6 +699,13 @@ then
       fi
       :
       #X_; :_
+
+      # scan non-shell scripts for shell escapes ie sys-bin calls
+      # https://www.sans.org/blog/escaping-restricted-linux-shells/
+
+      # Bug, "shell scripts" incls python perl etc
+
+      # how to make IRT lists for each interpreter?
       :
       : 'Make an array of the relevant filenames and their crashbangs.'
       a_shell_scripts+=([all_files_index]="$(printf \
@@ -706,7 +726,8 @@ then
   done
   :
   #X_; :_; D_ a_shell_scripts all_files_index first_line_printable each_sorted_f; L_
-  
+
+  # Note, you want to see the full crunchbangs in printed ASCII form
   :
   : 'Open a timestamped file and append into it the list of filenames' 
   : 'and their crashbangs.'
