@@ -134,6 +134,8 @@ for f in "${gitmesg}" "${gitignr}"; do
   chmod 0400 "/home/liveuser/${f##*/}"
 done
 
+# BUG: Dup btw files array and for loop
+
 ## Rename files
 files=(/home/*/.git*_system)
 for f in /home/*/.git*_system; do
