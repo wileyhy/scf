@@ -561,7 +561,7 @@ then
     :
     : 'Loop'
     :
-    loop_idx="$(printf "%'d" $((all_files_index + 1)))"
+    loop_idx="$(printf "%'d" $((all_files_index + 1)) )"
     printf '%s of %s files\r' "${loop_idx}" "${total_count}"
     :
     : 'file must exist'
@@ -597,21 +597,25 @@ then
     fi
     :
     # Bug: keep `od` output in an array
-    # Bug: avoid as many disk writes as possible.
+    # Bug: avoid as many disk writes as possible. 
+    #.  Write out only stats?
     # Bug: use indices to reference each type?
     :
     : 'two bytes each'
       :
-      #X_
-      :_
+      #X_; :_
+
+      # fix?: mapfile -d '' -t -O "${all_files_index}" a_od_o
+
     od_o="$(S_ od -j 0 -N 2 -t x1z -v -- "${each_sorted_f}"\
       | tr -s ' ' \
       | awk '{ print $2, $3, $4 }' \
       | tr -d '\n' \
-      || I_ "P:${PIPESTATUS[*]} I:${all_files_index} ${each_sorted_f}")"
-      :
-      #D_ od_o
-      :
+      || I_ "P:${PIPESTATUS[*]} I:${all_files_index} ${each_sorted_f}"
+    )"
+    :
+    #D_ od_o
+    :
     [[ -n "${od_o}" ]] \
       || I_ "I:${all_files_index} ${each_sorted_f}"
       :
