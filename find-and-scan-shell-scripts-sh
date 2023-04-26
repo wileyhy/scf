@@ -924,7 +924,8 @@ sort_o="$(sort -gr <<< "${wc_o}")"
 :
 awk_o="$(awk '{ print $2 }' <<< "${sort_o}")"
 :
-mapfile -t a_each_script_list_sorted_by_linect <<< "${awk_o}" # ie properly
+mapfile -t a_each_script_list_sorted_by_linect \
+  <<< "${awk_o}" # ie properly
 :
 found_scrpts_f="${list_crunchbangs}_found_scripts_${severity:0:1}_${abbrev_rel_search_dirs}"
 iterator_2=0
@@ -957,6 +958,7 @@ iterator_2=0
   done
 } | S_ tee -a -- "${found_scrpts_f}" > /dev/null
 :
+
 : 'Write semi-permanent archives'
 :
 B_ "${found_scrpts_f}"
