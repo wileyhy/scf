@@ -53,7 +53,8 @@ alias :_=':;: "<>"' \
       U_='fn_usage ' \
       V_='fn_write_vars ' \
       W_='fn_write_arrays ' \
-      X_='set -x'
+      X_='set -x' \
+      awk='gawk --lint '
 :
 : 'Environment variables'
 :
