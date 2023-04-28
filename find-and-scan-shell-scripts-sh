@@ -1,5 +1,5 @@
 #!/bin/bash
-# Q: name sb scfi ? scf ?
+# Q: name sb scf ?
 # Written in bash version 5.1 on Fedora 37
 
 # Note: Keep your goal in mind.
@@ -31,39 +31,76 @@ script_proper_nm='Script Finder'
 script_version=1.0
 a_poss_proces_lock_dirs=([0]="${XDG_RUNTIME_DIR}" [1]="${HOME}"
   [2]="${TMPDIR}" [3]=/tmp [4]=/var/tmp)
+declare -A A_rsd=( [afs]='/afs' [usr_bin]='/bin' [boot]='/boot' 
+  [dev]='/dev' [etc]='/etc' [home]='/home' [usr_lib]='/lib' 
+  [usr_lib64]='/lib64' [lost+found]='/lost+found' [media]='/media' 
+  [mnt]='/mnt' [opt]='/opt' [proc]='/proc' [root]='/root' [run]='/run' 
+  [usr_sbin]='/sbin' [srv]='/srv' [sys]='/sys' [tmp]='/tmp' 
+  [usr]='/usr' [var]='/var')
 umask 117
+:
 
-unset       abbrev_rel_search_dirs a_relevant_search_dirs
-declare     abbrev_rel_search_dirs a_relevant_search_dirs
-declare -A  A_rsd
-A_rsd=(
-  # [a]='/afs'
-    [B]='/usr/bin'
-  # [b]='/boot'
-  # [d]='/dev'
-  # [e]='/etc'
-  # [h]='/home'
-  # [L]='/usr/lib'
-  # [L6]='/usr/lib64'
-  # [l]='/lost+found'
-  # [m]='/media'
-  # [n]='/mnt'
-  # [o]='/opt'
-  # [p]='/proc'
-  # [q]='/root'
-  # [r]='/run'
-    [S]='/usr/sbin'
-  # [s]='/srv'
-  # [w]='/sys'
-  # [t]='/tmp'
-  # [u]='/usr'
-  # [v]='/var'
-  )
-for abbrev in "${!A_rsd[@]}"; do
-  a_relevant_search_dirs+=( "${A_rsd["${abbrev}"]}" ); 
-  abbrev_rel_search_dirs+="${abbrev}"
+# take each found dir and convert abs path [of sym, okay] to a string
+# usable for directory names
+
+unset index element calc ; 
+for index in "${!A_rsd[@]}"; do 
+  element="${A_rsd["$index"]}"; 
+  calc="$(realpath -e "$element")"; 
+  calc="${calc//\//_}"; 
+  calc="${calc#_}"; 
+  printf 'element: %-12s index: %-12s calc: %s \n' \
+    "$element" "$index" "$calc"; 
+  if [[ "$index" != "$calc" ]]; then 
+    echo wrong; 
+    exit; 
+  fi; 
 done
-# unset a_relevant_search_dirs; abbrev_rel_search_dirs=all
+
+#   to have an option to search all or just some dirs
+#   to store results on a per-dir basis, to reduce search time
+#     per mangling of realpath
+#     per dnf tx number
+#     per severity level
+#     per sha1sum
+
+
+_boot
+  _tx3
+  _tx4
+    _e
+      _6cb7aa1478a1d36f5b70d7fcb3e73486caae5bfc
+        # abs path filename
+        # shellcheck output
+        # ...
+    _w
+      _6cb7aa1478a1d36f5b70d7fcb3e73486caae5bfc
+        # abs path filename
+        # diff of shellcheck output
+        # ...
+
+    _s
+
+
+
+get_mountpoint(){
+  unset d dir
+  d="$(realpath -e "$1")"
+  mapfile -t dir < <( namei -xl $d | tac | grep -A100 ^D | grep -E ^'[Dd]' | awk '{ print $4 }')
+  unset j x i
+  j="${#dir[@]}"
+  for (( i=j; i>0; i--)); do 
+    x+="${dir[$i-1]}"/
+  done; 
+  x="$(realpath -e "$x")"
+  echo $x
+}
+
+# To search some specific directories
+abbrev_rel_search_dirs=S
+:
+# To search FULL DISK instead # --really-- --slow--
+#abbrev_rel_search_dirs=all
 :
 : 'Aliases'
 :
@@ -73,6 +110,7 @@ alias :_=':;: "<>"' \
       D_='declare -p ' \
       I_='fn_erx "${LINENO}" ' \
       L_='exit "${LINENO}"' \
+      M_='sudo namei -xl ' \
       N_='fn_num ' \
       S_='sudo ' \
       T_='tee --output-error=exit ' \
@@ -349,7 +387,7 @@ if ! mkdir -m 0000 "${process_lock_d}" 2>/dev/null; then
   L_
 fi
 :
-#:_; D_ process_lock_d; S_ namei -xl -- "${process_lock_d}"; L_
+#:_; D_ process_lock_d; M_ -- "${process_lock_d}"; L_
 :
 : User variables
 timecode="$(builtin printf '%(%F_%H%M%S)T')"
@@ -442,7 +480,7 @@ if [[ ! -r "${main_d}" ]]; then
 
       # TODO: use alias w namei
 
-      #S_ namei -xl -- "${acl_realpath}"
+      #M_ -- "${acl_realpath}"
       :
     fi
     :
@@ -468,7 +506,7 @@ if [[ ! -r "${main_d}" ]]; then
       #:_
       #id "${USER}"
       #groups "${USER}"
-      #S_ namei -xl -- "${acl_realpath}"
+      #M_ -- "${acl_realpath}"
       #S_ getfacl -- "${acl_realpath}"
       :
       [[ -r "${acl_realpath}" ]] \
@@ -486,7 +524,7 @@ if [[ ! -r "${main_d}" ]]; then
   #:_
   #id "${USER}"
   #groups "${USER}"
-  #S_ namei -xl -- "${main_d}"
+  #M_ -- "${main_d}"
   #S_ getfacl -- "${main_d}"
   :
 fi
@@ -497,7 +535,7 @@ fi
   || mkdir "${data_subd}" # as liveuser
   :
 #:_
-#S_ namei -xl -- "${data_subd}"
+#M_ -- "${data_subd}"
 :
 : Label the current data as -latest.-
 # shellcheck disable=SC2312
@@ -526,7 +564,7 @@ if [[ ! -d "${curr_time_ssubd}" ]]; then
 fi
 :
 #:_
-#S_ namei -xl -- "${curr_time_ssubd}"
+#M_ -- "${curr_time_ssubd}"
 :
 # SECTION C
 :
@@ -542,6 +580,10 @@ if [[ "${abbrev_rel_search_dirs}" == all ]]; then
       -print0 2> /dev/null
   )
   :
+  for sd in "${a_relevant_search_dirs[@]}"; do 
+
+    # assign 
+  : 
 fi
 :
 : 'Find all files within the search area. Even the empty ones.'
