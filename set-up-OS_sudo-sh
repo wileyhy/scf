@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 # set-up-OS_sudo-sh
 
 ## Notes
@@ -92,10 +92,16 @@ if [[ -n "${dnf_o}" ]] && [[ -n "${awk_o}" ]]; then
     {
       for s in HUP USR1 TERM; do
 
-        for p in "${pids_nr[@]}"; do
+        for p in "${!pids_nr[@]}"; do
+          q="${pids_nr[p]}"
           sleep 1
-          printf '\n\t[script:] + sudo kill -s %s %d' "${s}" "${p}"
-          sudo kill -s "${s}" "${p}"
+          printf '\t[script:] + sudo kill -s %s %d\n' "${s}" "${q}"
+          if sudo kill -s "${s}" "${q}" > /dev/null 2>&1; then
+            printf '\t[script:] + kill succeeded; forgetting PID\n' 
+            unset 'pids_nr[p]'
+          else
+            printf '\t[script:] + kill failed\n' 
+          fi
         done;
       done;
       printf '\n\n\tScript complete. [Press ENTER.]\n\n'
