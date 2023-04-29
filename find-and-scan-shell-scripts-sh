@@ -96,6 +96,8 @@ get_mountpoint(){
   echo $x
 }
 
+get_mountpoint /sbin
+
 # To search some specific directories
 abbrev_rel_search_dirs=S
 :
