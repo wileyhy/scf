@@ -600,7 +600,7 @@ if [[ "${abbrev_rel_search_dirs}" == all ]]; then
   for sd in "${a_relevant_search_dirs[@]}"; do 
 
     # assign 
-    :
+    echo "${sd}"
   done
   :
 fi
