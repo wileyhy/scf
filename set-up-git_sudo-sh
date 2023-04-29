@@ -6,8 +6,9 @@
 ###     https://git-scm.com/book/en/v2/Git-Basics-Recording-Changes-to-the-Repository
 
 # Frequently changing variables
-dev_d=~/MYPROJECT
-repo_nm=scrfi
+dev_d1=~/MYPROJECTS
+dev_d2=~/OTHERSPROJECTS
+repo_nm=scf
 
 # Regular users only
 if [[ "${UID}" == 0 ]]; then
