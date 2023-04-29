@@ -169,7 +169,7 @@ fn_bak() {
   for loc_filename_a in "${@}"; do
 
     # test verifying existence of input
-    if S_ test -f -- "${loc_filename_a}"; then
+    if S_ test -f "${loc_filename_a}"; then
 
       # BUG: Why does this ^ test req sudo when this test \/ doesnt?
 
