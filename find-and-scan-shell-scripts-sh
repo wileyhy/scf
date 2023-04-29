@@ -107,20 +107,34 @@ abbrev_rel_search_dirs=S
 : 'Aliases that are doubled as functions -- for debugging'
 :
 shopt -s expand_aliases;
-alias :_=':;: "<>"';                  function :_() { :;: "<>";};
-alias B_='fn_bak ';                   function B_() { fn_bak "$@";};
-alias D_='declare -p ';               function D_() { declare -p "$@";};
-alias I_='fn_erx "${LINENO}" ';       function I_() { I_;};
-alias L_='exit "${LINENO}"';          function L_() { L_;};
-alias M_='sudo namei -xl ';           function M_() { sudo namei -xl "$@";};
-alias N_='fn_num ';                   function N_() { fn_num "$@";};
-alias S_='sudo ';                     function S_() { sudo "$@";};
-alias T_='tee --output-error=exit ';  function T_() { tee --output-error=exit "$@";};
-alias U_='fn_usage ';                 function U_() { fn_usage "$@";};
-alias V_='fn_write_vars ';            function V_() { fn_write_vars "$@";};
-alias W_='fn_write_arrays ';          function W_() { fn_write_arrays "$@";};
-alias X_='set -x';                    function X_() { set -x "$@";};
-alias awk='gawk --lint ';             function awk_() { gawk --lint "$@";};
+alias :_=':;: "<>"';
+  function :_() { :;: "<>";};
+alias B_='fn_bak ';
+  function B_() { fn_bak "$@";};
+alias D_='declare -p ';
+  function D_() { declare -p "$@";};
+alias I_='fn_erx "${LINENO}" ';
+  function I_() { I_;};
+alias L_='exit "${LINENO}"';
+  function L_() { L_;};
+alias M_='sudo namei -xl ';
+  function M_() { sudo namei -xl "$@";};
+alias N_='fn_num ';
+  function N_() { fn_num "$@";};
+alias S_='sudo ';
+  function S_() { sudo "$@";};
+alias T_='tee --output-error=exit ';
+  function T_() { tee --output-error=exit "$@";};
+alias U_='fn_usage ';
+  function U_() { fn_usage "$@";};
+alias V_='fn_write_vars ';
+  function V_() { fn_write_vars "$@";};
+alias W_='fn_write_arrays ';
+  function W_() { fn_write_arrays "$@";};
+alias X_='set -x';
+  function X_() { set -x "$@";};
+alias awk='gawk --lint ';
+  function awk_() { gawk --lint "$@";};
 :
 : 'Environment variables'
 :
