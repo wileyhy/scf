@@ -126,7 +126,7 @@ alias S_='sudo ';
 #  function S_() { sudo "$@";};
 alias T_='tee --output-error=exit ';
 #  function T_() { tee --output-error=exit "$@";};
-alias U_='fn_usage ';
+#alias U_='fn_usage ';
 #  function U_() { fn_usage "$@";};
 alias V_='fn_write_vars ';
 #  function V_() { fn_write_vars "$@";};
@@ -242,7 +242,7 @@ fn_erx() {
 #  :
 #}
 fn_usage() {
-  # Usage:  U_ [exit-code]
+  # Usage:  fn_usage [exit-code]
   : fn_usage
 
   # print a usage message and exit with a pre-determined exit code
@@ -432,11 +432,11 @@ if [[ $# -gt 0 ]]; then
     -w) severity=warning ;;
     -h)
       :
-      U_ 0
+      fn_usage 0
       ;;
     *)
       :
-      U_ 1
+      fn_usage 1
       ;;
   esac
 fi
