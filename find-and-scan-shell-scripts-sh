@@ -104,38 +104,23 @@ abbrev_rel_search_dirs=S
 # To search FULL DISK instead # --really-- --slow--
 #abbrev_rel_search_dirs=all
 :
-: 'Aliases that are doubled as functions -- for debugging'
+: 'Aliases and functions -- for brevity during debugging'
 :
 shopt -s expand_aliases;
-alias :_=':;: "<>"';
-#  function :_() { :;: "<>";};
-#alias B_='fn_bak ';
-  function B_() { fn_bak "$@";};
-alias D_='declare -p ';
-#  function D_() { declare -p "$@";};
-#alias I_='fn_erx "${LINENO}" ';
-  function I_() { fn_erx "${LINENO}";};
-#  function I_() { command I_;};
-alias L_='exit "${LINENO}"';
-#  function L_() { command L_;};
-alias M_='sudo namei -xl ';
-#  function M_() { sudo namei -xl "$@";};
-#alias N_='fn_num ';
-#  function N_() { fn_num "$@";};
-alias S_='sudo ';
-#  function S_() { sudo "$@";};
-alias T_='tee --output-error=exit ';
-#  function T_() { tee --output-error=exit "$@";};
-#alias U_='fn_usage ';
-#  function U_() { fn_usage "$@";};
-#alias V_='fn_write_vars ';
-#  function V_() { fn_write_vars "$@";};
-#alias W_='fn_write_arrays ';
-  function W_() { fn_write_arrays "$@";};
-alias X_='set -x';
-#  function X_() { set -x "$@";};
-alias awk='gawk --lint ';
-#  function awk_() { gawk --lint "$@";};
+alias     :_=':;: "<>"';
+function  B_() { fn_bak "$@";};
+alias     D_='declare -p ';
+function  I_() { fn_erx "${LINENO}";};
+alias     L_='exit "${LINENO}"';
+alias     M_='sudo namei -xl ';
+                                       #  function N_() { fn_num "$@";};
+alias     S_='sudo ';
+alias     T_='tee --output-error=exit ';
+                                       #  function V_() { fn_write_vars "$@";};
+function  W_() { fn_write_arrays "$@";};
+alias     X_='set -x';
+alias     awk='gawk --lint ';
+
 :
 : 'Environment variables'
 :
