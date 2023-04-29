@@ -71,7 +71,7 @@ _boot
     _e
       _6cb7aa1478a1d36f5b70d7fcb3e73486caae5bfc
         # abs path filename
-        # shellcheck output
+        # full shellcheck output
         # ...
     _w
       _6cb7aa1478a1d36f5b70d7fcb3e73486caae5bfc
@@ -583,7 +583,9 @@ if [[ "${abbrev_rel_search_dirs}" == all ]]; then
   for sd in "${a_relevant_search_dirs[@]}"; do 
 
     # assign 
-  : 
+    :
+  done
+  :
 fi
 :
 : 'Find all files within the search area. Even the empty ones.'
