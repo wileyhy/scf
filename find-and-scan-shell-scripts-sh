@@ -729,10 +729,9 @@ then
     then
       I_ "I:${all_files_index} <${each_sorted_f}>" \
         '*unreachable code*'
-        :
-    : 'compare hexadecimals'
     elif [[ "${byte_0}" == @(23|21) ]]; 
     then
+      : 'compare hexadecimals'
       :
       : 'endianness'
       if [[ "${byte_0}${byte_1}" == 2123 ]]; 
