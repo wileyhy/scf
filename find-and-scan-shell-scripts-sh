@@ -86,14 +86,14 @@ _boot
 get_mountpoint(){
   unset d dir
   d="$(realpath -e "$1")"
-  mapfile -t dir < <( namei -xl $d | tac | grep -A100 ^D | grep -E ^'[Dd]' | awk '{ print $4 }')
+  mapfile -t dir < <( namei -xl "$d" | tac | grep -A100 ^D | grep -E ^'[Dd]' | awk '{ print $4 }')
   unset j x i
   j="${#dir[@]}"
   for (( i=j; i>0; i--)); do 
     x+="${dir[$i-1]}"/
   done; 
   x="$(realpath -e "$x")"
-  echo $x
+  echo "$x"
 }
 
 get_mountpoint /sbin
