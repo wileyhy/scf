@@ -108,19 +108,21 @@ abbrev_rel_search_dirs=S
 :
 shopt -s expand_aliases;
 alias     :_=':;: "<>"';
-function  B_() { fn_bak "$@";};
 alias     D_='declare -p ';
-function  I_() { fn_erx "${LINENO}";};
 alias     L_='exit "${LINENO}"';
 alias     M_='sudo namei -xl ';
-                                       #  function N_() { fn_num "$@";};
 alias     S_='sudo ';
 alias     T_='tee --output-error=exit ';
-                                       #  function V_() { fn_write_vars "$@";};
-function  W_() { fn_write_arrays "$@";};
 alias     X_='set -x';
 alias     awk='gawk --lint ';
-
+:
+set -v
+function  B_() { fn_bak "$@";};
+function  I_() { fn_erx "${LINENO}";};
+#function N_() { fn_num "$@";};
+#function V_() { fn_write_vars "$@";};
+function  W_() { fn_write_arrays "$@";};
+set +v
 :
 : 'Environment variables'
 :
