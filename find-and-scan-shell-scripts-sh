@@ -129,7 +129,7 @@ alias T_='tee --output-error=exit ';
 #alias U_='fn_usage ';
 #  function U_() { fn_usage "$@";};
 #alias V_='fn_write_vars ';
-  function V_() { fn_write_vars "$@";};
+#  function V_() { fn_write_vars "$@";};
 #alias W_='fn_write_arrays ';
   function W_() { fn_write_arrays "$@";};
 alias X_='set -x';
@@ -302,29 +302,29 @@ fn_write_arrays() {
   : 'END OF fn_write_arrays'
   :
 }
-fn_write_vars() {
-  # Usage: V_ [loc_script_section_nm] [raw variable names]
-
-  # first pos-parm is string used for differentiating filename
-  : fn_write_vars
-  loc_script_section_nm="${1}"
-  loc_write_f_a="${curr_time_ssubd}/${loc_script_section_nm}_vars"
-  shift
-
-  # if the destination file already exists, then return from FN
-  [[ -e "${loc_write_f_a}" ]] \
-    && return
-
-  # write a new data file
-  declare -p "${@}" 2>/dev/null \
-    | S_ T_ -- "${loc_write_f_a}" >/dev/null
-
-  # and write a .bak file
-  :
-  B_ "${loc_write_f_a}"
-  : END OF fn_write_vars
-  :
-}
+#fn_write_vars() {
+#  # Usage: V_ [loc_script_section_nm] [raw variable names]
+#
+#  # first pos-parm is string used for differentiating filename
+#  : fn_write_vars
+#  loc_script_section_nm="${1}"
+#  loc_write_f_a="${curr_time_ssubd}/${loc_script_section_nm}_vars"
+#  shift
+#
+#  # if the destination file already exists, then return from FN
+#  [[ -e "${loc_write_f_a}" ]] \
+#    && return
+#
+#  # write a new data file
+#  declare -p "${@}" 2>/dev/null \
+#    | S_ T_ -- "${loc_write_f_a}" >/dev/null
+#
+#  # and write a .bak file
+#  :
+#  B_ "${loc_write_f_a}"
+#  : END OF fn_write_vars
+#  :
+#}
 :
 : Use -sudo-
 if ! S_ -v; then
