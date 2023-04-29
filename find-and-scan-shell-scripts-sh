@@ -1,10 +1,14 @@
 #!/bin/bash
 # Q: name sb scfi ? scf ?
 # Written in bash version 5.1 on Fedora 37
-# shellcheck disable=SC2317  # Don't warn about unreachable commands in this file
-
 
 # Note: Keep your goal in mind.
+
+# Note also, whether there are any http / curl / wget / network commands
+#   how old the scripts are, ie, mtime
+#     does mtime info transfer all the way from source to distro? 
+#     prob not....?
+#
 
 # SECTION A
 :
@@ -18,6 +22,9 @@ else
     || exit 1
 fi
 :
+set -x
+:
+
 : 'Implementation dependent arguments for options parsable by -shellcheck-'
 :
 severity=error
@@ -28,6 +35,8 @@ shells='(sh|bash|dash|ksh)'
 :
 repo_nm=scrfi
 script_dirnm="${repo_nm}.d"
+protected_git_dir_1="${HOME}/MYPROJECTS"
+protected_git_dir_2="${HOME}/OTHERSPROJECTS"
 script_nm=find-and-scan-shell-scripts-sh
 script_proper_nm='Script Finder'
 script_version=1.0
