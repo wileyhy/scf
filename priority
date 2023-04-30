@@ -56,6 +56,7 @@
 # -a alphanumeric sort
 
 
+# Notes
 
 # https://unix.stackexchange.com/questions/171346/security-implications-of-forgetting-to-quote-a-variable-in-bash-posix-shells
 #
@@ -64,3 +65,9 @@
 # snippets in man and info pages 
 # less has LESSCHARSET=utf-8
 # https://github.com/bats-core/bats-core
+
+# Note also, whether there are any http / curl / wget / network commands
+#   how old the scripts are, ie, mtime
+#     does mtime info transfer all the way from source to distro? 
+#     prob not....?
+#
