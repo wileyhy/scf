@@ -40,6 +40,7 @@ protected_git_dir_2="${HOME}/OTHERSPROJECTS"
 script_nm=find-and-scan-shell-scripts-sh
 script_proper_nm='Script Finder'
 script_version=1.0
+
 a_poss_proces_lock_dirs=([0]="${XDG_RUNTIME_DIR}" [1]="${HOME}"
   [2]="${TMPDIR}" [3]=/tmp [4]=/var/tmp)
 declare -A A_rsd=( [afs]='/afs' [usr_bin]='/bin' [boot]='/boot' 
@@ -50,11 +51,20 @@ declare -A A_rsd=( [afs]='/afs' [usr_bin]='/bin' [boot]='/boot'
   [usr]='/usr' [var]='/var')
 umask 117
 :
+get_rel_search_dirs(){
+  mapfile -d '' -t "${1}" < <(
+    sudo find / -mindepth 1 -maxdepth 1 -type d \! -empty \
+      \( \! -name proc -a \! -name sys \
+        -a \! -iname "${script_dirnm:- scf.d}" \
+        -a \! -iname "${protected_git_dir_1:- ~}" \
+        -a \! -iname "${protected_git_dir_2:- tmp}" \
+      \) -print0 2> /dev/null);
+    }
 
 # take each found dir and convert abs path [of sym, okay] to a string
 # usable for directory names
 
-unset index element calc ; 
+unset index element calc;
 for index in "${!A_rsd[@]}"; do 
   element="${A_rsd["$index"]}"; 
   calc="$(realpath -e "$element")"; 
