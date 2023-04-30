@@ -63,30 +63,33 @@ done
 #     per dnf tx number
 #     per severity level
 #     per sha1sum
-
-
-_boot
-  _tx3
-  _tx4
-    _e
-      _6cb7aa1478a1d36f5b70d7fcb3e73486caae5bfc
-        # abs path filename
-        # full shellcheck output
-        # ...
-    _w
-      _6cb7aa1478a1d36f5b70d7fcb3e73486caae5bfc
-        # abs path filename
-        # diff of shellcheck output
-        # ...
-
-    _s
-
+#
+#  _boot
+#    _tx3
+#    _tx4
+#      _e
+#        _6cb7aa1478a1d36f5b70d7fcb3e73486caae5bfc
+#          # abs path filename
+#          # full shellcheck output
+#          # ...
+#      _w
+#        _6cb7aa1478a1d36f5b70d7fcb3e73486caae5bfc
+#          # abs path filename
+#          # diff of shellcheck output
+#          # ...
+#      _s
+#
 
 
 get_mountpoint(){
   unset d dir
   d="$(realpath -e "$1")"
-  mapfile -t dir < <( namei -xl "$d" | tac | grep -A100 ^D | grep -E ^'[Dd]' | awk '{ print $4 }')
+  mapfile -t dir < <(
+    namei -xl "$d" \
+    | tac \
+    | grep -A100 ^D \
+    | grep -E ^'[Dd]' \
+    | awk '{ print $4 }')
   unset j x i
   j="${#dir[@]}"
   for (( i=j; i>0; i--)); do 
@@ -103,6 +106,8 @@ abbrev_rel_search_dirs=S
 :
 # To search FULL DISK instead # --really-- --slow--
 #abbrev_rel_search_dirs=all
+
+
 :
 : 'Aliases and functions -- for brevity during debugging'
 :
