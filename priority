@@ -10,14 +10,20 @@
 #   ubiquity -- datasets, each major distro
 #.    `command -p`
 #     L sqlite
-#   how likely to be exec'd
-#.    full disk search 
-#     per fsroot dir search, no syms
-#     in PATH
-#.      non-sym vs follow sym, via find
-#       `compgen` knows of it
-#.      `command -p` knows of it - also ubiquity
-#.      found w only getconf PATH
+#
+#   search patterns, ie, how likely to be exec'd
+#                                                 syms    decend
+#.    1.  found w only `getconf PATH` and `find`
+#     2.  in "standard PATH" and `find`
+#     .  in actual PATH
+#.    ?  non-sym via find
+#.    ?  follow sym via find
+#     ?  `compgen` knows of it
+#.    ?  `command -p` knows of it - also ubiquity
+#
+#     . per fsroot dir search, no syms - ie, partial disk search
+#.    . full disk search, indicriminate
+#
 #     sourcable scripts wo #!'s -- `file` output, ascii text
 #.      Have no #! & No execute bit set, per POSIX
 #     L default vs everything installs?
@@ -52,7 +58,6 @@
 # -h help
 # -s find / include source scripts
 # -N do not write anything to disk
-# -S score results
 # -a alphanumeric sort
 
 
