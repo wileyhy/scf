@@ -60,6 +60,7 @@ get_rel_search_dirs(){
         -a \! -iname "${protected_git_dir_2:- tmp}" \
       \) -print0 2> /dev/null);
     }
+get_rel_search_dirs a_relevant_search_dirs
 
 # take each found dir and convert abs path [of sym, okay] to a string
 # usable for directory names
