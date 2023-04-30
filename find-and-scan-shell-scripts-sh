@@ -450,15 +450,16 @@ if [[ $# -gt 0 ]]; then
   # shellcheck disable=SC2034
   case "${cli_input}" in
     --)
-      printf 0a09486170707920456173746572210a0a \
-        | xxd -r -p
+      printf 'CglIYXBweSBFYXN0ZXIhCgo=' | base64 -d
       exit 0
       ;;
     -e) severity=error ;;
     -i) severity=info ;;
     -v)
-      printf 0a09224920776f756c642068617665206d61646520746869732073686f727465722c206275742049206469646e27742068617665207468652074696d652e220a09092d2d204d61726b20547761696e0a0a \
-        | xxd -r -p
+      printf '%s%s%s' 'CgkiSSB3b3VsZCBoYXZlIG1hZGUgdGhpcyBzaG9y' \
+        'dGVyLCBidXQgSSBkaWRuJ3QgaGF2ZSB0aGUg' \
+        'dGltZS4iCgkJLS0gTWFyayBUd2FpbgoK' \
+        | base64 -d
       exit 0
       ;;
     -w) severity=warning ;;
