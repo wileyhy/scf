@@ -4,11 +4,6 @@
 
 # Note: Keep your goal in mind.
 
-# Note also, whether there are any http / curl / wget / network commands
-#   how old the scripts are, ie, mtime
-#     does mtime info transfer all the way from source to distro? 
-#     prob not....?
-#
 
 # SECTION A
 :
