@@ -39,12 +39,79 @@ script_version=1.0
 a_poss_proces_lock_dirs=([0]="${XDG_RUNTIME_DIR}" [1]="${HOME}"
   [2]="${TMPDIR}" [3]=/tmp [4]=/var/tmp)
 :
-# To search some specific directories
-abbrev_rel_search_dirs=S
+
+# to search dirs...
 :
-# To search FULL DISK instead # --really-- --slow--
+: Option parsing
+if [[ $# -gt 0 ]]; then 
+  cli_input="${1:0:2}"
+  :
+  # shellcheck disable=SC2034
+  case "${cli_input}" in
+    --)  
+      printf 'CglIYXBweSBFYXN0ZXIhCgo=' | base64 -d
+      exit 0
+      ;;   
+    -e) severity=error ;;
+    -i) severity=info ;;
+    -v)  
+      printf '%s%s%s' 'CgkiSSB3b3VsZCBoYXZlIG1hZGUgdGhpcyBzaG9y' \
+        'dGVyLCBidXQgSSBkaWRuJ3QgaGF2ZSB0aGUg' \
+        'dGltZS4iCgkJLS0gTWFyayBUd2FpbgoK' \
+        | base64 -d
+      exit 0
+      ;;   
+    -w) severity=warning ;;
+    -h)  
+      :    
+      fn_usage 0
+      ;;   
+    *)   
+      :    
+      fn_usage 1
+      ;;   
+  esac 
+fi
+
+# w_gc_P  w_bi+sbi  w_PATH_as-is  w-syms  w-desce comm-p  w-proc  w-sys w-spec-ds /
+#
+# n       n         n             n       n            
+# n       n         n             y       n
+# n       n         n             y       y
+# n       n         y             n       n
+# n       n         y             y       n
+# n       n         y             y       y
+
+# n       y         n             n       n  
+# n       y         n             y       n
+# n       y         n             y       y
+# n       y         y             n       n
+# n       y         y             y       n
+# n       y         y             y       y
+
+# y       n         n             n       n  
+# y       n         n             y       n
+# y       n         n             y       y
+# y       n         y             n       n
+# y       n         y             y       n
+# y       n         y             y       y
+
+# y       y         n             n       n
+# y       y         n             y       n
+# y       y         n             y       y
+# y       y         y             n       n
+# y       y         y             y       n
+# y       y         y             y       y
+
+
+
+
+
 #abbrev_rel_search_dirs=all
 :
+# To search some specific directories, uncomment them; to search 
+# all of the common FULL DISK instead # --really-- --slow--
+#
 declare -A A_rsd
 A_rsd=( 
   # useful for testing 
@@ -52,7 +119,7 @@ A_rsd=(
     #[usr_lib]='/lib' 
     #[usr_lib64]='/lib64' 
     [usr_sbin]='/sbin' 
-  # common search dirs on Fedora  
+  # common search dirs on Fedora, ie, "all"
     #[boot]='/boot' 
     #[dev]='/dev' 
     #[etc]='/etc' 
@@ -441,39 +508,7 @@ fi
 : User variables
 timecode="$(builtin printf '%(%F_%H%M%S)T')"
 :
-# TODO: Hex to base64
-:
-: Option parsing
-if [[ $# -gt 0 ]]; then
-  cli_input="${1:0:2}"
-  :
-  # shellcheck disable=SC2034
-  case "${cli_input}" in
-    --)
-      printf 'CglIYXBweSBFYXN0ZXIhCgo=' | base64 -d
-      exit 0
-      ;;
-    -e) severity=error ;;
-    -i) severity=info ;;
-    -v)
-      printf '%s%s%s' 'CgkiSSB3b3VsZCBoYXZlIG1hZGUgdGhpcyBzaG9y' \
-        'dGVyLCBidXQgSSBkaWRuJ3QgaGF2ZSB0aGUg' \
-        'dGltZS4iCgkJLS0gTWFyayBUd2FpbgoK' \
-        | base64 -d
-      exit 0
-      ;;
-    -w) severity=warning ;;
-    -h)
-      :
-      fn_usage 0
-      ;;
-    *)
-      :
-      fn_usage 1
-      ;;
-  esac
-fi
-:
+
 # SECTION B
 :
 #:_
@@ -1099,4 +1134,3 @@ done
 :
 trap - EXIT
 exit 00
-
