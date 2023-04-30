@@ -43,36 +43,40 @@ script_version=1.0
 :
 a_poss_proces_lock_dirs=([0]="${XDG_RUNTIME_DIR}" [1]="${HOME}"
   [2]="${TMPDIR}" [3]=/tmp [4]=/var/tmp)
-declare -A A_rsd=( 
-
+:
+# To search some specific directories
+abbrev_rel_search_dirs=S
+:
+# To search FULL DISK instead # --really-- --slow--
+#abbrev_rel_search_dirs=all
+:
+declare -A A_rsd
+A_rsd=( 
   # useful for testing 
-  #[usr_bin]='/bin' 
-  #[usr_lib]='/lib' 
-  #[usr_lib64]='/lib64' 
-  [usr_sbin]='/sbin' 
-
+    #[usr_bin]='/bin' 
+    #[usr_lib]='/lib' 
+    #[usr_lib64]='/lib64' 
+    [usr_sbin]='/sbin' 
   # common search dirs on Fedora  
-  #[boot]='/boot' 
-  #[dev]='/dev' 
-  #[etc]='/etc' 
-  #[home]='/home' 
-  #[root]='/root' 
-  #[run]='/run' 
-  #[tmp]='/tmp' 
-  #[usr]='/usr' 
-  #[var]='/var'
-  
+    #[boot]='/boot' 
+    #[dev]='/dev' 
+    #[etc]='/etc' 
+    #[home]='/home' 
+    #[root]='/root' 
+    #[run]='/run' 
+    #[tmp]='/tmp' 
+    #[usr]='/usr' 
+    #[var]='/var' 
   # usually empty
-  #[afs]='/afs' 
-  #[lost+found]='/lost+found' 
-  #[media]='/media' 
-  #[mnt]='/mnt' 
-  #[opt]='/opt' 
-  #[srv]='/srv' 
-
+    #[afs]='/afs' 
+    #[lost+found]='/lost+found' 
+    #[media]='/media' 
+    #[mnt]='/mnt' 
+    #[opt]='/opt' 
+    #[srv]='/srv' 
   # usually quite difficult to parse; rarely any shell scripts
-  #[proc]='/proc' 
-  #[sys]='/sys' 
+    #[proc]='/proc' 
+    #[sys]='/sys' 
 )
 umask 117
 :
@@ -147,12 +151,6 @@ get_mountpoint(){
 }
 
 get_mountpoint /sbin
-
-# To search some specific directories
-abbrev_rel_search_dirs=S
-:
-# To search FULL DISK instead # --really-- --slow--
-#abbrev_rel_search_dirs=all
 
 
 :
