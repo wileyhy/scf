@@ -40,15 +40,40 @@ protected_git_dir_2="${HOME}/OTHERSPROJECTS"
 script_nm=find-and-scan-shell-scripts-sh
 script_proper_nm='Script Finder'
 script_version=1.0
-
+:
 a_poss_proces_lock_dirs=([0]="${XDG_RUNTIME_DIR}" [1]="${HOME}"
   [2]="${TMPDIR}" [3]=/tmp [4]=/var/tmp)
-declare -A A_rsd=( [afs]='/afs' [usr_bin]='/bin' [boot]='/boot' 
-  [dev]='/dev' [etc]='/etc' [home]='/home' [usr_lib]='/lib' 
-  [usr_lib64]='/lib64' [lost+found]='/lost+found' [media]='/media' 
-  [mnt]='/mnt' [opt]='/opt' [proc]='/proc' [root]='/root' [run]='/run' 
-  [usr_sbin]='/sbin' [srv]='/srv' [sys]='/sys' [tmp]='/tmp' 
-  [usr]='/usr' [var]='/var')
+declare -A A_rsd=( 
+
+  # useful for testing 
+  #[usr_bin]='/bin' 
+  #[usr_lib]='/lib' 
+  #[usr_lib64]='/lib64' 
+  [usr_sbin]='/sbin' 
+
+  # common search dirs on Fedora  
+  #[boot]='/boot' 
+  #[dev]='/dev' 
+  #[etc]='/etc' 
+  #[home]='/home' 
+  #[root]='/root' 
+  #[run]='/run' 
+  #[tmp]='/tmp' 
+  #[usr]='/usr' 
+  #[var]='/var'
+  
+  # usually empty
+  #[afs]='/afs' 
+  #[lost+found]='/lost+found' 
+  #[media]='/media' 
+  #[mnt]='/mnt' 
+  #[opt]='/opt' 
+  #[srv]='/srv' 
+
+  # usually quite difficult to parse; rarely any shell scripts
+  #[proc]='/proc' 
+  #[sys]='/sys' 
+)
 umask 117
 :
 get_rel_search_dirs(){
