@@ -67,7 +67,5 @@
 # https://github.com/bats-core/bats-core
 
 # Note also, whether there are any http / curl / wget / network commands
-#   how old the scripts are, ie, mtime
-#     does mtime info transfer all the way from source to distro? 
-#     prob not....?
-#
+#   how old the scripts are, ie, mtime/copyright year/...
+# grep for TODO's
