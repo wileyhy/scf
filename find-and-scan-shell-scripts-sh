@@ -22,9 +22,9 @@ set -x
 
 : 'Implementation dependent arguments for options parsable by -shellcheck-'
 :
-severity=error
+SC_severity=error
 # shellcheck disable=SC2034
-shells='(sh|bash|dash|ksh)'
+SC_shells='(sh|bash|dash|ksh)'
 :
 : 'Variables that lend themselves to some customization'
 :
@@ -46,66 +46,239 @@ a_poss_proces_lock_dirs=([0]="${XDG_RUNTIME_DIR}" [1]="${HOME}"
 if [[ $# -gt 0 ]]; then 
   cli_input="${1:0:2}"
   :
-  # shellcheck disable=SC2034
+fi
+
+
+######### from wooledge.org
+# https://mywiki.wooledge.org/BashFAQ/035?highlight=%28getopts%29#getopts
+
+# Initialize our own variables:
+SC_severity='error'
+
+while getopts ABhCDEFGHIJKLeisw cli_input; do
   case "${cli_input}" in
-    --)  
-      printf 'CglIYXBweSBFYXN0ZXIhCgo=' | base64 -d
-      exit 0
-      ;;   
-    -e) severity=error ;;
-    -i) severity=info ;;
-    -v)  
-      printf '%s%s%s' 'CgkiSSB3b3VsZCBoYXZlIG1hZGUgdGhpcyBzaG9y' \
+    A) printf '%s%s%s' 'CgkiSSB3b3VsZCBoYXZlIG1hZGUgdGhpcyBzaG9y' \
         'dGVyLCBidXQgSSBkaWRuJ3QgaGF2ZSB0aGUg' \
         'dGltZS4iCgkJLS0gTWFyayBUd2FpbgoK' \
         | base64 -d
       exit 0
       ;;   
-    -w) severity=warning ;;
-    -h)  
-      :    
-      fn_usage 0
+    B) printf 'CglIYXBweSBFYXN0ZXIhCgo=' \
+        | base64 -d
+      exit 0
+      ;;
+    
+
+    h) fn_usage 0
       ;;   
-    *)   
-      :    
-      fn_usage 1
+    
+
+    #) select_interpreter=bash
+      #;;
+    #) select_interpreter=dash
+      #;;
+    #) select_interpreter=ksh
+      #;;
+    #) select_interpreter=sh
+      #;;
+
+    C) search_method+=(actual_all)
+      ;;
+    D) search_method+=(PATH_bin-sbin-only)
+      ;;
+    E) search_method+=(comm_p)
+      ;;
+    F) search_method+=(getconf_PATH)
+      ;;
+    G) search_method+=(PATH_as-is) # default 1 of 2
+      ;;
+    H) search_method+=(w_descend)
+      ;;
+    I) search_method+=(w_procfs)
+      ;;
+    J) search_method+=(w_spec_dirs)
+      ;;
+    K) search_method+=(w_symlinks) # default 2 of 2
+      ;;
+    L) search_method+=(w_sysfs)
+      ;;
+   
+    e) SC_severity=error # default
+      ;;
+    i) SC_severity=info
+      ;;
+    s) SC_severity=style 
+      ;;
+    w) SC_severity=warning
+      ;;
+
+    #V) echo 'TODO: write fn_version'
+      #;;
+
+    *) fn_usage 1
       ;;   
   esac 
+done
+shift "$((OPTIND-1))"   # Discard the options and sentinel --
+
+
+
+# Verify PATH
+
+# TODO: check DAC's, ACL's and MAC's of each dir
+
+# Get constituent dirs from PATH
+IFS=':' read -ra path <<< "${PATH}" # this
+# get the cannonicalized paths of each such dir
+for p in "${!path[@]}"; do
+  path[p]="$( realpath -e "${path[p]}" )";
+done # this
+# if the index is empty, then unset it
+for p in "${!path[@]}"; do
+  if [[ -z "${path[p]}" ]]; then
+    unset 'path[p]';
+  fi;
+done # this
+# remove any duplicates while preserving order of dirs
+for p in "${!path[@]}"; do
+  if [[ "${path_2[*]}" =~ ${path[p]} ]]; then
+    unset 'path[p]';
+  else
+    path_2+=("${path[p]}");
+  fi;
+done # this
+# print results
+declare -p path_2 # this
+
+
+
+# sort out search_method selections
+if [[ -z "${search_method[*]}" ]]; then
+  search_method=(PATH_as-is w_symlinks)
+  bash_v_find=bash
+elif [[ "${search_method[*]}" = @(comm_p) ]]; then
+  search_method=(comp_p)
+  bash_v_find=bash
+else
+  bash_v_find=find
+  if [[ "${search_method[*]}" = @() ]]; then
+    true
+  else
+    false
+  fi
 fi
 
-# w_gc_P  w_bi+sbi  w_PATH_as-is  w-syms  w-desce comm-p  w-proc  w-sys w-spec-ds /
-#
-# n       n         n             n       n            
-# n       n         n             y       n
-# n       n         n             y       y
-# n       n         y             n       n
-# n       n         y             y       n
-# n       n         y             y       y
 
-# n       y         n             n       n  
-# n       y         n             y       n
-# n       y         n             y       y
-# n       y         y             n       n
-# n       y         y             y       n
-# n       y         y             y       y
-
-# y       n         n             n       n  
-# y       n         n             y       n
-# y       n         n             y       y
-# y       n         y             n       n
-# y       n         y             y       n
-# y       n         y             y       y
-
-# y       y         n             n       n
-# y       y         n             y       n
-# y       y         n             y       y
-# y       y         y             n       n
-# y       y         y             y       n
-# y       y         y             y       y
+# PATH_as-is
+#   y = bash or find                        -- DEFAULT
+#     # for find, convert PATH into an array 
+#   n =                                     -- side effect of enabling any other PATH_* setting
+ 
+### MUTUALLY EXCLUSIVE: last set takes precedence
+#   PATH_getconf_PATH   -- a limiting setting, usually '/usr/bin'
+#     y = bash or find                        -- usually for debugging or research
+#       # `unset PATH; PATH="$(getconf PATH)"
+#     n =                                     -- default setting
+#   PATH_bin-only       -- a limiting setting, usually the same as 'PATH_getconf_PATH'
+#     y = bash or find                        -- debug setting
+#       # PATH='/usr/bin:/bin'
+#     n =                                     -- practical result of customary configuration AND default setting
+#   PATH_sbin-only      -- a limiting setting
+#     y = bash or find                        -- debug setting
+#       # PATH='/usr/sbin:/sbin'
+#     n =                                     -- practical result of customary configuration AND default setting
+#   PATH_bin-sbin-only  -- a limiting setting
+#     y = bash or find                        -- practical result of customary configuration
+#       # PATH='/usr/sbin:/sbin:/usr/bin:/bin'
+#     n =                                     -- default setting
 
 
+# BASH_command_pv          -- usually a limiting setting, to be used independent of PATH
+#   y = bash only
+#     # compgen -c
+#   n = <no meaning>                        -- default setting
+# BASH_command_v
+#   y = bash only
+#     # compgen -c
+#   n = <no meaning>                        -- default setting
+# BASH_type_a
+#   y = bash only
+#     # compgen -c
+#   n = <no meaning>                        -- default setting
 
 
+unset alnum dict i all_commands real_dirs re
+for alnum in {a..z} {A..Z} {0..9}; do 
+  dict+=("${alnum}"); 
+done
+for i in "${!dict[@]}"; do 
+  mapfile -O $((i * 1000)) -t all_commands < <(
+    compgen -c "${dict[i]}"
+  ); 
+done
+mapfile -t real_dirs < <(
+  find / -maxdepth 1 -mindepth 1 -type d \! -empty
+)
+re="$( \
+  printf '(%s' "${real_dirs[0]#/}"; 
+  unset 'real_dirs[0]'; 
+  printf '|%s' "${real_dirs[@]#/}"; 
+  printf ')\n'
+)"
+unset i; 
+for i in "${!all_commands[@]}"; do 
+
+  # For anywhere in PATH: BASH_type_a
+  type -a "${all_commands[i]}" \
+    | grep -E 'is /'"${re}" ; 
+
+  # For `command -pv` (usually only '/usr/bin'): BASH_command_pv
+  command -pv "${all_commands[i]}" \
+    | grep -E 'is /'"${re}" ; 
+
+  # For `command -v` (usually includes '/usr/sbin'): BASH_command_v
+  command -v "${all_commands[i]}" \
+    | grep -E 'is /'"${re}" ; 
+
+done \
+  | wc
+
+
+
+# w_symlinks          
+#   y = bash or find                        -- DEFAULT
+#   n = find only
+# 
+# w_descend
+#   y = find only
+#   n = find or bash                        -- default setting
+# 
+# w_user-custom_dirs
+#   y = (ie, explicit include) find only
+#   n = (ie, implicit exclude) find only    -- default setting
+# 
+# w_procfs
+#   y = (ie, explicit include) find only
+#   n = (ie, implicit exclude) bash or find -- practical result of customary PATH config AND default setting
+# 
+# w_sysfs
+#   y = (ie, explicit include) find only
+#   n = (ie, implicit exclude) bash or find -- practical result of customary PATH config AND default setting
+# 
+# actual_all
+#   y = (ie, explicit include) find only
+#   n = (ie, implicit exclude) bash or find -- practical result of customary PATH config AND default setting
+
+
+
+declare -p search_method SC_severity
+
+exit
+# End of file
+######### from wooledge.org
+
+
+# Bug: abbrev_rel_search_dirs is not assigned
 
 #abbrev_rel_search_dirs=all
 :
@@ -377,7 +550,7 @@ fn_write_arrays() {
     # create local variables, for use as both array and string
     local -n loc_nameref_b="${loc_unquotd_array_nm_b}"
     loc_array_nm="${loc_unquotd_array_nm_b}"
-    loc_write_f_b="${loc_write_d_b}/_${severity:0:1}"
+    loc_write_f_b="${loc_write_d_b}/_${SC_severity:0:1}"
     loc_write_f_b="${loc_write_f_b}_${abbrev_rel_search_dirs}_${loc_array_nm}"
 
     # solved?  BUG: mixing variable and array. sb a nameref
@@ -522,7 +695,7 @@ main_d="${mountpoint}/${script_dirnm}"
 data_subd="${main_d}/latest_data"
 curr_time_ssubd="${data_subd}/t_${timecode}/"
 list_crunchbangs="${curr_time_ssubd}/crunchbangs"
-found_scrpts_f="${list_crunchbangs}_found_scripts_${severity:0:1}_${abbrev_rel_search_dirs}"
+found_scrpts_f="${list_crunchbangs}_found_scripts_${SC_severity:0:1}_${abbrev_rel_search_dirs}"
 :
 : 'data files'
 a_write_path_nms=("${list_crunchbangs:=crunchbangs}" "/tmp/${list_crunchbangs##*/}")
@@ -1031,7 +1204,7 @@ L_
 } | S_ T_ -- "${list_crunchbangs}_SC-scrpts-list" > /dev/null
 :
 # pulls from time_dir
-S_ grep -E -- '/bin/'"${shells}"'.*%=%=%=%' "${list_crunchbangs}" \
+S_ grep -E -- '/bin/'"${SC_shells}"'.*%=%=%=%' "${list_crunchbangs}" \
   | S_ tee -a -- "${list_crunchbangs}_SC-scrpts-list" \
   || I_
 :
@@ -1042,7 +1215,7 @@ S_ rsync -ca -- "${list_crunchbangs}_SC-scrpts-list" /tmp \
 :
 B_ "${list_crunchbangs}_SC-scrpts-list" /tmp/*_SC-scrpts-list
 :
-X_; :_; W_ timecode list_crunchbangs shells 
+X_; :_; W_ timecode list_crunchbangs SC_shells 
 L_
 :
 
@@ -1082,7 +1255,7 @@ awk_o="$(awk '{ print $2 }' <<< "${sort_o}")"
 mapfile -t a_each_script_list_sorted_by_linect \
   <<< "${awk_o}" # ie properly
 :
-found_scrpts_f="${list_crunchbangs}_found_scripts_${severity:0:1}_${abbrev_rel_search_dirs}"
+found_scrpts_f="${list_crunchbangs}_found_scripts_${SC_severity:0:1}_${abbrev_rel_search_dirs}"
 iterator_2=0
 :
 # Bug? 1st grep extra?
@@ -1092,7 +1265,7 @@ iterator_2=0
   for sorted_script in "${!a_each_script_list_sorted_by_linect[@]}"; do
     :
     mapfile -d '' -t a_each_script_SC_results < <(
-      shellcheck -S "${severity}" \
+      shellcheck -S "${SC_severity}" \
         "${a_each_script_list_sorted_by_linect[sorted_script]}" \
         | grep -Fv 'shellcheck.net' \
         | grep -Eo "SC[0-9]{4}.*" \
