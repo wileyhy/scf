@@ -53,6 +53,7 @@
 # -h use `hash` to track usage
 # -i verify interpreter
 # -c verify crashbang
+# -p verify PATH
 # -D use persistent file structure
 # -v verbose
 # -h help
@@ -73,4 +74,22 @@
 
 # Note also, whether there are any http / curl / wget / network commands
 #   how old the scripts are, ie, mtime/copyright year/...
-# grep for TODO's
+# grep for 
+
+# add'l interpreters: csh zsh tclsh awk perl python ruby
+# add'l tests: bash-n
+# add'l searches: man pgs, info pgs, sourcable files
+# add'l analyzers: bashdb bats kcov
+# grep for: excuted variables, input validation, network commands, system calls per language, 
+#   TODO's and FIXME's, requests for user input
+# measure per-script usage: atime? audit? hash? mtime?
+# memory usage: do not write to disk, use persistent storage, use temp files
+# add'l package managers: apt cargo dpkg flatpak gem npm pacman pip snap zypper 
+# report_simple_stats = yes
+# select one rpm
+# test for setuid & setgid: scripts, interpreters, files / bins sourced / executed by scritps
+# sort order: alnum, per dnf history transaction number, by rpm name
+# scanning binary: dd od strings
+# target disk: attached storage, unmounted iso
+# verbose = yes
+# add'l verify: crashbangs, interpreters, rpms
