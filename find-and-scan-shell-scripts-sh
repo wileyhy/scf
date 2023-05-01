@@ -44,15 +44,15 @@ a_poss_proces_lock_dirs=([0]="${XDG_RUNTIME_DIR}" [1]="${HOME}"
 :
 : Option parsing
 if [[ $# -gt 0 ]]; then 
-  cli_input="${1:0:2}"
+  cli_input="${@}"
   :
 fi
 
 
-######### from wooledge.org
+######### `getopts` how-to from wooledge.org
 # https://mywiki.wooledge.org/BashFAQ/035?highlight=%28getopts%29#getopts
 
-# Initialize our own variables:
+# Initialize variables:
 SC_severity='error'
 
 while getopts ABhCDEFGHIJKLeisw cli_input; do
@@ -68,11 +68,9 @@ while getopts ABhCDEFGHIJKLeisw cli_input; do
       exit 0
       ;;
     
-
     h) fn_usage 0
       ;;   
     
-
     #) select_interpreter=bash
       #;;
     #) select_interpreter=dash
@@ -122,7 +120,6 @@ done
 shift "$((OPTIND-1))"   # Discard the options and sentinel --
 
 
-
 # Verify PATH
 
 # TODO: check DAC's, ACL's and MAC's of each dir
@@ -151,7 +148,6 @@ done # this
 declare -p path_2 # this
 
 
-
 # sort out search_method selections
 if [[ -z "${search_method[*]}" ]]; then
   search_method=(PATH_as-is w_symlinks)
@@ -173,7 +169,7 @@ fi
 #   y = bash or find                        -- DEFAULT
 #     # for find, convert PATH into an array 
 #   n =                                     -- side effect of enabling any other PATH_* setting
- 
+# 
 ### MUTUALLY EXCLUSIVE: last set takes precedence
 #   PATH_getconf_PATH   -- a limiting setting, usually '/usr/bin'
 #     y = bash or find                        -- usually for debugging or research
@@ -244,7 +240,6 @@ done \
   | wc
 
 
-
 # w_symlinks          
 #   y = bash or find                        -- DEFAULT
 #   n = find only
@@ -270,7 +265,6 @@ done \
 #   n = (ie, implicit exclude) bash or find -- practical result of customary PATH config AND default setting
 
 
-
 declare -p search_method SC_severity
 
 exit
@@ -283,7 +277,7 @@ exit
 #abbrev_rel_search_dirs=all
 :
 # To search some specific directories, uncomment them; to search 
-# all of the common FULL DISK instead # --really-- --slow--
+# all of the common dirs or FULL DISK instead # --really-- --slow--
 #
 declare -A A_rsd
 A_rsd=( 
@@ -349,7 +343,6 @@ done
 #     per dnf tx number
 #     per severity level
 #     per sha1sum
-#
 #  _boot
 #    _tx3
 #    _tx4
@@ -364,7 +357,6 @@ done
 #          # diff of shellcheck output
 #          # ...
 #      _s
-#
 
 
 get_mountpoint(){
@@ -384,9 +376,7 @@ get_mountpoint(){
   x="$(realpath -e "$x")"
   echo "$x"
 }
-
 get_mountpoint /sbin
-
 
 :
 : 'Aliases and functions -- for brevity during debugging'
@@ -408,6 +398,7 @@ function  I_() { fn_erx "${LINENO}";};
 #function V_() { fn_write_vars "$@";};
 function  W_() { fn_write_arrays "$@";};
 set +v
+
 :
 : 'Environment variables'
 :
@@ -446,6 +437,7 @@ for d in "${a_poss_proces_lock_dirs[@]}"; do
 done
 [[ -v delete_locks ]] \
   && L_
+
 :
 : 'Functions'
 :
@@ -597,6 +589,7 @@ fn_write_arrays() {
 #  : END OF fn_write_vars
 #  :
 #}
+
 :
 : Use -sudo-
 if ! S_ -v; then
@@ -643,6 +636,7 @@ trap '
 ' EXIT TERM INT
 :
 #X_; :_
+
 :
 : 'Process lock'
 :
@@ -677,6 +671,7 @@ if ! mkdir -m 0000 "${process_lock_d}" 2>/dev/null; then
 fi
 :
 #:_; D_ process_lock_d; M_ -- "${process_lock_d}"; L_
+
 :
 : User variables
 timecode="$(builtin printf '%(%F_%H%M%S)T')"
