@@ -19,9 +19,8 @@ if [[ "${UID}" == 0 ]]; then
     || exit "${LINENO}"
 fi
 
-# Clean the environment (re command injection)
-unset files bashrc_str f tmpf gitmesg gitignr ps_o \
-  || exit "${LINENO}"
+# Environment
+unset files bashrc_str f tmpf gitmesg gitignr ps_o
 PATH='/usr/bin:/usr/sbin' \
   || exit "${LINENO}"
 
@@ -36,10 +35,11 @@ fi
 
 # Git
 sudo git config --system user.name 'Wiley Young'
-sudo git config --system user.email '84648683+wileyhy@users.noreply.github.com'
+sudo git config --system user.email \
+  '84648683+wileyhy@users.noreply.github.com'
 sudo git config --system core.editor 'vim'
 sudo git config --system core.pager '/usr/bin/less'
-sudo git config --system help.autocorrect '300'
+sudo git config --system help.autocorrect 'prompt'
 sudo git config --system init.defaultBranch 'main'
 
 ## re Gnupg
@@ -49,8 +49,9 @@ sudo git config --system gpg.program 'gpg2'
 sudo git config --system user.signingkey 'E287D0CF528591CE'
 
 ## Console colors
-## git ui colors: normal black red green yellow blue magenta cyan white
-## git ui attributes: bold dim ul (underline blink reverse
+## git ui colors: normal black red green yellow blue 
+#    magenta cyan white
+## git ui attributes: bold dim ul (underline blink reverse)
 sudo git config --system color.diff 'always'
 sudo git config --system color.diff.meta 'blue black bold'
 sudo git config --system color.interactive 'always'
@@ -63,29 +64,32 @@ gitmesg=/etc/.gitmessage_system
 gitignr=/etc/.gitignore_system
 
 ## (message)
-tmpf="$(mktemp)"
-cat << EOF > "${tmpf}"
-Subject line (try to keep under 50 characters)
+tmpd="$(mktemp -d)"
+if [[ ! -f "${gitmesg}" ]]; then
+  cat << EOF -> "${tmpd}/msg"
+  Subject line (try to keep under 50 characters)
 
-Multi-line description of commit,
-feel free to be detailed.
+  Multi-line description of commit,
+  feel free to be detailed.
 
-[Ticket: X]
+  [Ticket: X]
 EOF
-sudo tee -- "${gitmesg}" <<< "${tmpf}" > /dev/null
-rm -f -- "${tmpf}"
-unset tmpf
+  sudo tee -- "${gitmesg}" <<< "${tmpd}/msg" > /dev/null \
+    || exit "${LINENO}"
+fi
 
 ## (ignore)
-tmpf="$(mktemp)"
-cat << EOF > "${tmpf}"
-*~
-.*.swp
-.DS_Store
+if [[ ! -f "${gitignr}" ]] \
+  || ! grep -q swp "${gitignr}";
+then
+  cat << EOF -> "${tmpd}/ign"
+  *~
+  .*.swp
+  .DS_Store
 EOF
-sudo tee -- "${gitignr}" <<< "${tmpf}" > /dev/null
-rm -f -- "${tmpf}"
-unset tmpf
+  sudo tee -- "${gitignr}" <<< "${tmpd}/ign" > /dev/null \
+    || exit "${LINENO}"
+fi
 
 sudo git config --system commit.template "${gitmesg}"
 sudo git config --system core.excludesfile "${gitignr}"
@@ -115,7 +119,7 @@ unset files f
 ## make and change into directories
 umask 077
 
-for d in "${dev_d1}" "${dev_d2}"
+for d in "${dev_d1}" "${dev_d2}"; do
   if [[ ! -d "${d}" ]]; then
     mkdir -p "${d}" \
       || exit "${LINENO}"
@@ -123,8 +127,8 @@ for d in "${dev_d1}" "${dev_d2}"
 done
 unset d
 
-### Note: in order to clone into any repo, and keep multiple repos
-### separate, `cd` is required
+### Note: in order to clone into any repo, and keep 
+### multiple repos separate, `cd` is required
 cd "${dev_d1}" \
   || exit "${LINENO}"
 
@@ -140,21 +144,26 @@ gh config set git_protocol 'ssh' --host 'github.com'
 ## Use GitHub CLI as a credential helper
 gh auth setup-git --hostname 'github.com'
 
-# Log in
-if ! gh auth status 2> /dev/null; then
-  gh auth login --git-protocol 'ssh' --hostname 'github.com' --scopes 'admin:public_key,read:gpg_key' --web \
+# Log in 
+gh auth status 2>"{ghast}" # (executing this command just once)
+ghast_exit="${?}"
+count_of_checkmarks="$(grep -c $'\xe2\x9c\x93' <<< "{ghast}")"
+
+if [[ "${count_of_checkmarks}" -ne 4 ]] \
+  || [[ "${ghast_exit}" -ne 0 ]];
+then
+  gh auth login --git-protocol 'ssh' \
+    --hostname 'github.com' \
+    --scopes 'admin:public_key,read:gpg_key' --web \
     || exit "${LINENO}"
 fi
-
-# TODO:
-#   Parse `gh auth status`, re add'l scopes
-#gh auth refresh --hostname 'github.com' --scopes 'admin:public_key,read:gpg_key'
 
 # Clone repo
 if [[ ! -d ./"${repo_nm}" ]] \
   || [[ ! -f ./"${repo_nm}"/README.md ]]; 
 then
-  git clone -o 'github' https://github.com/wileyhy/"${repo_nm}" \
+  git clone -o 'github' \
+    https://github.com/wileyhy/"${repo_nm}" \
     || exit "${LINENO}"
 fi
 
@@ -182,15 +191,16 @@ fi
 [[ -e /etc/ssh_config ]] \
   && exit "${LINENO}"
 
-### Bug? not necc to restart ssh-agent if both of these vars exist?
+### Bug? not necc to restart ssh-agent if both of these 
+### vars exist?
 if [[ -z "${SSH_AUTH_SOCK}" ]] \
   || [[ -z "${SSH_AGENT_PID}" ]];
 then
 
   # shellcheck disable=SC2154
   ps_o="$(ps aux)"
-  awk_o="$(awk '$0 ~ /ssh-agent/ && $0 !~ /startx/ { print $2 }' \
-    <<<"${ps_o:?}")"
+  awk_o="$(awk '$0 ~ /ssh-agent/ && $0 !~ /startx/ \
+    { print $2 }' <<<"${ps_o:?}")"
   if [[ -n "${awk_o}" ]]; then 
     mapfile -t ssh_agent_pids <<< "${awk_o:?}"
   fi
@@ -235,3 +245,6 @@ export GPG_TTY
 # Remind user of commands for the interactive shell
 printf '\n\t Now run this command: \n'
 printf '\n\t cd %s/%s; git status \n\n' "${dev_d1}" "${repo_nm}"
+
+# Clean up
+rm -fr "${tmpd}"
