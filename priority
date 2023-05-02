@@ -81,6 +81,9 @@
 # add'l searches: man pgs, info pgs, sourcable files
 # add'l analyzers: bashdb bats kcov
 # grep for: excuted variables, input validation, network commands, system calls per language, 
+#     grep -iE 'exec.*[tu]cp'
+#     grep -iE 'exec.*host'
+#     grep -iE '(telnet|nc|ftp|curl|wget|...)
 #   TODO's and FIXME's, requests for user input
 # measure per-script usage: atime? audit? hash? mtime?
 # memory usage: do not write to disk, use persistent storage, use temp files
