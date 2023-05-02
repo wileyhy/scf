@@ -44,7 +44,7 @@ a_poss_proces_lock_dirs=([0]="${XDG_RUNTIME_DIR}" [1]="${HOME}"
 :
 : Option parsing
 if [[ $# -gt 0 ]]; then 
-  cli_input="${@}"
+  cli_input=("${@}")
   :
 fi
 
@@ -55,7 +55,7 @@ fi
 # Initialize variables:
 SC_severity='error'
 
-while getopts ABhCDEFGHIJKLeisw cli_input; do
+while getopts ABhCDEFGHIJKLMeiswN cli_input; do
   case "${cli_input}" in
     A) printf '%s%s%s' 'CgkiSSB3b3VsZCBoYXZlIG1hZGUgdGhpcyBzaG9y' \
         'dGVyLCBidXQgSSBkaWRuJ3QgaGF2ZSB0aGUg' \
@@ -100,6 +100,8 @@ while getopts ABhCDEFGHIJKLeisw cli_input; do
       ;;
     L) search_method+=(w_sysfs)
       ;;
+    M) search_method+=("<<${OPTARG}>>") # one directory to search
+      ;;
    
     e) SC_severity=error # default
       ;;
@@ -108,6 +110,9 @@ while getopts ABhCDEFGHIJKLeisw cli_input; do
     s) SC_severity=style 
       ;;
     w) SC_severity=warning
+      ;;
+
+    N) verify=path
       ;;
 
     #V) echo 'TODO: write fn_version'
@@ -122,13 +127,11 @@ shift "$((OPTIND-1))"   # Discard the options and sentinel --
 
 # Verify PATH
 
-# TODO: check DAC's, ACL's and MAC's of each dir
-
 # Get constituent dirs from PATH
 IFS=':' read -ra path <<< "${PATH}" # this
 # get the cannonicalized paths of each such dir
 for p in "${!path[@]}"; do
-  path[p]="$( realpath -e "${path[p]}" )";
+  path[p]="$(realpath -e "${path[p]}" 2> /dev/null)";
 done # this
 # if the index is empty, then unset it
 for p in "${!path[@]}"; do
@@ -147,6 +150,123 @@ done # this
 # print results
 declare -p path_2 # this
 
+# check DAC's, 
+namei_o="$( 
+  for d in "${path_2[@]}"; do 
+    namei -xl "$(
+      realpath -e "$d" 2> /dev/null)"; 
+  done \
+    | grep -v ^'f:' \
+    | awk '$2 !~ /root/ || $3 !~ /root/ { print }'
+)"
+if [[ -n "${namei_o}" ]]; then
+  echo 'A directory in PATH is not fully owned by root (DAC).'
+  echo "${namei_o}"
+  exit "${LINENO}"
+fi
+
+# check ACL's 
+#!/bin/bash -x
+
+# Variables, this section
+unset end_dirname full_dir_list ext_array dir sub_dir num_sub_dirs N n \
+  extglob_pattern ext_first ext_last getfacl_o grep_o
+end_dirname=/; 
+declare -A full_dir_list; 
+ext_array=()
+
+# for each actual directory in PATH
+for dir in "${path_2[@]}"; do 
+  
+  # safely split each directory into its constituent directory names,
+  # ie, by using NULL's in place of '/'s
+  unset sub_dir
+  # limit the number of loops to the number of constituent directory
+  # inodes
+  num_sub_dirs="$(tr '/' '\0' <<< "$dir" \
+    | awk -F'\0' '{ print NF }')"; 
+  N=$((num_sub_dirs - 1))
+
+  # read the ACLs of each dir and sub_dir
+  for ((n=N;n>=0;--n)); do 
+
+    # Assign a value to $sub_dir as necessary
+    : "${sub_dir:="${dir}"}"
+
+    # If the sub_dir is already listed in the extglob_pattern, then 
+    # move on to the next small loop  
+    # shellcheck disable=SC2053
+    if [[ "${sub_dir}" = ${extglob_pattern} ]]; then 
+      sub_dir="$(dirname "${sub_dir:="${dir}"}")"
+      
+      # If the sub_dir is '/', then move on to the next big loop
+      if [[ "${sub_dir}" = "${end_dirname}" ]]; then
+        break 
+      fi
+      continue
+    fi
+
+    # Use an Associative array to filter out duplicate entries. 
+    # (With associative arrays, duplicate assignments are indempotent.)
+    full_dir_list["${sub_dir}"]+="${n}," 
+
+    # create a list of directories and subdirectories that have been
+    # tested so far. 
+    #   This section concatenates directories as strings into a variable 
+    # that the shell will later interpret as an extglob.
+    ext_array=("${!full_dir_list[@]}")
+    ext_first="${ext_array[0]}"
+    [[ -n "${ext_first}" ]] \
+      && unset 'ext_array[0]'
+    # shellcheck disable=SC2124
+    ext_last="${ext_array[@]: -1:1}"
+    [[ -n "${ext_last}" ]] \
+      && unset "ext_array[${#ext_array[@]}]" # index math can be a little weird
+
+    # create the exglob_pattern
+    if [[ -n "${ext_first}" ]]; then 
+      extglob_pattern="$(         printf '@(%s' "${ext_first}" )"
+      [[ "${#ext_array[@]}" -gt 0 ]] \
+        && extglob_pattern+="$(   printf '|%s' "${ext_array[@]}" )"
+      if [[ -n "${ext_last}" ]]; then
+        extglob_pattern+="$(      printf '|%s)' "${ext_last}" )"
+      else
+        extglob_pattern+="$(      printf ')' )"
+      fi
+    fi
+
+    # look for any ACL's on the directory
+    getfacl_o="$(getfacl -enp -- "${sub_dir}" 2> /dev/null)"
+    grep_o="$(grep -ve '^#' -e ^'user::' -e ^'group::' -e ^'other::' \
+      <<< "${getfacl_o}")"
+    
+    # If found, halt the script and inform the user
+    if [[ -n "${grep_o}" ]]; then
+      printf '\n%s: ACL defined for this directory:\n\t%s\n\n' \
+        "${script_nm}" "${sub_dir}"
+      echo "${getfacl_o}"
+      printf '\n\tThis command will remove all ACL\x27s from the '
+      printf 'specified directory:\n\n\t\tsetfacl -b %s\n\n' "${sub_dir}"
+      exit 1
+
+    # otherwise, move on to the next big loop  
+    else
+      if [[ "${sub_dir}" = "${end_dirname}" ]]; then
+        break 
+      fi
+    fi 
+
+    sub_dir="$(dirname "${sub_dir:="${dir}"}")"
+  done    
+done; 
+unset end_dirname full_dir_list ext_array dir sub_dir num_sub_dirs N n \
+  extglob_pattern ext_first ext_last getfacl_o grep_o
+
+
+# check MAC's
+
+
+exit 101
 
 # sort out search_method selections
 if [[ -z "${search_method[*]}" ]]; then
