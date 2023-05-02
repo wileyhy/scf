@@ -75,11 +75,13 @@ sudo chown 1000:1000 "/home/${USER}/.vimrc"
 chmod 0400 "/home/${USER}/.vimrc"
 
 # Dnf
-sudo dnf -y install info ShellCheck git gh kcov shfmt
+sudo dnf -y install info ShellCheck git gh kcov shfmt patch
 sudo dnf -y --security upgrade
 #set -x
+sleep 10
 dnf_o="$(sudo dnf needs-restarting 2>/dev/null)"
-awk_o="$(awk '{ print $1 }' <<<"${dnf_o:?}")"
+[[ -n "${dnf_o}" ]] &&
+  awk_o="$(awk '{ print $1 }' <<<"${dnf_o:?}")"
 
 if [[ -n "${dnf_o}" ]] && [[ -n "${awk_o}" ]]; then 
   mapfile -t pids_nr <<<"${awk_o:?}"
