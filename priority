@@ -96,3 +96,93 @@
 # target disk: attached storage, unmounted iso
 # verbose = yes
 # add'l verify: crashbangs, interpreters, rpms
+
+
+
+
+# PATH_as-is
+#   y = bash or find                        -- DEFAULT
+#     # for find, convert PATH into an array 
+#   n =                                     -- side effect of enabling any other PATH_* setting
+# 
+### MUTUALLY EXCLUSIVE: last set takes precedence
+#   PATH_getconf_PATH   -- a limiting setting, usually '/usr/bin'
+#     y = bash or find                        -- usually for debugging or research
+#       # `unset PATH; PATH="$(getconf PATH)"
+#     n =                                     -- default setting
+#   PATH_bin-only       -- a limiting setting, usually the same as 'PATH_getconf_PATH'
+#     y = bash or find                        -- debug setting
+#       # PATH='/usr/bin:/bin'
+#     n =                                     -- practical result of customary configuration AND default setting
+#   PATH_sbin-only      -- a limiting setting
+#     y = bash or find                        -- debug setting
+#       # PATH='/usr/sbin:/sbin'
+#     n =                                     -- practical result of customary configuration AND default setting
+#   PATH_bin-sbin-only  -- a limiting setting
+#     y = bash or find                        -- practical result of customary configuration
+#       # PATH='/usr/sbin:/sbin:/usr/bin:/bin'
+#     n =                                     -- default setting
+
+
+# BASH_command_pv          -- usually a limiting setting, to be used independent of PATH
+#   y = bash only
+#     # compgen -c
+#   n = <no meaning>                        -- default setting
+# BASH_command_v
+#   y = bash only
+#     # compgen -c
+#   n = <no meaning>                        -- default setting
+# BASH_type_a
+#   y = bash only
+#     # compgen -c
+#   n = <no meaning>                        -- default setting
+
+
+# w_symlinks          
+#   y = bash or find                        -- DEFAULT
+#   n = find only
+# 
+# w_descend
+#   y = find only
+#   n = find or bash                        -- default setting
+# 
+# w_user-custom_dirs
+#   y = (ie, explicit include) find only
+#   n = (ie, implicit exclude) find only    -- default setting
+# 
+# w_procfs
+#   y = (ie, explicit include) find only
+#   n = (ie, implicit exclude) bash or find -- practical result of customary PATH config AND default setting
+# 
+# w_sysfs
+#   y = (ie, explicit include) find only
+#   n = (ie, implicit exclude) bash or find -- practical result of customary PATH config AND default setting
+# 
+# actual_all
+#   y = (ie, explicit include) find only
+#   n = (ie, implicit exclude) bash or find -- practical result of customary PATH config AND default setting
+
+
+
+#   to have an option to search all or just some dirs
+#   to store results on a per-dir basis, to reduce search time
+#     per mangling of realpath
+#     per dnf tx number
+#     per severity level
+#     per sha1sum
+#  _boot
+#    _tx3
+#    _tx4
+#      _e
+#        _6cb7aa1478a1d36f5b70d7fcb3e73486caae5bfc
+#          # abs path filename
+#          # full shellcheck output
+#          # ...
+#      _w
+#        _6cb7aa1478a1d36f5b70d7fcb3e73486caae5bfc
+#          # abs path filename
+#          # diff of shellcheck output
+#          # ...
+#      _s
+
+

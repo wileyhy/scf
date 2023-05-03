@@ -53,9 +53,18 @@ fi
 # https://mywiki.wooledge.org/BashFAQ/035?highlight=%28getopts%29#getopts
 
 # Initialize variables:
-SC_severity='error'
+SC_severity=error
+memory_usage=temp_files
+search_methods_path=(PATH_as-is)
+search_methods_prog=bin_bash
+search_methods_symlinks=with
+search_methods_descend=without
+search_methods_proc=without
+search_methods_sys=without
+search_methods_spec_dirs=without
+verify=(path)
 
-while getopts ABhCDEFGHIJKLMeiswN cli_input; do
+while getopts ABCDEFGHIJKLMNOPQRSTUVWXYerishw cli_input; do
   case "${cli_input}" in
     A) printf '%s%s%s' 'CgkiSSB3b3VsZCBoYXZlIG1hZGUgdGhpcyBzaG9y' \
         'dGVyLCBidXQgSSBkaWRuJ3QgaGF2ZSB0aGUg' \
@@ -69,328 +78,162 @@ while getopts ABhCDEFGHIJKLMeiswN cli_input; do
       ;;
     
     h) fn_usage 0
-      ;;   
+      ;;
     
-    #) select_interpreter=bash
-      #;;
-    #) select_interpreter=dash
-      #;;
-    #) select_interpreter=ksh
-      #;;
-    #) select_interpreter=sh
-      #;;
+    # clobbering settings
+    C) unset search_methods_prog
+      search_methods_prog=bash_command_pv ;;
+    D) unset search_methods_prog
+      search_methods_prog=bash_command_v ;;
+    E) unset search_methods_prog
+      search_methods_prog=bash_type_a ;;
+    # bash cannot do
+    F) unset search_methods_path 
+      search_methods_path=(actual_all)
+      search_methods_prog=bin_find ;;
+    G) unset search_methods_path
+      search_methods_path=(PATH_getconf_PATH_only) ;;
+      #^PATH="$(getconf PATH)"
+    H) unset search_methods_path
+      search_methods_path=(PATH_bin_only) ;;
+      #^PATH='/usr/bin'
+    I) unset search_methods_path
+      search_methods_path=(PATH_sbin_only) ;;
+      #^PATH='/usr/sbin'
+    J) unset search_methods_path
+      search_methods_path=(PATH_bin-sbin_only) ;;
+      #^PATH='/usr/bin:/usr/sbin'
+    K) search_methods_path=(PATH_as-is) ;;
 
-    C) search_method+=(actual_all)
-      ;;
-    D) search_method+=(PATH_bin-sbin-only)
-      ;;
-    E) search_method+=(comm_p)
-      ;;
-    F) search_method+=(getconf_PATH)
-      ;;
-    G) search_method+=(PATH_as-is) # default 1 of 2
-      ;;
-    H) search_method+=(w_descend)
-      ;;
-    I) search_method+=(w_procfs)
-      ;;
-    J) search_method+=(w_spec_dirs)
-      ;;
-    K) search_method+=(w_symlinks) # default 2 of 2
-      ;;
-    L) search_method+=(w_sysfs)
-      ;;
-    M) search_method+=("<<${OPTARG}>>") # one directory to search
-      ;;
+    # additive PATH settings # default \/
+    L) search_methods_path+=(add_proc) ;;
+    M) search_methods_path+=(add_sys) ;;
+    # one directory to search # bash or find \/
+    N) search_methods_path+=(add_dir)
+      some_var+=("<<${OPTARG}>>") ;;
+    
+    # Binary settings
+    
+    # for `bash` the default is 'no descent' into dirs; for `find` the 
+    # default is 'do descend' into dirs
+    # is 'without any symlinks' # bash cannot do; therefore it's a 
+    # clobbering setting
+    O) search_methods_descend=with
+       search_methods_prog=bin_find ;;
+    # bash or find # default \/
+    P) search_methods_descend=without ;;
+    
+    # for bash, you could add spec-dirs to PATH
+    # for find, remove the exclude optargs
+    Q) search_methods_spec_dirs=with ;;
+    # for bash, scan PATH and remove any specified dirs
+    # for find, keep the exclude optargs, with option to add more 
+    #   exclude optargs
+    R) search_methods_spec_dirs=without ;;
+    
+    # for `bash` the default is 'with symlinks'; for `find` the default 
+    # is 'without any symlinks' # bash or find
+    S) search_methods_symlinks=with ;;
+    # bash cannot do, therefore it's a clobbering setting
+    T) search_methods_symlinks=without
+      search_methods_prog=bin_find ;;
+    
    
-    e) SC_severity=error # default
-      ;;
-    i) SC_severity=info
-      ;;
-    s) SC_severity=style 
-      ;;
-    w) SC_severity=warning
-      ;;
 
-    N) verify=path
-      ;;
+    # default
+    e) SC_severity=error ;;
+    i) SC_severity=info ;;
+    s) SC_severity=style ;;
+    w) SC_severity=warning ;;
 
-    #V) echo 'TODO: write fn_version'
-      #;;
+    U) verify+=(path) ;;
 
-    *) fn_usage 1
-      ;;   
+    W) memory_usage=RAM_only ;;
+    X) memory_usage=persistent_storage ;;
+    Y) memory_usage=temp_files ;;
+
+    V) echo 'TODO: write fn_version' ;;
+
+    *) fn_usage 1 ;;   
   esac 
 done
 shift "$((OPTIND-1))"   # Discard the options and sentinel --
 
 
-# Verify PATH
+# 1. search_methods_prog=()
+#     *bash 
+# c:    bash_command_pV bash_command_V bash_type_a find
+# 
+# 2. search_methods_path=()
+#       add_proc add_sys add_dir
+# c:  *PATH_as-is 
+# c:    actual_all(+find) PATH_getconf_PATH_only PATH_bin_only 
+# c:      PATH_sbin_only PATH_bin-sbin_only 
+# 
+# 3. search_methods_symlinks=
+#     *with
+# c:    without(+find)
+# 
+# 3. search_methods_descend=
+#     *without
+# c:    with(+find) 
+# 
+# 3. search_methods_spec_dirs=
+#     *without, with
 
-# Get constituent dirs from PATH
-IFS=':' read -ra path <<< "${PATH}" # this
-# get the cannonicalized paths of each such dir
-for p in "${!path[@]}"; do
-  path[p]="$(realpath -e "${path[p]}" 2> /dev/null)";
-done # this
-# if the index is empty, then unset it
-for p in "${!path[@]}"; do
-  if [[ -z "${path[p]}" ]]; then
-    unset 'path[p]';
-  fi;
-done # this
-# remove any duplicates while preserving order of dirs
-for p in "${!path[@]}"; do
-  if [[ "${path_2[*]}" =~ ${path[p]} ]]; then
-    unset 'path[p]';
-  else
-    path_2+=("${path[p]}");
-  fi;
-done # this
-# print results
-declare -p path_2 # this
 
-# check DAC's, 
-namei_o="$( 
-  for d in "${path_2[@]}"; do 
-    namei -xl "$(
-      realpath -e "$d" 2> /dev/null)"; 
-  done \
-    | grep -v ^'f:' \
-    | awk '$2 !~ /root/ || $3 !~ /root/ { print }'
-)"
-if [[ -n "${namei_o}" ]]; then
-  echo 'A directory in PATH is not fully owned by root (DAC).'
-  echo "${namei_o}"
-  exit "${LINENO}"
-fi
+ 
 
-# check ACL's 
-#!/bin/bash -x
 
-# Variables, this section
-unset end_dirname full_dir_list ext_array dir sub_dir num_sub_dirs N n \
-  extglob_pattern ext_first ext_last getfacl_o grep_o
-end_dirname=/; 
-declare -A full_dir_list; 
-ext_array=()
+if [[ "${search_methods_prog}" = \
+  @(bash_command_pV|bash_command_V|bash_type_a) ]]
+then
 
-# for each actual directory in PATH
-for dir in "${path_2[@]}"; do 
+
+  unset alnum dict i all_commands real_dirs re
+  for alnum in {a..z} {A..Z} {0..9}; do 
+    dict+=("${alnum}"); 
+  done
+  for i in "${!dict[@]}"; do 
+    mapfile -O $((i * 1000)) -t all_commands < <(
+      compgen -c "${dict[i]}"
+    ); 
+  done
+  mapfile -t real_dirs < <(
+    find / -maxdepth 1 -mindepth 1 -type d \! -empty
+  )
+  re="$( \
+    printf '(%s' "${real_dirs[0]#/}"; 
+    unset 'real_dirs[0]'; 
+    printf '|%s' "${real_dirs[@]#/}"; 
+    printf ')\n'
+  )"
+  unset i; 
+  for i in "${!all_commands[@]}"; do 
   
-  # safely split each directory into its constituent directory names,
-  # ie, by using NULL's in place of '/'s
-  unset sub_dir
-  # limit the number of loops to the number of constituent directory
-  # inodes
-  num_sub_dirs="$(tr '/' '\0' <<< "$dir" \
-    | awk -F'\0' '{ print NF }')"; 
-  N=$((num_sub_dirs - 1))
+    # For anywhere in PATH: BASH_type_a
+    type -a "${all_commands[i]}" \
+      | grep -E 'is /'"${re}" ; 
+  
+    # For `command -pv` (usually only '/usr/bin'): BASH_command_pv
+    command -pv "${all_commands[i]}" \
+    | grep -E 'is /'"${re}" ; 
 
-  # read the ACLs of each dir and sub_dir
-  for ((n=N;n>=0;--n)); do 
+    # For `command -v` (usually includes '/usr/sbin'): BASH_command_v
+    command -v "${all_commands[i]}" \
+      | grep -E 'is /'"${re}" ; 
+  
+  done \
+    | wc
 
-    # Assign a value to $sub_dir as necessary
-    : "${sub_dir:="${dir}"}"
-
-    # If the sub_dir is already listed in the extglob_pattern, then 
-    # move on to the next small loop  
-    # shellcheck disable=SC2053
-    if [[ "${sub_dir}" = ${extglob_pattern} ]]; then 
-      sub_dir="$(dirname "${sub_dir:="${dir}"}")"
-      
-      # If the sub_dir is '/', then move on to the next big loop
-      if [[ "${sub_dir}" = "${end_dirname}" ]]; then
-        break 
-      fi
-      continue
-    fi
-
-    # Use an Associative array to filter out duplicate entries. 
-    # (With associative arrays, duplicate assignments are indempotent.)
-    full_dir_list["${sub_dir}"]+="${n}," 
-
-    # create a list of directories and subdirectories that have been
-    # tested so far. 
-    #   This section concatenates directories as strings into a variable 
-    # that the shell will later interpret as an extglob.
-    ext_array=("${!full_dir_list[@]}")
-    ext_first="${ext_array[0]}"
-    [[ -n "${ext_first}" ]] \
-      && unset 'ext_array[0]'
-    # shellcheck disable=SC2124
-    ext_last="${ext_array[@]: -1:1}"
-    [[ -n "${ext_last}" ]] \
-      && unset "ext_array[${#ext_array[@]}]" # index math can be a little weird
-
-    # create the exglob_pattern
-    if [[ -n "${ext_first}" ]]; then 
-      extglob_pattern="$(         printf '@(%s' "${ext_first}" )"
-      [[ "${#ext_array[@]}" -gt 0 ]] \
-        && extglob_pattern+="$(   printf '|%s' "${ext_array[@]}" )"
-      if [[ -n "${ext_last}" ]]; then
-        extglob_pattern+="$(      printf '|%s)' "${ext_last}" )"
-      else
-        extglob_pattern+="$(      printf ')' )"
-      fi
-    fi
-
-    # look for any ACL's on the directory
-    getfacl_o="$(getfacl -enp -- "${sub_dir}" 2> /dev/null)"
-    grep_o="$(grep -ve '^#' -e ^'user::' -e ^'group::' -e ^'other::' \
-      <<< "${getfacl_o}")"
-    
-    # If found, halt the script and inform the user
-    if [[ -n "${grep_o}" ]]; then
-      printf '\n%s: ACL defined for this directory:\n\t%s\n\n' \
-        "${script_nm}" "${sub_dir}"
-      echo "${getfacl_o}"
-      printf '\n\tThis command will remove all ACL\x27s from the '
-      printf 'specified directory:\n\n\t\tsetfacl -b %s\n\n' "${sub_dir}"
-      exit 1
-
-    # otherwise, move on to the next big loop  
-    else
-      if [[ "${sub_dir}" = "${end_dirname}" ]]; then
-        break 
-      fi
-    fi 
-
-    sub_dir="$(dirname "${sub_dir:="${dir}"}")"
-  done    
-done; 
-unset end_dirname full_dir_list ext_array dir sub_dir num_sub_dirs N n \
-  extglob_pattern ext_first ext_last getfacl_o grep_o
-
-
-# check MAC's
-
-
-exit 101
-
-# sort out search_method selections
-if [[ -z "${search_method[*]}" ]]; then
-  search_method=(PATH_as-is w_symlinks)
-  bash_v_find=bash
-elif [[ "${search_method[*]}" = @(comm_p) ]]; then
-  search_method=(comp_p)
-  bash_v_find=bash
+elif  [[ "${search_methods_prog}" = 'bash' ]]; then
+  :
+elif  [[ "${search_methods_prog}" = 'find' ]]; then
+  :
 else
-  bash_v_find=find
-  if [[ "${search_method[*]}" = @() ]]; then
-    true
-  else
-    false
-  fi
+  echo error
 fi
-
-
-# PATH_as-is
-#   y = bash or find                        -- DEFAULT
-#     # for find, convert PATH into an array 
-#   n =                                     -- side effect of enabling any other PATH_* setting
-# 
-### MUTUALLY EXCLUSIVE: last set takes precedence
-#   PATH_getconf_PATH   -- a limiting setting, usually '/usr/bin'
-#     y = bash or find                        -- usually for debugging or research
-#       # `unset PATH; PATH="$(getconf PATH)"
-#     n =                                     -- default setting
-#   PATH_bin-only       -- a limiting setting, usually the same as 'PATH_getconf_PATH'
-#     y = bash or find                        -- debug setting
-#       # PATH='/usr/bin:/bin'
-#     n =                                     -- practical result of customary configuration AND default setting
-#   PATH_sbin-only      -- a limiting setting
-#     y = bash or find                        -- debug setting
-#       # PATH='/usr/sbin:/sbin'
-#     n =                                     -- practical result of customary configuration AND default setting
-#   PATH_bin-sbin-only  -- a limiting setting
-#     y = bash or find                        -- practical result of customary configuration
-#       # PATH='/usr/sbin:/sbin:/usr/bin:/bin'
-#     n =                                     -- default setting
-
-
-# BASH_command_pv          -- usually a limiting setting, to be used independent of PATH
-#   y = bash only
-#     # compgen -c
-#   n = <no meaning>                        -- default setting
-# BASH_command_v
-#   y = bash only
-#     # compgen -c
-#   n = <no meaning>                        -- default setting
-# BASH_type_a
-#   y = bash only
-#     # compgen -c
-#   n = <no meaning>                        -- default setting
-
-
-unset alnum dict i all_commands real_dirs re
-for alnum in {a..z} {A..Z} {0..9}; do 
-  dict+=("${alnum}"); 
-done
-for i in "${!dict[@]}"; do 
-  mapfile -O $((i * 1000)) -t all_commands < <(
-    compgen -c "${dict[i]}"
-  ); 
-done
-mapfile -t real_dirs < <(
-  find / -maxdepth 1 -mindepth 1 -type d \! -empty
-)
-re="$( \
-  printf '(%s' "${real_dirs[0]#/}"; 
-  unset 'real_dirs[0]'; 
-  printf '|%s' "${real_dirs[@]#/}"; 
-  printf ')\n'
-)"
-unset i; 
-for i in "${!all_commands[@]}"; do 
-
-  # For anywhere in PATH: BASH_type_a
-  type -a "${all_commands[i]}" \
-    | grep -E 'is /'"${re}" ; 
-
-  # For `command -pv` (usually only '/usr/bin'): BASH_command_pv
-  command -pv "${all_commands[i]}" \
-    | grep -E 'is /'"${re}" ; 
-
-  # For `command -v` (usually includes '/usr/sbin'): BASH_command_v
-  command -v "${all_commands[i]}" \
-    | grep -E 'is /'"${re}" ; 
-
-done \
-  | wc
-
-
-# w_symlinks          
-#   y = bash or find                        -- DEFAULT
-#   n = find only
-# 
-# w_descend
-#   y = find only
-#   n = find or bash                        -- default setting
-# 
-# w_user-custom_dirs
-#   y = (ie, explicit include) find only
-#   n = (ie, implicit exclude) find only    -- default setting
-# 
-# w_procfs
-#   y = (ie, explicit include) find only
-#   n = (ie, implicit exclude) bash or find -- practical result of customary PATH config AND default setting
-# 
-# w_sysfs
-#   y = (ie, explicit include) find only
-#   n = (ie, implicit exclude) bash or find -- practical result of customary PATH config AND default setting
-# 
-# actual_all
-#   y = (ie, explicit include) find only
-#   n = (ie, implicit exclude) bash or find -- practical result of customary PATH config AND default setting
-
-
-declare -p search_method SC_severity
-
-exit
-# End of file
-######### from wooledge.org
-
+  
 
 # Bug: abbrev_rel_search_dirs is not assigned
 
@@ -457,27 +300,6 @@ for index in "${!A_rsd[@]}"; do
   fi; 
 done
 
-#   to have an option to search all or just some dirs
-#   to store results on a per-dir basis, to reduce search time
-#     per mangling of realpath
-#     per dnf tx number
-#     per severity level
-#     per sha1sum
-#  _boot
-#    _tx3
-#    _tx4
-#      _e
-#        _6cb7aa1478a1d36f5b70d7fcb3e73486caae5bfc
-#          # abs path filename
-#          # full shellcheck output
-#          # ...
-#      _w
-#        _6cb7aa1478a1d36f5b70d7fcb3e73486caae5bfc
-#          # abs path filename
-#          # diff of shellcheck output
-#          # ...
-#      _s
-
 
 get_mountpoint(){
   unset d dir
@@ -497,6 +319,154 @@ get_mountpoint(){
   echo "$x"
 }
 get_mountpoint /sbin
+
+exit
+# End of file
+######### from wooledge.org
+
+
+# Verify PATH
+
+# Get constituent dirs from PATH
+IFS=':' read -ra path <<< "${PATH}" # this
+# get the cannonicalized paths of each such dir
+for p in "${!path[@]}"; do
+  path[p]="$(realpath -e "${path[p]}" 2> /dev/null)";
+done # this
+# if the index is empty, then unset it
+for p in "${!path[@]}"; do
+  if [[ -z "${path[p]}" ]]; then
+    unset 'path[p]';
+  fi;
+done # this
+# remove any duplicates while preserving order of dirs
+for p in "${!path[@]}"; do
+  if [[ "${path_2[*]}" =~ ${path[p]} ]]; then
+    unset 'path[p]';
+  else
+    path_2+=("${path[p]}");
+  fi;
+done # this
+# print results
+declare -p path_2 # this
+
+# check DAC's, 
+namei_o="$( 
+  for d in "${path_2[@]}"; do 
+    namei -xl "$(
+      realpath -e "$d" 2> /dev/null)"; 
+  done \
+    | grep -v ^'f:' \
+    | awk '$2 !~ /root/ || $3 !~ /root/ { print }'
+)"
+if [[ -n "${namei_o}" ]]; then
+  echo 'A directory in PATH is not fully owned by root (DAC).'
+  echo "${namei_o}"
+  exit "${LINENO}"
+fi
+
+# check ACL's 
+
+# Variables, this section
+unset end_dirname full_dir_list ext_array dir sub_dir num_sub_dirs N n \
+  extglob_pattern ext_first ext_last getfacl_o grep_o
+end_dirname=/; 
+declare -A full_dir_list; 
+ext_array=()
+
+# for each actual directory in PATH
+for dir in "${path_2[@]}"; do 
+  
+  # limit the number of loops to the number of constituent directory
+  # inodes. safely split each directory into its constituent directory 
+  # names, ie, by using NULL's in place of '/'s
+  unset sub_dir
+  num_sub_dirs="$(tr '/' '\0' <<< "$dir" \
+    | awk -F'\0' '{ print NF }')"; 
+  N=$((num_sub_dirs - 1))
+
+  # read the ACLs of each dir and sub_dir
+  for ((n=N;n>=0;--n)); do 
+
+    # Assign a value to $sub_dir as necessary
+    : "${sub_dir:="${dir}"}"
+
+    # If the sub_dir is already listed in the extglob_pattern, then 
+    # move on to the next small loop  
+    # shellcheck disable=SC2053
+    if [[ "${sub_dir}" = ${extglob_pattern} ]]; then 
+      sub_dir="$(dirname "${sub_dir:="${dir}"}")"
+      
+      # If the sub_dir is '/', then move on to the next big loop
+      if [[ "${sub_dir}" = "${end_dirname}" ]]; then
+        break 
+      fi
+      continue
+    fi
+
+    # Use an Associative array to filter out duplicate entries. 
+    # (With associative arrays, duplicate assignments are indempotent.)
+    full_dir_list["${sub_dir}"]+="${n}," 
+
+    # create a list of directories and subdirectories that have been
+    # tested so far. This section concatenates directories as strings
+    # into a variable that the shell will later interpret as an 
+    # extglob.
+    ext_array=("${!full_dir_list[@]}")
+    ext_first="${ext_array[0]}"
+    [[ -n "${ext_first}" ]] \
+      && unset 'ext_array[0]'
+    # shellcheck disable=SC2124
+    ext_last="${ext_array[@]: -1:1}"
+    [[ -n "${ext_last}" ]] \
+      && unset "ext_array[${#ext_array[@]}]" 
+    # index math can be a little weird
+
+    # create the exglob_pattern
+    if [[ -n "${ext_first}" ]]; then 
+      extglob_pattern="$(         printf '@(%s' "${ext_first}" )"
+      [[ "${#ext_array[@]}" -gt 0 ]] \
+        && extglob_pattern+="$(   printf '|%s' "${ext_array[@]}" )"
+      if [[ -n "${ext_last}" ]]; then
+        extglob_pattern+="$(      printf '|%s)' "${ext_last}" )"
+      else
+        extglob_pattern+="$(      printf ')' )"
+      fi
+    fi
+
+    # look for any ACL's on the directory
+    getfacl_o="$(getfacl -enp -- "${sub_dir}" 2> /dev/null)"
+    grep_o="$(grep -ve '^#' -e ^'user::' -e ^'group::' -e ^'other::' \
+      <<< "${getfacl_o}")"
+    
+    # If found, halt the script and inform the user
+    if [[ -n "${grep_o}" ]]; then
+      printf '\n%s: ACL defined for this directory:\n\t%s\n\n' \
+        "${script_nm}" "${sub_dir}"
+      echo "${getfacl_o}"
+      printf '\n\tThis command will remove all ACL\x27s from the '
+      printf 'specified directory:\n\n\t\tsetfacl -b %s\n\n' "${sub_dir}"
+      exit 1
+
+    # otherwise, move on to the next big loop  
+    else
+      if [[ "${sub_dir}" = "${end_dirname}" ]]; then
+        break 
+      fi
+    fi 
+
+    sub_dir="$(dirname "${sub_dir:="${dir}"}")"
+  done    
+done; 
+unset end_dirname full_dir_list ext_array dir sub_dir num_sub_dirs \
+  N n extglob_pattern ext_first ext_last getfacl_o grep_o
+
+
+# check MAC's
+
+
+exit 101
+
 
 :
 : 'Aliases and functions -- for brevity during debugging'
