@@ -17,17 +17,14 @@ else
     || exit 1
 fi
 :
-set -x
+  #set -x
 :
-
 : 'Implementation dependent arguments for options parsable by -shellcheck-'
-:
-SC_severity=error
+sc_severity=error
 # shellcheck disable=SC2034
 SC_shells='(sh|bash|dash|ksh)'
 :
 : 'Variables that lend themselves to some customization'
-:
 repo_nm=scrfi
 script_dirnm="${repo_nm}.d"
 protected_git_dir_1="${HOME}/MYPROJECTS"
@@ -35,154 +32,363 @@ protected_git_dir_2="${HOME}/OTHERSPROJECTS"
 script_nm=find-and-scan-shell-scripts-sh
 script_proper_nm='Script Finder'
 script_version=1.0
-:
 a_poss_proces_lock_dirs=([0]="${XDG_RUNTIME_DIR}" [1]="${HOME}"
   [2]="${TMPDIR}" [3]=/tmp [4]=/var/tmp)
-:
 
 # to search dirs...
-:
 : Option parsing
 if [[ $# -gt 0 ]]; then 
   cli_input=("${@}")
-  :
 fi
 
+  #declare -p sc_severity SC_shells repo_nm protected_git_dir_1 protected_git_dir_2 script_nm script_proper_nm script_version a_poss_proces_lock_dirs cli_input
+  #exit 101
 
-######### `getopts` how-to from wooledge.org
-# https://mywiki.wooledge.org/BashFAQ/035?highlight=%28getopts%29#getopts
 
-# Initialize variables:
-SC_severity=error
-memory_usage=temp_files
-search_methods_path=(PATH_as-is)
-search_methods_prog=bin_bash
-search_methods_symlinks=with
-search_methods_descend=without
-search_methods_proc=without
-search_methods_sys=without
-search_methods_spec_dirs=without
-verify=(path)
+# Initialize (more) variables (re getopts):
+bash_path="${PATH}"
+IFS=':' read -ra find_path <<< "${bash_path}"
+find_exclude_optargs_orig=([0]='(' [1]='!' [2]='-name' [3]='proc' 
+  [4]='-a' [5]='!' [6]='-name' [7]='sys' [8]='-a' [9]='!' [10]='-iname' 
+  [11]="${script_dirnm}*" [12]='-a' [13]='!' [14]='-ipath' 
+  [15]="${protected_git_dir_1}" [16]='-a' [17]='!' [18]='-ipath' 
+  [19]="${protected_git_dir_2}" [20]='-a' [21]='!' [22]='-path' 
+  [23]='*/git/*' [24]=')')
+find_exclude_optargs=("${find_exclude_optargs_orig[@]}")
+sc_severity=default_error
+memory_usage=default_temp_files
+search_methods_path=(default_PATH_as-is)
+search_methods_prog=default_bash_bin
+search_methods_symlinks=default_with
+search_methods_descend=default_without # bash or find
+search_methods_proc=default_without
+search_methods_sys=default_without
+search_methods_spec_dirs=default_without
+fn_usage() {
+  # Usage:  fn_usage [exit-code]
+  : fn_usage
 
-while getopts ABCDEFGHIJKLMNOPQRSTUVWXYerishw cli_input; do
-  case "${cli_input}" in
+  # print a usage message and exit with a pre-determined exit code
+  cat <<- EOF
+    ${repo_nm} - ${script_proper_nm}, version ${script_version}
+    Find and scan shell scripts depending on severity level. 
+        Usage:  
+
+H:  Follow symlinks   
+      [b]ash 
+      [p]hysical 
+      [l]ogical
+P:  Path
+      [ac]  actually all
+      [as]  as-is
+      [bi]  /bin only
+      [bo]  both /bin and /sbin only
+      [ge]  getconf PATH only
+      [sb]  /sbin only
+      [pr]  add /proc
+      [sy]  add /sys
+R:  Path
+      [STRING]  add a literal search directory
+S:  Severity level, ie, "shellcheck -S"
+      [e]rror
+      [i]nfo
+      [s]tyle
+      [w]arning
+V   Version 
+X:  Memory usage
+      [r]   RAM only
+      [p]   persistent storage
+      [t]   temporary files
+h   Help message
+p:  Progam and method of searching
+      [ba]  bash binary (automatic PATH search)
+      [cp]  bash builtin "command -p"
+      [cv]  bash builtin "command -pV"
+      [fi]  find binary
+      [ty]  bash builtin "type -a"
+q:  Verify or validate information
+      [c]rashbangs
+      [i]nterpreters
+      [p]ath
+r:  Descend / recurse into directories
+      [d|y]
+      [n]
+s:  Scan excluded directories
+      [s|y]
+      [n]
+
+
+
+
+
+${script_nm} [-ehiw]
+                -e error          -i info
+                -h help           -w warning
+    Only the first option is processed.
+
+EOF
+  : 'END OF fn_usage'
+  :
+  # shellcheck disable=SC2086
+  exit "${1}"
+}
+
+:;:;:
+while getopts ABH:P:R:S:VXhp:q:r:s: cli_input; do
+  case "${cli_input[@]}" in
     A) printf '%s%s%s' 'CgkiSSB3b3VsZCBoYXZlIG1hZGUgdGhpcyBzaG9y' \
         'dGVyLCBidXQgSSBkaWRuJ3QgaGF2ZSB0aGUg' \
         'dGltZS4iCgkJLS0gTWFyayBUd2FpbgoK' \
         | base64 -d
       exit 0
       ;;   
-    B) printf 'CglIYXBweSBFYXN0ZXIhCgo=' \
-        | base64 -d
-      exit 0
+    # Follow symlinks
+    #   `bash` always follows symlinks, therefore to not follow any 
+    # symlinks requires `find` and is a clobbering setting, ie, 
+    # selecting either '-h P' or '-h L' will also select the use of 
+    # `find`. The 'P' and 'L' refer to `find`s first argument, which 
+    # by default is assumed (by `find`) to be '-P'. `find -H` is not 
+    # implemented in this script.
+    H) 
+      OPTARG="${OPTARG,,[A-Z]}"
+      OPTARG="${OPTARG:0:1}"
+      case "${OPTARG}" in
+        # Bash
+        b)
+          search_methods_symlinks=bash # default
+          search_methods_prog=bash_bin
+          ;;
+        # Physical
+        p)
+          search_methods_symlinks=physical
+          search_methods_prog=find_bin # clobber
+          ;;
+        # Logical
+        l)
+          search_methods_symlinks=logical
+          search_methods_prog=find_bin # clobber
+          ;;
+        *) "${arg_wrong__h:?}"
+          ;;
+      esac
       ;;
-    
+    # PATH (array) - Part 1 - Options with no args (such as /usr/share)
+    #   For '/proc' and '/sys', see also option 's'.
+    P)
+      # Part 1.A -- clobbering settings
+      OPTARG="${OPTARG,,[A-Z]}"
+      OPTARG="${OPTARG:0:2}"
+      case "${OPTARG}" in
+        ac)
+          unset find_path search_methods_path 
+          search_methods_path=(actually_all)
+          bash_path='/'
+          IFS=':' read -ra find_path <<< "${bash_path}"
+          search_methods_prog=find_bin
+          ;;
+        as)
+          unset find_path search_methods_path 
+          search_methods_path=(as_is)
+          bash_path="${PATH}"
+          IFS=':' read -ra find_path <<< "${bash_path}"
+          ;;
+        bi)             
+          unset find_path search_methods_path 
+          search_methods_path=(bin_only)
+          bash_path='/usr/bin'
+          IFS=':' read -ra find_path <<< "${bash_path}"
+          ;;
+        bo)
+          unset find_path search_methods_path 
+          search_methods_path=(both_bin_sbin_only)
+          bash_path='/usr/bin:/usr/sbin'
+          IFS=':' read -ra find_path <<< "${bash_path}"
+          ;;
+        ge)
+          unset find_path search_methods_path 
+          search_methods_path=(getconf_PATH_only)
+          bash_path="$(getconf PATH)"
+          IFS=':' read -ra find_path <<< "${bash_path}"
+          ;;
+        sb)
+          unset find_path search_methods_path 
+          search_methods_path=(sbin_only)
+          bash_path='/usr/sbin'
+          IFS=':' read -ra find_path <<< "${bash_path}"
+          ;;
+      # Part 1.B -- additive PATH settings, but the Program 
+      #   setting gets clobbered
+        pr)
+          unset find_path
+          search_methods_path=(proc_add)
+          bash_path="/proc:${PATH}"
+          IFS=':' read -ra find_path <<< "${bash_path}"
+          search_methods_prog=find_bin
+          ;;
+        sy)
+          unset find_path
+          search_methods_path=(sys_add)
+          bash_path="/sys:${bash_path}"
+          IFS=':' read -ra find_path <<< "${bash_path}"
+          search_methods_prog=find_bin
+          ;;
+      # Part 1.C - handle erroneous input
+        *) "${arg_wrong__P:?}" ;;
+      esac
+      ;;
+    # PATH (array) - Part 2 - options with args
+    R) 
+      OPTARG="$(strings -n1 <<< "${OPTARG}")"
+      bad_strings=([0]="|" [1]="&" [2]=";" [3]="(" [4]=")" [5]="<" 
+        [6]=">" [7]=" " [8]=$'\t' [9]=$'\n' [10]="||" [11]="&&" 
+        [12]=";;" [13]=";&" [14]=";;&" [15]="|&" [16]="!" [17]="{" 
+        [18]="}" [19]="[" [20]="]" [21]="[[" [22]="]]" [23]="\$" 
+        [24]="=")
+      new_optarg="${OPTARG//["${bad_strings[@]}"]/}"
+      if [[ "${new_optarg}" != "${OPTARG}" ]]; then
+        printf '\n\tError: option -R: directory name includes '
+        printf 'an illegal character\n\n'
+      fi
+      if  [[ ! -d "${OPTARG}" ]]; then 
+        "${arg_wrong__R:?}"
+      fi
+      unset find_path
+      search_methods_path+=(add_dir)
+      bash_path="${bash_path}:$(realpath -e "${OPTARG}")"
+      IFS=':' read -ra find_path <<< "${bash_path}"
+      ;;
+    # ShellCheck's '-S' setting, ie, severity level
+    S)
+      OPTARG="${OPTARG,,[A-Z]}"
+      OPTARG="${OPTARG:0:1}"
+      case "${OPTARG}" in
+        e) sc_severity=error ;; # default
+        i) sc_severity=info ;;
+        s) sc_severity=style ;;
+        w) sc_severity=warning ;;
+        *) "${arg_wrong__S:?}" ;;
+      esac
+      ;;
+    V) 
+      printf '\n\t%s, version %s. Apache 2 license.\n\n' \
+        "${script_proper_nm}" "${script_version}"
+      ;;
+    # Whether to and how to save data
+    X) 
+      OPTARG="${OPTARG,,[A-Z]}"
+      OPTARG="${OPTARG:0:1}"
+      case "${OPTARG}" in
+        r) memory_usage=RAM_only ;;
+        p) memory_usage=persistent_storage ;;
+        t) memory_usage=temp_files ;;
+        *) "${arg_wrong__X:?}" ;;
+      esac
+      ;;
+    # Help message
     h) fn_usage 0
       ;;
-    
-    # clobbering settings
-    C) unset search_methods_prog
-      search_methods_prog=bash_command_pv ;;
-    D) unset search_methods_prog
-      search_methods_prog=bash_command_v ;;
-    E) unset search_methods_prog
-      search_methods_prog=bash_type_a ;;
-    # bash cannot do
-    F) unset search_methods_path 
-      search_methods_path=(actual_all)
-      search_methods_prog=bin_find ;;
-    G) unset search_methods_path
-      search_methods_path=(PATH_getconf_PATH_only) ;;
-      #^PATH="$(getconf PATH)"
-    H) unset search_methods_path
-      search_methods_path=(PATH_bin_only) ;;
-      #^PATH='/usr/bin'
-    I) unset search_methods_path
-      search_methods_path=(PATH_sbin_only) ;;
-      #^PATH='/usr/sbin'
-    J) unset search_methods_path
-      search_methods_path=(PATH_bin-sbin_only) ;;
-      #^PATH='/usr/bin:/usr/sbin'
-    K) search_methods_path=(PATH_as-is) ;;
-
-    # additive PATH settings # default \/
-    L) search_methods_path+=(add_proc) ;;
-    M) search_methods_path+=(add_sys) ;;
-    # one directory to search # bash or find \/
-    N) search_methods_path+=(add_dir)
-      some_var+=("<<${OPTARG}>>") ;;
-    
-    # Binary settings
-    
-    # for `bash` the default is 'no descent' into dirs; for `find` the 
-    # default is 'do descend' into dirs
-    # is 'without any symlinks' # bash cannot do; therefore it's a 
-    # clobbering setting
-    O) search_methods_descend=with
-       search_methods_prog=bin_find ;;
-    # bash or find # default \/
-    P) search_methods_descend=without ;;
-    
-    # for bash, you could add spec-dirs to PATH
-    # for find, remove the exclude optargs
-    Q) search_methods_spec_dirs=with ;;
-    # for bash, scan PATH and remove any specified dirs
-    # for find, keep the exclude optargs, with option to add more 
-    #   exclude optargs
-    R) search_methods_spec_dirs=without ;;
-    
-    # for `bash` the default is 'with symlinks'; for `find` the default 
-    # is 'without any symlinks' # bash or find
-    S) search_methods_symlinks=with ;;
-    # bash cannot do, therefore it's a clobbering setting
-    T) search_methods_symlinks=without
-      search_methods_prog=bin_find ;;
-    
-   
-
-    # default
-    e) SC_severity=error ;;
-    i) SC_severity=info ;;
-    s) SC_severity=style ;;
-    w) SC_severity=warning ;;
-
-    U) verify+=(path) ;;
-
-    W) memory_usage=RAM_only ;;
-    X) memory_usage=persistent_storage ;;
-    Y) memory_usage=temp_files ;;
-
-    V) echo 'TODO: write fn_version' ;;
-
-    *) fn_usage 1 ;;   
+    # Program to search with (variable) -- all settings clobber
+    p)
+      OPTARG="${OPTARG,,[A-Z]}"
+      OPTARG="${OPTARG:0:2}"
+      case "${OPTARG}" in
+        ba)
+          search_methods_prog="${bash_bin}" 
+          ;;
+        cp)
+          search_methods_prog="${bash_command_pV}"
+          ;;
+        cv)
+          search_methods_prog="${bash_command_V}" 
+          ;;
+        fi)
+          search_methods_prog="${find_bin}"
+          ;;
+        ty)
+          search_methods_prog="${bash_type_a}"
+          ;;
+        *) 
+          "${arg_wrong__p:?}" 
+          ;;
+      esac
+      ;;
+    # What information to verify -- none are enabled by defaulted 
+    q) 
+      OPTARG="${OPTARG,,[A-Z]}"
+      OPTARG="${OPTARG:0:1}"
+      case "${OPTARG}" in
+        c) verify+=(crashbangs) ;;
+        i) verify+=(interpreters) ;;
+        p) verify+=(path) ;;
+        *) "${arg_wrong__X:?}" ;;
+      esac
+      ;;
+    # Descend into dirs (recurse)
+    #   `bash`s path search cannot descend into dirs; for `find` the 
+    # default is to 'do descend' into dirs. For this script, the default 
+    # for descending follows `bash`, and selecting this setting switches 
+    # the search program to `find`. `find`s '-mindepth' and '-maxdepth' 
+    # are not implemented. 
+    r) 
+      OPTARG="${OPTARG,,[A-Z]}"
+      OPTARG="${OPTARG:0:1}"
+      case "${OPTARG}" in
+        # descend|yes
+        d|y)
+          search_methods_descend=yes
+          search_methods_prog=find_bin # clobber
+          unset bash_path
+          ;;
+        # no_descend
+        n)
+          search_methods_descend=no # default
+          search_methods_prog=bash_bin # clobber 
+          unset find_path
+          ;;
+        '?') "${arg_wrong__r:?}"
+          ;;
+      esac
+       ;;
+    # Scan excluded dirs
+    #   By default, this script assumes for `find` a set of automatic-
+    # ally excluded search directories that often prove to be somewhat 
+    # problematic: '/proc', '/sys', and anything with a find '-path' 
+    # of either '*/git/*' or the script's name. With a default PATH 
+    # setting, `bash` usually also skips these directories, so enabling 
+    # this option indicates the wish to use `find`, and so clobbers 
+    # `bash`. To add '/proc' or '/sys' to `find`s search path, see 
+    # option 'P', 'add_proc' and 'add_sys'. 
+    s) 
+      OPTARG="${OPTARG,,[A-Z]}"
+      OPTARG="${OPTARG:0:1}"
+      case "${OPTARG}" in
+        # scan_excluded|yes
+        s|y)
+          search_methods_scan_excluded=yes
+          search_methods_prog=find_bin
+          find_exclude_optargs=("${find_exclude_optargs_orig[@]}")
+          ;;
+        # no_scan_excluded
+        n)
+          search_methods_scan_excluded=no
+          search_methods_prog=find_bin
+          unset find_exclude_optargs
+          ;;
+        *) "${arg_wrong__s:?}"
+          ;;
+      esac
+      ;;
+    *) 
+      fn_usage 1 
+      ;;   
   esac 
 done
-shift "$((OPTIND-1))"   # Discard the options and sentinel --
+
+  declare -p bash_path find_exclude_optargs sc_severity memory_usage search_methods_path search_methods_prog search_methods_symlinks search_methods_descend search_methods_proc search_methods_sys search_methods_spec_dirs verify find_path bash_path OPTARG new_optarg bad_strings
+  #declare -pf fn_usage
+  exit 101
 
 
-# 1. search_methods_prog=()
-#     *bash 
-# c:    bash_command_pV bash_command_V bash_type_a find
-# 
-# 2. search_methods_path=()
-#       add_proc add_sys add_dir
-# c:  *PATH_as-is 
-# c:    actual_all(+find) PATH_getconf_PATH_only PATH_bin_only 
-# c:      PATH_sbin_only PATH_bin-sbin_only 
-# 
-# 3. search_methods_symlinks=
-#     *with
-# c:    without(+find)
-# 
-# 3. search_methods_descend=
-#     *without
-# c:    with(+find) 
-# 
-# 3. search_methods_spec_dirs=
-#     *without, with
-
-
- 
 
 
 if [[ "${search_methods_prog}" = \
@@ -321,8 +527,6 @@ get_mountpoint(){
 get_mountpoint /sbin
 
 exit
-# End of file
-######### from wooledge.org
 
 
 # Verify PATH
@@ -632,7 +836,7 @@ fn_write_arrays() {
     # create local variables, for use as both array and string
     local -n loc_nameref_b="${loc_unquotd_array_nm_b}"
     loc_array_nm="${loc_unquotd_array_nm_b}"
-    loc_write_f_b="${loc_write_d_b}/_${SC_severity:0:1}"
+    loc_write_f_b="${loc_write_d_b}/_${sc_severity:0:1}"
     loc_write_f_b="${loc_write_f_b}_${abbrev_rel_search_dirs}_${loc_array_nm}"
 
     # solved?  BUG: mixing variable and array. sb a nameref
@@ -780,7 +984,7 @@ main_d="${mountpoint}/${script_dirnm}"
 data_subd="${main_d}/latest_data"
 curr_time_ssubd="${data_subd}/t_${timecode}/"
 list_crunchbangs="${curr_time_ssubd}/crunchbangs"
-found_scrpts_f="${list_crunchbangs}_found_scripts_${SC_severity:0:1}_${abbrev_rel_search_dirs}"
+found_scrpts_f="${list_crunchbangs}_found_scripts_${sc_severity:0:1}_${abbrev_rel_search_dirs}"
 :
 : 'data files'
 a_write_path_nms=("${list_crunchbangs:=crunchbangs}" "/tmp/${list_crunchbangs##*/}")
@@ -1340,7 +1544,7 @@ awk_o="$(awk '{ print $2 }' <<< "${sort_o}")"
 mapfile -t a_each_script_list_sorted_by_linect \
   <<< "${awk_o}" # ie properly
 :
-found_scrpts_f="${list_crunchbangs}_found_scripts_${SC_severity:0:1}_${abbrev_rel_search_dirs}"
+found_scrpts_f="${list_crunchbangs}_found_scripts_${sc_severity:0:1}_${abbrev_rel_search_dirs}"
 iterator_2=0
 :
 # Bug? 1st grep extra?
@@ -1350,7 +1554,7 @@ iterator_2=0
   for sorted_script in "${!a_each_script_list_sorted_by_linect[@]}"; do
     :
     mapfile -d '' -t a_each_script_SC_results < <(
-      shellcheck -S "${SC_severity}" \
+      shellcheck -S "${sc_severity}" \
         "${a_each_script_list_sorted_by_linect[sorted_script]}" \
         | grep -Fv 'shellcheck.net' \
         | grep -Eo "SC[0-9]{4}.*" \
