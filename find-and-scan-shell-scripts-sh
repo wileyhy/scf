@@ -17,6 +17,18 @@ else
     || exit 1
 fi
 :
+: 'Environment variables'
+:
+unset LC_ALL
+LC_COLLATE="C.UTF-8"     # for predictable sorting
+LC_CTYPE="C.UTF-8"       #  "   "           "
+LC_NUMERIC="en_US.UTF-8" # for commas in large numbers
+:
+PATH="$(/usr/bin/command -p getconf PATH):/usr/bin:/usr/sbin:${PATH}" \
+  || "${Halt_PATH:?}"
+export LC_COLLATE LC_CTYPE LC_NUMERIC PATH
+
+:
   #set -x
 :
 : 'Implementation dependent arguments for options parsable by -shellcheck-'
@@ -25,7 +37,7 @@ sc_severity=error
 SC_shells='(sh|bash|dash|ksh)'
 :
 : 'Variables that lend themselves to some customization'
-repo_nm=scrfi
+repo_nm=scf
 script_dirnm="${repo_nm}.d"
 protected_git_dir_1="${HOME}/MYPROJECTS"
 protected_git_dir_2="${HOME}/OTHERSPROJECTS"
@@ -35,6 +47,9 @@ script_version=1.0
 a_poss_proces_lock_dirs=([0]="${XDG_RUNTIME_DIR}" [1]="${HOME}"
   [2]="${TMPDIR}" [3]=/tmp [4]=/var/tmp)
 
+  # <>
+  abbrev_rel_search_dirs=/
+
 # to search dirs...
 : Option parsing
 if [[ $# -gt 0 ]]; then 
@@ -43,99 +58,90 @@ fi
 
   #declare -p sc_severity SC_shells repo_nm protected_git_dir_1 protected_git_dir_2 script_nm script_proper_nm script_version a_poss_proces_lock_dirs cli_input
   #exit 101
+  #set -x
 
 
 # Initialize (more) variables (re getopts):
-bash_path="${PATH}"
-IFS=':' read -ra find_path <<< "${bash_path}"
-find_exclude_optargs_orig=([0]='(' [1]='!' [2]='-name' [3]='proc' 
+find_exclude_optargs_default=([0]='(' [1]='!' [2]='-name' [3]='proc' 
   [4]='-a' [5]='!' [6]='-name' [7]='sys' [8]='-a' [9]='!' [10]='-iname' 
   [11]="${script_dirnm}*" [12]='-a' [13]='!' [14]='-ipath' 
   [15]="${protected_git_dir_1}" [16]='-a' [17]='!' [18]='-ipath' 
   [19]="${protected_git_dir_2}" [20]='-a' [21]='!' [22]='-path' 
-  [23]='*/git/*' [24]=')')
-find_exclude_optargs=("${find_exclude_optargs_orig[@]}")
-sc_severity=default_error
+  [23]='*/git/*' [24]=')' [100]='default')
+find_exclude_optargs=("${find_exclude_optargs_default[@]}")
+
+bash_path_orig="${PATH}:/default"
+bash_path="${bash_path_orig}"
+#bash_path="${bash_path_orig%:/default}"
+IFS=':' read -ra find_path <<< "${bash_path}"
 memory_usage=default_temp_files
-search_methods_path=(default_PATH_as-is)
-search_methods_prog=default_bash_bin
-search_methods_symlinks=default_with
+sc_severity=default_error
+
 search_methods_descend=default_without # bash or find
+search_methods_path=(default_PATH_as-is)
 search_methods_proc=default_without
-search_methods_sys=default_without
+search_methods_prog=default_bash_bin
 search_methods_spec_dirs=default_without
+search_methods_symlinks=default_with
+search_methods_sys=default_without
+
 fn_usage() {
   # Usage:  fn_usage [exit-code]
   : fn_usage
 
   # print a usage message and exit with a pre-determined exit code
-  cat <<- EOF
-    ${repo_nm} - ${script_proper_nm}, version ${script_version}
+  {
+    cat <<- EOF
+  ${repo_nm} - ${script_proper_nm}, version ${script_version}
     Find and scan shell scripts depending on severity level. 
-        Usage:  
+    Options are parsed by bash's builtin "getopts".
+  Usage:
+    ./${script_nm} -H[b|p|l] -P[ac|as|bi|bo|ge|sb|pr|sy]
+        -R[DIRECTORY] -S[e|i|s|w] -V -X[r|p|t] -h|? -p[ba|cp|cv|fi|ty] 
+        -q[c|i|p] -r[d|y|n] -s[s|y|n
 
-H:  Follow symlinks   
-      [b]ash 
-      [p]hysical 
-      [l]ogical
-P:  Path
-      [ac]  actually all
-      [as]  as-is
-      [bi]  /bin only
-      [bo]  both /bin and /sbin only
-      [ge]  getconf PATH only
-      [sb]  /sbin only
-      [pr]  add /proc
-      [sy]  add /sys
-R:  Path
-      [STRING]  add a literal search directory
-S:  Severity level, ie, "shellcheck -S"
-      [e]rror
-      [i]nfo
-      [s]tyle
-      [w]arning
-V   Version 
-X:  Memory usage
-      [r]   RAM only
-      [p]   persistent storage
-      [t]   temporary files
-h   Help message
-p:  Progam and method of searching
-      [ba]  bash binary (automatic PATH search)
-      [cp]  bash builtin "command -p"
-      [cv]  bash builtin "command -pV"
-      [fi]  find binary
-      [ty]  bash builtin "type -a"
-q:  Verify or validate information
-      [c]rashbangs
-      [i]nterpreters
-      [p]ath
-r:  Descend / recurse into directories
-      [d|y]
-      [n]
-s:  Scan excluded directories
-      [s|y]
-      [n]
-
-
-
-
-
-${script_nm} [-ehiw]
-                -e error          -i info
-                -h help           -w warning
-    Only the first option is processed.
-
+      H:  Follow symlinks         M:  Memory usage
+       *[b]ash                      [r]   RAM only
+        [p]hysical                  [p]   Persistent storage
+        [l]ogical                  *[t]   Temporary files
+      P:  Path                    h   Help message
+        [ac]  Actually all        p:  Progam and method
+       *[as]  As-is                *[ba]  "bash" binary
+        [bi]  /bin only             [cp]  builtin "command -pV"
+        [bo]  Both /{,s}bin only    [cv]  builtin "command -V"
+        [ge]  Getconf PATH only     [fi]  "find" binary
+        [sb]  /sbin only            [ty]  builtin "type -a"
+        [pr]  Add /proc           q:  Validate information
+        [sy]  Add /sys              [c]rashbangs
+      R:  Path                      [i]nterpreters
+        [STRING]  Add search dir    [p]ath
+      S:  Severity level          r:  Recurse into dirs
+       *[e]rror                     [d|y] Yes
+        [i]nfo                     *[n]   No
+        [s]tyle                   s:  Scan excluded dirs
+        [w]arning                   [s|y] Yes
+      V   Version                  *[n]   No
 EOF
+  } | more -e
   : 'END OF fn_usage'
   :
   # shellcheck disable=SC2086
   exit "${1}"
 }
 
+  #declare -p find_exclude_optargs_default find_exclude_optargs 
+  #declare -p bash_path find_path memory_usage sc_severity 
+  #declare -p search_methods_descend search_methods_path search_methods_proc search_methods_prog search_methods_spec_dirs search_methods_symlinks search_methods_sys 
+  #declare -pf fn_usage
+  #exit 101
+  set -x
+
+
 :;:;:
-while getopts ABH:P:R:S:VXhp:q:r:s: cli_input; do
-  case "${cli_input[@]}" in
+while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
+  declare -p OPTIND OPTARG 
+    
+  case "${cli_input}" in
     A) printf '%s%s%s' 'CgkiSSB3b3VsZCBoYXZlIG1hZGUgdGhpcyBzaG9y' \
         'dGVyLCBidXQgSSBkaWRuJ3QgaGF2ZSB0aGUg' \
         'dGltZS4iCgkJLS0gTWFyayBUd2FpbgoK' \
@@ -162,14 +168,27 @@ while getopts ABH:P:R:S:VXhp:q:r:s: cli_input; do
         p)
           search_methods_symlinks=physical
           search_methods_prog=find_bin # clobber
+          find_sym_opt='-P'
           ;;
         # Logical
         l)
           search_methods_symlinks=logical
           search_methods_prog=find_bin # clobber
+          find_sym_opt='-L'
           ;;
         *) "${arg_wrong__h:?}"
           ;;
+      esac
+      ;;
+    # Whether to and how to save data
+    M) 
+      OPTARG="${OPTARG,,[A-Z]}"
+      OPTARG="${OPTARG:0:1}"
+      case "${OPTARG}" in
+        r) memory_usage=RAM_only ;;
+        p) memory_usage=persistent_storage ;;
+        t) memory_usage=temp_files ;;
+        *) "${arg_wrong__X:?}" ;;
       esac
       ;;
     # PATH (array) - Part 1 - Options with no args (such as /usr/share)
@@ -179,38 +198,38 @@ while getopts ABH:P:R:S:VXhp:q:r:s: cli_input; do
       OPTARG="${OPTARG,,[A-Z]}"
       OPTARG="${OPTARG:0:2}"
       case "${OPTARG}" in
-        ac)
+        ac|aa)
           unset find_path search_methods_path 
           search_methods_path=(actually_all)
           bash_path='/'
           IFS=':' read -ra find_path <<< "${bash_path}"
           search_methods_prog=find_bin
           ;;
-        as)
+        as|ai)
           unset find_path search_methods_path 
-          search_methods_path=(as_is)
+          search_methods_path=(as-is)
           bash_path="${PATH}"
           IFS=':' read -ra find_path <<< "${bash_path}"
           ;;
-        bi)             
+        bi|b)             
           unset find_path search_methods_path 
           search_methods_path=(bin_only)
           bash_path='/usr/bin'
           IFS=':' read -ra find_path <<< "${bash_path}"
           ;;
-        bo)
+        bo|bs)
           unset find_path search_methods_path 
           search_methods_path=(both_bin_sbin_only)
           bash_path='/usr/bin:/usr/sbin'
           IFS=':' read -ra find_path <<< "${bash_path}"
           ;;
-        ge)
+        ge|g)
           unset find_path search_methods_path 
           search_methods_path=(getconf_PATH_only)
           bash_path="$(getconf PATH)"
           IFS=':' read -ra find_path <<< "${bash_path}"
           ;;
-        sb)
+        sb|so|s)
           unset find_path search_methods_path 
           search_methods_path=(sbin_only)
           bash_path='/usr/sbin'
@@ -218,17 +237,19 @@ while getopts ABH:P:R:S:VXhp:q:r:s: cli_input; do
           ;;
       # Part 1.B -- additive PATH settings, but the Program 
       #   setting gets clobbered
-        pr)
+        pr|p|pa)
           unset find_path
-          search_methods_path=(proc_add)
-          bash_path="/proc:${PATH}"
+          search_methods_path+=(add_proc)
+          bash_path="${bash_path//:\/default/}"
+          bash_path="${bash_path}:/proc"
           IFS=':' read -ra find_path <<< "${bash_path}"
           search_methods_prog=find_bin
           ;;
-        sy)
+        sy|sa)
           unset find_path
-          search_methods_path=(sys_add)
-          bash_path="/sys:${bash_path}"
+          search_methods_path+=(add_sys)
+          bash_path="${bash_path//:\/default/}"
+          bash_path="${bash_path}:/sys"
           IFS=':' read -ra find_path <<< "${bash_path}"
           search_methods_prog=find_bin
           ;;
@@ -249,12 +270,14 @@ while getopts ABH:P:R:S:VXhp:q:r:s: cli_input; do
         printf '\n\tError: option -R: directory name includes '
         printf 'an illegal character\n\n'
       fi
-      if  [[ ! -d "${OPTARG}" ]]; then 
+      new_optarg="$( realpath -e "${new_optarg}" )"
+      if  [[ ! -d "${new_optarg}" ]]; then 
         "${arg_wrong__R:?}"
       fi
       unset find_path
-      search_methods_path+=(add_dir)
-      bash_path="${bash_path}:$(realpath -e "${OPTARG}")"
+      search_methods_path+=( "add_dir__${new_optarg//\//_}" )
+      bash_path="${bash_path//:\/default/}"
+      bash_path="${bash_path}:${new_optarg}"
       IFS=':' read -ra find_path <<< "${bash_path}"
       ;;
     # ShellCheck's '-S' setting, ie, severity level
@@ -273,39 +296,28 @@ while getopts ABH:P:R:S:VXhp:q:r:s: cli_input; do
       printf '\n\t%s, version %s. Apache 2 license.\n\n' \
         "${script_proper_nm}" "${script_version}"
       ;;
-    # Whether to and how to save data
-    X) 
-      OPTARG="${OPTARG,,[A-Z]}"
-      OPTARG="${OPTARG:0:1}"
-      case "${OPTARG}" in
-        r) memory_usage=RAM_only ;;
-        p) memory_usage=persistent_storage ;;
-        t) memory_usage=temp_files ;;
-        *) "${arg_wrong__X:?}" ;;
-      esac
-      ;;
     # Help message
-    h) fn_usage 0
+    h|\?) fn_usage 0
       ;;
     # Program to search with (variable) -- all settings clobber
     p)
       OPTARG="${OPTARG,,[A-Z]}"
       OPTARG="${OPTARG:0:2}"
       case "${OPTARG}" in
-        ba)
-          search_methods_prog="${bash_bin}" 
+        ba|b)
+          search_methods_prog=bash_bin
           ;;
         cp)
-          search_methods_prog="${bash_command_pV}"
+          search_methods_prog=bash_command_pV
           ;;
         cv)
-          search_methods_prog="${bash_command_V}" 
+          search_methods_prog=bash_command_V
           ;;
-        fi)
-          search_methods_prog="${find_bin}"
+        fi|f)
+          search_methods_prog=find_bin
           ;;
-        ty)
-          search_methods_prog="${bash_type_a}"
+        ty|t)
+          search_methods_prog=bash_type_a
           ;;
         *) 
           "${arg_wrong__p:?}" 
@@ -315,12 +327,17 @@ while getopts ABH:P:R:S:VXhp:q:r:s: cli_input; do
     # What information to verify -- none are enabled by defaulted 
     q) 
       OPTARG="${OPTARG,,[A-Z]}"
-      OPTARG="${OPTARG:0:1}"
+      OPTARG="${OPTARG:0:2}"
       case "${OPTARG}" in
-        c) verify+=(crashbangs) ;;
-        i) verify+=(interpreters) ;;
-        p) verify+=(path) ;;
-        *) "${arg_wrong__X:?}" ;;
+        a|al)         verify=( crashbangs interpreters path);;
+        c|cr)         verify+=(crashbangs                  );;
+          ci|ic)      verify+=(crashbangs interpreters     );;
+          cp|pc)      verify+=(crashbangs              path);;
+        i|in)         verify+=(           interpreters     );;
+          ip|pi)      verify+=(           interpreters path);;
+        p|pa)         verify+=(                        path);;
+        u|un)   unset verify;;
+        *)     "${arg_wrong__X:?}";;
       esac
       ;;
     # Descend into dirs (recurse)
@@ -333,8 +350,8 @@ while getopts ABH:P:R:S:VXhp:q:r:s: cli_input; do
       OPTARG="${OPTARG,,[A-Z]}"
       OPTARG="${OPTARG:0:1}"
       case "${OPTARG}" in
-        # descend|yes
-        d|y)
+        # recurse|descend|yes
+        r|d|y)
           search_methods_descend=yes
           search_methods_prog=find_bin # clobber
           unset bash_path
@@ -345,7 +362,7 @@ while getopts ABH:P:R:S:VXhp:q:r:s: cli_input; do
           search_methods_prog=bash_bin # clobber 
           unset find_path
           ;;
-        '?') "${arg_wrong__r:?}"
+        *) "${arg_wrong__r:?}"
           ;;
       esac
        ;;
@@ -366,13 +383,14 @@ while getopts ABH:P:R:S:VXhp:q:r:s: cli_input; do
         s|y)
           search_methods_scan_excluded=yes
           search_methods_prog=find_bin
-          find_exclude_optargs=("${find_exclude_optargs_orig[@]}")
+          find_exclude_optargs=()
           ;;
         # no_scan_excluded
         n)
           search_methods_scan_excluded=no
           search_methods_prog=find_bin
-          unset find_exclude_optargs
+          find_exclude_optargs=("${find_exclude_optargs_default[@]}")
+          unset 'find_exclude_optargs[100]'
           ;;
         *) "${arg_wrong__s:?}"
           ;;
@@ -383,8 +401,14 @@ while getopts ABH:P:R:S:VXhp:q:r:s: cli_input; do
       ;;   
   esac 
 done
-
-  declare -p bash_path find_exclude_optargs sc_severity memory_usage search_methods_path search_methods_prog search_methods_symlinks search_methods_descend search_methods_proc search_methods_sys search_methods_spec_dirs verify find_path bash_path OPTARG new_optarg bad_strings
+  :;:;:
+  set -
+  unset 'find_exclude_optargs[100]'
+{ 
+  declare -p find_exclude_optargs_default find_exclude_optargs 
+  declare -p bash_path find_path find_sym_opt memory_usage sc_severity search_methods_descend search_methods_path search_methods_proc search_methods_prog search_methods_scan_excluded search_methods_spec_dirs search_methods_symlinks search_methods_sys OPTARG bad_strings new_optarg verify 2> /dev/null
+} |& grep -v default 2> /dev/null
+  : 'find_exclude_optargs:' "${find_exclude_optargs[@]}"
   #declare -pf fn_usage
   exit 101
 
@@ -421,12 +445,12 @@ then
     type -a "${all_commands[i]}" \
       | grep -E 'is /'"${re}" ; 
   
-    # For `command -pv` (usually only '/usr/bin'): BASH_command_pv
-    command -pv "${all_commands[i]}" \
+    # For `command -pV` (usually only '/usr/bin'): BASH_command_pV
+    command -pV "${all_commands[i]}" \
     | grep -E 'is /'"${re}" ; 
 
-    # For `command -v` (usually includes '/usr/sbin'): BASH_command_v
-    command -v "${all_commands[i]}" \
+    # For `command -V` (usually includes '/usr/sbin'): BASH_command_V
+    command -V "${all_commands[i]}" \
       | grep -E 'is /'"${re}" ; 
   
   done \
@@ -692,18 +716,6 @@ function  I_() { fn_erx "${LINENO}";};
 #function V_() { fn_write_vars "$@";};
 function  W_() { fn_write_arrays "$@";};
 set +v
-
-:
-: 'Environment variables'
-:
-unset LC_ALL
-LC_COLLATE="C.UTF-8"     # for predictable sorting
-LC_CTYPE="C.UTF-8"       #  "   "           "
-LC_NUMERIC="en_US.UTF-8" # for commas in large numbers
-:
-PATH="$(/usr/bin/command -p getconf PATH):/usr/bin:/usr/sbin:${PATH}" \
-  || L_
-export LC_COLLATE LC_CTYPE LC_NUMERIC PATH
 
 :
 : 'Check for Process Locks'
@@ -1419,11 +1431,11 @@ mapfile -t a_interpreters < <(
 :
 : 'Ways to find an interpreter if it-s available on disk:'
 :
-# Bug: `realpath -e` and `command -v` are redundant
+# Bug: `realpath -e` and `command -V` are redundant
 :
 for program in "${a_interpreters[@]}"; do
-  : 'command -pv'
-  command_o="$(command -pv "${program}" 2>&1)"
+  : 'command -pV'
+  command_o="$(command -pV "${program}" 2>&1)"
   
   if [[ -n "${command_o}" ]]; then 
     realpath_o="$(realpath -e "${command_o}" 2> /dev/null)"
@@ -1447,7 +1459,7 @@ D_ a_interps_rps; L_
 for b in "${!a_interps_rps[@]}"; do 
   printf '%-32s' "${a_interps_rps[b]}"; 
   :
-  if command -pv "${a_interps_rps[b]}" > /dev/null; then 
+  if command -pV "${a_interps_rps[b]}" > /dev/null; then 
     m="exists on disk"; 
   else 
     m="DNE on disk"; 
