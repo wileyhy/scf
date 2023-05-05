@@ -1,6 +1,9 @@
 #!/bin/bash -x
 # set-up-OS_sudo-sh
 
+# Bugs: 1. output all xtrace to file
+#       2. needs a process lock on kill loop
+
 ## Notes
 ###   Online Git Pro book:
 ###     https://git-scm.com/book/en/v2/Git-Basics-Recording-Changes-to-the-Repository
@@ -71,7 +74,7 @@ unset tmpf
 
 ## Copy root-user files to $USER
 sudo rsync -ca /root/.vimrc "/home/${USER}"
-sudo chown 1000:1000 "/home/${USER}/.vimrc"
+sudo chown "${UID}:${UID}" "/home/${USER}/.vimrc"
 chmod 0400 "/home/${USER}/.vimrc"
 
 # Dnf

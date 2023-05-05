@@ -154,7 +154,8 @@ if [[ "${count_of_checkmarks}" -ne 4 ]] \
 then
   gh auth login --git-protocol 'ssh' \
     --hostname 'github.com' \
-    --scopes 'admin:public_key,read:gpg_key' --web \
+    --scopes 'admin:public_key,read:gpg_key,admin:ssh_signing_key' \
+    --web \
     || exit "${LINENO}"
 fi
 

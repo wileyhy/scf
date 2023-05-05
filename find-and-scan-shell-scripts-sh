@@ -412,12 +412,13 @@ done
 } |& grep -v default 2> /dev/null
   : 'find_exclude_optargs:' "${find_exclude_optargs[@]}"
   #declare -pf fn_usage
-  exit 101
+  #exit 101
+  set -x
 
-
-# Clean up PATH 
-#   (...before running the builtins, or they'll print dups)
-
+# Verify PATH 
+#   (...before running the builtins [type and command], or they'll 
+# print dups)
+if [[ "${verify[@]}" =~ path ]]; then
 
 # for Verify PATH
 
@@ -426,7 +427,7 @@ done
   
   # get the cannonicalized paths of each such dir
   for p in "${!path[@]}"; do path[p]="$(realpath -e "${path[p]}" 2> /dev/null)"; done; unset p # this
-  
+ 
   # if the index is empty, then unset it
   for p in "${!path[@]}"; do if [[ -z "${path[p]}" ]]; then unset 'path[p]'; fi; done; unset p # this
   
@@ -438,10 +439,14 @@ done
 
   # reset PATH
   PATH="$(printf '%s' "${path_2[0]}"; unset 'path_2[0]'; printf ':%s' "${path_2[@]}")"; declare -p PATH
+fi
+  #declare -p PATH
+  #exit 101
 
 
 
 
+# Bug: greps. parse full outputs of type and command
 
 # Process value of search_methods_prog
 if [[ "${search_methods_prog}" = \
@@ -457,7 +462,7 @@ then
   # create a dictionary list of each possible initial character
   unset allchr char i all_commands real_dirs re
 
-  for i in 8 9 10 11 12 13 {32..127}; do allchr+=( ["$i"]="$( printf "\\$( printf %03o "$i" )" )" ); done; allchr[10]=$'\n'; unset i; declare -p allchr;
+  for i in 8 9 10 11 12 13 {32..127}; do allchr+=( ["$i"]="$( printf '%b' "\\$( printf %03o "$i" )" )" ); done; allchr[10]=$'\n'; unset i; declare -p allchr;
 
 
   for i in "${!allchr[@]}"; do mapfile -O $((i * 1000)) -t all_commands < <( compgen -c "${allchr[i]}" ); done; unset i; declare -p all_commands
@@ -466,36 +471,46 @@ then
 
   re="$( printf '(%s' "${real_dirs[0]#/}"; unset 'real_dirs[0]'; printf '|%s' "${real_dirs[@]#/}"; printf ')\n')"; declare -p re
 
-  # For anywhere in PATH: BASH_type_a
-  search_methods_prog=bash_type_a; for i in "${!all_commands[@]}"; do if [[ "${search_methods_prog}" = bash_type_a ]]; then type -a "${all_commands[i]}" ; fi; done
+  #search_methods_prog=bash_type_a; for i in "${!all_commands[@]}"; do if [[ "${search_methods_prog}" = bash_type_a ]]; then type -a "${all_commands[i]}" ; fi; done
 
+# Bug: the tests for search_methods_prog need to be at the top level of 
+# logic structure
 
-
-    if [[ "${search_methods_prog}" = bash_type_a ]]; then type -a "${all_commands[i]}" | grep -E 'is /'"${re}" ; fi;
+  for i in "${!all_commands[@]}"; do 
+    
+    # For anywhere in PATH: BASH_type_a
+    if [[ "${search_methods_prog}" = *bash_type_a ]]; then 
+      type -a "${all_commands[i]}" \
+        | grep -E 'is /'"${re}" ; 
+    fi;
 
     # For `command -pV` (usually only '/usr/bin'): BASH_command_pV
-    if [[ "${search_methods_prog}" = bash_command_pV ]]; then
+    if [[ "${search_methods_prog}" = *bash_command_pV ]]; then
       command -pV "${all_commands[i]}" \
-      | grep -E 'is /'"${re}" ; 
+        | grep -E 'is /'"${re}" ; 
     fi
 
     # For `command -V` (usually includes '/usr/sbin'): BASH_command_V
-    if [[ "${search_methods_prog}" = bash_command_V ]]; then
+    if [[ "${search_methods_prog}" = *bash_command_V ]]; then
       command -V "${all_commands[i]}" \
         | grep -E 'is /'"${re}" ; 
     fi
 
   done \
-    | wc
+    | sudo tee all_commands
 
-elif  [[ "${search_methods_prog}" = bin_bash ]]; then
-  :
-elif  [[ "${search_methods_prog}" = bin_find ]]; then
-  :
+elif  [[ "${search_methods_prog}" = *bin_bash ]]; then
+  command -v bash || exit "${LINENO}"
+elif  [[ "${search_methods_prog}" = *bin_find ]]; then
+  command -v find || exit "${LINENO}"
 else
   echo error
 fi
-  
+  ls all_commands
+  declare -p search_method_prog all_chr re char
+  exit 101
+
+
     # delete?
     ## Bug: abbrev_rel_search_dirs is not assigned
     ##abbrev_rel_search_dirs=all
@@ -586,32 +601,6 @@ fi
   # <>
   exit
 
-
-
-# for Verify PATH
-
-  # Get constituent dirs from PATH
-  IFS=':' read -ra path <<< "${PATH}" # this
-  # get the cannonicalized paths of each such dir
-  for p in "${!path[@]}"; do
-    path[p]="$(realpath -e "${path[p]}" 2> /dev/null)";
-  done # this
-  # if the index is empty, then unset it
-  for p in "${!path[@]}"; do
-    if [[ -z "${path[p]}" ]]; then
-      unset 'path[p]';
-    fi;
-  done # this
-  # remove any duplicates while preserving order of dirs
-  for p in "${!path[@]}"; do
-    if [[ "${path_2[*]}" =~ ${path[p]} ]]; then
-      unset 'path[p]';
-    else
-      path_2+=("${path[p]}");
-    fi;
-  done # this
-  # print results
-  declare -p path_2 # this
 
 
  
@@ -730,7 +719,7 @@ unset end_dirname full_dir_list ext_array dir sub_dir num_sub_dirs \
 # check MAC's
 
 
-exit 101
+#exit 101
 
 
 :
