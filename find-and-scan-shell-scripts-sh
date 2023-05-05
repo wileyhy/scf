@@ -112,15 +112,15 @@ fn_usage() {
         [ge]  Getconf PATH only     [fi]  "find" binary
         [sb]  /sbin only            [ty]  builtin "type -a"
         [pr]  Add /proc           q:  Validate information
-        [sy]  Add /sys              [c]rashbangs
-      R:  Path                      [i]nterpreters
-        [STRING]  Add search dir    [p]ath
-      S:  Severity level          r:  Recurse into dirs
-       *[e]rror                     [d|y] Yes
-        [i]nfo                     *[n]   No
-        [s]tyle                   s:  Scan excluded dirs
-        [w]arning                   [s|y] Yes
-      V   Version                  *[n]   No
+        [sy]  Add /sys              [a]cls
+      R:  Path                      [c]rashbangs
+        [STRING]  Add search dir    [d]acs
+      S:  Severity level            [i]nterpreters
+       *[e]rror                     [p]ath
+        [i]nfo                    r:  Recurse into dirs
+        [s]tyle                     [d|y] Yes   *[n] No
+        [w]arning                 s:  Scan excluded dirs
+      V   Version                   [s|y] Yes   *[n] No 
 EOF
   } | more -e
   : 'END OF fn_usage'
