@@ -80,7 +80,7 @@ sc_severity=default_error
 search_methods_descend=default_without # bash or find
 search_methods_path=(default_PATH_as-is)
 search_methods_proc=default_without
-search_methods_prog=default_bash_bin
+search_methods_prog=default_bin_bash
 search_methods_spec_dirs=default_without
 search_methods_symlinks=default_with
 search_methods_sys=default_without
@@ -162,18 +162,18 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
         # Bash
         b)
           search_methods_symlinks=bash # default
-          search_methods_prog=bash_bin
+          search_methods_prog=bin_bash
           ;;
         # Physical
         p)
           search_methods_symlinks=physical
-          search_methods_prog=find_bin # clobber
+          search_methods_prog=bin_find # clobber
           find_sym_opt='-P'
           ;;
         # Logical
         l)
           search_methods_symlinks=logical
-          search_methods_prog=find_bin # clobber
+          search_methods_prog=bin_find # clobber
           find_sym_opt='-L'
           ;;
         *) "${arg_wrong__h:?}"
@@ -203,7 +203,7 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
           search_methods_path=(actually_all)
           bash_path='/'
           IFS=':' read -ra find_path <<< "${bash_path}"
-          search_methods_prog=find_bin
+          search_methods_prog=bin_find
           ;;
         as|ai)
           unset find_path search_methods_path 
@@ -243,7 +243,7 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
           bash_path="${bash_path//:\/default/}"
           bash_path="${bash_path}:/proc"
           IFS=':' read -ra find_path <<< "${bash_path}"
-          search_methods_prog=find_bin
+          search_methods_prog=bin_find
           ;;
         sy|sa)
           unset find_path
@@ -251,7 +251,7 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
           bash_path="${bash_path//:\/default/}"
           bash_path="${bash_path}:/sys"
           IFS=':' read -ra find_path <<< "${bash_path}"
-          search_methods_prog=find_bin
+          search_methods_prog=bin_find
           ;;
       # Part 1.C - handle erroneous input
         *) "${arg_wrong__P:?}" ;;
@@ -305,7 +305,7 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
       OPTARG="${OPTARG:0:2}"
       case "${OPTARG}" in
         ba|b)
-          search_methods_prog=bash_bin
+          search_methods_prog=bin_bash
           ;;
         cp)
           search_methods_prog=bash_command_pV
@@ -314,7 +314,7 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
           search_methods_prog=bash_command_V
           ;;
         fi|f)
-          search_methods_prog=find_bin
+          search_methods_prog=bin_find
           ;;
         ty|t)
           search_methods_prog=bash_type_a
@@ -326,18 +326,18 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
       ;;
     # What information to verify -- none are enabled by defaulted 
     q) 
+      # ALSO: verify DACs and ACLs is written below!
+    
       OPTARG="${OPTARG,,[A-Z]}"
       OPTARG="${OPTARG:0:2}"
       case "${OPTARG}" in
-        a|al)         verify=( crashbangs interpreters path);;
-        c|cr)         verify+=(crashbangs                  );;
-          ci|ic)      verify+=(crashbangs interpreters     );;
-          cp|pc)      verify+=(crashbangs              path);;
-        i|in)         verify+=(           interpreters     );;
-          ip|pi)      verify+=(           interpreters path);;
-        p|pa)         verify+=(                        path);;
-        u|un)   unset verify;;
-        *)     "${arg_wrong__X:?}";;
+        a|ac) verify+=(acls);;
+        c|cr) verify+=(crashbangs);;
+        d|da) verify+=(dacs);;
+        i|in) verify+=(interpreters);;
+        p|pa) verify+=(path);;
+        u|un) unset verify;;
+        *) "${arg_wrong__X:?}";;
       esac
       ;;
     # Descend into dirs (recurse)
@@ -353,13 +353,13 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
         # recurse|descend|yes
         r|d|y)
           search_methods_descend=yes
-          search_methods_prog=find_bin # clobber
+          search_methods_prog=bin_find # clobber
           unset bash_path
           ;;
         # no_descend
         n)
           search_methods_descend=no # default
-          search_methods_prog=bash_bin # clobber 
+          search_methods_prog=bin_bash # clobber 
           unset find_path
           ;;
         *) "${arg_wrong__r:?}"
@@ -382,13 +382,13 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
         # scan_excluded|yes
         s|y)
           search_methods_scan_excluded=yes
-          search_methods_prog=find_bin
+          search_methods_prog=bin_find
           find_exclude_optargs=()
           ;;
         # no_scan_excluded
         n)
           search_methods_scan_excluded=no
-          search_methods_prog=find_bin
+          search_methods_prog=bin_find
           find_exclude_optargs=("${find_exclude_optargs_default[@]}")
           unset 'find_exclude_optargs[100]'
           ;;
@@ -440,144 +440,155 @@ then
   )"
   unset i; 
   for i in "${!all_commands[@]}"; do 
-  
+ 
     # For anywhere in PATH: BASH_type_a
-    type -a "${all_commands[i]}" \
-      | grep -E 'is /'"${re}" ; 
-  
+    if [[ "${search_methods_prog}" = bash_type_a ]]; then
+      type -a "${all_commands[i]}" \
+        | grep -E 'is /'"${re}" ; 
+    fi
+
     # For `command -pV` (usually only '/usr/bin'): BASH_command_pV
-    command -pV "${all_commands[i]}" \
-    | grep -E 'is /'"${re}" ; 
+    if [[ "${search_methods_prog}" = bash_command_pV ]]; then
+      command -pV "${all_commands[i]}" \
+      | grep -E 'is /'"${re}" ; 
+    fi
 
     # For `command -V` (usually includes '/usr/sbin'): BASH_command_V
-    command -V "${all_commands[i]}" \
-      | grep -E 'is /'"${re}" ; 
-  
+    if [[ "${search_methods_prog}" = bash_command_V ]]; then
+      command -V "${all_commands[i]}" \
+        | grep -E 'is /'"${re}" ; 
+    fi
+
   done \
     | wc
 
-elif  [[ "${search_methods_prog}" = 'bash' ]]; then
+elif  [[ "${search_methods_prog}" = bin_bash ]]; then
   :
-elif  [[ "${search_methods_prog}" = 'find' ]]; then
+elif  [[ "${search_methods_prog}" = bin_find ]]; then
   :
 else
   echo error
 fi
   
-
-# Bug: abbrev_rel_search_dirs is not assigned
-
-#abbrev_rel_search_dirs=all
-:
-# To search some specific directories, uncomment them; to search 
-# all of the common dirs or FULL DISK instead # --really-- --slow--
-#
-declare -A A_rsd
-A_rsd=( 
-  # useful for testing 
-    #[usr_bin]='/bin' 
-    #[usr_lib]='/lib' 
-    #[usr_lib64]='/lib64' 
-    [usr_sbin]='/sbin' 
-  # common search dirs on Fedora, ie, "all"
-    #[boot]='/boot' 
-    #[dev]='/dev' 
-    #[etc]='/etc' 
-    #[home]='/home' 
-    #[root]='/root' 
-    #[run]='/run' 
-    #[tmp]='/tmp' 
-    #[usr]='/usr' 
-    #[var]='/var' 
-  # usually empty
-    #[afs]='/afs' 
-    #[lost+found]='/lost+found' 
-    #[media]='/media' 
-    #[mnt]='/mnt' 
-    #[opt]='/opt' 
-    #[srv]='/srv' 
-  # usually quite difficult to parse; rarely any shell scripts
-    #[proc]='/proc' 
-    #[sys]='/sys' 
-)
-umask 117
-:
-get_rel_search_dirs(){
-  mapfile -d '' -t "${1}" < <(
-    sudo find / -mindepth 1 -maxdepth 1 -type d \! -empty \
-      \( \! -name proc -a \! -name sys \
-        -a \! -iname "${script_dirnm:- scf.d}" \
-        -a \! -iname "${protected_git_dir_1:- ~}" \
-        -a \! -iname "${protected_git_dir_2:- tmp}" \
-      \) -print0 2> /dev/null);
-    }
-get_rel_search_dirs a_relevant_search_dirs
-
-# take each found dir and convert abs path [of sym, okay] to a string
-# usable for directory names
-
-unset index element calc;
-for index in "${!A_rsd[@]}"; do 
-  element="${A_rsd["$index"]}"; 
-  calc="$(realpath -e "$element")"; 
-  calc="${calc//\//_}"; 
-  calc="${calc#_}"; 
-  printf 'element: %-12s index: %-12s calc: %s \n' \
-    "$element" "$index" "$calc"; 
-  if [[ "$index" != "$calc" ]]; then 
-    echo wrong; 
-    exit; 
-  fi; 
-done
+    # delete?
+    ## Bug: abbrev_rel_search_dirs is not assigned
+    ##abbrev_rel_search_dirs=all
+    #:
+    ## To search some specific directories, uncomment them; to search 
+    ## all of the common dirs or FULL DISK instead # --really-- --slow--
+    ##
+    #declare -A A_rsd
+    #A_rsd=( 
+      ## useful for testing 
+        ##[usr_bin]='/bin' 
+        ##[usr_lib]='/lib' 
+        ##[usr_lib64]='/lib64' 
+        #[usr_sbin]='/sbin' 
+      ## common search dirs on Fedora, ie, "all"
+        ##[boot]='/boot' 
+        ##[dev]='/dev' 
+        ##[etc]='/etc' 
+        ##[home]='/home' 
+        ##[root]='/root' 
+        ##[run]='/run' 
+        ##[tmp]='/tmp' 
+        ##[usr]='/usr' 
+        ##[var]='/var' 
+      ## usually empty
+        ##[afs]='/afs' 
+        ##[lost+found]='/lost+found' 
+        ##[media]='/media' 
+        ##[mnt]='/mnt' 
+        ##[opt]='/opt' 
+        ##[srv]='/srv' 
+      ## usually quite difficult to parse; rarely any shell scripts
+        ##[proc]='/proc' 
+        ##[sys]='/sys' 
+    #)
 
 
-get_mountpoint(){
-  unset d dir
-  d="$(realpath -e "$1")"
-  mapfile -t dir < <(
-    namei -xl "$d" \
-    | tac \
-    | grep -A100 ^D \
-    | grep -E ^'[Dd]' \
-    | awk '{ print $4 }')
-  unset j x i
-  j="${#dir[@]}"
-  for (( i=j; i>0; i--)); do 
-    x+="${dir[$i-1]}"/
-  done; 
-  x="$(realpath -e "$x")"
-  echo "$x"
-}
-get_mountpoint /sbin
-
-exit
+# for actually_all
+  umask 117
+  :
+  get_rel_search_dirs(){
+    mapfile -d '' -t "${1}" < <(
+      sudo find / -mindepth 1 -maxdepth 1 -type d \! -empty \
+        \( \! -name proc -a \! -name sys \
+          -a \! -iname "${script_dirnm:- scf.d}" \
+          -a \! -iname "${protected_git_dir_1:- ~}" \
+          -a \! -iname "${protected_git_dir_2:- tmp}" \
+        \) -print0 2> /dev/null);
+      }
+  get_rel_search_dirs a_relevant_search_dirs
 
 
-# Verify PATH
+# for memory usage persistent storage
+  # take each found dir and convert abs path [of sym, okay] to a string
+  # usable for directory names
+  unset index element calc;
+  for index in "${!A_rsd[@]}"; do 
+    element="${A_rsd["$index"]}"; 
+    calc="$(realpath -e "$element")"; 
+    calc="${calc//\//_}"; 
+    calc="${calc#_}"; 
+    printf 'element: %-12s index: %-12s calc: %s \n' \
+      "$element" "$index" "$calc"; 
+    if [[ "$index" != "$calc" ]]; then 
+      echo wrong; 
+      exit; 
+    fi; 
+  done
+  get_mountpoint(){
+    unset d dir
+    d="$(realpath -e "$1")"
+    mapfile -t dir < <(
+      namei -xl "$d" \
+      | tac \
+      | grep -A100 ^D \
+      | grep -E ^'[Dd]' \
+      | awk '{ print $4 }')
+    unset j x i
+    j="${#dir[@]}"
+    for (( i=j; i>0; i--)); do 
+      x+="${dir[$i-1]}"/
+    done; 
+    x="$(realpath -e "$x")"
+    echo "$x"
+  }
+  get_mountpoint /sbin
 
-# Get constituent dirs from PATH
-IFS=':' read -ra path <<< "${PATH}" # this
-# get the cannonicalized paths of each such dir
-for p in "${!path[@]}"; do
-  path[p]="$(realpath -e "${path[p]}" 2> /dev/null)";
-done # this
-# if the index is empty, then unset it
-for p in "${!path[@]}"; do
-  if [[ -z "${path[p]}" ]]; then
-    unset 'path[p]';
-  fi;
-done # this
-# remove any duplicates while preserving order of dirs
-for p in "${!path[@]}"; do
-  if [[ "${path_2[*]}" =~ ${path[p]} ]]; then
-    unset 'path[p]';
-  else
-    path_2+=("${path[p]}");
-  fi;
-done # this
-# print results
-declare -p path_2 # this
+  # <>
+  exit
 
+
+
+# for Verify PATH
+
+  # Get constituent dirs from PATH
+  IFS=':' read -ra path <<< "${PATH}" # this
+  # get the cannonicalized paths of each such dir
+  for p in "${!path[@]}"; do
+    path[p]="$(realpath -e "${path[p]}" 2> /dev/null)";
+  done # this
+  # if the index is empty, then unset it
+  for p in "${!path[@]}"; do
+    if [[ -z "${path[p]}" ]]; then
+      unset 'path[p]';
+    fi;
+  done # this
+  # remove any duplicates while preserving order of dirs
+  for p in "${!path[@]}"; do
+    if [[ "${path_2[*]}" =~ ${path[p]} ]]; then
+      unset 'path[p]';
+    else
+      path_2+=("${path[p]}");
+    fi;
+  done # this
+  # print results
+  declare -p path_2 # this
+
+
+ 
 # check DAC's, 
 namei_o="$( 
   for d in "${path_2[@]}"; do 
