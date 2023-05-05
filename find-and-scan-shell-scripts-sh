@@ -405,6 +405,8 @@ done
   set -
   unset 'find_exclude_optargs[100]'
 { 
+
+  # <>
   declare -p find_exclude_optargs_default find_exclude_optargs 
   declare -p bash_path find_path find_sym_opt memory_usage sc_severity search_methods_descend search_methods_path search_methods_proc search_methods_prog search_methods_scan_excluded search_methods_spec_dirs search_methods_symlinks search_methods_sys OPTARG bad_strings new_optarg verify 2> /dev/null
 } |& grep -v default 2> /dev/null
@@ -413,39 +415,63 @@ done
   exit 101
 
 
+# Clean up PATH 
+#   (...before running the builtins, or they'll print dups)
 
 
+# for Verify PATH
+
+  # Get constituent dirs from PATH
+  unset path path_2 p; IFS=':' read -ra path <<< "${PATH}" # this
+  
+  # get the cannonicalized paths of each such dir
+  for p in "${!path[@]}"; do path[p]="$(realpath -e "${path[p]}" 2> /dev/null)"; done; unset p # this
+  
+  # if the index is empty, then unset it
+  for p in "${!path[@]}"; do if [[ -z "${path[p]}" ]]; then unset 'path[p]'; fi; done; unset p # this
+  
+  # remove any duplicates while preserving order of dirs
+  for p in "${!path[@]}"; do if [[ "${path_2[*]}" =~ ${path[p]} ]]; then unset 'path[p]'; else path_2+=("${path[p]}"); fi; done; unset p # this
+  
+  # reset indices of path_2 and print results 
+  path_2=("${path_2[@]}"); declare -p path_2 # this
+
+  # reset PATH
+  PATH="$(printf '%s' "${path_2[0]}"; unset 'path_2[0]'; printf ':%s' "${path_2[@]}")"; declare -p PATH
+
+
+
+
+
+# Process value of search_methods_prog
 if [[ "${search_methods_prog}" = \
   @(bash_command_pV|bash_command_V|bash_type_a) ]]
 then
 
+  # create a single array of all commands found by each kind of search.
+  # to do this...
 
-  unset alnum dict i all_commands real_dirs re
-  for alnum in {a..z} {A..Z} {0..9}; do 
-    dict+=("${alnum}"); 
-  done
-  for i in "${!dict[@]}"; do 
-    mapfile -O $((i * 1000)) -t all_commands < <(
-      compgen -c "${dict[i]}"
-    ); 
-  done
-  mapfile -t real_dirs < <(
-    find / -maxdepth 1 -mindepth 1 -type d \! -empty
-  )
-  re="$( \
-    printf '(%s' "${real_dirs[0]#/}"; 
-    unset 'real_dirs[0]'; 
-    printf '|%s' "${real_dirs[@]#/}"; 
-    printf ')\n'
-  )"
-  unset i; 
-  for i in "${!all_commands[@]}"; do 
- 
-    # For anywhere in PATH: BASH_type_a
-    if [[ "${search_methods_prog}" = bash_type_a ]]; then
-      type -a "${all_commands[i]}" \
-        | grep -E 'is /'"${re}" ; 
-    fi
+  # search for commands with odd yet permitted-by-Linux initial 
+  # characters, such as \n \t \c or \l
+
+  # create a dictionary list of each possible initial character
+  unset allchr char i all_commands real_dirs re
+
+  for i in 8 9 10 11 12 13 {32..127}; do allchr+=( ["$i"]="$( printf "\\$( printf %03o "$i" )" )" ); done; allchr[10]=$'\n'; unset i; declare -p allchr;
+
+
+  for i in "${!allchr[@]}"; do mapfile -O $((i * 1000)) -t all_commands < <( compgen -c "${allchr[i]}" ); done; unset i; declare -p all_commands
+
+  mapfile -t real_dirs < <( sudo find / -maxdepth 1 -mindepth 1 -type d \! -empty | sort ); declare -p real_dirs
+
+  re="$( printf '(%s' "${real_dirs[0]#/}"; unset 'real_dirs[0]'; printf '|%s' "${real_dirs[@]#/}"; printf ')\n')"; declare -p re
+
+  # For anywhere in PATH: BASH_type_a
+  search_methods_prog=bash_type_a; for i in "${!all_commands[@]}"; do if [[ "${search_methods_prog}" = bash_type_a ]]; then type -a "${all_commands[i]}" ; fi; done
+
+
+
+    if [[ "${search_methods_prog}" = bash_type_a ]]; then type -a "${all_commands[i]}" | grep -E 'is /'"${re}" ; fi;
 
     # For `command -pV` (usually only '/usr/bin'): BASH_command_pV
     if [[ "${search_methods_prog}" = bash_command_pV ]]; then
