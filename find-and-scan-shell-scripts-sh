@@ -36,7 +36,8 @@ sc_severity=error
 # shellcheck disable=SC2034
 SC_shells='(sh|bash|dash|ksh)'
 :
-: 'Variables that lend themselves to some customization'
+: 'Variables'
+
 repo_nm=scf
 script_dirnm="${repo_nm}.d"
 protected_git_dir_1="${HOME}/MYPROJECTS"
@@ -62,13 +63,16 @@ fi
   #set -x
 
 
-# Initialize (more) variables (re getopts):
+# Variables re getopts
 find_exclude_optargs_default=([0]='(' [1]='!' [2]='-name' [3]='proc' 
   [4]='-a' [5]='!' [6]='-name' [7]='sys' [8]='-a' [9]='!' [10]='-iname' 
   [11]="${script_dirnm}*" [12]='-a' [13]='!' [14]='-ipath' 
   [15]="${protected_git_dir_1}" [16]='-a' [17]='!' [18]='-ipath' 
   [19]="${protected_git_dir_2}" [20]='-a' [21]='!' [22]='-path' 
-  [23]='*/git/*' [24]=')' [100]='default')
+  [23]='*/git/*' [24]=')' )
+  
+    # <>
+  find_exclude_optargs_default+=([100]='default')
 find_exclude_optargs=("${find_exclude_optargs_default[@]}")
 
 bash_path_orig="${PATH}:/default"
@@ -141,8 +145,10 @@ EOF
 :;:;:
 while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
   declare -p OPTIND OPTARG 
-    
+
+  # Parse command line options
   case "${cli_input}" in
+    # Easter egg
     A) printf '%s%s%s' 'CgkiSSB3b3VsZCBoYXZlIG1hZGUgdGhpcyBzaG9y' \
         'dGVyLCBidXQgSSBkaWRuJ3QgaGF2ZSB0aGUg' \
         'dGltZS4iCgkJLS0gTWFyayBUd2FpbgoK' \
@@ -157,6 +163,7 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
     # by default is assumed (by `find`) to be '-P'. `find -H` is not 
     # implemented in this script.
     H) 
+      # Input validation: make upper case letters lower case, and truncate all but first letter. this code block repeats below.
       OPTARG="${OPTARG,,[A-Z]}"
       OPTARG="${OPTARG:0:1}"
       case "${OPTARG}" in
@@ -168,7 +175,8 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
         # Physical
         p)
           search_methods_symlinks=physical
-          search_methods_prog=bin_find # clobber
+          search_methods_prog=bin_find 
+# side effect: setting '-H p' also clobbers this variable. side effects such as these are marked below as "clobber."
           find_sym_opt='-P'
           ;;
         # Logical
@@ -177,23 +185,26 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
           search_methods_prog=bin_find # clobber
           find_sym_opt='-L'
           ;;
+        # this parameter expansion, ':?', when a parameter is null or unset, causes the shell to immediately halt, ignoring any trap on EXIT.
         *) "${arg_wrong__h:?}"
           ;;
       esac
       ;;
-    # Whether to and how to save data
+    # Whether to and how to save data. 
     M) 
+      # Input validation
       OPTARG="${OPTARG,,[A-Z]}"
       OPTARG="${OPTARG:0:1}"
       case "${OPTARG}" in
         r) memory_usage=RAM_only ;;
         p) memory_usage=persistent_storage ;;
         t) memory_usage=temp_files ;;
+        # Error handling
         *) "${arg_wrong__X:?}" ;;
       esac
       ;;
-    # PATH (array) - Part 1 - Options with no args (such as /usr/share)
-    #   For '/proc' and '/sys', see also option 's'.
+    # PATH (array) - Part 1 - Options with no args . ('-P /usr/share' is an option with an argument.)
+    #   For scanning '/proc' or '/sys', see also option 's'.
     P)
       # Part 1.A -- clobbering settings
       OPTARG="${OPTARG,,[A-Z]}"
