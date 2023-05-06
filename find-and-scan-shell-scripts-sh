@@ -461,7 +461,7 @@ done
 # Verify PATH 
 #   (...before running the builtins [type and command], or they'll 
 # print dups)
-if [[ "${verify[@]}" =~ path ]]; then
+if [[ "${verify[*]}" =~ path ]]; then
 
 # for Verify PATH
 
