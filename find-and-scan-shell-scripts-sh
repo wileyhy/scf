@@ -56,6 +56,7 @@ if [[ $# -gt 0 ]]; then
   cli_input=("${@}")
 fi
 
+
   #declare -p sc_severity SC_shells repo_nm protected_git_dir_1 protected_git_dir_2 script_nm script_proper_nm script_version a_poss_proces_lock_dirs cli_input
   #exit 101
   #set -x
@@ -1457,7 +1458,13 @@ mapfile -t a_interpreters < <(
 :
 : 'Ways to find an interpreter if it-s available on disk:'
 :
-# Bug: `realpath -e` and `command -V` are redundant
+# Bug: `realpath -e` and `command -V` are redundant?
+#   # find /usr/sbin -type l | grep resolvconf
+#       /usr/sbin/resolvconf
+#   # command -V resolvconf
+#       resolvconf is /usr/sbin/resolvconf
+#   # realpath -e /usr/sbin/resolvconf
+#       /usr/bin/resolvectl
 :
 for program in "${a_interpreters[@]}"; do
   : 'command -pV'

@@ -145,9 +145,10 @@ gh config set git_protocol 'ssh' --host 'github.com'
 gh auth setup-git --hostname 'github.com'
 
 # Log in 
-gh auth status 2>"{ghast}" # (executing this command just once)
+gh auth status 2> ./ghast # (executing this command just once)
 ghast_exit="${?}"
-count_of_checkmarks="$(grep -c $'\xe2\x9c\x93' <<< "{ghast}")"
+count_of_checkmarks="$(grep -c $'\xe2\x9c\x93' <<< ./ghast)"
+rm -f ./ghast
 
 if [[ "${count_of_checkmarks}" -ne 4 ]] \
   || [[ "${ghast_exit}" -ne 0 ]];
