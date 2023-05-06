@@ -271,29 +271,49 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
       ;;
     # PATH (array) - Part 2 - options with args
     R) 
+      # Input validation, more thorough. Remove unprintable strings.
       OPTARG="$(strings -n1 <<< "${OPTARG}")"
+      
+      # Bug: sb a printf one liner
+      # for i in DECIMALS; do printf '%b' "\\${i}"; done #...
+
+      # List unsafe ASCII characters
       bad_strings=([0]="|" [1]="&" [2]=";" [3]="(" [4]=")" [5]="<" 
         [6]=">" [7]=" " [8]=$'\t' [9]=$'\n' [10]="||" [11]="&&" 
         [12]=";;" [13]=";&" [14]=";;&" [15]="|&" [16]="!" [17]="{" 
         [18]="}" [19]="[" [20]="]" [21]="[[" [22]="]]" [23]="\$" 
         [24]="=")
+        
+      # Remove unsafe characters
       new_optarg="${OPTARG//["${bad_strings[@]}"]/}"
+      
+      # If any ASCII characters were removed, print an error and exit
       if [[ "${new_optarg}" != "${OPTARG}" ]]; then
         printf '\n\tError: option -R: directory name includes '
         printf 'an illegal character\n\n'
       fi
+      
+      # Canonicalize path
       new_optarg="$( realpath -e "${new_optarg}" )"
+      
+      $ Value must be a directory
       if  [[ ! -d "${new_optarg}" ]]; then 
         "${arg_wrong__R:?}"
       fi
       unset find_path
       search_methods_path+=( "add_dir__${new_optarg//\//_}" )
-      bash_path="${bash_path//:\/default/}"
+      
+        # <> Debug: bash_path="${bash_path//:\/default/}"
+      
+      # Append dirname to PATH
       bash_path="${bash_path}:${new_optarg}"
+      
+      # load directories of PATH into an array
       IFS=':' read -ra find_path <<< "${bash_path}"
       ;;
     # ShellCheck's '-S' setting, ie, severity level
     S)
+      # 
       OPTARG="${OPTARG,,[A-Z]}"
       OPTARG="${OPTARG:0:1}"
       case "${OPTARG}" in
