@@ -166,6 +166,8 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
       # Input validation: make upper case letters lower case, and truncate all but first letter. this code block repeats below.
       OPTARG="${OPTARG,,[A-Z]}"
       OPTARG="${OPTARG:0:1}"
+      
+      # Parse option arguments
       case "${OPTARG}" in
         # Bash
         b)
@@ -190,15 +192,18 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
           ;;
       esac
       ;;
-    # Whether to and how to save data. 
+    # Whether and how to save data. 
     M) 
       # Input validation
       OPTARG="${OPTARG,,[A-Z]}"
       OPTARG="${OPTARG:0:1}"
+      
+      # Parse option arguments
       case "${OPTARG}" in
         r) memory_usage=RAM_only ;;
         p) memory_usage=persistent_storage ;;
         t) memory_usage=temp_files ;;
+        
         # Error handling
         *) "${arg_wrong__X:?}" ;;
       esac
@@ -210,10 +215,14 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
       OPTARG="${OPTARG,,[A-Z]}"
       OPTARG="${OPTARG:0:2}"
       case "${OPTARG}" in
+      
+        # Multiple abbreviations accepted
         ac|aa)
           unset find_path search_methods_path 
           search_methods_path=(actually_all)
           bash_path='/'
+          
+          # For consistency, find_path is always defined after bash_path, regardless of which one is used.
           IFS=':' read -ra find_path <<< "${bash_path}"
           search_methods_prog=bin_find
           ;;
@@ -313,7 +322,7 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
       ;;
     # ShellCheck's '-S' setting, ie, severity level
     S)
-      # 
+      # Mis-spellings allowed
       OPTARG="${OPTARG,,[A-Z]}"
       OPTARG="${OPTARG:0:1}"
       case "${OPTARG}" in
@@ -324,6 +333,8 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
         *) "${arg_wrong__S:?}" ;;
       esac
       ;;
+      
+    # Bug: hardcoded info: license  
     V) 
       printf '\n\t%s, version %s. Apache 2 license.\n\n' \
         "${script_proper_nm}" "${script_version}"
