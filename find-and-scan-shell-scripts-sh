@@ -1764,9 +1764,9 @@ awk_o="$(awk '{ print $2 }' <<< "${sort_o}")"
 :
 # create a list of script names sorted by line count descending
 mapfile -t a_each_script_list_sorted_by_linect \
-  <<< "${awk_o}" # ie properly
+  <<< "${awk_o}"
 :
-# define FSO
+# define file name, including severity and path symbols (target file)
 found_scrpts_f="${list_crunchbangs}_found_scripts_${sc_severity:0:1}_${abbrev_rel_search_dirs}"
 iterator_2=0
 :
@@ -1774,9 +1774,20 @@ iterator_2=0
 :
 {
   :
+  # for each sorted script
   for sorted_script in "${!a_each_script_list_sorted_by_linect[@]}"; do
     :
-    mapfile -d '' -t a_each_script_SC_results < <(
+    # run shellcheck with selected/default severity
+    # remove URL's
+    # capture SC error codes with their descriptions
+    # truncate descriptions to 64 bytes
+    # sort numerically
+    # count the number of unique errors
+     # sort by the third column: severity
+     # collect output in an array
+     # on any non-zero exit status, print an error, incuding PIPEFAIL array, and exit the script
+     # when filters, etc completes, print a NULL to start a new mapfile index
+     mapfile -d '' -t a_each_script_SC_results < <(
       shellcheck -S "${sc_severity}" \
         "${a_each_script_list_sorted_by_linect[sorted_script]}" \
         | grep -Fv 'shellcheck.net' \
@@ -1790,7 +1801,10 @@ iterator_2=0
       printf '\0'
     )
     :
+    # if there's any output from shellcheck
     if [[ -n "${a_each_script_SC_results[*]:0:1}" ]]; then
+    
+      # print a line header including a new index number for each script
       printf '\n%-4d%s\n' $((iterator_2++)) \
         "${a_each_script_list_sorted_by_linect[sorted_script]}"
       printf '%s' "${a_each_script_SC_results[@]}"
