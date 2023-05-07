@@ -1732,12 +1732,16 @@ L_
 #   Q: how to translate the correct newlines into nulls to separate the 
 #   filenames when reading from a file?  awk? files _can_ contain \n-s
 :
+# for every line beginning with a crashbang...
 grep_o="$(S_ grep ^'#!' -- "${list_crunchbangs}_SC-scrpts-list")"
 :
+# get the filename
 cut_o="$(cut -d '%' -f5- <<< "${grep_o}")"
 :
+# collect the filenames in a single list
 mapfile -t a_each_abspath_scriptnm <<< "${cut_o}"
 :
+# remove leading whitespace
 a_each_abspath_scriptnm=("${a_each_abspath_scriptnm[@]##* }")
 :
 # Wk: awk , multi-char delim, remv lead+trail wspc - redef $0 ?, printf
@@ -1746,17 +1750,23 @@ a_each_abspath_scriptnm=("${a_each_abspath_scriptnm[@]##* }")
 # Bug: why sort by line count? More text, more bugs? How to prior mult
 #   factors?
 :
+# count number of newlines in each script
 wc_o="$(S_ wc -l -- "${a_each_abspath_scriptnm[@]}")"
 :
-wc_o="${wc_o%$'\n*'}" # Remove 'totals' line.
+# remove 'totals' line
+wc_o="${wc_o%$'\n*'}"
 :
+# sort script lengths descending
 sort_o="$(sort -gr <<< "${wc_o}")"
 :
+# print script names
 awk_o="$(awk '{ print $2 }' <<< "${sort_o}")"
 :
+# create a list of script names sorted by line count descending
 mapfile -t a_each_script_list_sorted_by_linect \
   <<< "${awk_o}" # ie properly
 :
+# define FSO
 found_scrpts_f="${list_crunchbangs}_found_scripts_${sc_severity:0:1}_${abbrev_rel_search_dirs}"
 iterator_2=0
 :
