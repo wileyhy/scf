@@ -1768,7 +1768,7 @@ mapfile -t a_each_script_list_sorted_by_linect \
 :
 # define file name, including severity and path symbols (target file)
 found_scrpts_f="${list_crunchbangs}_found_scripts_${sc_severity:0:1}_${abbrev_rel_search_dirs}"
-iterator_2=0
+i=0
 :
 # Bug? 1st grep extra?
 :
@@ -1803,33 +1803,38 @@ iterator_2=0
     :
     # if there's any output from shellcheck
     if [[ -n "${a_each_script_SC_results[*]:0:1}" ]]; then
-    
-      # print a line header including a new index number for each script
-      printf '\n%-4d%s\n' $((iterator_2++)) \
+
+      # Bug: iterator sb $sorted_script ?
+
+      # print a line header. (as-is:) including a new index number for each script
+      printf '\n%-4d%s\n' $((i++)) \
         "${a_each_script_list_sorted_by_linect[sorted_script]}"
+      # print all massaged SC results for each script
       printf '%s' "${a_each_script_SC_results[@]}"
     fi
-  done
+  done; unset i
+  
+# append each text group to a findings file
 } | S_ tee -a -- "${found_scrpts_f}" > /dev/null
 :
 
 : 'Write semi-permanent archives'
 :
+# backup the findings file
 B_ "${found_scrpts_f}"
-S_ rsync -ca -- "${found_scrpts_f}" "${main_d}" \
+
+# make copies of the findings file and backup those copies
+for d in /tmp "${main_d}"; do
+  S_ rsync -ca -- "${found_scrpts_f}" "${d}" \
   || I_
-S_ rsync -ca -- "${found_scrpts_f}" /tmp \
-  || I_
-  :
-B_ "${main_d}/${found_scrpts_f##*/}"
+  B_ "${d}/${found_scrpts_f##*/}"
+done; unset d
 :
-B_ "/tmp/${found_scrpts_f##*/}"
-:
-: 'Print some usable variables'
-z=0
-for d in "${curr_time_ssubd}" "${main_d}" /tmp; do 
-  printf '\n\t data_d_%d=%s\n' $((z++)) "${d}"
-done
+  # <> Print some variables   for interactive use
+  z=0
+  for d in "${curr_time_ssubd}" "${main_d}" /tmp; do 
+    printf '\n\t data_d_%d=%s\n' $((z++)) "${d}"
+  done; unset d z
 :
 trap - EXIT
 exit 00
