@@ -1,5 +1,4 @@
-#!/bin/bash -x
-# shellcheck disable=SC2317
+#!/bin/bash
 # Q: name sb scf ?
 # Written in bash version 5.1 on Fedora 37
 
