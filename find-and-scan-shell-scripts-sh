@@ -23,12 +23,6 @@ fi
 # turn xrtrace off, and on second execution, turn xtrace back on and 
 # forget about this function's settings. If xtrace was previously off, 
 # then leave it off. 
-#  on      off
-#  exec    exec
-#  off     off
-#  exec    exec
-#  on      off
-
 
 _xtrace_duck(){
   local hyphen="$-"
@@ -1807,14 +1801,14 @@ i=0
         | uniq -c \
         | sort -k3 \
         || I_ "P:${PIPESTATUS[*]} I: S:" # index and script name
-              # end of pipe intended 
+          # end of pipe intended 
       printf '\0'
     )
     :
     # if there's any output from shellcheck
     if [[ -n "${a_each_script_SC_results[*]:0:1}" ]]; then
 
-      # Bug: iterator sb $sorted_script ?
+      # Bug: iterator sb $sorted_script ? sorted_script should have
 
       # print a line header. (as-is:) including a new index number for each script
       printf '\n%-4d%s\n' $((i++)) \
