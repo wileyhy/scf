@@ -134,10 +134,12 @@ _mk_deltas(){
   #_xtrace_duck
 }
 
-PS4='+$BASH_SOURCE:$LINENO:$FUNCNAME: '
+# ? what of BASH_LINENO 
+
+PS4='+${BASH_SOURCE[0]}:${LINENO}:${FUNCNAME[0]}: '
 debug_prompt(){ 
   _mk_deltas; 
-  read -p "[$BASH_SOURCE:$LINENO] $BASH_COMMAND?" _
+  read -rp "[${BASH_SOURCE[0]}:${LINENO}] ${BASH_COMMAND[0]}?" _
 }
 _full_xtrace(){
   trap 'debug_prompt "$_";' DEBUG
