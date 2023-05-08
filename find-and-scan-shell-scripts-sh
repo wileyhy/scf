@@ -124,14 +124,14 @@ _mk_env_delta(){
   fi
 }
 _mk_deltas(){
-  #_xtrace_duck
+  _xtrace_duck
   _mk_set_prev
   _mk_env_prev
   _mk_set_now
   _mk_env_now
   _mk_set_delta
   _mk_env_delta
-  #_xtrace_duck
+  _xtrace_duck
 }
 
 # ? what of BASH_LINENO 
