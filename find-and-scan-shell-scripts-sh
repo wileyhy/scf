@@ -1653,17 +1653,26 @@ for program in "${a_interpreters[@]}"; do
   fi
 done  
 
+# Bug: add "-d ''" to mapfile
+
+# Canonicalize interpreters paths, sort and list each unique binary.
 #   Note: new indices starting from 0
 mapfile -t a_interps_rps < <(
   S_ realpath -e -- "${a_interpreters[@]}" \
     | sort -u
   )
 :
-D_ a_interps_rps; L_
+  # <>
+  D_ a_interps_rps; L_
+  
+# for each interpreter, print it in the 1st 32 bits of a line.
+
 {
 for b in "${!a_interps_rps[@]}"; do 
   printf '%-32s' "${a_interps_rps[b]}"; 
   :
+  # use a shell builtin to locate each interpreter on disk.
+
   if command -pV "${a_interps_rps[b]}" > /dev/null; then 
     m="exists on disk"; 
   else 
@@ -1691,10 +1700,12 @@ for b in "${!a_interps_rps[@]}"; do
   :
 done
 } | S_ T_ -a -- "${curr_time_ssubd}a_interpreters" > /dev/null
+unset b
 :
-#X_; :_; 
-W_ a_write_path_nms a_interpreters a_interps_rps a_interps_disk_repo
-L_
+  # <>
+  #X_; :_; 
+  W_ a_write_path_nms a_interpreters a_interps_rps a_interps_disk_repo
+  L_
 :
 
 :
@@ -1703,13 +1714,15 @@ L_
 : 'CENTRAL TASK, 1 OF 2: Filter the list of crashbangs with the list'
 : 'of shells.'
 :
-: 'file header'
+# print one file header
+
 {
   printf '# SC-scrpts-list -- %s\n' "${timecode%-*}"
   printf '# %s\n' "$(D_ a_relevant_search_dirs)"
 } | S_ T_ -- "${list_crunchbangs}_SC-scrpts-list" > /dev/null
 :
-# pulls from time_dir
+# filter out interpreters not compatible with shellcheck.
+# file $list_crunchbangs is located in $time_dir.
 S_ grep -E -- '/bin/'"${SC_shells}"'.*%=%=%=%' "${list_crunchbangs}" \
   | S_ tee -a -- "${list_crunchbangs}_SC-scrpts-list" \
   || I_
