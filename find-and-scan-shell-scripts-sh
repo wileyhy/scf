@@ -1668,10 +1668,11 @@ mapfile -t a_interps_rps < <(
 # for each interpreter, print it in the 1st 32 bits of a line.
 
 {
-for b in "${!a_interps_rps[@]}"; do 
+for b in "${!a_interps_rps[@]}"; do
+
   printf '%-32s' "${a_interps_rps[b]}"; 
   :
-  # use a shell builtin to locate each interpreter on disk.
+  # use a shell builtin to test for each interpreter's presence on disk, and write to a variable the test's result
 
   if command -pV "${a_interps_rps[b]}" > /dev/null; then 
     m="exists on disk"; 
@@ -1679,24 +1680,39 @@ for b in "${!a_interps_rps[@]}"; do
     m="DNE on disk"; 
   fi; 
   :
+  # create a new array of structured data: index, interpreter and test result
   a_interps_disk_repo+=([b]="${b} : ${a_interps_rps[b]} : ${m}")
+  
+  # into the next 8 bits of a line, print the test result
   printf '%-8s' "${m}"; 
   :
+  # identify the originating rpm for each interpreter. 
+  # binary need not be installed.
+  # filter for rpm name by CPU type in its filename
+  # sort rpms and print each unique
   dnf_po="$( S_ dnf provides -- "${a_interps_rps[b]}" \
     | awk '/x86_64|i686/ { print $1 }' \
     | sort -u 
     )"; 
     :
+  # based on whether there was any output, 
+  # save a result message to variable
   if [[ -n "$dnf_po" ]]; then 
-    m="exists in repos"; 
+    n="exists in repos"; 
   else 
-    m="DNE in repos"; 
+    n="DNE in repos"; 
   fi;
   :
-  a_interps_disk_repo+=([b+100]="${b} : ${a_interps_rps[b]} : ${m}")
-  printf '\t\t\t\t%s\n' "${m}"; 
+  # in the same array, in a different range of indices,
+  # save the index, interpretet name and rpm test result
+  a_interps_disk_repo+=([b+100]="${b} : ${a_interps_rps[b]} : ${n}")
+  
+  # print rpm test result to end of line; include a newline
+  printf '\t\t\t\t%s\n' "${n}"; 
+  
+  # if any data exists, print the list of originating rpms
   printf '%s\n' "$dnf_po"; 
-  unset dnf_po; 
+  unset dnf_po m n
   :
 done
 } | S_ T_ -a -- "${curr_time_ssubd}a_interpreters" > /dev/null
