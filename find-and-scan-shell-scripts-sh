@@ -689,41 +689,41 @@ fi
   exit 101
 
 
-    # delete?
-    ## Bug: abbrev_rel_search_dirs is not assigned
-    ##abbrev_rel_search_dirs=all
+    # delete? re-work? 
+
+abbrev_rel_search_dirs=all
     #:
-    ## To search some specific directories, uncomment them; to search 
-    ## all of the common dirs or FULL DISK instead # --really-- --slow--
-    ##
-    #declare -A A_rsd
-    #A_rsd=( 
-      ## useful for testing 
-        ##[usr_bin]='/bin' 
-        ##[usr_lib]='/lib' 
-        ##[usr_lib64]='/lib64' 
-        #[usr_sbin]='/sbin' 
-      ## common search dirs on Fedora, ie, "all"
-        ##[boot]='/boot' 
-        ##[dev]='/dev' 
-        ##[etc]='/etc' 
-        ##[home]='/home' 
-        ##[root]='/root' 
-        ##[run]='/run' 
-        ##[tmp]='/tmp' 
-        ##[usr]='/usr' 
-        ##[var]='/var' 
-      ## usually empty
-        ##[afs]='/afs' 
-        ##[lost+found]='/lost+found' 
-        ##[media]='/media' 
-        ##[mnt]='/mnt' 
-        ##[opt]='/opt' 
-        ##[srv]='/srv' 
-      ## usually quite difficult to parse; rarely any shell scripts
-        ##[proc]='/proc' 
-        ##[sys]='/sys' 
-    #)
+    # To search some specific directories, uncomment them; to search 
+    # all of the common dirs or FULL DISK instead # --really-- --slow--
+    #
+    declare -A A_rsd
+    A_rsd=( 
+      # useful for testing 
+        #[usr_bin]='/bin' 
+        #[usr_lib]='/lib' 
+        #[usr_lib64]='/lib64' 
+        [usr_sbin]='/sbin' 
+      # common search dirs on Fedora, ie, "all"
+        #[boot]='/boot' 
+        #[dev]='/dev' 
+        #[etc]='/etc' 
+        #[home]='/home' 
+        #[root]='/root' 
+        #[run]='/run' 
+        #[tmp]='/tmp' 
+        #[usr]='/usr' 
+        #[var]='/var' 
+      # usually empty
+        #[afs]='/afs' 
+        #[lost+found]='/lost+found' 
+        #[media]='/media' 
+        #[mnt]='/mnt' 
+        #[opt]='/opt' 
+        #[srv]='/srv' 
+      # usually quite difficult to parse; rarely any shell scripts
+        #[proc]='/proc' 
+        #[sys]='/sys' 
+    )
 
 
 # for actually_all
@@ -745,6 +745,7 @@ fi
   # take each found dir and convert abs path [of sym, okay] to a string
   # usable for directory names
   unset index element calc;
+
   for index in "${!A_rsd[@]}"; do 
     element="${A_rsd["$index"]}"; 
     calc="$(realpath -e "$element")"; 
