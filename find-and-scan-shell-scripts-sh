@@ -678,8 +678,14 @@ elif  [[ "${search_methods_prog}" = *bin_find ]]; then
 else
   echo error
 fi
-  ls all_commands
-  declare -p search_method_prog all_chr re char
+
+  # <>
+  [[ -f ./all_commands ]] \
+    &&
+  ls lsllssßsd   all_commands
+  for v in search_method_prog all_chr re char; do
+    declare -p "${v}"
+  done; unset v
   exit 101
 
 
