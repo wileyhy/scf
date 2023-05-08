@@ -1602,12 +1602,14 @@ else
   fi
 fi
 :
-W_ a_write_path_nms; 
-:
-#X_; :_; 
-S_ head -- "/tmp/${list_crunchbangs##*/}"; 
-#L_;
-:
+  # <> ?
+  W_ a_write_path_nms; 
+  :
+  #X_; :_; 
+  
+  S_ head -- "/tmp/${list_crunchbangs##*/}"; 
+  #L_;
+  :
 
 :
 : 'Verify interpreters'
@@ -1632,6 +1634,8 @@ mapfile -t a_interpreters < <(
   # <>
   :_; D_ a_interpreters; 
   #L_
+  
+# Duplicate with post-getopts section ?
 :
 : 'Ways to find an interpreter if it-s available on disk:'
 :
@@ -1641,9 +1645,10 @@ mapfile -t a_interpreters < <(
 # `find` can produce symlinks or actual files 
 #   # find /usr/sbin -type l | grep resolvconf
 #       /usr/sbin/resolvconf
+# `command` can produce symlinks
 #   # command -V resolvconf
 #       resolvconf is /usr/sbin/resolvconf
-# `realpath` produces canoni
+# `realpath` produces physical paths
 #   # realpath -e /usr/sbin/resolvconf
 #       /usr/bin/resolvectl
 :
@@ -1788,10 +1793,13 @@ mapfile -t a_each_abspath_scriptnm <<< "${cut_o}"
 a_each_abspath_scriptnm=("${a_each_abspath_scriptnm[@]##* }")
 :
 # Wk: awk , multi-char delim, remv lead+trail wspc - redef $0 ?, printf
+
 #   grep -Eo | tr
+
 # Bug: rename variable "$c" below
 # Bug: why sort by line count? More text, more bugs? How to prior mult
 #   factors?
+
 :
 # count number of newlines in each script
 wc_o="$(S_ wc -l -- "${a_each_abspath_scriptnm[@]}")"
