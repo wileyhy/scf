@@ -1610,10 +1610,14 @@ S_ head -- "/tmp/${list_crunchbangs##*/}";
 :
 
 :
-: 'Verify inter^preters'
+: 'Verify interpreters'
 :
 : 'Get the list of interpreters from the list of crunchbangs.'
 #   Note: new indices starting from 0
+# use the contrived delimiter to capture entire shebang string
+# remove leading whitespace
+# sort and print unique
+# remove leading ^'#!' from each interpreter
 # shellcheck disable=SC2016
 mapfile -t a_interpreters < <( 
   S_ awk 'BEGIN { FS = "%=%=%=%" } ; /#!/ { print $2 }' -- \
@@ -1625,16 +1629,21 @@ mapfile -t a_interpreters < <(
     || I_ "P:${PIPESTATUS[*]}"
   )
 :
-:_; D_ a_interpreters; 
-#L_
+  # <>
+  :_; D_ a_interpreters; 
+  #L_
 :
 : 'Ways to find an interpreter if it-s available on disk:'
 :
 # Bug: `realpath -e` and `command -V` are redundant?
+# Answer: no. `command` is limited to PATH; realpath is limited by FS permissions.
+
+# `find` can produce symlinks or actual files 
 #   # find /usr/sbin -type l | grep resolvconf
 #       /usr/sbin/resolvconf
 #   # command -V resolvconf
 #       resolvconf is /usr/sbin/resolvconf
+# `realpath` produces canoni
 #   # realpath -e /usr/sbin/resolvconf
 #       /usr/bin/resolvectl
 :
@@ -1743,15 +1752,16 @@ S_ grep -E -- '/bin/'"${SC_shells}"'.*%=%=%=%' "${list_crunchbangs}" \
   | S_ tee -a -- "${list_crunchbangs}_SC-scrpts-list" \
   || I_
 :
-B_ "${list_crunchbangs}_SC-scrpts-list" /tmp/*_SC-scrpts-list
-:
+# Copy list to /tmp
 S_ rsync -ca -- "${list_crunchbangs}_SC-scrpts-list" /tmp \
   || I_
 :
+# Backup both lists
 B_ "${list_crunchbangs}_SC-scrpts-list" /tmp/*_SC-scrpts-list
 :
-X_; :_; W_ timecode list_crunchbangs SC_shells 
-L_
+  # <>
+  X_; :_; W_ timecode list_crunchbangs SC_shells 
+  L_
 :
 
 :
