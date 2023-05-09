@@ -18,15 +18,16 @@ fi
 : 'Environment variables'
 
 unset LC_ALL
+GREP_COLORS='mt=01;104'
+export GREP_COLORS
 LC_COLLATE="C.UTF-8"     # for predictable sorting
 LC_CTYPE="C.UTF-8"       #  "   "           "
 LC_NUMERIC="en_US.UTF-8" # for commas in large numbers
-GREP_COLORS='mt=01;104'
-export GREP_COLORS
 getconf_o="$(/usr/bin/command -p getconf PATH)"
 PATH="${getconf_o}:/usr/bin:/usr/sbin:${PATH}" \
   || "${Halt_PATH:?}" # Causes an immediate halt of caller
-export LC_COLLATE LC_CTYPE LC_NUMERIC PATH
+PS4='+${BASH_SOURCE[0]}:${LINENO}:${FUNCNAME[0]}: '
+export GREP_COLORS LC_COLLATE LC_CTYPE LC_NUMERIC PATH PS4
 
 : '<> Aliases'
 
@@ -142,7 +143,6 @@ _mk_deltas() {
 
 # ? what of BASH_LINENO
 
-PS4='+${BASH_SOURCE[0]}:${LINENO}:${FUNCNAME[0]}: '
 _debug_prompt() {
   _mk_deltas
   read -rp "[${BASH_SOURCE[0]}:${LINENO}] ${BASH_COMMAND[0]}?" _
