@@ -72,8 +72,6 @@ _xtrace_duck(){
   fi
 }
 
-# Bug: two files. better to unify. but how to sort?
-
 export setenv_prev setenv_now setenv_delta env_prev env_now env_delta
 _mk_setenv_prev(){
   if [[ -n "${setenv_now}" ]]; then
@@ -92,8 +90,6 @@ _mk_setenv_now(){
     |& tee -a "${setenv_now}" > /dev/null
 }
 _mk_setenv_delta(){
-  local diff_y diff_B
-
   if [[ -n "${setenv_now}" ]] && [[ -n "${setenv_prev}" ]]; then
     
     if [[ -n "${setenv_delta}" ]]; then
