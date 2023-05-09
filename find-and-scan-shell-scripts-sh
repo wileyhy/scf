@@ -149,7 +149,7 @@ _full_xtrace() {
   set -x
 }
 
-#exit 101
+exit 101
 _full_xtrace
 
 : 'Implementation dependent arguments for options parsable by -shellcheck-'
@@ -180,8 +180,7 @@ if [[ $# -gt 0 ]]; then
 fi
 
 #declare -p sc_severity SC_shells repo_nm protected_git_dir_1 protected_git_dir_2 script_nm script_proper_nm script_version a_poss_proces_lock_dirs cli_input
-#exit 101
-#set -x
+exit 101
 
 # Variables re getopts
 find_exclude_optargs_default=(
@@ -260,8 +259,7 @@ EOF
 #declare -p bash_path find_path memory_usage sc_severity
 #declare -p search_methods_descend search_methods_path search_methods_proc search_methods_prog search_methods_spec_dirs search_methods_symlinks search_methods_sys
 #declare -pf fn_usage
-#exit 101
-set -x
+exit 101
 
 while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
   declare -p OPTIND OPTARG
@@ -579,8 +577,7 @@ unset 'find_exclude_optargs[100]'
 } |& grep -v default 2>/dev/null
 : 'find_exclude_optargs:' "${find_exclude_optargs[@]}"
 #declare -pf fn_usage
-#exit 101
-set -x
+exit 101
 
 # Verify PATH
 #   (...before running the builtins [type and command], or they'll
@@ -618,7 +615,7 @@ if [[ "${verify[*]}" =~ path ]]; then
   declare -p PATH
 fi
 #declare -p PATH
-#exit 101
+exit 101
 
 # Bug: greps. parse full outputs of type and command
 
@@ -789,7 +786,7 @@ get_mountpoint() {
 get_mountpoint /sbin
 
 # <>
-exit
+exit 101
 
 # check DAC's,
 namei_o="$(
@@ -905,7 +902,7 @@ unset end_dirname full_dir_list ext_array dir sub_dir num_sub_dirs \
 
 # check MAC's
 
-#exit 101
+exit 101
 
 : 'Functions -- for brevity during debugging'
 set -v
@@ -982,6 +979,7 @@ fn_bak() {
   : 'END OF fn_bak'
 
 }
+
 fn_erx() {
   # this assignment must be the first command
   local loc_exit_code="${?}"
@@ -993,6 +991,7 @@ fn_erx() {
 
   exit "${loc_exit_code}"
 }
+
 #fn_num() {
 #  # Usage: N_ [raw arrays names]
 #  : fn_num
@@ -1009,6 +1008,7 @@ fn_erx() {
 #  : 'END OF fn_num'
 #
 #}
+
 fn_usage() {
   # Usage:  fn_usage [exit-code]
   : fn_usage
@@ -1028,6 +1028,7 @@ EOF
   # shellcheck disable=SC2086
   exit "${1}"
 }
+
 fn_write_arrays() {
   # Usage: W_ [arrays]
 
@@ -1070,6 +1071,7 @@ fn_write_arrays() {
   : 'END OF fn_write_arrays'
 
 }
+
 #fn_write_vars() {
 #  # Usage: V_ [loc_script_section_nm] [raw variable names]
 #
@@ -1091,17 +1093,18 @@ fn_write_arrays() {
 #
 #  B_ "${loc_write_f_a}"
 #  : END OF fn_write_vars
-#
 #}
 
-: Use -sudo-
+: 'Use -sudo-'
+
 if ! S_ -v; then
   printf '\n\tValidation failed of user\x27s \x60sudo\x60 timestamp; '
   printf 'exiting.\n\n'
   L_
 fi
 
-# Set up a trap on signals "exit", "term" and "int"
+: 'Set up a trap on signals EXIT, INT and TERM'
+
 # shellcheck disable=SC2154
 trap '
   #set -
@@ -1134,9 +1137,9 @@ trap '
     fi
   fi
 
-  trap - EXIT TERM INT
+  trap - EXIT INT TERM
   kill -s INT "$$"
-' EXIT TERM INT
+' EXIT INT TERM
 
 #X_; :_
 
