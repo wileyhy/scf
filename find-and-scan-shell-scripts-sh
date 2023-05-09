@@ -29,7 +29,7 @@ PATH="${getconf_o}:/usr/bin:/usr/sbin:${PATH}" \
   || "${Halt_PATH:?}"             # Causes an immediate halt of caller
 export LC_COLLATE LC_CTYPE LC_NUMERIC PATH
 
-: 'Aliases -- for brevity during debugging'
+: '<> Aliases'
 
 shopt -s expand_aliases;
 alias     :_=':;: "<>"';
@@ -40,6 +40,8 @@ alias     S_='sudo ';
 alias     T_='tee --output-error=exit ';
 alias     X_='set -x';
 alias     awk='gawk --lint ';
+
+: '<> XTrace'
 
 # If xtrace was previously on, then on first execution of this function, 
 # turn xrtrace off, and on second execution, turn xtrace back on and 
@@ -83,6 +85,7 @@ _mk_setenv_prev(){
     setenv_prev="${setenv_now}"
   fi
 }
+
 _mk_setenv_now(){
   setenv_now="$(mktemp)"
   set \
@@ -90,6 +93,7 @@ _mk_setenv_now(){
   env \
     |& tee -a "${setenv_now}" > /dev/null
 }
+
 _mk_setenv_delta(){
   if [[ -n "${setenv_now}" ]] && [[ -n "${setenv_prev}" ]]; then
     
@@ -123,6 +127,7 @@ _mk_setenv_delta(){
     export GREP_COLORS
   fi
 }
+
 _mk_deltas(){
   _xtrace_duck
   _mk_setenv_prev
@@ -138,13 +143,12 @@ _debug_prompt(){
   _mk_deltas; 
   read -rp "[${BASH_SOURCE[0]}:${LINENO}] ${BASH_COMMAND[0]}?" _
 }
+
 _full_xtrace(){
   set -o functrace
   trap '_debug_prompt "$_";' DEBUG
   set -x
 }
-
-
 
   #exit 101
   _full_xtrace
