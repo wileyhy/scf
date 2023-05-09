@@ -23,6 +23,7 @@ LC_COLLATE="C.UTF-8"              # for predictable sorting
 LC_CTYPE="C.UTF-8"                #  "   "           "
 LC_NUMERIC="en_US.UTF-8"          # for commas in large numbers
 GREP_COLORS='mt=01;104'
+export GREP_COLORS
 getconf_o="$(/usr/bin/command -p getconf PATH)"
 PATH="${getconf_o}:/usr/bin:/usr/sbin:${PATH}" \
   || "${Halt_PATH:?}"             # Causes an immediate halt of caller
@@ -114,10 +115,10 @@ _mk_setenv_delta(){
     } \
       |& tee -a "${setenv_delta}"
     
-    printf '\n\n'
     less -RNS "${setenv_delta}" 
     wc "${setenv_delta}"
-    printf '\n\n\n'
+    GREP_COLORS='mt=01;104'
+    export GREP_COLORS
   fi
 }
 _mk_deltas(){
