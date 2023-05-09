@@ -22,7 +22,7 @@ unset LC_ALL
 LC_COLLATE="C.UTF-8"              # for predictable sorting
 LC_CTYPE="C.UTF-8"                #  "   "           "
 LC_NUMERIC="en_US.UTF-8"          # for commas in large numbers
-#GREP_COLORS
+GREP_COLORS='mt=01;104'
 getconf_o="$(/usr/bin/command -p getconf PATH)"
 PATH="${getconf_o}:/usr/bin:/usr/sbin:${PATH}" \
   || "${Halt_PATH:?}"             # Causes an immediate halt of caller
