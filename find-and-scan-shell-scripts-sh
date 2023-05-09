@@ -6,9 +6,9 @@
 
 
 # SECTION A
-:
+
 : 'Regular users only'
-:
+
 if [[ "${UID}" == 0 ]]; then
   printf '\n\t Must be a regular user and use sudo. \n\n'
   exit 1
@@ -16,9 +16,9 @@ else
   sudo -v \
     || exit 1
 fi
-:
+
 : 'Environment variables'
-:
+
 # If xtrace was previously on, then on first execution of this function, 
 # turn xrtrace off, and on second execution, turn xtrace back on and 
 # forget about this function's settings. If xtrace was previously off, 
@@ -129,20 +129,20 @@ unset LC_ALL
 LC_COLLATE="C.UTF-8"     # for predictable sorting
 LC_CTYPE="C.UTF-8"       #  "   "           "
 LC_NUMERIC="en_US.UTF-8" # for commas in large numbers
-:
+
 PATH="$(/usr/bin/command -p getconf PATH):/usr/bin:/usr/sbin:${PATH}" \
   || "${Halt_PATH:?}"
 export LC_COLLATE LC_CTYPE LC_NUMERIC PATH
 
-:
+
   #exit 101
   _full_xtrace
-:
+
 : 'Implementation dependent arguments for options parsable by -shellcheck-'
 sc_severity=error
 # shellcheck disable=SC2034
 SC_shells='(sh|bash|dash|ksh)'
-:
+
 : 'Variables'
 
 repo_nm=scf
@@ -236,7 +236,7 @@ fn_usage() {
 EOF
   } | more -e
   : 'END OF fn_usage'
-  :
+
   # shellcheck disable=SC2086
   exit "${1}"
 }
@@ -249,7 +249,6 @@ EOF
   set -x
 
 
-:;:;:
 while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
   declare -p OPTIND OPTARG 
 
@@ -551,7 +550,6 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
       ;;   
   esac 
 done
-  :;:;:
   set -
   unset 'find_exclude_optargs[100]'
 { 
@@ -670,7 +668,7 @@ fi
     # delete? re-work? 
 
 abbrev_rel_search_dirs=all
-    #:
+    #
     # To search some specific directories, uncomment them; to search 
     # all of the common dirs or FULL DISK instead # --really-- --slow--
     #
@@ -706,7 +704,7 @@ abbrev_rel_search_dirs=all
 
 # for actually_all
   umask 117
-  :
+
   get_rel_search_dirs(){
     mapfile -d '' -t "${1}" < <(
       sudo find / -mindepth 1 -maxdepth 1 -type d \! -empty \
@@ -880,9 +878,9 @@ unset end_dirname full_dir_list ext_array dir sub_dir num_sub_dirs \
 #exit 101
 
 
-:
+
 : 'Aliases and functions -- for brevity during debugging'
-:
+
 shopt -s expand_aliases;
 alias     :_=':;: "<>"';
 alias     D_='declare -p ';
@@ -892,7 +890,7 @@ alias     S_='sudo ';
 alias     T_='tee --output-error=exit ';
 alias     X_='set -x';
 alias     awk='gawk --lint ';
-:
+
 set -v
 function  B_() { fn_bak "$@";};
 function  I_() { fn_erx "${LINENO}";};
@@ -901,17 +899,17 @@ function  I_() { fn_erx "${LINENO}";};
 function  W_() { fn_write_arrays "$@";};
 set +v
 
-:
+
 : 'Check for Process Locks'
-:
+
 for d in "${a_poss_proces_lock_dirs[@]}"; do
   if [[ -d "${d}" ]]; then
     mapfile -d '' -t lkds < <( 
       S_ find "${d}" -type d -empty -name ".${repo_nm}.[0-9a-zA-Z_-]*.lock" \
         -print0 2> /dev/null)
-    :
+
     : 'lkds, count:' "${#lkds[@]}"
-    :
+
     for l in "${lkds[@]}"; do
       if [[ -d "${l}" ]]; then
         if [[ -v delete_locks ]]; then
@@ -928,9 +926,9 @@ done
 [[ -v delete_locks ]] \
   && L_
 
-:
+
 : 'Functions'
-:
+
 fn_bak() {
   : fn_bak
 
@@ -966,7 +964,7 @@ fn_bak() {
     fi
   done
   : 'END OF fn_bak'
-  :
+
 }
 fn_erx() {
   # this assignment must be the first command
@@ -976,7 +974,7 @@ fn_erx() {
   # print an error message and exit with the correct exit code
   echo -e Error: "${@}"
   : 'END OF fn_erx'
-  :
+
   exit "${loc_exit_code}"
 }
 #fn_num() {
@@ -993,7 +991,7 @@ fn_erx() {
 #    echo ${#loc_nameref_a[@]}
 #  done
 #  : 'END OF fn_num'
-#  :
+#  
 #}
 fn_usage() {
   # Usage:  fn_usage [exit-code]
@@ -1010,13 +1008,13 @@ fn_usage() {
 
 EOF
   : 'END OF fn_usage'
-  :
+
   # shellcheck disable=SC2086
   exit "${1}"
 }
 fn_write_arrays() {
   # Usage: W_ [arrays]
-  :
+
   : fn_write_arrays: Write each array to a file on disk.
 
   loc_write_d_b="${curr_time_ssubd}arrays"
@@ -1042,19 +1040,19 @@ fn_write_arrays() {
     # if the input array holds no data, then populate it
     if [[ ! -v loc_nameref_b[@] ]]; then
       loc_nameref_b=([0]='fn_write_arrays: Empty array')
-      :
+
     fi
-    :
+
     # then write a data file to disk
     declare -p "${loc_array_nm}" \
       | S_ T_ -- "${loc_write_f_b}" > /dev/null
 
     # write a backup of the new data file
-    :
+
     B_ "${loc_write_f_b}"
   done
   : 'END OF fn_write_arrays'
-  :
+
 }
 #fn_write_vars() {
 #  # Usage: V_ [loc_script_section_nm] [raw variable names]
@@ -1074,82 +1072,82 @@ fn_write_arrays() {
 #    | S_ T_ -- "${loc_write_f_a}" >/dev/null
 #
 #  # and write a .bak file
-#  :
+#  
 #  B_ "${loc_write_f_a}"
 #  : END OF fn_write_vars
-#  :
+# 
 #}
 
-:
+
 : Use -sudo-
 if ! S_ -v; then
   printf '\n\tValidation failed of user\x27s \x60sudo\x60 timestamp; '
   printf 'exiting.\n\n'
   L_
 fi
-:
+
 # Set up a trap on signals "exit", "term" and "int"
 # shellcheck disable=SC2154
 trap '
   #set -
-  :
+
   # [Trap] Delete all possible existing process directories. 
   for poss_lk_d in "${a_poss_proces_lock_dirs[@]}"; do 
-    :
+
     # [Trap] Abbreviate variable, then test and delete lock directories.
     pl="${poss_lk_d}/${proc_lk_f_nm}"
-    :
+
     if [[ -d "${pl}" ]] && [[ ! -L "${pl}" ]]; then 
       S_ rm -rf -- "${pl}" \
         || L_
     fi
   done
-  :
+
   # [Trap] Remove any script-s ACL-s based on whether the canary variables
   # exist.
   if [[ -v acl_execd_setfacl ]]; then 
-    : 
+
     if [[ -v acl_abs_path ]]; then 
       S_ setfacl -R -x "u:${UID}" -- "${acl_abs_path}" ||
         echo Error: trap: setfacl failed, line "${LINENO}"
-      :
+
     # bug? Should this var be main_d \/ ? Sb erx ^ ?
-      :
+
     elif [[ -v mountpoint ]]; then
       S_ setfacl -R -x "u:${UID}" -- "${mountpoint}" ||
         echo Error: trap: setfacl failed, line "${LINENO}"
     fi
   fi
-  :
+
   trap - EXIT TERM INT
   kill -s INT "$$"
 ' EXIT TERM INT
-:
+
 #X_; :_
 
-:
+
 : 'Process lock'
-:
+
 # define basename and absolute path of the lock directory
 random_n="${RANDOM}"
 proc_lk_f_nm=".${repo_nm}.$$${random_n}.lock"
-:
+
 #:_; D_ a_poss_proces_lock_dirs
-:
+
 # from among the possible dirnames
 for poss_lk_d in "${a_poss_proces_lock_dirs[@]}"; do
-  :
+
   # use the first one that fulfills certain requirements
   if [[ -d "${poss_lk_d}" ]] \
     && [[ ! -L "${poss_lk_d}" ]] \
     && [[ -w "${poss_lk_d}" ]]; then
-    :
+
     # define the lock directory
     process_lock_d="${poss_lk_d}/${proc_lk_f_nm}"
     break
   fi
 done
-:
+
 # create the lock directory
 if ! mkdir -m 0000 "${process_lock_d}" 2>/dev/null; then
   {
@@ -1159,21 +1157,21 @@ if ! mkdir -m 0000 "${process_lock_d}" 2>/dev/null; then
   } 1>&2
   L_
 fi
-:
+
 #:_; D_ process_lock_d; M_ -- "${process_lock_d}"; L_
 
-:
+
 : User variables
 timecode="$(builtin printf '%(%F_%H%M%S)T')"
-:
+
 
 # SECTION B
-:
+
 #:_
 #X_
 
 # BUGs: Hardcoded $mountpoint; trailing backslash
-:
+
 : 'Assign varnames and paths for the data directories'
 mountpoint=/run/media/root/29_Mar_2023
 main_d="${mountpoint}/${script_dirnm}"
@@ -1181,117 +1179,117 @@ data_subd="${main_d}/latest_data"
 curr_time_ssubd="${data_subd}/t_${timecode}/"
 list_crunchbangs="${curr_time_ssubd}/crunchbangs"
 found_scrpts_f="${list_crunchbangs}_found_scripts_${sc_severity:0:1}_${abbrev_rel_search_dirs}"
-:
+
 : 'data files'
 a_write_path_nms=("${list_crunchbangs:=crunchbangs}" "/tmp/${list_crunchbangs##*/}")
-:
+
 # TODOs: grep scripts for 'todo's
 #   - grep for 'shellcheck disable'
 #   - This section seems buggy.
 
 : 'Reduce use of sudo'
 if [[ ! -r "${main_d}" ]]; then
-  :
+
   mapfile -d / -t a_acl_name_indiv_dir <<< "${main_d}"
-  :
+
   a_acl_name_indiv_dir[0]=/
   a_acl_name_indiv_dir[-1]="${a_acl_name_indiv_dir[-1]//$'\n'/}"
-  :
+
   acl_each_dir="${#a_acl_name_indiv_dir[@]}"
-  :
+
   for ((iterator_1 = 0; iterator_1 < acl_each_dir; iterator_1++)); do
     acl_abs_path+="/${a_acl_name_indiv_dir[iterator_1]}"
     acl_realpath="$(realpath -e "${acl_abs_path}")"
-    :
+
     # Bug: why sudo? \/
 
     if S_ test -e -- "${acl_realpath}"; then
       : 'test succeeded: acl_realpath exists '
     else
-      :
+
       : 'test failed: acl_realpath DNE'
-      :
+
       if [[ ! -d "${acl_abs_path}" ]]; then
-        :
+
         S_ mkdir -p -- "${main_d}" \
           || I_
       fi
-      :
+
       acl_realpath="$(realpath -e "${acl_abs_path}" 2>/dev/null)"
-      :
+
       #:_
 
       # TODO: use alias w namei
 
       #M_ -- "${acl_realpath}"
-      :
+
     fi
-    :
+
     if [[ -r "${acl_realpath}" ]]; then
       : 'test succeeded: acl_realpath is readable'
     else
-      :
+
       : 'test failed: acl_realpath is not readable'
-      :
+
       acl_execd_setfacl=y
       export acl_execd_setfacl # SC2034, while trap-s setfacl blk is #-d # this comment means what?
-      :
+
       # readable up to the main_d
       S_ chmod -R 750 -- "${acl_realpath}" \
         || I_
-        :
+
       S_ setfacl -d -m "${USER}:r-x" -- "${acl_realpath}" \
         || I_
-        :
+
       S_ setfacl -m "${USER}:r-x" -- "${acl_realpath}" \
         || I_
-        :
+
       #:_
       #id "${USER}"
       #groups "${USER}"
       #M_ -- "${acl_realpath}"
       #S_ getfacl -- "${acl_realpath}"
-      :
+
       [[ -r "${acl_realpath}" ]] \
         || I_
     fi
   done
-  :
+
   # writeable within the main_d
   S_ setfacl -d -m "${USER}:rwx" -- "${main_d}" \
     || I_
-    :
+
   S_ setfacl -R -m "${USER}:rwx" -- "${main_d}" \
     || I_
-    :
+
   #:_
   #id "${USER}"
   #groups "${USER}"
   #M_ -- "${main_d}"
   #S_ getfacl -- "${main_d}"
-  :
+
 fi
-:
+
 : 'make sure -data_subd- is a directory OR create the -data_subd- dir '
 : 'if necessary'
 [[ -d "${data_subd}" ]] \
   || mkdir "${data_subd}" # as liveuser
-  :
+
 #:_
 #M_ -- "${data_subd}"
-:
+
 : Label the current data as -latest.-
 # shellcheck disable=SC2312
 mapfile -d '' -t a_previous_time_dirs < <(
   find "${data_subd}" -mindepth 1 -maxdepth 1 -type d -a \! -type l \
     -name 't_*' -print0
 )
-:
+
 : if -prev_time_ssubd- is empty, delete it, otherwise -mv- it out
 : of the -latest- dir
 for prev_time_ssubd in "${a_previous_time_dirs[@]}"; do
   rmdir --ignore-fail-on-non-empty -- "${prev_time_ssubd}"
-  :
+
   : of previous prev_time_ssubd
   if [[ -d "${prev_time_ssubd}" ]] && [[ ! -L "${prev_time_ssubd}" ]]; then
     S_ mv -- "${a_previous_time_dirs[@]}" "${main_d}"
@@ -1299,22 +1297,22 @@ for prev_time_ssubd in "${a_previous_time_dirs[@]}"; do
     continue
   fi
 done
-:
+
 : of curr_time_ssubd
 if [[ ! -d "${curr_time_ssubd}" ]]; then
   S_ mkdir -p -- "${curr_time_ssubd}" \
     || I_
 fi
-:
+
 #:_
 #M_ -- "${curr_time_ssubd}"
-:
+
 # SECTION C
-:
+
 : 'Gather filenames from local attached disk storage'
-:
+
 if [[ "${abbrev_rel_search_dirs}" == all ]]; then
-  :
+
   : 'set a value for a_relevant_search_dirs and..'
   # shellcheck disable=SC2312
   mapfile -d '' -t a_relevant_search_dirs < <(
@@ -1322,87 +1320,87 @@ if [[ "${abbrev_rel_search_dirs}" == all ]]; then
       \( \! -name proc -a \! -name sys -a \! -iname "${script_dirnm}*" \) \
       -print0 2> /dev/null
   )
-  :
+
   for sd in "${a_relevant_search_dirs[@]}"; do 
 
     # assign 
     echo "${sd}"
   done
-  :
+
 fi
-:
+
 : 'Find all files within the search area. Even the empty ones.'
 # shellcheck disable=SC2312
 mapfile -d '' -t a_all_files < <(
   S_ find "${a_relevant_search_dirs[@]}" -mindepth 1 -type f \
     -print0 2> /dev/null
 )
-:
+
 : 'Sort the original array and test it.'
 # shellcheck disable=SC2312
 mapfile -d '' -t a_all_files_sorted < <(
   printf '%s\0' "${a_all_files[@]}" \
     | sort -z
 )
-:
+
 # SECTION D
-:
+
 # Bug? Can more indices and fewer files be used?
-:
+
 : 'Sort out the scripts, ie, any file beginning with a crashbang from'
 : 'the rest of the files'
-:
+
 : 'Get the total number of found files, for the progress indicator'
 # shellcheck disable=SC2034
 total_count="$(printf "%'d" "${#a_all_files_sorted[@]}")"
 unset IFS
-:
+
 [[ -f /tmp/"${list_crunchbangs##*/}" ]] \
   && S_ rm -f -- "/tmp/${list_crunchbangs##*/}"
-:
+
 # BUG: the search dirs must be the same, as well as the dnf tx number
 # BUG: Use of /tmp/crunchbangs as yn on do loop q. Sb a set of file lists
 #.   difftd by search dir / search type / etc. See file "priority"
-:
+
 : 'if the full list exists -- of files on disk which begin with'
 : 'crashbangs -- skip the 30-90 minute search phase.'
 if [[ ! -f "/tmp/${list_crunchbangs##*/}" ]] \
   || [[ -L "/tmp/${list_crunchbangs##*/}" ]]
 then
-  :
+
 
   for all_files_index in "${!a_all_files_sorted[@]}"; 
   do
-    :
+
     : 'Loop'
-    :
+
     loop_idx="$(printf "%'d" $((all_files_index + 1)) )"
     printf '%s of %s files\r' "${loop_idx}" "${total_count}"
-    :
+
     : 'file must exist'
     each_sorted_f="${a_all_files_sorted[all_files_index]}"
-    :
+
     if [[ ! -e "${each_sorted_f}" ]]; 
     then
       a_file_DNE+=([all_files_index]="${each_sorted_f}")
       continue
     fi
-    :
+
     : 'list of empties'
     if [[ ! -s "${each_sorted_f}" ]]; 
     then
       a_empty_files+=([all_files_index]="${each_sorted_f}")
       continue
     fi
-    :
+
     : '-file- magic'
     printf '+ %-8d: ' "${all_files_index}" \
       | S_ tee -a -- "${curr_time_ssubd}file_out" > /dev/null
-      :
+
     file_o="$(S_ file -pk -- "${each_sorted_f}" 2>&1)" # Bug: needs erx
     file_o="${file_o%%64-bit LSB *}"
     a_bin_file_output+=([all_files_index]="${file_o}")
-    :
+
     # Bug? Needs tracking index? One array or file, one line per fso,
     #. use symbols or csv to indicate test results, w common indices
     # Bug: [[ -n sb right after exec file
@@ -1414,16 +1412,16 @@ then
       err_msg="WARNING: -file- produced 0 output:  <${each_sorted_f}>"
       S_ tee -a -- "${curr_time_ssubd}file_out" <<< "${err_msg}" > /dev/null
     fi
-    :
+
     # Bug: keep `od` output in an array
     # Bug: avoid as many disk writes as possible. 
     #.  Write out only stats?
     # Bug: use indices to reference each type? Store array diffs btw loop?
     #. Time loss to disk io? Run file in parallel? Read each file once and
     #. use var for both od and file?
-    :
+
     : 'two bytes each'
-      :
+
       #X_; :_
 
       # fix?: mapfile -d '' -t -O "${all_files_index}" a_od_output
@@ -1434,22 +1432,22 @@ then
       | tr -d '\n' \
       || I_ "P:${PIPESTATUS[*]} I:${all_files_index} ${each_sorted_f}"
     )"
-    :
+
     #D_ od_o
-    :
+
     [[ -n "${od_o}" ]] \
       || I_ "I:${all_files_index} ${each_sorted_f}"
-      :
+
     a_bin_od_output+=([all_files_index]="${od_o}")
-      :
+
       #D_ a_bin_od_output
-      :
+
     read -r byte_0 byte_1 printable_chars <<< "${od_o}" 
-      :
+
       #D_ byte_0 byte_1 printable_chars a_all_other_files; L_;
-      :
+
     export printable_chars # SC2034
-      :
+
     : '-od_o- non-zero'
     if [[ -z "${byte_0}" ]]; 
     then
@@ -1458,14 +1456,14 @@ then
     elif [[ "${byte_0}" == @(23|21) ]]; 
     then
       : 'compare hexadecimals'
-      :
+
       : 'endianness'
       if [[ "${byte_0}${byte_1}" == 2123 ]]; 
       then
         a_incorrect_endianness+=([all_files_index]="${each_sorted_f}")
-        :
+
       else
-        :
+
         : 'Crunchbangs'
 
         # q, does strings recognize unicode? Color codes? Cr's? Etc
@@ -1475,10 +1473,10 @@ then
           | head -n1 \
           | cut -b -$((2**14)) \
           || I_ "P:${PIPESTATUS[*]} I:${all_files_index} ${each_sorted_f}")"
-          :
+
         IFS= read -r first_line_printable <<< "${strings_o}" \
           || I_ "I:${all_files_index} ${each_sorted_f}"
-          :
+
         : '-#!comment-'
         if [[ "${first_line_printable}" =~ ^'#!comment' ]]; 
         then
@@ -1486,18 +1484,18 @@ then
             [all_files_index]="${each_sorted_f}")
           continue
         fi
-        :
+
         #D_ strings_o first_line_printable all_files_index each_sorted_f; L_;
-        :
+
         #   Note: with only /bin/sbin, this if-fi block doesn't execute
-        :
+
 
         # FR: sort also per-rpm, awk script, probably
 
         : 'outside of rpm'
         if ! rpm -qf "${each_sorted_f}" 2>/dev/null 1>&2; 
         then
-          :
+
           : 'user or system'
           if [[ "${each_sorted_f}" = /@(root|home|run/media)/* ]]; 
           then
@@ -1510,7 +1508,7 @@ then
           fi
         fi
       fi
-      :
+
       #X_; :_
 
       # scan non-shell scripts for shell escapes ie sys-bin calls
@@ -1519,17 +1517,17 @@ then
       # Bug, "shell scripts" incls python perl etc
 
       # how to make IRT lists for each interpreter?
-      :
+
       : 'Make an array of the relevant filenames and their crashbangs.'
       a_shell_scripts+=([all_files_index]="$(printf \
         "%'-12d %%=%%=%%=%% %-50s %%=%%=%%=%% %s\n" \
           "${all_files_index}" "${first_line_printable}" \
           "${each_sorted_f}")"
         )
-      :
+
       #:_; D_ a_shell_scripts all_files_index first_line_printable each_sorted_f; L_
     else
-      :
+
       : 'all others'
       a_all_other_files+=([all_files_index]="$(printf \
         "%'-12d %%=%%=%%=%% %s\n" "${all_files_index}" \
@@ -1537,47 +1535,47 @@ then
         )
     fi
   done
-  :
+
   #X_; :_; D_ a_shell_scripts all_files_index first_line_printable each_sorted_f; L_
 
   # Note, you want to see the full crunchbangs in printed ASCII form
-  :
+
   : 'Open a timestamped file and append into it the list of filenames' 
   : 'and their crashbangs.'
-  :
+
   : 'Exporting is necessary of the array names from the above scan'
   a_arrays=( a_all_files a_all_files_sorted a_file_DNE a_empty_files a_bin_file_output a_bin_od_output a_incorrect_endianness a_crunches_with_hashbang_comments a_non_rpm_user_crunches a_non_rpm_system_crunches a_shell_scripts a_all_other_files a_write_path_nms )
   export  "${a_arrays[@]}"
-  :
+
   W_ "${a_arrays[@]}"; 
   B_ "${curr_time_ssubd}/file_out"; 
   #L_;
-  :
+
   : 'if any data files already exist, keep them'
   for any_existing_f in "${a_write_path_nms[@]}"; do
-    :
+
     if [[ -f "${any_existing_f}" ]] && [[ ! -L "${any_existing_f}" ]]; then
       S_ mv -- "${any_existing_f}" "${any_existing_f}.${$}.${random_n}" \
         || I_
     fi
   done
-  :
+
   : 'create the original list_crunchbangs'
   S_ touch -- "${a_write_path_nms[@]}"
-  :
+
   : 'write a file header'
   {
     printf '# crunchbangs -- %s\n' "${timecode%-*}"
     printf '# %s\n' "$(declare -p a_relevant_search_dirs)"
   } | S_ T_ -- "${a_write_path_nms[@]}" > /dev/null
-  :
+
   : 'printing contents of a_shell_scripts array, with backup'
   printf '%s\n' "${a_shell_scripts[@]}" \
     | S_ T_ -a -- "${a_write_path_nms[@]}" > /dev/null
   B_ "${a_write_path_nms[@]}"
-  :
+
 else
-  :
+
   # the time_dir needs a copy of the crunchbangs file, also.  copy it in
   # from the hopefully correct backup in /tmp
   if [[ ! -f "${list_crunchbangs}" ]]; 
@@ -1586,19 +1584,19 @@ else
       || I_
   fi
 fi
-:
+
   # <> ?
   W_ a_write_path_nms; 
-  :
+
   #X_; :_; 
   
   S_ head -- "/tmp/${list_crunchbangs##*/}"; 
   #L_;
-  :
 
-:
+
+
 : 'Verify interpreters'
-:
+
 : 'Get the list of interpreters from the list of crunchbangs.'
 #   Note: new indices starting from 0
 # use the contrived delimiter to capture entire shebang string
@@ -1615,15 +1613,15 @@ mapfile -t a_interpreters < <(
     | cut -b3- \
     || I_ "P:${PIPESTATUS[*]}"
   )
-:
+
   # <>
   :_; D_ a_interpreters; 
   #L_
   
 # Duplicate with post-getopts section ?
-:
+
 : 'Ways to find an interpreter if it-s available on disk:'
-:
+
 # Bug: `realpath -e` and `command -V` are redundant?
 # Answer: no. `command` is limited to PATH; realpath is limited by FS permissions.
 
@@ -1636,7 +1634,7 @@ mapfile -t a_interpreters < <(
 # `realpath` produces physical paths
 #   # realpath -e /usr/sbin/resolvconf
 #       /usr/bin/resolvectl
-:
+
 for program in "${a_interpreters[@]}"; do
   : 'command -pV'
   command_o="$(command -pV "${program}" 2>&1)"
@@ -1660,7 +1658,7 @@ mapfile -t a_interps_rps < <(
   S_ realpath -e -- "${a_interpreters[@]}" \
     | sort -u
   )
-:
+
   # <>
   D_ a_interps_rps; L_
   
@@ -1670,7 +1668,7 @@ mapfile -t a_interps_rps < <(
 for b in "${!a_interps_rps[@]}"; do
 
   printf '%-32s' "${a_interps_rps[b]}"; 
-  :
+
   # use a shell builtin to test for each interpreter's presence on disk, and write to a variable the test's result
 
   if command -pV "${a_interps_rps[b]}" > /dev/null; then 
@@ -1678,13 +1676,13 @@ for b in "${!a_interps_rps[@]}"; do
   else 
     m="DNE on disk"; 
   fi; 
-  :
+
   # create a new array of structured data: index, interpreter and test result
   a_interps_disk_repo+=([b]="${b} : ${a_interps_rps[b]} : ${m}")
   
   # into the next 8 bits of a line, print the test result
   printf '%-8s' "${m}"; 
-  :
+
   # identify the originating rpm for each interpreter. 
   # binary need not be installed.
   # filter for rpm name by CPU type in its filename
@@ -1693,7 +1691,7 @@ for b in "${!a_interps_rps[@]}"; do
     | awk '/x86_64|i686/ { print $1 }' \
     | sort -u 
     )"; 
-    :
+
   # based on whether there was any output, 
   # save a result message to variable
   if [[ -n "$dnf_po" ]]; then 
@@ -1701,7 +1699,7 @@ for b in "${!a_interps_rps[@]}"; do
   else 
     n="DNE in repos"; 
   fi;
-  :
+
   # in the same array, in a different range of indices,
   # save the index, interpretet name and rpm test result
   a_interps_disk_repo+=([b+100]="${b} : ${a_interps_rps[b]} : ${n}")
@@ -1712,71 +1710,71 @@ for b in "${!a_interps_rps[@]}"; do
   # if any data exists, print the list of originating rpms
   printf '%s\n' "$dnf_po"; 
   unset dnf_po m n
-  :
+
 done
 } | S_ T_ -a -- "${curr_time_ssubd}a_interpreters" > /dev/null
 unset b
-:
+
   # <>
   #X_; :_; 
   W_ a_write_path_nms a_interpreters a_interps_rps a_interps_disk_repo
   L_
-:
 
-:
+
+
 # SECTION E
-:
+
 : 'CENTRAL TASK, 1 OF 2: Filter the list of crashbangs with the list'
 : 'of shells.'
-:
+
 # print one file header
 
 {
   printf '# SC-scrpts-list -- %s\n' "${timecode%-*}"
   printf '# %s\n' "$(D_ a_relevant_search_dirs)"
 } | S_ T_ -- "${list_crunchbangs}_SC-scrpts-list" > /dev/null
-:
+
 # filter out interpreters not compatible with shellcheck.
 # file $list_crunchbangs is located in $time_dir.
 S_ grep -E -- '/bin/'"${SC_shells}"'.*%=%=%=%' "${list_crunchbangs}" \
   | S_ tee -a -- "${list_crunchbangs}_SC-scrpts-list" \
   || I_
-:
+
 # Copy list to /tmp
 S_ rsync -ca -- "${list_crunchbangs}_SC-scrpts-list" /tmp \
   || I_
-:
+
 # Backup both lists
 B_ "${list_crunchbangs}_SC-scrpts-list" /tmp/*_SC-scrpts-list
-:
+
   # <>
   X_; :_; W_ timecode list_crunchbangs SC_shells 
   L_
-:
 
-:
+
+
 : 'CENTRAL TASK, 2 of 2: with ShellCheck scan each script for errors'
-:
+
 # TODO: keep "$all_files_index" tracked with content all the way through
 #   into the "_found_scripts" file
 # Bug? line 1 of script could contain percent symbols
-:
+
 : 'A hell world of pipelines'
 #   Q: how to translate the correct newlines into nulls to separate the 
 #   filenames when reading from a file?  awk? files _can_ contain \n-s
-:
+
 # for every line beginning with a crashbang...
 grep_o="$(S_ grep ^'#!' -- "${list_crunchbangs}_SC-scrpts-list")"
-:
+
 # get the filename
 cut_o="$(cut -d '%' -f5- <<< "${grep_o}")"
-:
+
 # collect the filenames in a single list
 mapfile -t a_each_abspath_scriptnm <<< "${cut_o}"
-:
+
 # remove leading whitespace
 a_each_abspath_scriptnm=("${a_each_abspath_scriptnm[@]##* }")
-:
+
 # Wk: awk , multi-char delim, remv lead+trail wspc - redef $0 ?, printf
 
 #   grep -Eo | tr
@@ -1785,34 +1783,34 @@ a_each_abspath_scriptnm=("${a_each_abspath_scriptnm[@]##* }")
 # Bug: why sort by line count? More text, more bugs? How to prior mult
 #   factors?
 
-:
+
 # count number of newlines in each script
 wc_o="$(S_ wc -l -- "${a_each_abspath_scriptnm[@]}")"
-:
+
 # remove 'totals' line
 wc_o="${wc_o%$'\n*'}"
-:
+
 # sort script lengths descending
 sort_o="$(sort -gr <<< "${wc_o}")"
-:
+
 # print script names
 awk_o="$(awk '{ print $2 }' <<< "${sort_o}")"
-:
+
 # create a list of script names sorted by line count descending
 mapfile -t a_each_script_list_sorted_by_linect \
   <<< "${awk_o}"
-:
+
 # define file name, including severity and path symbols (target file)
 found_scrpts_f="${list_crunchbangs}_found_scripts_${sc_severity:0:1}_${abbrev_rel_search_dirs}"
 i=0
-:
+
 # Bug? 1st grep extra?
-:
+
 {
-  :
+
   # for each sorted script
   for sorted_script in "${!a_each_script_list_sorted_by_linect[@]}"; do
-    :
+
     # run shellcheck with selected/default severity
     # remove URL's
     # capture SC error codes with their descriptions
@@ -1836,7 +1834,7 @@ i=0
           # end of pipe intended 
       printf '\0'
     )
-    :
+
     # if there's any output from shellcheck
     if [[ -n "${a_each_script_SC_results[*]:0:1}" ]]; then
 
@@ -1852,10 +1850,10 @@ i=0
   
 # append each text group to a findings file
 } | S_ tee -a -- "${found_scrpts_f}" > /dev/null
-:
+
 
 : 'Write semi-permanent archives'
-:
+
 # backup the findings file
 B_ "${found_scrpts_f}"
 
@@ -1865,12 +1863,12 @@ for d in /tmp "${main_d}"; do
   || I_
   B_ "${d}/${found_scrpts_f##*/}"
 done; unset d
-:
+
   # <> Print some variables   for interactive use
   z=0
   for d in "${curr_time_ssubd}" "${main_d}" /tmp; do 
     printf '\n\t data_d_%d=%s\n' $((z++)) "${d}"
   done; unset d z
-:
+
 trap - EXIT
 exit 00
