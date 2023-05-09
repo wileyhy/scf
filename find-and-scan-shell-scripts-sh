@@ -19,6 +19,28 @@ fi
 
 : 'Environment variables'
 
+unset LC_ALL
+LC_COLLATE="C.UTF-8"     # for predictable sorting
+LC_CTYPE="C.UTF-8"       #  "   "           "
+LC_NUMERIC="en_US.UTF-8" # for commas in large numbers
+#GREP_COLORS
+getconf_o="$(/usr/bin/command -p getconf PATH)"
+PATH="${getconf_o}:/usr/bin:/usr/sbin:${PATH}" \
+  || "${Halt_PATH:?}"
+export LC_COLLATE LC_CTYPE LC_NUMERIC PATH
+
+: 'Aliases -- for brevity during debugging'
+
+shopt -s expand_aliases;
+alias     :_=':;: "<>"';
+alias     D_='declare -p ';
+alias     L_='exit "${LINENO}"';
+alias     M_='sudo namei -xl ';
+alias     S_='sudo ';
+alias     T_='tee --output-error=exit ';
+alias     X_='set -x';
+alias     awk='gawk --lint ';
+
 # If xtrace was previously on, then on first execution of this function, 
 # turn xrtrace off, and on second execution, turn xtrace back on and 
 # forget about this function's settings. If xtrace was previously off, 
@@ -124,15 +146,6 @@ _full_xtrace(){
   set -x
 }
 
-
-unset LC_ALL
-LC_COLLATE="C.UTF-8"     # for predictable sorting
-LC_CTYPE="C.UTF-8"       #  "   "           "
-LC_NUMERIC="en_US.UTF-8" # for commas in large numbers
-
-PATH="$(/usr/bin/command -p getconf PATH):/usr/bin:/usr/sbin:${PATH}" \
-  || "${Halt_PATH:?}"
-export LC_COLLATE LC_CTYPE LC_NUMERIC PATH
 
 
   #exit 101
@@ -879,18 +892,7 @@ unset end_dirname full_dir_list ext_array dir sub_dir num_sub_dirs \
 
 
 
-: 'Aliases and functions -- for brevity during debugging'
-
-shopt -s expand_aliases;
-alias     :_=':;: "<>"';
-alias     D_='declare -p ';
-alias     L_='exit "${LINENO}"';
-alias     M_='sudo namei -xl ';
-alias     S_='sudo ';
-alias     T_='tee --output-error=exit ';
-alias     X_='set -x';
-alias     awk='gawk --lint ';
-
+: 'Functions -- for brevity during debugging'
 set -v
 function  B_() { fn_bak "$@";};
 function  I_() { fn_erx "${LINENO}";};
