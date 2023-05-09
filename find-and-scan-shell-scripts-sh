@@ -154,7 +154,7 @@ _full_xtrace() {
   set -x
 }
 
-exit 101
+#exit 101
 _full_xtrace
 
 : 'Implementation dependent arguments for options parsable by -shellcheck-'
