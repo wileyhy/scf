@@ -104,15 +104,20 @@ _mk_setenv_delta() {
 
     {
       diff -y --suppress-{common-lines,blank-empty} \
-        --color=always \
+        --color=always --palette='ad=1;3;38;5;154:de=1;3;38;5;95' \
         "${setenv_prev}" "${setenv_now}" \
         |& grep -v setenv
     } \
       |& tee -- "${setenv_delta}"
 
+
+    #--color=always --palette='ad=1;3;38;5;154:de=1;3;38;5;9' \
+    #--unchanged-group-format=$'\e[0;32m%=\e[0m' \
     {
       diff -B --suppress-{common-lines,blank-empty} \
-        --color=always --palette='ad=1;3;38;5;154:de=1;3;38;5;9' \
+        --color=always \
+          --old-group-format=$'\e[0;95m%<\e[0m' \
+          --new-group-format=$'\e[0;31m%>\e[0m' \
         "${setenv_prev}" "${setenv_now}" \
         |& grep -v setenv
     } \
