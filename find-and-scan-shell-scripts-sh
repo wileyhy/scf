@@ -184,11 +184,14 @@ if [[ $# -gt 0 ]]; then
   cli_input=("${@}")
 fi
 
-#declare -p sc_severity SC_shells repo_nm protected_git_dir_1 protected_git_dir_2 script_nm script_proper_nm script_version a_poss_proces_lock_dirs cli_input
+#D_ sc_severity SC_shells repo_nm protected_git_dir_1 protected_git_dir_2 script_nm script_proper_nm script_version a_poss_proces_lock_dirs cli_input
 exit 101
 _full_xtrace
 
 # Variables re getopts
+bash_path_orig="${PATH}"
+bash_path="${bash_path_orig}"
+
 find_exclude_optargs_default=(
   [0]='(' [1]='!' [2]='-name' [3]='proc' [4]='-a' [5]='!'
   [6]='-name' [7]='sys' [8]='-a' [9]='!' [10]='-iname'
@@ -197,25 +200,19 @@ find_exclude_optargs_default=(
   [19]="${protected_git_dir_2}" [20]='-a' [21]='!' [22]='-path'
   [23]='*/git/*' [24]=')'
 )
-
-# <>
-find_exclude_optargs_default+=([100]='default')
 find_exclude_optargs=("${find_exclude_optargs_default[@]}")
 
-bash_path_orig="${PATH}:/default"
-bash_path="${bash_path_orig}"
-#bash_path="${bash_path_orig%:/default}"
 IFS=':' read -ra find_path <<<"${bash_path}"
-memory_usage=default_temp_files
-sc_severity=default_error
+memory_usage=temp_files
+sc_severity=error
 
-search_methods_descend=default_without # bash or find
-search_methods_path=(default_PATH_as-is)
-search_methods_proc=default_without
-search_methods_prog=default_bin_bash
-search_methods_spec_dirs=default_without
-search_methods_symlinks=default_with
-search_methods_sys=default_without
+search_methods_descend=without # bash or find
+search_methods_path=(as-is)
+search_methods_proc=without
+search_methods_prog=bin_bash
+search_methods_spec_dirs=without
+search_methods_symlinks=with
+search_methods_sys=without
 
 fn_usage() {
   # Usage:  fn_usage [exit-code]
