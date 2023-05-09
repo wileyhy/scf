@@ -59,77 +59,61 @@ _xtrace_duck(){
 
 # Bug: two files. better to unify. but how to sort?
 
-export set_prev set_now set_delta env_prev env_now env_delta
-_mk_set_prev(){
-  if [[ -n "${set_now}" ]]; then
+export setenv_prev setenv_now setenv_delta env_prev env_now env_delta
+_mk_setenv_prev(){
+  if [[ -n "${setenv_now}" ]]; then
     
-    if [[ -n "${set_prev}" ]]; then
-      rm -f "${set_prev}"
+    if [[ -n "${setenv_prev}" ]]; then
+      rm -f "${setenv_prev}"
     fi
-    set_prev="${set_now}"
+    setenv_prev="${setenv_now}"
   fi
 }
-_mk_env_prev(){
-  if [[ -n "${env_now}" ]]; then
-    
-    if [[ -n "${env_prev}" ]]; then
-      rm -f "${env_prev}"
-    fi
-    env_prev="${env_now}"
-  fi
-}
-_mk_set_now(){
-  set_now="$(mktemp)"
+_mk_setenv_now(){
+  setenv_now="$(mktemp)"
   set \
-    |& tee "${set_now}" > /dev/null
+    |& tee -- "${setenv_now}" > /dev/null
+  env \
+    |& tee -a "${setenv_now}" > /dev/null
 }
-_mk_env_now(){
-  env_now="$(mktemp)"
-  set \
-    |& tee "${env_now}" > /dev/null
-}
-_mk_set_delta(){
-  if [[ -n "${set_now}" ]] && [[ -n "${set_prev}" ]]; then
+_mk_setenv_delta(){
+  local diff_y diff_B
+
+  if [[ -n "${setenv_now}" ]] && [[ -n "${setenv_prev}" ]]; then
     
-    if [[ -n "${set_delta}" ]]; then
-      rm -f "${set_delta}"
+    if [[ -n "${setenv_delta}" ]]; then
+      rm -f "${setenv_delta}"
     else  
-      set_delta="$(mktemp)"
+      setenv_delta="$(mktemp)"
     fi
+ 
+    diff_y="$(
+      diff -y --suppress-{common-lines,blank-empty} \
+        --color=always \
+        "${setenv_prev}" "${setenv_now}" \
+        |& grep -v setenv
+        |& tee -a "${setenv_delta}" 
+      )"
+
+    diff_B="$(
+      diff -B --suppress-{common-lines,blank-empty} \
+        --color=always --palette='ad=1;3;38;5;154:de=1;3;38;5;9' \
+        "${setenv_prev}" "${setenv_now}" \
+        |& grep -v setenv \
+        |& tee -a "${setenv_delta}"
+      )"
     
-    diff -B --color=always --palette='ad=1;3;38;5;154:de=1;3;38;5;9' \
-      --suppress-{common-lines,blank-empty} \
-      "${set_prev}" "${set_now}" \
-      |& tee "${set_delta}"
-    wc "${set_delta}"
-    printf '\n\n\n'
-  fi
-}
-_mk_env_delta(){
-  if [[ -n "${env_now}" ]] && [[ -n "${env_prev}" ]]; then
-    
-    if [[ -n "${env_delta}" ]]; then
-      rm -f "${env_delta}"
-    else  
-      env_delta="$(mktemp)"
-    fi
-    
-    diff -B --color=always --palette='ad=1;3;38;5;154:de=1;3;38;5;9' \
-      --suppress-{common-lines,blank-empty} \
-      "${env_prev}" "${env_now}" \
-      |& tee "${env_delta}"
-    wc "${env_delta}"
+    printf '\n\n'
+    less -RNS "${setenv_delta}" 
+    wc "${setenv_delta}"
     printf '\n\n\n'
   fi
 }
 _mk_deltas(){
   #_xtrace_duck
-  _mk_set_prev
-  _mk_env_prev
-  _mk_set_now
-  _mk_env_now
-  _mk_set_delta
-  _mk_env_delta
+  _mk_setenv_prev
+  _mk_setenv_now
+  _mk_setenv_delta
   #_xtrace_duck
 }
 
