@@ -134,11 +134,11 @@ _mk_setenv_delta() {
 }
 
 _mk_deltas() {
-  _xtrace_duck
+  #_xtrace_duck
   _mk_setenv_prev
   _mk_setenv_now
   _mk_setenv_delta
-  _xtrace_duck
+  #_xtrace_duck
 }
 
 # ? what of BASH_LINENO
@@ -186,6 +186,7 @@ fi
 
 #declare -p sc_severity SC_shells repo_nm protected_git_dir_1 protected_git_dir_2 script_nm script_proper_nm script_version a_poss_proces_lock_dirs cli_input
 exit 101
+_full_xtrace
 
 # Variables re getopts
 find_exclude_optargs_default=(
@@ -260,11 +261,12 @@ EOF
   exit "${1}"
 }
 
-#declare -p find_exclude_optargs_default find_exclude_optargs
-#declare -p bash_path find_path memory_usage sc_severity
-#declare -p search_methods_descend search_methods_path search_methods_proc search_methods_prog search_methods_spec_dirs search_methods_symlinks search_methods_sys
-#declare -pf fn_usage
+#D_ find_exclude_optargs_default find_exclude_optargs
+#D_ bash_path find_path memory_usage sc_severity
+#D_ search_methods_descend search_methods_path search_methods_proc search_methods_prog search_methods_spec_dirs search_methods_symlinks search_methods_sys
+#D_ -f fn_usage
 exit 101
+_full_xtrace
 
 while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
   declare -p OPTIND OPTARG
