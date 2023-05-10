@@ -289,6 +289,26 @@ script_version=1.0
 # <>
 abbrev_rel_search_dirs=/
 
+: 'Required programs'
+
+reqd_progs=(
+  strings
+)
+unset b reqd_progs_exit
+for b in "${req_progs[@]}"; do
+  if ! hash "${b}" 2> /dev/null; then
+    if [[ -z "${reqd_progs_exit}" ]]; then
+      reqd_progs_exit=yes
+      printf '\n\tThe following programs are required:\n'
+    fi
+    printf '\t%s\n' "${b}"
+  fi
+done; unset b;
+if [[ "${reqd_progs_exit}" == yes ]]; then
+  echo
+  exit 1
+fi
+
 : 'Option parsing'
 
 if [[ $# -gt 0 ]]; then
