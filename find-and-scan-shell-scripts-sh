@@ -429,7 +429,7 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
       case "${OPTARG}" in
         r) memory_usage=RAM_only ;;
         p) memory_usage=persistent_storage ;;
-        t) memory_usage=temp_files ;;
+        t) memory_usage=temp_files ;; # default
 
         # Error handling
         *) "${arg_wrong__X:?}" ;;
