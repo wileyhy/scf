@@ -79,7 +79,7 @@ trap '
   done
 
     # <>
-    : "${Halt_trap:?}"
+    #: "${Halt_trap:?}"
 
   # Remove any script-s ACL-s based on canary variables
   if [[ -v acl_execd_setfacl ]]; then 
