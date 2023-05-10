@@ -461,7 +461,7 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
         as | ai)
           unset find_path search_methods_path
           search_methods_path=(as-is)
-          bash_path="${PATH}"
+          bash_path="${bash_path_orig}"
           IFS=':' read -ra find_path <<<"${bash_path}"
           ;;
         bi | b)
@@ -493,16 +493,14 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
         pr | p | pa)
           unset find_path
           search_methods_path+=(add_proc)
-          bash_path="${bash_path//:\/default/}"
-          bash_path="${bash_path}:/proc"
+          bash_path+=':/proc'
           IFS=':' read -ra find_path <<<"${bash_path}"
           search_methods_prog=bin_find
           ;;
         sy | sa)
           unset find_path
           search_methods_path+=(add_sys)
-          bash_path="${bash_path//:\/default/}"
-          bash_path="${bash_path}:/sys"
+          bash_path+=':/sys'
           IFS=':' read -ra find_path <<<"${bash_path}"
           search_methods_prog=bin_find
           ;;
@@ -544,10 +542,8 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
       unset find_path
       search_methods_path+=("add_dir__${new_optarg//\//_}")
 
-      # <> Debug: bash_path="${bash_path//:\/default/}"
-
       # Append dirname to PATH
-      bash_path="${bash_path}:${new_optarg}"
+      bash_path+="${new_optarg}"
 
       # load directories of PATH into an array
       IFS=':' read -ra find_path <<<"${bash_path}"
