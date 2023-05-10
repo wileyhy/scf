@@ -110,7 +110,7 @@ trap '
   trap 'set -x; echo SIGABRT;   trap SIGABRT;   kill -s 2   $$'  ABRT   # 6
   trap 'set -x; echo SIGBUS;    trap SIGBUS;    kill -s 2   $$'  BUS    # 7
   trap 'set -x; echo SIGFPE;    trap SIGFPE;    kill -s 2   $$'  FPE    # 8
-  trap 'set -x; echo SIGKILL;   trap SIGKILL;   kill -s 2   $$'  KILL   # 9
+# trap 'set -x; echo SIGKILL;   trap SIGKILL;   kill -s 2   $$'  KILL   # 9
   trap 'set -x; echo SIGUSR1;   trap SIGUSR1;   kill -s 2   $$'  USR1   # 10
   trap 'set -x; echo SIGSEGV;   trap SIGSEGV;   kill -s 2   $$'  SEGV   # 11
   trap 'set -x; echo SIGUSR2;   trap SIGUSR2;   kill -s 2   $$'  USR2   # 12
@@ -120,7 +120,7 @@ trap '
   trap 'set -x; echo SIGSTKFLT; trap SIGSTKFLT; kill -s 2   $$'  STKFLT # 16
   trap 'set -x; echo SIGCHLD;   trap SIGCHLD;   kill -s 2   $$'  CHLD   # 17
   trap 'set -x; echo SIGCONT;   trap SIGCONT;   kill -s 2   $$'  CONT   # 18
-  trap 'set -x; echo SIGSTOP;   trap SIGSTOP;   kill -s 2   $$'  STOP   # 19
+# trap 'set -x; echo SIGSTOP;   trap SIGSTOP;   kill -s 2   $$'  STOP   # 19
   trap 'set -x; echo SIGTSTP;   trap SIGTSTP;   kill -s 2   $$'  TSTP   # 20
   trap 'set -x; echo SIGTTIN;   trap SIGTTIN;   kill -s 2   $$'  TTIN   # 21
   trap 'set -x; echo SIGTTOU;   trap SIGTTOU;   kill -s 2   $$'  TTOU   # 22
