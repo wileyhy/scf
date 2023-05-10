@@ -219,7 +219,7 @@ _mk_setenv_delta() {
 
     {
       diff --suppress-{common-lines,blank-empty} --color=always \
-        --palette='ad=1;3;38;5;154:de=1;3;38;5;105' \
+        --palette="ad=1;3;38;5;154:de=1;3;38;5;129" \
         "${setenv_prev}" "${setenv_now}" \
         | grep -ve BASH_LINENO -e BASH_COMMAND -e BASH_SOURCE \
         -e setenv_ -Fe '---'
