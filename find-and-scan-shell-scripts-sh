@@ -419,8 +419,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
   case "${cli_input}" in
     
     # Easter egg
-    b)
-      printf '%s' "${easter_egg}"
+    b) printf '%s' "${easter_egg}"
       exit 0
       ;;
     
@@ -430,103 +429,79 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
     # selecting either '-h P' or '-h L' will also select the use of
     # `find`. The 'P' and 'L' refer to `find`s first argument, which
     # by default is assumed (by `find`) to be '-P'. `find -H` is not
-    # implemented in this script.
+    # implemented in this script. Default is bash.
     #   Side effect: setting '-l p' also clobbers this variable. Side 
     # effects such as these are marked below as "clobber."
     #   This parameter expansion, ':?', when a parameter is null or 
     # unset, causes the shell to immediately halt, ignoring any trap 
     # on EXIT.
-    l)
-      # Parse option arguments
-      case "${OPTARG:0:1}" in
-        # Bash 
-        b*) methods_symlinks=bash methods_prog=bin_bash # default
+    #   Mis-spellings beyond the first one or two letters are allowed.
+    l) case "${OPTARG:0:1}" in
+        b*) methods_symlinks=bash methods_prog=bin_bash
           ;;
-        # Physical
-        p*) methods_symlinks=physical methods_prog=bin_find find_sym_opt='-P'
+        p*) methods_symlinks=physical methods_prog=bin_find 
+        find_sym_opt='-P'
           ;;
-        # Logical # clobber
-        l*) methods_symlinks=logical methods_prog=bin_find find_sym_opt='-L'
+        l*) methods_symlinks=logical methods_prog=bin_find 
+          find_sym_opt='-L'
           ;;
         *) "${arg_wrong__l:?}"
           ;;
       esac
       ;;
     
-    # Whether and how to save data.
-    m)
-      # (Input validation)
-      OPTARG="${OPTARG:0:1}"
-
-      # Parse option arguments
-      case "${OPTARG}" in
-        r) memory_usage=RAM_only ;;
-        p) memory_usage=persistent_storage ;;
-        t) memory_usage=temp_files ;; # default
-
-        # Error handling
+    # Whether and how to save data. Default is temp files.
+    m) case "${OPTARG:0:1}" in
+        r*) memory_usage=RAM_only ;;
+        p*) memory_usage=persistent_storage ;;
+        t*) memory_usage=temp_files ;;
         *) "${arg_wrong__m:?}" ;;
       esac
       ;;
     
-    # PATH (array) - Part 1 - Options with no args. Default is 'as-is'. 
-    #   '-P /usr/share' is an option with an argument. 
-    #   For scanning '/proc' or '/sys', see also option 's'.
-    d)
-      # Part 1.A -- clobbering settings
-      OPTARG="${OPTARG:0:2}"
-      case "${OPTARG}" in
+    # PATH (array) - Part 1 - 
+    #   These options with have no arguments. The default is 'as-is'. 
+    # '-P /usr/share' is an option with an argument. For scanning 
+    # '/proc' or '/sys', see also option 's'. Multiple abbreviations 
+    # are accepted. For consistency, find_path is always defined after 
+    # bash_path, regardless of which one is used. Clobbering settings
+    # are: ac as bi bo ge sb. Additive PATH settings, but the Program
+    # setting gets clobbered, are: pr sy.
+    d) case "${OPTARG:0:2}" in
 
-        # Multiple abbreviations accepted
-        ac | aa)
+        ac* | aa*)
           unset find_path methods_path
-          methods_path=(actually_all)
-          bash_path='/'
-
-          # For consistency, find_path is always defined after 
-          # bash_path, regardless of which one is used.
-          methods_prog=bin_find
+          methods_path=(actually_all) bash_path='/' methods_prog=bin_find
           F_ ;;
-        as | ai)
+        as* | ai*)
           unset find_path methods_path
-          methods_path=('as-is') # default
-          bash_path="${bash_path_orig}"
+          methods_path=('as-is') bash_path="${bash_path_orig}"
           F_ ;;
-        bi | b)
+        bi* | b)
           unset find_path methods_path
-          methods_path=(bin_only)
-          bash_path='/usr/bin'
+          methods_path=(bin_only) bash_path='/usr/bin'
           F_ ;;
-        bo | bs)
+        bo* | bs*)
           unset find_path methods_path
-          methods_path=(both_bin_sbin_only)
-          bash_path='/usr/bin:/usr/sbin'
+          methods_path=(both_bin_sbin_only) bash_path='/usr/bin:/usr/sbin'
           F_ ;;
-        ge | g)
+        ge* | g)
           unset find_path methods_path
-          methods_path=(getconf_PATH_only)
-          bash_path="${getconf_o}"
+          methods_path=(getconf_PATH_only) bash_path="${getconf_o}"
           F_ ;;
-        sb | so | s)
+        sb* | so* | s)
           unset find_path methods_path
-          methods_path=(sbin_only)
-          bash_path='/usr/sbin'
+          methods_path=(sbin_only) bash_path='/usr/sbin'
           F_ ;;
-          # Part 1.B -- additive PATH settings, but the Program
-          #   setting gets clobbered
-        pr | p | pa)
+        pr* | p | pa*)
           unset find_path
-          methods_path+=(add_proc)
-          bash_path+=':/proc'
+          methods_path+=(add_proc) bash_path+=':/proc'
           methods_prog=bin_find
           F_ ;;
-        sy | sa)
+        sy* | sa*)
           unset find_path
-          methods_path+=(add_sys)
-          bash_path+=':/sys'
-          methods_prog=bin_find
+          methods_path+=(add_sys) bash_path+=':/sys' methods_prog=bin_find
           F_ ;;
-          # Part 1.C - handle erroneous input
         *) "${arg_wrong__d:?}" ;;
       esac
       ;;
@@ -565,84 +540,47 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
       bash_path+="${new_optarg}"
       F_ ;;
     
-    # ShellCheck's '-S' setting, ie, severity level
-    c)
-      # Mis-spellings allowed
-      OPTARG="${OPTARG:0:1}"
-      case "${OPTARG}" in
-        e) sc_severity=error ;; # default
-        i) sc_severity=info ;;
-        s) sc_severity=style ;;
-        w) sc_severity=warning ;;
+    # ShellCheck's '-S' setting, ie, severity level. Default is error.
+    c) case "${OPTARG:0:1}" in
+        e*) sc_severity=error ;;
+        i*) sc_severity=info ;;
+        s*) sc_severity=style ;;
+        w*) sc_severity=warning ;;
         *) "${arg_wrong__c:?}" ;;
       esac
       ;;
 
-    v)
-      printf '\n\t%s, version %s. %s.\n\n' "${script_proper_nm}" \
+    v) printf '\n\t%s, version %s. %s.\n\n' "${script_proper_nm}" \
         "${script_version}" "${script_lic}"
       ;;
     
     # Help message
-    h)
-      fn_usage 0
+    h) fn_usage 0
       ;;
     
     # Program to search with (variable) -- all settings clobber
-    p)
-      OPTARG="${OPTARG:0:2}"
-      case "${OPTARG}" in
-        ba | b)
-          methods_prog=bin_bash # default
-          ;;
-        cp)
-          methods_prog=bash_command_pV
-          ;;
-        cv)
-          methods_prog=bash_command_V
-          ;;
-        fi | f)
-          methods_prog=bin_find
-          ;;
-        ty | t)
-          methods_prog=bash_type_a
-          ;;
-        *)
-          "${arg_wrong__p:?}"
-          ;;
+    p) case "${OPTARG:0:2}" in
+        ba* | b) methods_prog=bin_bash # default ;;
+        cp*) methods_prog=bash_command_pV ;;
+        cv*) methods_prog=bash_command_V ;;
+        fi* | f) methods_prog=bin_find ;;
+        ty* | t) methods_prog=bash_type_a ;;
+        *) "${arg_wrong__p:?}" ;;
       esac
       ;;
     
-    # What information to verify -- none are enabled by defaulted
-    q)
-      OPTARG="${OPTARG:0:2}"
-      case "${OPTARG}" in
-        l | al) 
-          verify=(all) # default
-          ;;
-        u | un) unset verify 
-          ;;
-        *)
-          [[ "${verify[*]}" =~ all ]] \
-            && unset verify
-          ;;&
-        a | ac) 
-          verify+=(acls) 
-          ;;
-        c | cr) 
-          verify+=(crashbangs) 
-          ;;
-        d | da) 
-          verify+=(dacs) 
-          ;;
-        i | in) 
-          verify+=(interpreters) 
-          ;;
-        p | pa) 
-          verify+=(path) 
-          ;;
-        *) "${arg_wrong__q:?}" 
-          ;;
+    # What information to verify. The default is all.
+    q) case "${OPTARG:0:2}" in
+        l | al*) verify=(all) ;;
+        u | un*) unset verify ;;
+        *) [[ "${verify[*]}" =~ all ]] \
+            && unset verify ;;&
+        a | ac*) verify+=(acls) ;;
+        c | cr*) verify+=(crashbangs) ;;
+        d | da*) verify+=(dacs) ;;
+        i | in*) verify+=(interpreters) ;;
+        p | pa*) verify+=(path) ;;
+        *) "${arg_wrong__q:?}" ;;
       esac
       ;;
     
@@ -652,25 +590,13 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
     # for descending follows `bash`, and changing this setting to 'yes', 
     # 'recurse' or 'descend' switches the search program to `find`. 
     # `find`s '-mindepth' and '-maxdepth' are not used.
-    r)
-      OPTARG="${OPTARG:0:1}"
-      case "${OPTARG}" in
-        # recurse|descend|yes
-        r | d | y)
-          methods_descend=yes
-          methods_prog=bin_find # clobber
           #unset bash_path # why unset it? the setting '-r' could be 
           # reversed later on the same command line
-          ;;
-        # no_descend
-        n)
-          methods_descend=no    # default
-          methods_prog=bin_bash # clobber
           #unset find_path # again, why unset it?
-          ;;
-        *)
-          "${arg_wrong__r:?}"
-          ;;
+    r) case "${OPTARG:0:1}" in
+        r | d | y) methods_descend=yes methods_prog=bin_find ;;
+        n) methods_descend=no ;;
+        *) "${arg_wrong__r:?}" ;;
       esac
       ;;
     
@@ -683,28 +609,15 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
     # enabling this option indicates the wish to use `find`, and so 
     # clobbers `bash`. To add '/proc' or '/sys' to `find`s search path, 
     # see option 'P', 'add_proc' and 'add_sys'.
-    s)
-     OPTARG="${OPTARG:0:1}"
-      case "${OPTARG}" in
-        # scan_excluded|yes
-        s | y)
-          methods_scan_excluded=yes
-          methods_prog=bin_find
-          find_exclude_optargs=()
-          ;;
-        # no_scan_excluded
-        n)
-          methods_scan_excluded=no # default
-          methods_prog=bin_find
-          find_exclude_optargs=("${find_exclude_optargs_default[@]}")
-          ;;
-        *)
-          "${arg_wrong__s:?}"
-          ;;
+    s) case "${OPTARG:0:1}" in
+        s | y) methods_scan_excluded=yes methods_prog=bin_find
+          find_exclude_optargs=() ;;
+        n) methods_scan_excluded=no methods_prog=bin_find
+          find_exclude_optargs=("${find_exclude_optargs_default[@]}") ;;
+        *) "${arg_wrong__s:?}" ;;
       esac
       ;;
-    *)
-      fn_usage 1
+    *) fn_usage 1
       ;;
   esac
 done
