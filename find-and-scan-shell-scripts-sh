@@ -309,7 +309,7 @@ find_exclude_optargs=("${find_exclude_optargs_default[@]}")
 
 IFS=':' read -ra find_path <<<"${bash_path}"
 memory_usage=temp_files
-sc_severity=error
+sc_sev_abrv="${sc_severity:0:1}"
 
 search_methods_descend=without # bash or find
 search_methods_path=(as-is)
@@ -1164,7 +1164,7 @@ fn_write_arrays() {
     # create local variables, for use as both array and string
     local -n loc_nameref_b="${loc_unquotd_array_nm_b}"
     loc_array_nm="${loc_unquotd_array_nm_b}"
-    loc_write_f_b="${loc_write_d_b}/_${sc_severity:0:1}"
+    loc_write_f_b="${loc_write_d_b}/_${sc_sev_abrv}"
     loc_write_f_b="${loc_write_f_b}_${abbrev_rel_search_dirs}_${loc_array_nm}"
 
     # solved?  BUG: mixing variable and array. sb a nameref
@@ -1257,7 +1257,7 @@ timecode="$(builtin printf '%(%F_%H%M%S)T')"
 #:_
 #X_
 
-# BUGs: Hardcoded $mountpoint; trailing backslash
+# BUGs: Hardcoded $mountpoint
 
 : 'Assign varnames and paths for the data directories'
 mountpoint=/run/media/root/29_Mar_2023
@@ -1265,7 +1265,6 @@ main_d="${mountpoint}/${script_dirnm}"
 data_subd="${main_d}/latest_data"
 curr_time_ssubd="${data_subd}/t_${timecode}/"
 list_crunchbangs="${curr_time_ssubd}/crunchbangs"
-found_scrpts_f="${list_crunchbangs}_found_scripts_${sc_severity:0:1}_${abbrev_rel_search_dirs}"
 
 : 'data files'
 a_write_path_nms=("${list_crunchbangs:=crunchbangs}" "/tmp/${list_crunchbangs##*/}")
@@ -1860,7 +1859,7 @@ mapfile -t a_each_script_list_sorted_by_linect \
   <<<"${awko}"
 
 # define file name, including severity and path symbols (target file)
-found_scrpts_f="${list_crunchbangs}_found_scripts_${sc_severity:0:1}_${abbrev_rel_search_dirs}"
+found_scrpts_f="${list_crunchbangs}_found_scripts_${sc_sev_abrv}_${abbrev_rel_search_dirs}"
 i=0
 
 # Bug? 1st grep extra?
