@@ -663,7 +663,6 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
           search_methods_scan_excluded=no
           search_methods_prog=bin_find
           find_exclude_optargs=("${find_exclude_optargs_default[@]}")
-          unset 'find_exclude_optargs[100]'
           ;;
         *)
           "${arg_wrong__s:?}"
@@ -676,7 +675,6 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
   esac
 done
 set -
-unset 'find_exclude_optargs[100]'
 {
 
   # <>
