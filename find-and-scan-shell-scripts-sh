@@ -18,6 +18,7 @@ fi
 : 'Environment variables'
 
 unset LC_ALL
+FUNCNEST=5
 GREP_COLORS='mt=01;104'
 export GREP_COLORS
 LC_COLLATE="C.UTF-8"     # for predictable sorting
@@ -27,7 +28,7 @@ getconf_o="$(/usr/bin/command -p getconf PATH)"
 PATH="${getconf_o}:/usr/bin:/usr/sbin:${PATH}" \
   || "${Halt_PATH:?}" # Causes an immediate halt of caller
 PS4='+${BASH_SOURCE[0]}:${LINENO}:${FUNCNAME[0]}: '
-export GREP_COLORS LC_COLLATE LC_CTYPE LC_NUMERIC PATH PS4
+export FUNCNEST GREP_COLORS LC_COLLATE LC_CTYPE LC_NUMERIC PATH PS4
 
 # define filenames for the lock directory and temp files
 repo_nm=scf
@@ -55,7 +56,6 @@ alias awk='gawk --lint '
 trap '
     
     # <>
-    set -o functrace errtrace
     declare -p a_poss_proces_lock_dirs  
 
   # Delete all possible existing process _lock_directories_. 
