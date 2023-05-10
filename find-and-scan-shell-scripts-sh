@@ -583,8 +583,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
     # clobbers `bash`. To add '/proc' or '/sys' to `find`s search path, 
     # see option 'P', 'add_proc' and 'add_sys'.
     s) case "${OPTARG:0:1}" in
-        s | y) methods_scan_excluded=yes methods_prog=bin_find
-          find_exclude_optargs=() ;;
+        s | y) methods_scan_excluded=yes find_exclude_optargs=() ;;
         n) methods_scan_excluded=no methods_prog=bin_find
           find_exclude_optargs=("${find_exclude_optargs_default[@]}") ;;
         *) "${arg_wrong__s:?}" ;;
