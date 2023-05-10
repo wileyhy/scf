@@ -44,6 +44,7 @@ a_poss_proces_lock_dirs=([0]="${XDG_RUNTIME_DIR}" [1]="${HOME}"
 shopt -s expand_aliases
 alias :_=':;: "<>"'
 alias D_='declare -p '
+alias F_='IFS=":" read -ra find_path <<<"${bash_path}"'
 alias L_='exit "${LINENO}"'
 alias M_='sudo namei -xl '
 alias R_='rm --one-file-system --preserve-root=all '
@@ -315,7 +316,7 @@ find_exclude_optargs_default=(
   [23]='*/git/*' [24]=')'
 )
 find_exclude_optargs=("${find_exclude_optargs_default[@]}")
-IFS=':' read -ra find_path <<<"${bash_path}"
+IFS=':' read -ra find_path <<<"${bash_path}" # aliased to 'F_'
 find_sym_opt='-P'
 memory_usage=temp_files
 sc_sev_abrv="${sc_severity:0:1}"
@@ -454,55 +455,47 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
 
           # For consistency, find_path is always defined after 
           # bash_path, regardless of which one is used.
-          IFS=':' read -ra find_path <<<"${bash_path}"
           search_methods_prog=bin_find
-          ;;
+          F_ ;;
         as | ai)
           unset find_path search_methods_path
           search_methods_path=('as-is')
           bash_path="${bash_path_orig}"
-          IFS=':' read -ra find_path <<<"${bash_path}"
-          ;;
+          F_ ;;
         bi | b)
           unset find_path search_methods_path
           search_methods_path=(bin_only)
           bash_path='/usr/bin'
-          IFS=':' read -ra find_path <<<"${bash_path}"
-          ;;
+          F_ ;;
         bo | bs)
           unset find_path search_methods_path
           search_methods_path=(both_bin_sbin_only)
           bash_path='/usr/bin:/usr/sbin'
-          IFS=':' read -ra find_path <<<"${bash_path}"
-          ;;
+          F_ ;;
         ge | g)
           unset find_path search_methods_path
           search_methods_path=(getconf_PATH_only)
           bash_path="${getconf_o}"
-          IFS=':' read -ra find_path <<<"${bash_path}"
-          ;;
+          F_ ;;
         sb | so | s)
           unset find_path search_methods_path
           search_methods_path=(sbin_only)
           bash_path='/usr/sbin'
-          IFS=':' read -ra find_path <<<"${bash_path}"
-          ;;
+          F_ ;;
           # Part 1.B -- additive PATH settings, but the Program
           #   setting gets clobbered
         pr | p | pa)
           unset find_path
           search_methods_path+=(add_proc)
           bash_path+=':/proc'
-          IFS=':' read -ra find_path <<<"${bash_path}"
           search_methods_prog=bin_find
-          ;;
+          F_ ;;
         sy | sa)
           unset find_path
           search_methods_path+=(add_sys)
           bash_path+=':/sys'
-          IFS=':' read -ra find_path <<<"${bash_path}"
           search_methods_prog=bin_find
-          ;;
+          F_ ;;
           # Part 1.C - handle erroneous input
         *) "${arg_wrong__P:?}" ;;
       esac
@@ -546,8 +539,7 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
       bash_path+="${new_optarg}"
 
       # load directories of PATH into an array
-      IFS=':' read -ra find_path <<<"${bash_path}"
-      ;;
+      F_ ;;
     # ShellCheck's '-S' setting, ie, severity level
     S)
       # Mis-spellings allowed
