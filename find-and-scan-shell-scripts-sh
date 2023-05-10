@@ -298,9 +298,7 @@ abbrev_rel_search_dirs=/
 
 : 'Required programs'
 
-reqd_progs=(
-  strings
-)
+reqd_progs=( strings )
 unset b reqd_progs_exit
 for b in "${req_progs[@]}"; do
   if ! hash "${b}" 2> /dev/null; then
