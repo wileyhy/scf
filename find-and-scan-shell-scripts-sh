@@ -11,7 +11,7 @@ if [[ "${UID}" == 0 ]]; then
   printf '\n\t Must be a regular user and use sudo. \n\n'
   exit 1
 else
-  if ! sudo -v; then 
+  if ! sudo -v; then
     printf '\n\tValidation failed of user\x27s \x60sudo\x60 timestamp; '
     printf 'exiting.\n\n'
     exit "${LINENO}"
@@ -28,7 +28,7 @@ LC_COLLATE="C.UTF-8"     # for predictable sorting
 LC_CTYPE="C.UTF-8"       #  "   "           "
 LC_NUMERIC="en_US.UTF-8" # for commas in large numbers
 getconf_o="$(/usr/bin/command -p getconf PATH)" \
-  || "${Halt:?}" 
+  || "${Halt:?}"
 PATH="${getconf_o}:/usr/bin:/usr/sbin:${PATH}"
 PS4='+${BASH_SOURCE[0]}:${LINENO}:${FUNCNAME[0]}: '
 export FUNCNEST GREP_COLORS LC_COLLATE LC_CTYPE LC_NUMERIC PATH PS4
@@ -58,9 +58,10 @@ unique_string="${repo_nm}.${$}.${random_n}"
 mktemp_sfx=".${unique_string}.txt"
 proc_lk_f_nm="${unique_string}.lock"
 timecode="$(builtin printf '%(%F_%H%M%S)T')"
-for pld in "${a_poss_proces_lock_dirs[@]}"; do 
-  process_lock_dirs+=( "${pld}/${proc_lk_f_nm}" )
-done; unset pld
+for pld in "${a_poss_proces_lock_dirs[@]}"; do
+  process_lock_dirs+=("${pld}/${proc_lk_f_nm}")
+done
+unset pld
 
 : '<> Debug variables' # "<>" means, "This is a debugging section."
 
@@ -128,45 +129,45 @@ trap '
   kill -s INT "$$"
 ' EXIT INT TERM
 
-: '<> Table of traps' # Learning about how `bash` uses signals  
+: '<> Table of traps' # Learning about how `bash` uses signals
 
 # trap 'set -x; echo SIGEXIT;   trap SIGEXIT;   kill -s INT $$' EXIT # 0
-  trap 'set -x; echo SIGHUP;    trap SIGHUP;    kill -s 2   $$' HUP  # 1
-# trap 'set -x; echo SIGINT;    trap 2;         kill -s 2   $$' 2 # INT 
-#   ^--- ^C 
-  trap 'set -x; echo SIGQUIT;   trap SIGQUIT;   kill -s 2   $$' QUIT # 3
-  trap 'set -x; echo SIGILL;    trap SIGILL;    kill -s 2   $$' ILL  # 4
-  trap 'set -x; echo SIGTRAP;   trap SIGTRAP;   kill -s 2   $$' TRAP # 5
-  trap 'set -x; echo SIGABRT;   trap SIGABRT;   kill -s 2   $$' ABRT # 6
-  trap 'set -x; echo SIGBUS;    trap SIGBUS;    kill -s 2   $$' BUS  # 7
-  trap 'set -x; echo SIGFPE;    trap SIGFPE;    kill -s 2   $$' FPE  # 8
+trap 'set -x; echo SIGHUP;    trap SIGHUP;    kill -s 2   $$' HUP # 1
+# trap 'set -x; echo SIGINT;    trap 2;         kill -s 2   $$' 2 # INT
+#   ^--- ^C
+trap 'set -x; echo SIGQUIT;   trap SIGQUIT;   kill -s 2   $$' QUIT # 3
+trap 'set -x; echo SIGILL;    trap SIGILL;    kill -s 2   $$' ILL  # 4
+trap 'set -x; echo SIGTRAP;   trap SIGTRAP;   kill -s 2   $$' TRAP # 5
+trap 'set -x; echo SIGABRT;   trap SIGABRT;   kill -s 2   $$' ABRT # 6
+trap 'set -x; echo SIGBUS;    trap SIGBUS;    kill -s 2   $$' BUS  # 7
+trap 'set -x; echo SIGFPE;    trap SIGFPE;    kill -s 2   $$' FPE  # 8
 # trap 'set -x; echo SIGKILL;   trap SIGKILL;   kill -s 2   $$' KILL # 9
 #   ^--- cannot be caught, per `shellcheck`
-  trap 'set -x; echo SIGUSR1;   trap SIGUSR1;   kill -s 2   $$' USR1 # 10
-  trap 'set -x; echo SIGSEGV;   trap SIGSEGV;   kill -s 2   $$' SEGV # 11
-  trap 'set -x; echo SIGUSR2;   trap SIGUSR2;   kill -s 2   $$' USR2 # 12
-  trap 'set -x; echo SIGPIPE;   trap SIGPIPE;   kill -s 2   $$' PIPE # 13
-  trap 'set -x; echo SIGALRM;   trap SIGALRM;   kill -s 2   $$' ALRM # 14
+trap 'set -x; echo SIGUSR1;   trap SIGUSR1;   kill -s 2   $$' USR1 # 10
+trap 'set -x; echo SIGSEGV;   trap SIGSEGV;   kill -s 2   $$' SEGV # 11
+trap 'set -x; echo SIGUSR2;   trap SIGUSR2;   kill -s 2   $$' USR2 # 12
+trap 'set -x; echo SIGPIPE;   trap SIGPIPE;   kill -s 2   $$' PIPE # 13
+trap 'set -x; echo SIGALRM;   trap SIGALRM;   kill -s 2   $$' ALRM # 14
 # trap 'set -x; echo SIGTERM;   trap SIGTERM;   kill -s 2   $$' TERM # 15
-  trap 'set -x; echo SIGSTKFLT; trap SIGSTKFLT; kill -s 2 $$' STKFLT # 16
+trap 'set -x; echo SIGSTKFLT; trap SIGSTKFLT; kill -s 2 $$' STKFLT # 16
 # trap 'set -x; echo SIGCHLD;   trap SIGCHLD;   kill -s 2   $$' CHLD # 17
 #   ^--- triggered by returning command substitution
-  trap 'set -x; echo SIGCONT;   trap SIGCONT;   kill -s 2   $$' CONT # 18
+trap 'set -x; echo SIGCONT;   trap SIGCONT;   kill -s 2   $$' CONT # 18
 # trap 'set -x; echo SIGSTOP;   trap SIGSTOP;   kill -s 2   $$' STOP # 19
 #   ^--- cannot be caught, per `shellcheck`
-  trap 'set -x; echo SIGTSTP;   trap SIGTSTP;   kill -s 2   $$' TSTP # 20
-  trap 'set -x; echo SIGTTIN;   trap SIGTTIN;   kill -s 2   $$' TTIN # 21
-  trap 'set -x; echo SIGTTOU;   trap SIGTTOU;   kill -s 2   $$' TTOU # 22
-  trap 'set -x; echo SIGURG;    trap SIGURG;    kill -s 2   $$' URG  # 23
-  trap 'set -x; echo SIGXCPU;   trap SIGXCPU;   kill -s 2   $$' XCPU # 24
-  trap 'set -x; echo SIGXFSZ;   trap SIGXFSZ;   kill -s 2   $$' XFSZ # 25
-  trap 'set -x; echo SIGVTALRM; trap SIGVTALRM; kill -s 2 $$' VTALRM # 26
-  trap 'set -x; echo SIGPROF;   trap SIGPROF;   kill -s 2   $$' PROF # 27
-  trap 'set -x; echo SIGWINCH;  trap SIGWINCH;  kill -s 2  $$' WINCH # 28
-  trap 'set -x; echo SIGIO;     trap SIGIO;     kill -s 2   $$' IO   # 29
-  trap 'set -x; echo SIGPWR;    trap SIGPWR;    kill -s 2   $$' PWR  # 30
-  trap 'set -x; echo SIGSYS;    trap SIGSYS;    kill -s 2   $$' SYS  # 31
-  trap 'set -x; echo SIGRTMIN;  trap SIGRTMIN;  kill -s 2  $$' RTMIN # 32
+trap 'set -x; echo SIGTSTP;   trap SIGTSTP;   kill -s 2   $$' TSTP # 20
+trap 'set -x; echo SIGTTIN;   trap SIGTTIN;   kill -s 2   $$' TTIN # 21
+trap 'set -x; echo SIGTTOU;   trap SIGTTOU;   kill -s 2   $$' TTOU # 22
+trap 'set -x; echo SIGURG;    trap SIGURG;    kill -s 2   $$' URG  # 23
+trap 'set -x; echo SIGXCPU;   trap SIGXCPU;   kill -s 2   $$' XCPU # 24
+trap 'set -x; echo SIGXFSZ;   trap SIGXFSZ;   kill -s 2   $$' XFSZ # 25
+trap 'set -x; echo SIGVTALRM; trap SIGVTALRM; kill -s 2 $$' VTALRM # 26
+trap 'set -x; echo SIGPROF;   trap SIGPROF;   kill -s 2   $$' PROF # 27
+trap 'set -x; echo SIGWINCH;  trap SIGWINCH;  kill -s 2  $$' WINCH # 28
+trap 'set -x; echo SIGIO;     trap SIGIO;     kill -s 2   $$' IO   # 29
+trap 'set -x; echo SIGPWR;    trap SIGPWR;    kill -s 2   $$' PWR  # 30
+trap 'set -x; echo SIGSYS;    trap SIGSYS;    kill -s 2   $$' SYS  # 31
+trap 'set -x; echo SIGRTMIN;  trap SIGRTMIN;  kill -s 2  $$' RTMIN # 32
 
 : '<> XTrace'
 funclvl=0
@@ -233,12 +234,12 @@ _mk_setenv_delta() {
   if [[ -n "${setenv_now}" ]] && [[ -n "${setenv_prev}" ]]; then
 
     if [[ -n "${setenv_delta}" ]]; then
-      R_ -f -- "${setenv_delta}" 
+      R_ -f -- "${setenv_delta}"
       # [line 1] rm --one-file-system --preserve-root=all -f -- \
       #   /tmp/tmp.HjN8ow8GHi.scf.32869.15382.txt
       wait -f
     else
-      setenv_delta="$(mktemp --suffix="${mktemp_sfx}")" # 
+      setenv_delta="$(mktemp --suffix="${mktemp_sfx}")" #
     fi
 
     {
@@ -247,15 +248,15 @@ _mk_setenv_delta() {
         |& grep -v setenv \
         | grep --color=always -E '.*'
     } \
-      |& tee -- "${setenv_delta}" 
-      # [line 2] tee -- /tmp/tmp.HjN8ow8GHi.scf.32869.15382.txt
+      |& tee -- "${setenv_delta}"
+    # [line 2] tee -- /tmp/tmp.HjN8ow8GHi.scf.32869.15382.txt
 
     {
       diff --suppress-{common-lines,blank-empty} --color=always \
         --palette="ad=1;3;38;5;190:de=1;3;38;5;129" \
         "${setenv_prev}" "${setenv_now}" \
         | grep -ve BASH_LINENO -e BASH_COMMAND -e BASH_SOURCE \
-        -e setenv_ -Fe '---'
+          -e setenv_ -Fe '---'
     } \
       |& tee -a "${setenv_delta}"
 
@@ -301,18 +302,19 @@ _full_xtrace() {
 
 : 'Required programs'
 
-reqd_progs=( strings ) 
+reqd_progs=(strings)
 unset b reqd_progs_exit # [Line 1] +./find-and-scan-shell-scripts-sh:302:: unset b reqd_progs_exit
 for b in "${reqd_progs[@]}"; do
-  if ! hash "${b}" 2> /dev/null; then
+  if ! hash "${b}" 2>/dev/null; then
     if [[ -z "${reqd_progs_exit}" ]]; then
       reqd_progs_exit=yes
       printf '\n\tThe following programs are required:\n'
     fi
     printf '\t\t%s\n' "${b}"
   fi
-done; unset b # [Line 2] +./find-and-scan-shell-scripts-sh:311:: unset b
-              # ^--- added `wait -f` at line302
+done
+unset b # [Line 2] +./find-and-scan-shell-scripts-sh:311:: unset b
+# ^--- added `wait -f` at line302
 if [[ "${reqd_progs_exit}" == yes ]]; then
   echo
   exit 1
@@ -417,10 +419,13 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
 
   # Parse command line options
   case "${cli_input}" in
-    
+
     # Easter egg
-    b) printf '%s' "${easter_egg}"; exit 0 ;;
-    
+    b)
+      printf '%s' "${easter_egg}"
+      exit 0
+      ;;
+
     # Follow symlinks
     #   `bash` always follows symlinks, therefore to not follow any
     # symlinks requires `find` and is a clobbering setting, ie,
@@ -428,57 +433,82 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
     # `find`. The 'P' and 'L' refer to `find`s first argument, which
     # by default is assumed (by `find`) to be '-P'. `find -H` is not
     # implemented in this script. Default is bash.
-    #   Side effect: setting '-l p' also clobbers this variable. Side 
+    #   Side effect: setting '-l p' also clobbers this variable. Side
     # effects such as these are marked below as "clobber."
-    #   This parameter expansion, ':?', when a parameter is null or 
-    # unset, causes the shell to immediately halt, ignoring any trap 
+    #   This parameter expansion, ':?', when a parameter is null or
+    # unset, causes the shell to immediately halt, ignoring any trap
     # on EXIT.
     #   Mis-spellings beyond the first one or two letters are allowed.
     l) case "${OPTARG:0:1}" in
-        b*) methods_symlinks=bash methods_prog=bin_bash ;;
-        p*) methods_symlinks=physical methods_prog=bin_find 
-          find_sym_opt='-P' ;;
-        l*) methods_symlinks=logical methods_prog=bin_find 
-          find_sym_opt='-L' ;;
-        *) "${arg_wrong__l:?}" ;;
-      esac ;;
-    
+      b*) methods_symlinks=bash methods_prog=bin_bash ;;
+      p*)
+        methods_symlinks=physical methods_prog=bin_find
+        find_sym_opt='-P'
+        ;;
+      l*)
+        methods_symlinks=logical methods_prog=bin_find
+        find_sym_opt='-L'
+        ;;
+      *) "${arg_wrong__l:?}" ;;
+    esac ;;
+
     # Whether and how to save data. Default is temp files.
     m) case "${OPTARG:0:1}" in
-        r*) memory_usage=RAM_only ;;
-        p*) memory_usage=persistent_storage ;;
-        t*) memory_usage=temp_files ;;
-        *) "${arg_wrong__m:?}" ;;
-      esac ;;
-    
-    # PATH (array) - Part 1 - 
-    #   These options with have no arguments. The default is 'as-is'. 
-    # '-P /usr/share' is an option with an argument. For scanning 
-    # '/proc' or '/sys', see also option 's'. Multiple abbreviations 
-    # are accepted. For consistency, find_path is always defined after 
+      r*) memory_usage=RAM_only ;;
+      p*) memory_usage=persistent_storage ;;
+      t*) memory_usage=temp_files ;;
+      *) "${arg_wrong__m:?}" ;;
+    esac ;;
+
+    # PATH (array) - Part 1 -
+    #   These options with have no arguments. The default is 'as-is'.
+    # '-P /usr/share' is an option with an argument. For scanning
+    # '/proc' or '/sys', see also option 's'. Multiple abbreviations
+    # are accepted. For consistency, find_path is always defined after
     # bash_path, regardless of which one is used. Clobbering settings
     # are: ac as bi bo ge sb. Additive PATH settings, but the Program
     # setting gets clobbered, are: pr sy.
     d) case "${OPTARG:0:2}" in
 
-        ac* | aa*) methods_path=(actually_all) bash_path='/' 
-          methods_prog=bin_find; F_ ;;
-        as* | ai*) methods_path=('as-is') bash_path="${bash_path_orig}"
-          F_ ;;
-        bi* | b) methods_path=(bin_only) bash_path='/usr/bin'; F_ ;;
-        bo* | bs*) methods_path=(both_bin_sbin_only) 
-          bash_path='/usr/bin:/usr/sbin'; F_ ;;
-        ge* | g) methods_path=(getconf_PATH_only) bash_path="${getconf_o}"
-          F_ ;;
-        sb* | so* | s) methods_path=(sbin_only) bash_path='/usr/sbin'; 
-          F_ ;;
-        pr* | p | pa*) methods_path+=(add_proc) bash_path+=':/proc'
-          methods_prog=bin_find; F_ ;;
-        sy* | sa*) methods_path+=(add_sys) bash_path+=':/sys' 
-          methods_prog=bin_find; F_ ;;
-        *) "${arg_wrong__d:?}" ;;
-      esac ;;
-    
+      ac* | aa*)
+        methods_path=(actually_all) bash_path='/'
+        methods_prog=bin_find
+        F_
+        ;;
+      as* | ai*)
+        methods_path=('as-is') bash_path="${bash_path_orig}"
+        F_
+        ;;
+      bi* | b)
+        methods_path=(bin_only) bash_path='/usr/bin'
+        F_
+        ;;
+      bo* | bs*)
+        methods_path=(both_bin_sbin_only)
+        bash_path='/usr/bin:/usr/sbin'
+        F_
+        ;;
+      ge* | g)
+        methods_path=(getconf_PATH_only) bash_path="${getconf_o}"
+        F_
+        ;;
+      sb* | so* | s)
+        methods_path=(sbin_only) bash_path='/usr/sbin'
+        F_
+        ;;
+      pr* | p | pa*)
+        methods_path+=(add_proc) bash_path+=':/proc'
+        methods_prog=bin_find
+        F_
+        ;;
+      sy* | sa*)
+        methods_path+=(add_sys) bash_path+=':/sys'
+        methods_prog=bin_find
+        F_
+        ;;
+      *) "${arg_wrong__d:?}" ;;
+    esac ;;
+
     # PATH (array) - Part 2 - options with args
     a)
       # Input validation, more thorough. Remove unprintable strings.
@@ -505,84 +535,87 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
       if [[ ! -d "${new_optarg}" ]]; then
         "${arg_wrong__a:?}"
       fi
-      
+
       # Append dirname to bash_path and reset find_path
       bash_path+=":${new_optarg}"
-      F_ 
-      
+      F_
+
       # adjust tracking array
       new_optarg="${new_optarg//\//_}"
-      methods_path+=("add_dir_${new_optarg}") ;;
-    
+      methods_path+=("add_dir_${new_optarg}")
+      ;;
+
     # ShellCheck's '-S' setting, ie, severity level. Default is error.
     c) case "${OPTARG:0:1}" in
-        e*) sc_severity=error ;;
-        i*) sc_severity=info ;;
-        s*) sc_severity=style ;;
-        w*) sc_severity=warning ;;
-        *) "${arg_wrong__c:?}" ;;
-      esac ;;
+      e*) sc_severity=error ;;
+      i*) sc_severity=info ;;
+      s*) sc_severity=style ;;
+      w*) sc_severity=warning ;;
+      *) "${arg_wrong__c:?}" ;;
+    esac ;;
 
     v) printf '\n\t%s, version %s. %s.\n\n' "${script_proper_nm}" \
-        "${script_version}" "${script_lic}" ;;
-    
+      "${script_version}" "${script_lic}" ;;
+
     # Help message
     h) fn_usage 0 ;;
-    
+
     # Program to search with. All settings clobber; bash is default
     p) case "${OPTARG:0:2}" in
-        ba* | b) methods_prog=bin_bash ;;
-        cp*) methods_prog=bash_command_pV ;;
-        cv*) methods_prog=bash_command_V ;;
-        fi* | f) methods_prog=bin_find ;;
-        ty* | t) methods_prog=bash_type_a ;;
-        *) "${arg_wrong__p:?}" ;;
-      esac ;;
-    
+      ba* | b) methods_prog=bin_bash ;;
+      cp*) methods_prog=bash_command_pV ;;
+      cv*) methods_prog=bash_command_V ;;
+      fi* | f) methods_prog=bin_find ;;
+      ty* | t) methods_prog=bash_type_a ;;
+      *) "${arg_wrong__p:?}" ;;
+    esac ;;
+
     # What information to verify. The default is all.
     q) case "${OPTARG:0:2}" in
-        l | al*) verify=(all) ;;
-        u | un*) unset verify ;;
-        *) [[ "${verify[*]}" =~ all ]] \
-            && unset verify ;;&
-        a | ac*) verify+=(acls) ;;
-        c | cr*) verify+=(crashbangs) ;;
-        d | da*) verify+=(dacs) ;;
-        i | in*) verify+=(interpreters) ;;
-        p | pa*) verify+=(path) ;;
-        *) "${arg_wrong__q:?}" ;;
-      esac ;;
-    
-    # Descend into dirs (recurse)
-    #   `bash`s path search cannot descend into dirs; for `find` the
-    # default is to 'do descend' into dirs. For this script, the default
-    # for descending follows `bash`, and changing this setting to 'yes', 
-    # 'recurse' or 'descend' switches the search program to `find`. 
-    # `find`s '-mindepth' and '-maxdepth' are not used.
-          #unset bash_path # why unset it? the setting '-r' could be 
-          # reversed later on the same command line
-          #unset find_path # again, why unset it?
+      l | al*) verify=(all) ;;
+      u | un*) unset verify ;;
+      *) [[ "${verify[*]}" =~ all ]] \
+        && unset verify ;;&
+      a | ac*) verify+=(acls) ;;
+      c | cr*) verify+=(crashbangs) ;;
+      d | da*) verify+=(dacs) ;;
+      i | in*) verify+=(interpreters) ;;
+      p | pa*) verify+=(path) ;;
+      *) "${arg_wrong__q:?}" ;;
+    esac ;;
+
+      # Descend into dirs (recurse)
+      #   `bash`s path search cannot descend into dirs; for `find` the
+      # default is to 'do descend' into dirs. For this script, the default
+      # for descending follows `bash`, and changing this setting to 'yes',
+      # 'recurse' or 'descend' switches the search program to `find`.
+      # `find`s '-mindepth' and '-maxdepth' are not used.
+      #unset bash_path # why unset it? the setting '-r' could be
+      # reversed later on the same command line
+      #unset find_path # again, why unset it?
     r) case "${OPTARG:0:1}" in
-        r | d | y) methods_descend=yes methods_prog=bin_find ;;
-        n) methods_descend=no methods_prog=bin_bash ;;
-        *) "${arg_wrong__r:?}" ;;
-      esac ;;
-    
+      r | d | y) methods_descend=yes methods_prog=bin_find ;;
+      n) methods_descend=no methods_prog=bin_bash ;;
+      *) "${arg_wrong__r:?}" ;;
+    esac ;;
+
     # Scan excluded dirs
     #   By default, this script assumes for `find` a set of automatic-
     # ally excluded search directories that often prove to be somewhat
     # problematic: '/proc', '/sys', and anything with a find '-path'
-    # of either '*/git/*' or this script's repo's name. With a default 
-    # PATH setting, `bash` usually also skips these directories, so 
-    # enabling this option indicates the wish to use `find`, and so 
-    # clobbers `bash`. To add '/proc' or '/sys' to `find`s search path, 
+    # of either '*/git/*' or this script's repo's name. With a default
+    # PATH setting, `bash` usually also skips these directories, so
+    # enabling this option indicates the wish to use `find`, and so
+    # clobbers `bash`. To add '/proc' or '/sys' to `find`s search path,
     # see option 'P', 'add_proc' and 'add_sys'.
     s) case "${OPTARG:0:1}" in
-        s | y) methods_scan_excluded=yes find_exclude_optargs=() ;;
-        n) methods_scan_excluded=no methods_prog=bin_find
-          find_exclude_optargs=("${find_exclude_optargs_default[@]}") ;;
-        *) "${arg_wrong__s:?}" ;;
-      esac ;;
+      s | y) methods_scan_excluded=yes find_exclude_optargs=() ;;
+      n)
+        methods_scan_excluded=no methods_prog=bin_find
+        find_exclude_optargs=("${find_exclude_optargs_default[@]}")
+        ;;
+      *) "${arg_wrong__s:?}" ;;
+    esac ;;
     *) fn_usage 1 ;;
   esac
 done
@@ -592,7 +625,7 @@ shopt -u nocasematch
 set -
 exit 101
 
-: 'Verify PATH' 
+: 'Verify PATH'
 # ...before running `type` / `command` or they'll print dups
 
 if [[ "${verify[*]}" =~ path ]]; then
@@ -602,26 +635,26 @@ if [[ "${verify[*]}" =~ path ]]; then
   IFS=':' read -ra path <<<"${PATH}" # this
 
   # get the cannonicalized paths of each such dir
-  for p in "${!path[@]}"; do 
-    path[p]="$(realpath -e "${path[p]}" 2>/dev/null)"; 
+  for p in "${!path[@]}"; do
+    path[p]="$(realpath -e "${path[p]}" 2>/dev/null)"
   done
   unset p # this
 
   # if the index is empty, then unset it
-  for p in "${!path[@]}"; do 
-    if [[ -z "${path[p]}" ]]; then 
-      unset 'path[p]'; 
-    fi; 
+  for p in "${!path[@]}"; do
+    if [[ -z "${path[p]}" ]]; then
+      unset 'path[p]'
+    fi
   done
   unset p # this
 
   # remove any duplicates while preserving order of dirs
-  for p in "${!path[@]}"; do 
-    if [[ "${path_2[*]}" =~ ${path[p]} ]]; then 
-      unset 'path[p]'; 
-    else 
-      path_2+=("${path[p]}"); 
-    fi; 
+  for p in "${!path[@]}"; do
+    if [[ "${path_2[*]}" =~ ${path[p]} ]]; then
+      unset 'path[p]'
+    else
+      path_2+=("${path[p]}")
+    fi
   done
   unset p # this
 
@@ -649,9 +682,7 @@ export methods_symlinks
 
 : 'methods_prog'
 
-if [[ "${methods_prog}" = \
-  @(bash_command_pV|bash_command_V|bash_type_a) ]]; 
-then
+if [[ "${methods_prog}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; then
 
   # create a single array of all commands found by each kind of search.
   # to do this...
@@ -662,21 +693,22 @@ then
   # create a dictionary list of each possible initial character
   unset allchr char i all_commands real_dirs re
 
-  for i in 8 9 10 11 12 13 {32..127}; do 
-    allchr+=(["$i"]="$(printf '%b' "\\$(printf %03o "$i")")"); 
+  for i in 8 9 10 11 12 13 {32..127}; do
+    allchr+=(["$i"]="$(printf '%b' "\\$(printf %03o "$i")")")
   done
   allchr[10]=$'\n'
   unset i
 
-  for i in "${!allchr[@]}"; do 
+  for i in "${!allchr[@]}"; do
     mapfile -O $((i * 1000)) -t all_commands < <(
-      compgen -c "${allchr[i]}"); 
-    done
+      compgen -c "${allchr[i]}"
+    )
+  done
   unset i
 
   mapfile -t real_dirs < <(
-    sudo find / -maxdepth 1 -mindepth 1 -type d \! -empty | 
-      sort
+    sudo find / -maxdepth 1 -mindepth 1 -type d \! -empty \
+      | sort
   )
 
   re="$(
@@ -686,9 +718,9 @@ then
     printf ')\n'
   )"
 
-  #methods_prog=bash_type_a; 
-  #for i in "${!all_commands[@]}"; do 
-  #if [[ "${methods_prog}" = bash_type_a ]]; then 
+  #methods_prog=bash_type_a;
+  #for i in "${!all_commands[@]}"; do
+  #if [[ "${methods_prog}" = bash_type_a ]]; then
   #type -a "${all_commands[i]}" ; fi; done
 
   # Bug: the tests for methods_prog need to be at the top level of
@@ -718,11 +750,11 @@ then
     | sudo tee all_commands
 
 elif [[ "${methods_prog}" = *bin_bash ]]; then
-  hash bash 2> /dev/null \
+  hash bash 2>/dev/null \
     || exit "${LINENO}"
 
 elif [[ "${methods_prog}" = *bin_find ]]; then
-  hash find 2> /dev/null \
+  hash find 2>/dev/null \
     || exit "${LINENO}"
 
 else
@@ -733,7 +765,6 @@ fi
 [[ -f ./all_commands ]] \
   && ls ./all_commands
 exit 101
-
 
 # delete? re-work?
 
@@ -878,10 +909,11 @@ for dir in "${path_2[@]}"; do
     # Assign a value to $sub_dir as necessary
     : "${sub_dir:="${dir}"}"
 
-      # <> quote ${extglob_pattern or not? - SC-2053=w
-      [[ "${sub_dir}" = "${extglob_pattern}" ]] ; echo $?
-      #[[ "${sub_dir}" = ${extglob_pattern} ]] ; echo $?
-      "${Halt:?}"
+    # <> quote ${extglob_pattern or not? - SC-2053=w
+    [[ "${sub_dir}" = "${extglob_pattern}" ]]
+    echo $?
+    #[[ "${sub_dir}" = ${extglob_pattern} ]] ; echo $?
+    "${Halt:?}"
 
     # If the sub_dir is already listed in the extglob_pattern, then
     # move on to the next small loop
@@ -907,14 +939,18 @@ for dir in "${path_2[@]}"; do
     ext_first="${ext_array[0]}"
     [[ -n "${ext_first}" ]] \
       && unset 'ext_array[0]'
-    
-      X_; :_; D_ ext_array
+
+    X_
+    :_
+    D_ ext_array
 
     ext_last="${ext_array[*]: -1:1}" # [@] or [*] ? SC-2124=w
-    
-      X_; :_; D_ ext_last
-      L_
-      
+
+    X_
+    :_
+    D_ ext_last
+    L_
+
     [[ -n "${ext_last}" ]] \
       && unset "ext_array[${#ext_array[@]}]"
     # index math can be a little weird
@@ -971,29 +1007,29 @@ exit 101
 : '<> Functions'
 
 set -v
-function B_() { 
+function B_() {
   : 'B_ BEGINS' "$((++funclvl))" "${fence}"
-  fn_bak "$@"; 
+  fn_bak "$@"
   : 'B_ ENDS  ' "$((--funclvl))" "${fence}"
 }
-function I_() { 
+function I_() {
   : 'I_ BEGINS' "$((++funclvl))" "${fence}"
-  fn_erx "${LINENO}"; 
+  fn_erx "${LINENO}"
   : 'I_ ENDS  ' "$((--funclvl))" "${fence}"
 }
-#function N_() { 
+#function N_() {
 #  : 'N_ BEGINS' "$((++funclvl))" "${fence}"
 #  fn_num "$@";
 #  : 'N_ ENDS  ' "$((--funclvl))" "${fence}"
 #};
-#function V_() { 
+#function V_() {
 #  : 'V_ BEGINS' "$((++funclvl))" "${fence}"
 #  fn_write_vars "$@";
 #  : 'V_ ENDS  ' "$((--funclvl))" "${fence}"
 #};
-function W_() { 
+function W_() {
   : 'W_ BEGINS' "$((++funclvl))" "${fence}"
-  fn_write_arrays "$@"; 
+  fn_write_arrays "$@"
   : 'W_ ENDS  ' "$((--funclvl))" "${fence}"
 }
 set +v
@@ -1084,7 +1120,7 @@ fn_erx() {
 #    # set a local name reference variable
 #    local -n loc_nameref_a="${loc_unquotd_array_nm_a}"
 #
-#    # and use the nameref to print the number of indices in the 
+#    # and use the nameref to print the number of indices in the
 #    # input array
 #    echo ${#loc_nameref_a[@]}
 #  done
@@ -1132,7 +1168,7 @@ fn_write_arrays() {
 
     # solved?  Bug: mixing variable and array. sb a nameref
 
-    # Bug? When array correctly is empty. 
+    # Bug? When array correctly is empty.
     #   'declare -p ... > /dev/null ||' ?
 
     # if the input array holds no data, then populate it
@@ -1216,7 +1252,7 @@ curr_time_ssubd="${data_subd}/t_${timecode}/"
 list_crunchbangs="${curr_time_ssubd}/crunchbangs"
 
 : 'data files'
-a_write_path_nms=( "${list_crunchbangs:=crunchbangs}" 
+a_write_path_nms=("${list_crunchbangs:=crunchbangs}"
   "/tmp/${list_crunchbangs##*/}"
 )
 
@@ -1269,9 +1305,9 @@ if [[ ! -r "${main_d}" ]]; then
       : 'test failed: acl_realpath is not readable'
 
       acl_execd_setfacl=y
-      # SC-2034, while trap-s setfacl blk is #-d 
+      # SC-2034, while trap-s setfacl blk is #-d
       #   ^--- this comment means what???
-      export acl_execd_setfacl 
+      export acl_execd_setfacl
 
       # readable up to the main_d
       S_ chmod -R 750 -- "${acl_realpath}" \
@@ -1330,8 +1366,7 @@ for prev_time_ssubd in "${a_previous_time_dirs[@]}"; do
 
   : of previous prev_time_ssubd
   if [[ -d "${prev_time_ssubd}" ]] \
-    && [[ ! -L "${prev_time_ssubd}" ]]; 
-  then
+    && [[ ! -L "${prev_time_ssubd}" ]]; then
     S_ mv -- "${a_previous_time_dirs[@]}" "${main_d}"
   else
     continue
@@ -1438,18 +1473,18 @@ if [[ ! -f "/tmp/${list_crunchbangs##*/}" ]] \
 
     if [[ -n "${file_o}" ]]; then
       S_ tee -a -- "${curr_time_ssubd}file_out" <<<"${file_o}" \
-        > /dev/null
+        >/dev/null
     else
       err_msg="WARNING: -file- produced 0 output:  <${each_sorted_f}>"
       S_ tee -a -- "${curr_time_ssubd}file_out" <<<"${err_msg}" \
-        > /dev/null
+        >/dev/null
     fi
 
     # Bug: keep `od` output in an array
     # Bug: avoid as many disk writes as possible.
     #  Write out only stats?
-    # Bug: use indices to reference each type? Store array diffs btw 
-    # loop? Time loss to disk io? Run file in parallel? Read each file 
+    # Bug: use indices to reference each type? Store array diffs btw
+    # loop? Time loss to disk io? Run file in parallel? Read each file
     # once and use var for both od and file?
 
     : 'two bytes each'
@@ -1563,11 +1598,11 @@ if [[ ! -f "/tmp/${list_crunchbangs##*/}" ]] \
   : 'and their crashbangs.'
 
   : 'Exporting is necessary of the array names from the above scan'
-  a_arrays=( a_all_files a_all_files_sorted a_file_DNE a_empty_files 
-    a_bin_file_output a_bin_od_output a_incorrect_endianness 
-    a_crunches_with_hashbang_comments a_non_rpm_user_crunches 
-    a_non_rpm_system_crunches a_shell_scripts a_all_other_files 
-    a_write_path_nms )
+  a_arrays=(a_all_files a_all_files_sorted a_file_DNE a_empty_files
+    a_bin_file_output a_bin_od_output a_incorrect_endianness
+    a_crunches_with_hashbang_comments a_non_rpm_user_crunches
+    a_non_rpm_system_crunches a_shell_scripts a_all_other_files
+    a_write_path_nms)
   export "${a_arrays[@]}"
 
   W_ "${a_arrays[@]}"
@@ -1578,8 +1613,7 @@ if [[ ! -f "/tmp/${list_crunchbangs##*/}" ]] \
   for any_existing_f in "${a_write_path_nms[@]}"; do
 
     if [[ -f "${any_existing_f}" ]] \
-      && [[ ! -L "${any_existing_f}" ]]; 
-    then
+      && [[ ! -L "${any_existing_f}" ]]; then
       S_ mv -- "${any_existing_f}" "${any_existing_f}.${$}.${random_n}" \
         || I_
     fi
@@ -1646,7 +1680,7 @@ mapfile -t a_interpreters < <(
 : 'Ways to find an interpreter if it-s available on disk:'
 
 # Bug: `realpath -e` and `command -V` are redundant?
-# Answer: no. `command` is limited to PATH; realpath is limited by 
+# Answer: no. `command` is limited to PATH; realpath is limited by
 # FS permissions.
 
 # `find` can produce symlinks or actual files
@@ -1693,7 +1727,7 @@ L_
 
     printf '%-32s' "${a_interps_rps[b]}"
 
-    # use a shell builtin to test for each interpreter's presence on 
+    # use a shell builtin to test for each interpreter's presence on
     # disk, and write to a variable the test's result
 
     if command -pV "${a_interps_rps[b]}" >/dev/null; then
@@ -1702,7 +1736,7 @@ L_
       m="DNE on disk"
     fi
 
-    # create a new array of structured data: index, interpreter and 
+    # create a new array of structured data: index, interpreter and
     # test result
     a_interps_disk_repo+=([b]="${b} : ${a_interps_rps[b]} : ${m}")
 
@@ -1825,7 +1859,7 @@ mapfile -t a_each_script_list_sorted_by_linect \
   <<<"${awko}"
 
 # define file name, including severity and path symbols (target file)
-found_scrpts_f="${list_crunchbangs}_found_scripts" 
+found_scrpts_f="${list_crunchbangs}_found_scripts"
 found_scrpts_f+="_${sc_sev_abrv}_${abbrev_rel_search_dirs}"
 i=0
 
@@ -1844,8 +1878,8 @@ i=0
     # count the number of unique errors
     # sort by the third column: severity
     # collect output in an array
-    # on any non-zero exit status, print an error, incuding PIPEFAIL 
-    # array, and exit the script when filters, etc completes, print 
+    # on any non-zero exit status, print an error, incuding PIPEFAIL
+    # array, and exit the script when filters, etc completes, print
     # a NULL to start a new mapfile index
     mapfile -d '' -t a_each_script_SC_results < <(
       shellcheck -S "${sc_severity}" \
@@ -1866,7 +1900,7 @@ i=0
 
       # Bug: iterator sb $sorted_script ? sorted_script should have
 
-      # print a line header. (as-is:) including a new index number 
+      # print a line header. (as-is:) including a new index number
       # for each script
       printf '\n%-4d%s\n' $((i++)) \
         "${a_each_script_list_sorted_by_linect[sorted_script]}"
