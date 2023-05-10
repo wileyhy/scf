@@ -98,7 +98,7 @@ trap '
     fi
   fi
 
-  trap EXIT INT TERM
+  trap - EXIT INT TERM
   kill -s INT "$$"
 ' EXIT INT TERM
   trap 'set -x; echo SIGEXIT;   trap SIGEXIT;   kill -s INT $$'  EXIT   # 0
