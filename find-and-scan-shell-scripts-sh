@@ -98,12 +98,12 @@ trap '
     fi
   fi
 
-  trap INT
+  trap EXIT INT TERM
   kill -s INT "$$"
-' INT
+' EXIT INT TERM
   trap 'set -x; echo SIGEXIT;   trap SIGEXIT;   kill -s INT $$'  EXIT   # 0
   trap 'set -x; echo SIGHUP;    trap SIGHUP;    kill -s 2   $$'  HUP    # 1
-# trap 'set -x; echo SIGINT;    trap 2;         kill -s 2   $$'  2      # INT # ^C # `trap INT; kill -s INT "$$"` is exec'd, the shell calls SIGEXIT
+# trap 'set -x; echo SIGINT;    trap 2;         kill -s 2   $$'  2      # INT # ^C 
   trap 'set -x; echo SIGQUIT;   trap SIGQUIT;   kill -s 2   $$'  QUIT   # 3   
   trap 'set -x; echo SIGILL;    trap SIGILL;    kill -s 2   $$'  ILL    # 4   
   trap 'set -x; echo SIGTRAP;   trap SIGTRAP;   kill -s 2   $$'  TRAP   # 5   
