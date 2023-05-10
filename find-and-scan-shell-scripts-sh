@@ -200,22 +200,29 @@ _mk_setenv_delta() {
   if [[ -n "${setenv_now}" ]] && [[ -n "${setenv_prev}" ]]; then
 
     if [[ -n "${setenv_delta}" ]]; then
-      R_ -f -- "${setenv_delta}" # [line 1] rm --one-file-system --preserve-root=all -f -- /tmp/tmp.HjN8ow8GHi.scf.32869.15382.txt
+      R_ -f -- "${setenv_delta}" 
+      # [line 1] rm --one-file-system --preserve-root=all -f -- \
+      #   /tmp/tmp.HjN8ow8GHi.scf.32869.15382.txt
       wait -f
     else
       setenv_delta="$(mktemp --suffix="${mktemp_sfx}")" # 
     fi
 
     {
-      diff -y --suppress-{common-lines,blank-empty} --color=never "${setenv_prev}" "${setenv_now}" \
+      diff -y --suppress-{common-lines,blank-empty} --color=never \
+        "${setenv_prev}" "${setenv_now}" \
         |& grep -v setenv \
         | grep --color=always -E '.*'
     } \
-      |& tee -- "${setenv_delta}" # [line 2] tee -- /tmp/tmp.HjN8ow8GHi.scf.32869.15382.txt
+      |& tee -- "${setenv_delta}" 
+      # [line 2] tee -- /tmp/tmp.HjN8ow8GHi.scf.32869.15382.txt
 
     {
-      diff --suppress-{common-lines,blank-empty} --color=always --palette='ad=1;3;38;5;154:de=1;3;38;5;105' "${setenv_prev}" "${setenv_now}" \
-        | grep -ve BASH_LINENO -e BASH_COMMAND -e BASH_SOURCE -e setenv_ -Fe '---'
+      diff --suppress-{common-lines,blank-empty} --color=always \
+        --palette='ad=1;3;38;5;154:de=1;3;38;5;105' \
+        "${setenv_prev}" "${setenv_now}" \
+        | grep -ve BASH_LINENO -e BASH_COMMAND -e BASH_SOURCE \
+        -e setenv_ -Fe '---'
     } \
       |& tee -a "${setenv_delta}"
 
