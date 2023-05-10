@@ -434,17 +434,17 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
     l)
       # Input validation: make upper case letters lower case, and 
       # truncate all but first letter. this code block repeats below.
-      OPTARG="${OPTARG:0:1}"
+      #OPTARG="${OPTARG:0:1}"
 
       # Parse option arguments
-      case "${OPTARG}" in
+      case "${OPTARG:0:1}" in
         # Bash
-        b)
+        b*)
           search_methods_symlinks=bash # default
           search_methods_prog=bin_bash # default
           ;;
         # Physical
-        p)
+        p*)
           search_methods_symlinks=physical
           search_methods_prog=bin_find
           # Side effect: setting '-H p' also clobbers this variable. 
@@ -452,7 +452,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
           find_sym_opt='-P'
           ;;
         # Logical
-        l)
+        l*)
           search_methods_symlinks=logical
           search_methods_prog=bin_find # clobber
           find_sym_opt='-L'
