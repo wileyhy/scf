@@ -645,9 +645,9 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
     # Descend into dirs (recurse)
     #   `bash`s path search cannot descend into dirs; for `find` the
     # default is to 'do descend' into dirs. For this script, the default
-    # for descending follows `bash`, and selecting this setting switches
-    # the search program to `find`. `find`s '-mindepth' and '-maxdepth'
-    # are not implemented.
+    # for descending follows `bash`, and changing this setting to 'yes', 
+    # 'recurse' or 'descend' switches the search program to `find`. 
+    # `find`s '-mindepth' and '-maxdepth' are not used.
     r)
       OPTARG="${OPTARG,,[A-Z]}" OPTARG="${OPTARG:0:1}"
       case "${OPTARG}" in
