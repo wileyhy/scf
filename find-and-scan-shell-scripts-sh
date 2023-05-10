@@ -312,7 +312,7 @@ memory_usage=temp_files
 sc_sev_abrv="${sc_severity:0:1}"
 
 search_methods_descend=no
-search_methods_path=(as-is)
+search_methods_path=('as-is')
 search_methods_proc=without
 search_methods_prog=bin_bash
 search_methods_spec_dirs=without
@@ -455,7 +455,7 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
           ;;
         as | ai)
           unset find_path search_methods_path
-          search_methods_path=(as-is)
+          search_methods_path=('as-is')
           bash_path="${bash_path_orig}"
           IFS=':' read -ra find_path <<<"${bash_path}"
           ;;
@@ -535,7 +535,8 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
         "${arg_wrong__R:?}"
       fi
       unset find_path
-      search_methods_path+=("add_dir__${new_optarg//\//_}")
+      new_optarg="${new_optarg//\//_}"
+      search_methods_path+=("add_dir__${new_optarg}")
 
       # Append dirname to PATH
       bash_path+="${new_optarg}"
