@@ -311,7 +311,7 @@ IFS=':' read -ra find_path <<<"${bash_path}"
 memory_usage=temp_files
 sc_sev_abrv="${sc_severity:0:1}"
 
-search_methods_descend=without # bash or find
+search_methods_descend=no
 search_methods_path=(as-is)
 search_methods_proc=without
 search_methods_prog=bin_bash
