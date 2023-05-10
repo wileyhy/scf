@@ -818,11 +818,11 @@ then
     | sudo tee all_commands
 
 elif [[ "${search_methods_prog}" = *bin_bash ]]; then
-  command -v bash > /dev/null 2>& \
+  hash bash 2> /dev/null \
     || exit "${LINENO}"
 
 elif [[ "${search_methods_prog}" = *bin_find ]]; then
-  command -v find > /dev/null 2>& \
+  hash find 2> /dev/null \
     || exit "${LINENO}"
 
 else
