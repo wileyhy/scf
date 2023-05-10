@@ -264,7 +264,7 @@ _full_xtrace() {
 }
 
 #exit 101
-_full_xtrace
+#_full_xtrace
 
 : 'Implementation dependent arguments for options parsable by -shellcheck-'
 
@@ -291,7 +291,7 @@ if [[ $# -gt 0 ]]; then
 fi
 
 #D_ sc_severity SC_shells repo_nm protected_git_dir_1 protected_git_dir_2 script_nm script_proper_nm script_version a_poss_proces_lock_dirs cli_input
-exit 101
+#exit 101
 _full_xtrace
 
 # Variables re getopts
