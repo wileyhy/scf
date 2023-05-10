@@ -85,14 +85,20 @@ trap '
     if [[ -v acl_abs_path ]]; then 
       
       # Manual (non-alias/function) error handling reqd wi traps
-      S_ setfacl -R -x "u:${UID}" -- "${acl_abs_path}" ||
+      if ! S_ setfacl -R -x "u:${UID}" -- "${acl_abs_path}"; then
         echo Error: trap: setfacl failed, line "${LINENO}"
+        : "${Halt_trap_setfacl:?}"
+      fi
 
-    # bug? Should this var be main_d \/ ? Sb erx ^ ?
+    # bug? Should this var \/ be main_d ?
 
-    elif [[ -v mountpoint ]]; then
-      S_ setfacl -R -x "u:${UID}" -- "${mountpoint}" ||
+    elif [[ -v mountpoint ]] \
+      || [[ -v main_d ]] 
+    then
+      if ! S_ setfacl -R -x "u:${UID}" -- "${mountpoint}"; then 
         echo Error: trap: setfacl failed, line "${LINENO}"
+        : "${Halt_trap_setfacl:?}"
+      fi
     fi
   fi
 
