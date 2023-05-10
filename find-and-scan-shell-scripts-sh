@@ -48,23 +48,25 @@ alias awk='gawk --lint '
 trap '
   #set -
 
-  # [Trap] Delete all possible existing process directories. 
+  # Delete all possible existing process directories. 
   for poss_lk_d in "${a_poss_proces_lock_dirs[@]}"; do 
 
-    # [Trap] Abbreviate variable, then test and delete lock directories.
+    # Abbreviate variable
     pl="${poss_lk_d}/${proc_lk_f_nm}"
 
+    # test and delete lock directories.
     if [[ -d "${pl}" ]] && [[ ! -L "${pl}" ]]; then 
       S_ R_ -rf -- "${pl}" \
         || L_
     fi
   done
 
-  # [Trap] Remove any script-s ACL-s based on whether the canary variables
-  # exist.
+  # Remove any script-s ACL-s based on canary variables
   if [[ -v acl_execd_setfacl ]]; then 
 
     if [[ -v acl_abs_path ]]; then 
+      
+      # Manual (non-alias/function) error handling reqd wi traps
       S_ setfacl -R -x "u:${UID}" -- "${acl_abs_path}" ||
         echo Error: trap: setfacl failed, line "${LINENO}"
 
