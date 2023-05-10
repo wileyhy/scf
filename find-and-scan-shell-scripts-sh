@@ -36,6 +36,7 @@ alias :_=':;: "<>"'
 alias D_='declare -p '
 alias L_='exit "${LINENO}"'
 alias M_='sudo namei -xl '
+alias R_='rm --one-file-system --preserve-root=all '
 alias S_='sudo '
 alias T_='tee --output-error=exit '
 alias X_='set -x'
@@ -80,7 +81,7 @@ _mk_setenv_prev() {
   if [[ -n "${setenv_now}" ]]; then
 
     if [[ -n "${setenv_prev}" ]]; then
-      rm -f "${setenv_prev}"
+      R_ -f -- "${setenv_prev}"
     fi
     setenv_prev="${setenv_now}"
   fi
@@ -98,7 +99,7 @@ _mk_setenv_delta() {
   if [[ -n "${setenv_now}" ]] && [[ -n "${setenv_prev}" ]]; then
 
     if [[ -n "${setenv_delta}" ]]; then
-      rm -f "${setenv_delta}"
+      R_ -f -- "${setenv_delta}"
     else
       setenv_delta="$(mktemp)"
     fi
@@ -964,7 +965,7 @@ fn_bak() {
         if [[ -s "${loc_filename_a}.bak" ]]; then
           return
         else
-          S_ rm -f -- "${loc_filename_a}.bak"
+          S_ R_ -f -- "${loc_filename_a}.bak"
         fi
       fi
 
@@ -1120,7 +1121,7 @@ trap '
     pl="${poss_lk_d}/${proc_lk_f_nm}"
 
     if [[ -d "${pl}" ]] && [[ ! -L "${pl}" ]]; then 
-      S_ rm -rf -- "${pl}" \
+      S_ R_ -rf -- "${pl}" \
         || L_
     fi
   done
@@ -1375,7 +1376,7 @@ total_count="$(printf "%'d" "${#a_all_files_sorted[@]}")"
 unset IFS
 
 [[ -f /tmp/"${list_crunchbangs##*/}" ]] \
-  && S_ rm -f -- "/tmp/${list_crunchbangs##*/}"
+  && S_ R_ -f -- "/tmp/${list_crunchbangs##*/}"
 
 # BUG: the search dirs must be the same, as well as the dnf tx number
 # BUG: Use of /tmp/crunchbangs as yn on do loop q. Sb a set of file lists
