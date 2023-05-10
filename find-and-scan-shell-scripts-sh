@@ -408,8 +408,8 @@ EOF
   exit "${1}"
 }
 
-exit 101
-_full_xtrace
+#exit 101
+##_full_xtrace
 
 while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
   declare -p OPTIND OPTARG
