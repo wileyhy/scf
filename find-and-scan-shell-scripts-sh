@@ -381,11 +381,11 @@ fn_usage() {
       -V -X [r|p|t] -h -p [ba|cp|cv|fi|ty] -q [a|c|d|i|l|p|u] 
       -r [d|y|n] -s [s|y|n]
 
-      H:  Follow symlinks         M:  Memory usage
+      l:  Follow symlinks         m:  Memory usage
        *[b]   bash                  [r]   RAM only
         [p]   physical              [p]   Persistent storage
         [l]   logical              *[t]   Temporary files
-      P:  Path                    h   Help message
+      d:  Path                    h   Help message
         [ac]  Actually all        p:  Progam and method
        *[as]  As-is                *[ba]  "bash" binary
         [bi]  /bin only             [cp]  builtin "command -pV"
@@ -394,14 +394,14 @@ fn_usage() {
         [sb]  /sbin only            [ty]  builtin "type -a"
         [pr]  Add /proc           q:  Validate information
         [sy]  Add /sys             *[a]   all
-      R:  Path                      [c]   add crashbangs
+      a:  Path                      [c]   add crashbangs
         [DIR]  Add search dir       [d]   add DACs
-      S:  Severity level            [i]   add interpreters
+      c:  Severity level            [i]   add interpreters
        *[e]   error                 [l]   add ACLs
         [i]   info                  [p]   add PATH
         [s]   style                 [u]   unset all
         [w]   warning             r:  Recurse into dirs
-      V   Version                   [d|y] Yes   *[n] No
+      v   Version                   [d|y] Yes   *[n] No
       s:  Scan excluded dirs      *:  Help message
         [s|y] Yes   *[n] No       
 EOF
@@ -420,7 +420,7 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
   case "${cli_input}" in
     
     # Easter egg
-    A)
+    b)
       printf '%s' "${easter_egg}"
       exit 0
       ;;
@@ -432,10 +432,10 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
     # `find`. The 'P' and 'L' refer to `find`s first argument, which
     # by default is assumed (by `find`) to be '-P'. `find -H` is not
     # implemented in this script.
-    H)
+    l)
       # Input validation: make upper case letters lower case, and 
       # truncate all but first letter. this code block repeats below.
-      OPTARG="${OPTARG,,[A-Z]}" OPTARG="${OPTARG:0:1}"
+      OPTARG="${OPTARG:0:1}"
 
       # Parse option arguments
       case "${OPTARG}" in
@@ -462,15 +462,15 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
         # unset, causes the shell to immediately halt, ignoring any 
         # trap on EXIT.
         *)
-          "${arg_wrong__H:?}"
+          "${arg_wrong__l:?}"
           ;;
       esac
       ;;
     
     # Whether and how to save data.
-    M)
+    m)
       # (Input validation)
-      OPTARG="${OPTARG,,[A-Z]}" OPTARG="${OPTARG:0:1}"
+      OPTARG="${OPTARG:0:1}"
 
       # Parse option arguments
       case "${OPTARG}" in
@@ -479,16 +479,16 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
         t) memory_usage=temp_files ;; # default
 
         # Error handling
-        *) "${arg_wrong__M:?}" ;;
+        *) "${arg_wrong__m:?}" ;;
       esac
       ;;
     
     # PATH (array) - Part 1 - Options with no args. Default is 'as-is'. 
     #   '-P /usr/share' is an option with an argument. 
     #   For scanning '/proc' or '/sys', see also option 's'.
-    P)
+    d)
       # Part 1.A -- clobbering settings
-      OPTARG="${OPTARG,,[A-Z]}" OPTARG="${OPTARG:0:2}"
+      OPTARG="${OPTARG:0:2}"
       case "${OPTARG}" in
 
         # Multiple abbreviations accepted
@@ -541,12 +541,12 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
           search_methods_prog=bin_find
           F_ ;;
           # Part 1.C - handle erroneous input
-        *) "${arg_wrong__P:?}" ;;
+        *) "${arg_wrong__d:?}" ;;
       esac
       ;;
     
     # PATH (array) - Part 2 - options with args
-    R)
+    a)
       # Input validation, more thorough. Remove unprintable strings.
       OPTARG="$(strings -n1 <<<"${OPTARG}")"
 
@@ -569,7 +569,7 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
 
       $ Amended value must be a directory
       if [[ ! -d "${new_optarg}" ]]; then
-        "${arg_wrong__R:?}"
+        "${arg_wrong__a:?}"
       fi
       unset find_path
       new_optarg="${new_optarg//\//_}"
@@ -580,31 +580,31 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
       F_ ;;
     
     # ShellCheck's '-S' setting, ie, severity level
-    S)
+    c)
       # Mis-spellings allowed
-      OPTARG="${OPTARG,,[A-Z]}" OPTARG="${OPTARG:0:1}"
+      OPTARG="${OPTARG:0:1}"
       case "${OPTARG}" in
         e) sc_severity=error ;; # default
         i) sc_severity=info ;;
         s) sc_severity=style ;;
         w) sc_severity=warning ;;
-        *) "${arg_wrong__S:?}" ;;
+        *) "${arg_wrong__c:?}" ;;
       esac
       ;;
 
-    V)
+    v)
       printf '\n\t%s, version %s. %s.\n\n' "${script_proper_nm}" \
         "${script_version}" "${script_lic}"
       ;;
     
     # Help message
-    h | \?)
+    h)
       fn_usage 0
       ;;
     
     # Program to search with (variable) -- all settings clobber
     p)
-      OPTARG="${OPTARG,,[A-Z]}" OPTARG="${OPTARG:0:2}"
+      OPTARG="${OPTARG:0:2}"
       case "${OPTARG}" in
         ba | b)
           search_methods_prog=bin_bash # default
@@ -629,9 +629,7 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
     
     # What information to verify -- none are enabled by defaulted
     q)
-      # ALSO: verify DACs and ACLs is written below!
-
-      OPTARG="${OPTARG,,[A-Z]}" OPTARG="${OPTARG:0:2}"
+      OPTARG="${OPTARG:0:2}"
       case "${OPTARG}" in
         l | al) 
           verify=(all) # default
@@ -669,7 +667,7 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
     # 'recurse' or 'descend' switches the search program to `find`. 
     # `find`s '-mindepth' and '-maxdepth' are not used.
     r)
-      OPTARG="${OPTARG,,[A-Z]}" OPTARG="${OPTARG:0:1}"
+      OPTARG="${OPTARG:0:1}"
       case "${OPTARG}" in
         # recurse|descend|yes
         r | d | y)
@@ -700,7 +698,7 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
     # clobbers `bash`. To add '/proc' or '/sys' to `find`s search path, 
     # see option 'P', 'add_proc' and 'add_sys'.
     s)
-      OPTARG="${OPTARG,,[A-Z]}" OPTARG="${OPTARG:0:1}"
+     OPTARG="${OPTARG:0:1}"
       case "${OPTARG}" in
         # scan_excluded|yes
         s | y)
