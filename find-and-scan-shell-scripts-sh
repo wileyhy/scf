@@ -352,7 +352,7 @@ find_exclude_optargs_default=(
   [23]='*/git/*' [24]=')'
 )
 find_exclude_optargs=("${find_exclude_optargs_default[@]}")
-IFS=':' read -ra find_path <<<"${bash_path}" # aliased to 'F_'
+IFS=':' read -ra find_path <<<"${bash_path}"
 find_sym_opt='-P'
 memory_usage=temp_files
 sc_sev_abrv="${sc_severity:0:1}"
@@ -470,36 +470,28 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
     d) case "${OPTARG:0:2}" in
 
         ac* | aa*)
-          unset find_path methods_path
           methods_path=(actually_all) bash_path='/' methods_prog=bin_find
           F_ ;;
         as* | ai*)
-          unset find_path methods_path
           methods_path=('as-is') bash_path="${bash_path_orig}"
           F_ ;;
         bi* | b)
-          unset find_path methods_path
           methods_path=(bin_only) bash_path='/usr/bin'
           F_ ;;
         bo* | bs*)
-          unset find_path methods_path
           methods_path=(both_bin_sbin_only) bash_path='/usr/bin:/usr/sbin'
           F_ ;;
         ge* | g)
-          unset find_path methods_path
           methods_path=(getconf_PATH_only) bash_path="${getconf_o}"
           F_ ;;
         sb* | so* | s)
-          unset find_path methods_path
           methods_path=(sbin_only) bash_path='/usr/sbin'
           F_ ;;
         pr* | p | pa*)
-          unset find_path
           methods_path+=(add_proc) bash_path+=':/proc'
           methods_prog=bin_find
           F_ ;;
         sy* | sa*)
-          unset find_path
           methods_path+=(add_sys) bash_path+=':/sys' methods_prog=bin_find
           F_ ;;
         *) "${arg_wrong__d:?}" ;;
