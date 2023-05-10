@@ -68,6 +68,9 @@ trap '
     # Abbreviate variable
     pl="${poss_lk_d}/${proc_lk_f_nm}"
 
+    [[ "${pl}" =~ "$$" ]] \
+      || continue
+
       # <>
       declare -p poss_lk_d pl
 
