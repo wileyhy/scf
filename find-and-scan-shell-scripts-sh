@@ -88,6 +88,7 @@ trap '
 # turn xrtrace off, and on second execution, turn xtrace back on and
 # forget about this function's settings. If xtrace was previously off,
 # then leave it off.
+
 repo_nm=scf
 random_n="${RANDOM}"
 unique_string="${repo_nm}.${$}.${random_n}"
@@ -154,7 +155,6 @@ _mk_setenv_delta() {
         |& grep -v setenv
     } \
       |& tee -- "${setenv_delta}"
-
 
     #--color=always --palette='ad=1;3;38;5;154:de=1;3;38;5;9' \
     #--unchanged-group-format=$'\e[0;32m%=\e[0m' \
