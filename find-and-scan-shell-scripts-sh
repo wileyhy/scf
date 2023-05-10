@@ -419,9 +419,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
   case "${cli_input}" in
     
     # Easter egg
-    b) printf '%s' "${easter_egg}"
-      exit 0
-      ;;
+    b) printf '%s' "${easter_egg}"; exit 0 ;;
     
     # Follow symlinks
     #   `bash` always follows symlinks, therefore to not follow any
@@ -437,18 +435,13 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
     # on EXIT.
     #   Mis-spellings beyond the first one or two letters are allowed.
     l) case "${OPTARG:0:1}" in
-        b*) methods_symlinks=bash methods_prog=bin_bash
-          ;;
+        b*) methods_symlinks=bash methods_prog=bin_bash ;;
         p*) methods_symlinks=physical methods_prog=bin_find 
-        find_sym_opt='-P'
-          ;;
+          find_sym_opt='-P' ;;
         l*) methods_symlinks=logical methods_prog=bin_find 
-          find_sym_opt='-L'
-          ;;
-        *) "${arg_wrong__l:?}"
-          ;;
-      esac
-      ;;
+          find_sym_opt='-L' ;;
+        *) "${arg_wrong__l:?}" ;;
+      esac ;;
     
     # Whether and how to save data. Default is temp files.
     m) case "${OPTARG:0:1}" in
@@ -456,8 +449,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
         p*) memory_usage=persistent_storage ;;
         t*) memory_usage=temp_files ;;
         *) "${arg_wrong__m:?}" ;;
-      esac
-      ;;
+      esac ;;
     
     # PATH (array) - Part 1 - 
     #   These options with have no arguments. The default is 'as-is'. 
@@ -473,30 +465,24 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
           methods_path=(actually_all) bash_path='/' methods_prog=bin_find
           F_ ;;
         as* | ai*)
-          methods_path=('as-is') bash_path="${bash_path_orig}"
-          F_ ;;
+          methods_path=('as-is') bash_path="${bash_path_orig}"; F_ ;;
         bi* | b)
-          methods_path=(bin_only) bash_path='/usr/bin'
-          F_ ;;
+          methods_path=(bin_only) bash_path='/usr/bin'; F_ ;;
         bo* | bs*)
           methods_path=(both_bin_sbin_only) bash_path='/usr/bin:/usr/sbin'
           F_ ;;
         ge* | g)
-          methods_path=(getconf_PATH_only) bash_path="${getconf_o}"
-          F_ ;;
+          methods_path=(getconf_PATH_only) bash_path="${getconf_o}"; F_ ;;
         sb* | so* | s)
-          methods_path=(sbin_only) bash_path='/usr/sbin'
-          F_ ;;
+          methods_path=(sbin_only) bash_path='/usr/sbin'; F_ ;;
         pr* | p | pa*)
           methods_path+=(add_proc) bash_path+=':/proc'
-          methods_prog=bin_find
-          F_ ;;
+          methods_prog=bin_find; F_ ;;
         sy* | sa*)
           methods_path+=(add_sys) bash_path+=':/sys' methods_prog=bin_find
           F_ ;;
         *) "${arg_wrong__d:?}" ;;
-      esac
-      ;;
+      esac ;;
     
     # PATH (array) - Part 2 - options with args
     a)
@@ -531,8 +517,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
       
       # adjust tracking array
       new_optarg="${new_optarg//\//_}"
-      methods_path+=("add_dir_${new_optarg}")
-      ;;
+      methods_path+=("add_dir_${new_optarg}") ;;
     
     # ShellCheck's '-S' setting, ie, severity level. Default is error.
     c) case "${OPTARG:0:1}" in
@@ -541,16 +526,13 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
         s*) sc_severity=style ;;
         w*) sc_severity=warning ;;
         *) "${arg_wrong__c:?}" ;;
-      esac
-      ;;
+      esac ;;
 
     v) printf '\n\t%s, version %s. %s.\n\n' "${script_proper_nm}" \
-        "${script_version}" "${script_lic}"
-      ;;
+        "${script_version}" "${script_lic}" ;;
     
     # Help message
-    h) fn_usage 0
-      ;;
+    h) fn_usage 0 ;;
     
     # Program to search with. All settings clobber; bash is default
     p) case "${OPTARG:0:2}" in
@@ -560,8 +542,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
         fi* | f) methods_prog=bin_find ;;
         ty* | t) methods_prog=bash_type_a ;;
         *) "${arg_wrong__p:?}" ;;
-      esac
-      ;;
+      esac ;;
     
     # What information to verify. The default is all.
     q) case "${OPTARG:0:2}" in
@@ -575,8 +556,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
         i | in*) verify+=(interpreters) ;;
         p | pa*) verify+=(path) ;;
         *) "${arg_wrong__q:?}" ;;
-      esac
-      ;;
+      esac ;;
     
     # Descend into dirs (recurse)
     #   `bash`s path search cannot descend into dirs; for `find` the
@@ -591,8 +571,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
         r | d | y) methods_descend=yes methods_prog=bin_find ;;
         n) methods_descend=no ;;
         *) "${arg_wrong__r:?}" ;;
-      esac
-      ;;
+      esac ;;
     
     # Scan excluded dirs
     #   By default, this script assumes for `find` a set of automatic-
@@ -609,10 +588,8 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
         n) methods_scan_excluded=no methods_prog=bin_find
           find_exclude_optargs=("${find_exclude_optargs_default[@]}") ;;
         *) "${arg_wrong__s:?}" ;;
-      esac
-      ;;
-    *) fn_usage 1
-      ;;
+      esac ;;
+    *) fn_usage 1 ;;
   esac
 done
 shopt -u nocasematch
