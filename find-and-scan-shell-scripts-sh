@@ -313,11 +313,9 @@ sc_sev_abrv="${sc_severity:0:1}"
 
 search_methods_descend=no
 search_methods_path=('as-is')
-search_methods_proc=without
 search_methods_prog=bin_bash
 search_methods_spec_dirs=without
 search_methods_symlinks=with
-search_methods_sys=without
 
 fn_usage() {
   : 'fn_usage BEGINS' "$((++funclvl))" "${fence}"
