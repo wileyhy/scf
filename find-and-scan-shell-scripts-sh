@@ -98,7 +98,7 @@ trap '
     fi
   fi
 
-  trap - EXIT INT TERM
+  trap - EXIT 
   kill -s INT "$$"
 ' EXIT
 # trap 'set -x; echo SIGEXIT;   trap SIGEXIT;   kill -s INT $$'  EXIT   # 0
@@ -118,7 +118,7 @@ trap '
   trap 'set -x; echo SIGALRM;   trap SIGALRM;   kill -s 2   $$'  ALRM   # 14
   trap 'set -x; echo SIGTERM;   trap SIGTERM;   kill -s 2   $$'  TERM   # 15
   trap 'set -x; echo SIGSTKFLT; trap SIGSTKFLT; kill -s 2   $$'  STKFLT # 16
-  trap 'set -x; echo SIGCHLD;   trap SIGCHLD;   kill -s 2   $$'  CHLD   # 17
+# trap 'set -x; echo SIGCHLD;   trap SIGCHLD;   kill -s 2   $$'  CHLD   # 17 # triggered by returning command substitution
   trap 'set -x; echo SIGCONT;   trap SIGCONT;   kill -s 2   $$'  CONT   # 18
 # trap 'set -x; echo SIGSTOP;   trap SIGSTOP;   kill -s 2   $$'  STOP   # 19
   trap 'set -x; echo SIGTSTP;   trap SIGTSTP;   kill -s 2   $$'  TSTP   # 20
