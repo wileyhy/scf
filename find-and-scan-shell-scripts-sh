@@ -171,7 +171,7 @@ _xtrace_duck() {
     # but if xtrace is off and was previously off...
     fi
   fi
-  : '_xtrace_duck ENDS' "$((funclvl++))" "${fence}"
+  : '_xtrace_duck ENDS' "$((funclvl--))" "${fence}"
 }
 
 export setenv_prev setenv_now setenv_delta env_prev env_now env_delta
@@ -184,7 +184,7 @@ _mk_setenv_prev() {
     fi
     setenv_prev="${setenv_now}"
   fi
-  : '_mk_setenv_prev ENDS' "$((funclvl++))" "${fence}"
+  : '_mk_setenv_prev ENDS' "$((funclvl--))" "${fence}"
 }
 
 _mk_setenv_now() {
@@ -194,7 +194,7 @@ _mk_setenv_now() {
     |& tee -- "${setenv_now}" >/dev/null
   env \
     |& tee -a "${setenv_now}" >/dev/null
-  : '_mk_setenv_now ENDS' "$((funclvl++))" "${fence}"
+  : '_mk_setenv_now ENDS' "$((funclvl--))" "${fence}"
 }
 
 _mk_setenv_delta() {
@@ -228,7 +228,7 @@ _mk_setenv_delta() {
     GREP_COLORS='mt=01;104'
     export GREP_COLORS
   fi
-  : '_mk_setenv_delta ENDS' "$((funclvl++))" "${fence}"
+  : '_mk_setenv_delta ENDS' "$((funclvl--))" "${fence}"
 }
 
 _mk_deltas() {
@@ -238,7 +238,7 @@ _mk_deltas() {
   _mk_setenv_now
   _mk_setenv_delta
   #_xtrace_duck
-  : '_mk_deltas ENDS' "$((funclvl++))" "${fence}"
+  : '_mk_deltas ENDS' "$((funclvl--))" "${fence}"
 }
 
 # ? what of BASH_LINENO
