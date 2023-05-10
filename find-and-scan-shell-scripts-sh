@@ -90,7 +90,7 @@ trap '
         : "${Halt_trap_setfacl:?}"
       fi
 
-    # bug? Should this var \/ be main_d ?
+    # Bug? Should this var \/ be main_d ?
 
     elif [[ -v mountpoint ]] \
       || [[ -v main_d ]] 
@@ -1113,7 +1113,7 @@ fn_bak() {
     # test verifying existence of input
     if S_ test -f "${loc_filename_a}"; then
 
-      # BUG: Why does this ^ test req sudo when this test \/ doesnt?
+      # Bug: Why does this ^ test req sudo when this test \/ doesnt?
 
       # if the destination (.bak) file already exists,
       # then age it first.
@@ -1208,7 +1208,7 @@ fn_write_arrays() {
     loc_write_f_b="${loc_write_d_b}/_${sc_sev_abrv}"
     loc_write_f_b+="_${abbrev_rel_search_dirs}_${loc_array_nm}"
 
-    # solved?  BUG: mixing variable and array. sb a nameref
+    # solved?  Bug: mixing variable and array. sb a nameref
 
     # Bug? When array correctly is empty. 
     #   'declare -p ... > /dev/null ||' ?
@@ -1295,7 +1295,7 @@ timecode="$(builtin printf '%(%F_%H%M%S)T')"
 #:_
 #X_
 
-# BUGs: Hardcoded $mountpoint
+# Bugs: Hardcoded $mountpoint
 
 : 'Assign varnames and paths for the data directories'
 mountpoint=/run/media/root/29_Mar_2023
@@ -1311,7 +1311,7 @@ a_write_path_nms=( "${list_crunchbangs:=crunchbangs}"
 
 # TODOs: grep scripts for 'todo's
 #   - grep for 'shellcheck disable'
-#   - This section seems buggy.
+#   - This section seems Buggy.
 
 : 'Reduce use of sudo'
 if [[ ! -r "${main_d}" ]]; then
@@ -1488,8 +1488,8 @@ unset IFS
 [[ -f /tmp/"${list_crunchbangs##*/}" ]] \
   && S_ R_ -f -- "/tmp/${list_crunchbangs##*/}"
 
-# BUG: the search dirs must be the same, as well as the dnf tx number
-# BUG: Use of /tmp/crunchbangs as yn on do loop q. Sb a set of file lists
+# Bug: the search dirs must be the same, as well as the dnf tx number
+# Bug: Use of /tmp/crunchbangs as yn on do loop q. Sb a set of file lists
 #.   difftd by search dir / search type / etc. See file "priority"
 
 : 'if the full list exists -- of files on disk which begin with'
@@ -1899,7 +1899,7 @@ a_each_abspath_scriptnm=("${a_each_abspath_scriptnm[@]##* }")
 #   grep -Eo | tr
 
 # Bug: rename variable "$c" below
-# Bug: why sort by line count? More text, more bugs? How to prior mult
+# Bug: why sort by line count? More text, more Bugs? How to prior mult
 #   factors?
 
 # count number of newlines in each script
