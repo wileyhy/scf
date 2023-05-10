@@ -461,26 +461,21 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
     # setting gets clobbered, are: pr sy.
     d) case "${OPTARG:0:2}" in
 
-        ac* | aa*)
-          methods_path=(actually_all) bash_path='/' methods_prog=bin_find
-          F_ ;;
-        as* | ai*)
-          methods_path=('as-is') bash_path="${bash_path_orig}"; F_ ;;
-        bi* | b)
-          methods_path=(bin_only) bash_path='/usr/bin'; F_ ;;
-        bo* | bs*)
-          methods_path=(both_bin_sbin_only) bash_path='/usr/bin:/usr/sbin'
-          F_ ;;
-        ge* | g)
-          methods_path=(getconf_PATH_only) bash_path="${getconf_o}"; F_ ;;
-        sb* | so* | s)
-          methods_path=(sbin_only) bash_path='/usr/sbin'; F_ ;;
-        pr* | p | pa*)
-          methods_path+=(add_proc) bash_path+=':/proc'
+        ac* | aa*) methods_path=(actually_all) bash_path='/' 
           methods_prog=bin_find; F_ ;;
-        sy* | sa*)
-          methods_path+=(add_sys) bash_path+=':/sys' methods_prog=bin_find
+        as* | ai*) methods_path=('as-is') bash_path="${bash_path_orig}"
           F_ ;;
+        bi* | b) methods_path=(bin_only) bash_path='/usr/bin'; F_ ;;
+        bo* | bs*) methods_path=(both_bin_sbin_only) 
+          bash_path='/usr/bin:/usr/sbin'; F_ ;;
+        ge* | g) methods_path=(getconf_PATH_only) bash_path="${getconf_o}"
+          F_ ;;
+        sb* | so* | s) methods_path=(sbin_only) bash_path='/usr/sbin'; 
+          F_ ;;
+        pr* | p | pa*) methods_path+=(add_proc) bash_path+=':/proc'
+          methods_prog=bin_find; F_ ;;
+        sy* | sa*) methods_path+=(add_sys) bash_path+=':/sys' 
+          methods_prog=bin_find; F_ ;;
         *) "${arg_wrong__d:?}" ;;
       esac ;;
     
