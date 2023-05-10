@@ -165,7 +165,6 @@ _mk_setenv_delta() {
 
     GREP_COLORS='mt=01;43'
     export GREP_COLORS
-    less -RNS "${setenv_delta}"
     wc "${setenv_delta}"
     GREP_COLORS='mt=01;104'
     export GREP_COLORS
