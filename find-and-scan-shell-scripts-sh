@@ -57,6 +57,7 @@ alias awk='gawk --lint '
 
 # shellcheck disable=SC2154
 trap '
+  trap - DEBUG
     # <>
     #set -o errtrace
     declare -p a_poss_proces_lock_dirs  
