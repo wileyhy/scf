@@ -33,6 +33,25 @@ PATH="${getconf_o}:/usr/bin:/usr/sbin:${PATH}" \
 PS4='+${BASH_SOURCE[0]}:${LINENO}:${FUNCNAME[0]}: '
 export FUNCNEST GREP_COLORS LC_COLLATE LC_CTYPE LC_NUMERIC PATH PS4
 
+: 'Implementation-dependent arguments for options parsable by ShellCheck'
+
+sc_severity=error
+# shellcheck disable=SC2034
+SC_shells='(sh|bash|dash|ksh)'
+
+: 'Variables more likely to be manually chaged'
+
+script_dirnm="${repo_nm}.d"
+protected_git_dir_1="${HOME}/MYPROJECTS"
+protected_git_dir_2="${HOME}/OTHERSPROJECTS"
+script_lic='Apache 2 license'
+script_nm=find-and-scan-shell-scripts-sh
+script_proper_nm='Script Finder'
+script_version=1.0
+
+# <>
+abbrev_rel_search_dirs=/
+
 # define filenames for the lock directory and temp files
 repo_nm=scf
 random_n="${RANDOM}"
@@ -41,6 +60,9 @@ proc_lk_f_nm="${unique_string}.lock"
 mktemp_sfx=".${unique_string}.txt"
 a_poss_proces_lock_dirs=([0]="${XDG_RUNTIME_DIR}" [1]="${HOME}"
   [2]="${TMPDIR:-/tmp}" [3]=/tmp [4]=/var/tmp)
+
+: User variables
+timecode="$(builtin printf '%(%F_%H%M%S)T')"
 
 : '<> Aliases'
 
@@ -279,25 +301,6 @@ _full_xtrace() {
 
 #exit 101
 #_full_xtrace
-
-: 'Implementation-dependent arguments for options parsable by ShellCheck'
-
-sc_severity=error
-# shellcheck disable=SC2034
-SC_shells='(sh|bash|dash|ksh)'
-
-: 'Variables more likely to be manually chaged'
-
-script_dirnm="${repo_nm}.d"
-protected_git_dir_1="${HOME}/MYPROJECTS"
-protected_git_dir_2="${HOME}/OTHERSPROJECTS"
-script_lic='Apache 2 license'
-script_nm=find-and-scan-shell-scripts-sh
-script_proper_nm='Script Finder'
-script_version=1.0
-
-# <>
-abbrev_rel_search_dirs=/
 
 : 'Required programs'
 
@@ -755,7 +758,8 @@ exit 101
 
 # Bug: greps. parse full outputs of type and command
 
-# Process value of search_methods_prog
+: 'search_methods_prog'
+
 if [[ "${search_methods_prog}" = \
   @(bash_command_pV|bash_command_V|bash_type_a) ]]; 
 then
@@ -841,6 +845,7 @@ fi
   && ls ./all_commands
 exit 101
 
+
 # delete? re-work?
 
 abbrev_rel_search_dirs=all
@@ -877,7 +882,8 @@ A_rsd=(
   #[sys]='/sys'
 )
 
-# for actually_all
+: 'actually_all'
+
 umask 117
 
 get_rel_search_dirs() {
@@ -894,7 +900,8 @@ get_rel_search_dirs() {
 }
 get_rel_search_dirs a_relevant_search_dirs
 
-# for memory usage persistent storage
+: 'memory_usage'
+
 # take each found dir and convert abs path [of sym, okay] to a string
 # usable for directory names
 unset index element calc
@@ -937,7 +944,8 @@ get_mountpoint /sbin
 # <>
 exit 101
 
-# check DAC's,
+: 'DACs'
+
 namei_o="$(
   for d in "${path_2[@]}"; do
     namei -xl "$(
@@ -953,7 +961,7 @@ if [[ -n "${namei_o}" ]]; then
   exit "${LINENO}"
 fi
 
-# check ACL's
+: 'ACLs'
 
 # Variables, this section
 unset end_dirname full_dir_list ext_array dir sub_dir num_sub_dirs N n \
@@ -1049,11 +1057,10 @@ done
 unset end_dirname full_dir_list ext_array dir sub_dir num_sub_dirs \
   N n extglob_pattern ext_first ext_last getfacl_o grep_o
 
-# check MAC's
-
 exit 101
 
 : '<> Functions'
+
 set -v
 function B_() { 
   : 'B_ BEGINS' "$((++funclvl))" "${fence}"
@@ -1285,9 +1292,6 @@ if ! mkdir -m 0000 "${process_lock_d}" 2>/dev/null; then
   } 1>&2
   L_
 fi
-
-: User variables
-timecode="$(builtin printf '%(%F_%H%M%S)T')"
 
 # SECTION B
 
