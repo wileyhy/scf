@@ -296,6 +296,12 @@ _full_xtrace
 : 'Variables re getopts'
 bash_path_orig="${PATH}"
 bash_path="${bash_path_orig}"
+easter_egg="$(
+  printf '%s%s%s' 'CgkiSSB3b3VsZCBoYXZlIG1hZGUgdGhpcyBzaG9y' \
+    'dGVyLCBidXQgSSBkaWRuJ3QgaGF2ZSB0aGUg' \
+    'dGltZS4iCgkJLS0gTWFyayBUd2FpbgoK' \
+    | base64 -d
+)"
 find_exclude_optargs_default=(
   [0]='(' [1]='!' [2]='-name' [3]='proc' [4]='-a' [5]='!'
   [6]='-name' [7]='sys' [8]='-a' [9]='!' [10]='-iname'
@@ -368,10 +374,7 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
   case "${cli_input}" in
     # Easter egg
     A)
-      printf '%s%s%s' 'CgkiSSB3b3VsZCBoYXZlIG1hZGUgdGhpcyBzaG9y' \
-        'dGVyLCBidXQgSSBkaWRuJ3QgaGF2ZSB0aGUg' \
-        'dGltZS4iCgkJLS0gTWFyayBUd2FpbgoK' \
-        | base64 -d
+      printf '%s' "${easter_egg}"
       exit 0
       ;;
     # Follow symlinks
