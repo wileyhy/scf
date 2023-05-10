@@ -316,6 +316,7 @@ find_exclude_optargs_default=(
 )
 find_exclude_optargs=("${find_exclude_optargs_default[@]}")
 IFS=':' read -ra find_path <<<"${bash_path}"
+find_sym_opt='-P'
 memory_usage=temp_files
 sc_sev_abrv="${sc_severity:0:1}"
 search_methods_descend=no
