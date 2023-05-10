@@ -247,7 +247,7 @@ _debug_prompt() {
   : '_debug_prompt BEGINS' "$((funclvl++))" "${fence}"
   _mk_deltas
   read -rp "[${BASH_SOURCE[0]}:${LINENO}] ${BASH_COMMAND[0]}?" _
-  : '_debug_prompt ENDS' "$((funclvl++))" "${fence}"
+  : '_debug_prompt ENDS' "$((funclvl--))" "${fence}"
 }
 
 _full_xtrace() {
@@ -255,7 +255,7 @@ _full_xtrace() {
   #set -o functrace
   trap '_debug_prompt "$_";' DEBUG
   set -x
-  : '_full_xtrace ENDS' "$((funclvl++))" "${fence}"
+  : '_full_xtrace ENDS' "$((funclvl--))" "${fence}"
 }
 
 #exit 101
@@ -359,7 +359,7 @@ EOF
 
   # shellcheck disable=SC2086
   exit "${1}"
-  : 'fn_usage ENDS' "$((funclvl++))" "${fence}"
+  : 'fn_usage ENDS' "$((funclvl--))" "${fence}"
 }
 
 #D_ find_exclude_optargs_default find_exclude_optargs
@@ -853,7 +853,7 @@ get_rel_search_dirs() {
       -a \! -iname "${protected_git_dir_2:- tmp}" \
       \) -print0 2>/dev/null
   )
-  : 'get_rel_search_dirs ENDS' "$((funclvl++))" "${fence}"
+  : 'get_rel_search_dirs ENDS' "$((funclvl--))" "${fence}"
 }
 get_rel_search_dirs a_relevant_search_dirs
 
@@ -893,7 +893,7 @@ get_mountpoint() {
   done
   x="$(realpath -e "$x")"
   echo "$x"
-  : 'get_mountpoint ENDS' "$((funclvl++))" "${fence}"
+  : 'get_mountpoint ENDS' "$((funclvl--))" "${fence}"
 }
 get_mountpoint /sbin
 
@@ -1021,27 +1021,27 @@ set -v
 function B_() { 
   : 'B_ BEGINS' "$((funclvl++))" "${fence}"
   fn_bak "$@"; 
-  : 'B_ ENDS' "$((funclvl++))" "${fence}"
+  : 'B_ ENDS' "$((funclvl--))" "${fence}"
 }
 function I_() { 
   : 'I_ BEGINS' "$((funclvl++))" "${fence}"
   fn_erx "${LINENO}"; 
-  : 'I_ ENDS' "$((funclvl++))" "${fence}"
+  : 'I_ ENDS' "$((funclvl--))" "${fence}"
 }
 #function N_() { 
 #  : 'N_ BEGINS' "$((funclvl++))" "${fence}"
 #  fn_num "$@";
-#  : 'N_ ENDS' "$((funclvl++))" "${fence}"
+#  : 'N_ ENDS' "$((funclvl--))" "${fence}"
 #};
 #function V_() { 
 #  : 'V_ BEGINS' "$((funclvl++))" "${fence}"
 #  fn_write_vars "$@";
-#  : 'V_ ENDS' "$((funclvl++))" "${fence}"
+#  : 'V_ ENDS' "$((funclvl--))" "${fence}"
 #};
 function W_() { 
   : 'W_ BEGINS' "$((funclvl++))" "${fence}"
   fn_write_arrays "$@"; 
-  : 'W_ ENDS' "$((funclvl++))" "${fence}"
+  : 'W_ ENDS' "$((funclvl--))" "${fence}"
 }
 set +v
 
@@ -1110,7 +1110,7 @@ fn_bak() {
     fi
   done
   : 'END OF fn_bak'
-  : 'fn_bak ENDS' "$((funclvl++))" "${fence}"
+  : 'fn_bak ENDS' "$((funclvl--))" "${fence}"
 }
 
 fn_erx() {
@@ -1124,7 +1124,7 @@ fn_erx() {
   : 'END OF fn_erx'
 
   exit "${loc_exit_code}"
-  : 'fn_erx ENDS' "$((funclvl++))" "${fence}"
+  : 'fn_erx ENDS' "$((funclvl--))" "${fence}"
 }
 
 #fn_num() {
@@ -1142,7 +1142,7 @@ fn_erx() {
 #    echo ${#loc_nameref_a[@]}
 #  done
 #  : 'END OF fn_num'
-#  : 'fn_num ENDS' "$((funclvl++))" "${fence}"
+#  : 'fn_num ENDS' "$((funclvl--))" "${fence}"
 #}
 
 fn_usage() {
@@ -1164,7 +1164,7 @@ EOF
 
   # shellcheck disable=SC2086
   exit "${1}"
-  : 'fn_usage ENDS' "$((funclvl++))" "${fence}"
+  : 'fn_usage ENDS' "$((funclvl--))" "${fence}"
 }
 
 # Write each array to a file on disk.
@@ -1206,7 +1206,7 @@ fn_write_arrays() {
     B_ "${loc_write_f_b}"
   done
   : 'END OF fn_write_arrays'
-  : 'fn_write_arrays ENDS' "$((funclvl++))" "${fence}"
+  : 'fn_write_arrays ENDS' "$((funclvl--))" "${fence}"
 }
 
 #fn_write_vars() {
@@ -1231,7 +1231,7 @@ fn_write_arrays() {
 #
 #  B_ "${loc_write_f_a}"
 #  : END OF fn_write_vars
-#  : 'fn_write_vars ENDS' "$((funclvl++))" "${fence}"
+#  : 'fn_write_vars ENDS' "$((funclvl--))" "${fence}"
 #}
 
 : 'Use -sudo-'
