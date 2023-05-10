@@ -46,7 +46,9 @@ alias awk='gawk --lint '
 
 # shellcheck disable=SC2154
 trap '
+    
     # <>
+    set -o functrace errtrace
     declare -p a_poss_proces_lock_dirs  
 
   # Delete all possible existing process _lock_directories_. 
