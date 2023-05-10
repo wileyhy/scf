@@ -558,9 +558,9 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
     h) fn_usage 0
       ;;
     
-    # Program to search with (variable) -- all settings clobber
+    # Program to search with. All settings clobber; bash is default
     p) case "${OPTARG:0:2}" in
-        ba* | b) methods_prog=bin_bash # default ;;
+        ba* | b) methods_prog=bin_bash ;;
         cp*) methods_prog=bash_command_pV ;;
         cv*) methods_prog=bash_command_V ;;
         fi* | f) methods_prog=bin_find ;;
