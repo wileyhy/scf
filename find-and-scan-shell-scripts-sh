@@ -58,6 +58,9 @@ unique_string="${repo_nm}.${$}.${random_n}"
 mktemp_sfx=".${unique_string}.txt"
 proc_lk_f_nm="${unique_string}.lock"
 timecode="$(builtin printf '%(%F_%H%M%S)T')"
+for pld in "${a_poss_proces_lock_dirs[@]}"; do 
+  process_lock_dirs+=( "${pld}/${proc_lk_f_nm}" )
+done; unset pld
 
 : '<> Debug variables' # "<>" means, "This is a debugging section."
 
@@ -84,28 +87,25 @@ trap '
   trap - DEBUG
 
   # Delete all possible existing process _lock_directories_. 
-  for poss_lk_d in "${a_poss_proces_lock_dirs[@]}"; do 
+  for pld in "${process_lock_dirs[@]}"; do 
 
-    # Abbreviate variable
-    pl="${poss_lk_d}/${proc_lk_f_nm}"
-
-    [[ "${pl}" =~ "$$"*.lock ]] \
+    [[ "${pld}" =~ "$$"*.lock ]] \
       || continue
 
     # test and delete lock directories.
-    if [[ -d "${pl}" ]] && [[ ! -L "${pl}" ]]; then 
-      echo S_ R_ -rf -- "${pl}" \
+    if [[ -d "${pld}" ]] && [[ ! -L "${pld}" ]]; then 
+      echo S_ R_ -rf -- "${pld}" \
         || L_
     fi
-  done
+  done; unset pld
 
     # <>
     #: "${Halt?}"
 
   # Remove any script-s ACL-s based on canary variables
-  if [[ -v acl_execd_setfacl ]]; then 
+  if [[ -n "${acl_execd_setfacl}" ]]; then 
 
-    if [[ -v acl_abs_path ]]; then 
+    if [[ -n "${acl_abs_path}" ]]; then 
       
       # Manual (non-alias/function) error handling reqd wi traps
       if ! S_ setfacl -R -x "u:${UID}" -- "${acl_abs_path}"; then
