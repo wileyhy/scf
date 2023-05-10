@@ -101,39 +101,43 @@ trap '
 
 : '<> Table of traps' # Learning about how `bash` uses signals  
 
-# trap 'set -x; echo SIGEXIT;   trap SIGEXIT;   kill -s INT $$'  EXIT   # 0
-  trap 'set -x; echo SIGHUP;    trap SIGHUP;    kill -s 2   $$'  HUP    # 1
-# trap 'set -x; echo SIGINT;    trap 2;         kill -s 2   $$'  2      # INT # ^C 
-  trap 'set -x; echo SIGQUIT;   trap SIGQUIT;   kill -s 2   $$'  QUIT   # 3   
-  trap 'set -x; echo SIGILL;    trap SIGILL;    kill -s 2   $$'  ILL    # 4   
-  trap 'set -x; echo SIGTRAP;   trap SIGTRAP;   kill -s 2   $$'  TRAP   # 5   
-  trap 'set -x; echo SIGABRT;   trap SIGABRT;   kill -s 2   $$'  ABRT   # 6   
-  trap 'set -x; echo SIGBUS;    trap SIGBUS;    kill -s 2   $$'  BUS    # 7   
-  trap 'set -x; echo SIGFPE;    trap SIGFPE;    kill -s 2   $$'  FPE    # 8   
-# trap 'set -x; echo SIGKILL;   trap SIGKILL;   kill -s 2   $$'  KILL   # 9   # cannot be caught, per `shellcheck`
-  trap 'set -x; echo SIGUSR1;   trap SIGUSR1;   kill -s 2   $$'  USR1   # 10    
-  trap 'set -x; echo SIGSEGV;   trap SIGSEGV;   kill -s 2   $$'  SEGV   # 11  
-  trap 'set -x; echo SIGUSR2;   trap SIGUSR2;   kill -s 2   $$'  USR2   # 12  
-  trap 'set -x; echo SIGPIPE;   trap SIGPIPE;   kill -s 2   $$'  PIPE   # 13  
-  trap 'set -x; echo SIGALRM;   trap SIGALRM;   kill -s 2   $$'  ALRM   # 14  
-# trap 'set -x; echo SIGTERM;   trap SIGTERM;   kill -s 2   $$'  TERM   # 15  
-  trap 'set -x; echo SIGSTKFLT; trap SIGSTKFLT; kill -s 2   $$'  STKFLT # 16  
-# trap 'set -x; echo SIGCHLD;   trap SIGCHLD;   kill -s 2   $$'  CHLD   # 17  # triggered by returning command substitution
-  trap 'set -x; echo SIGCONT;   trap SIGCONT;   kill -s 2   $$'  CONT   # 18
-# trap 'set -x; echo SIGSTOP;   trap SIGSTOP;   kill -s 2   $$'  STOP   # 19  # cannot be caught, per `shellcheck`
-  trap 'set -x; echo SIGTSTP;   trap SIGTSTP;   kill -s 2   $$'  TSTP   # 20
-  trap 'set -x; echo SIGTTIN;   trap SIGTTIN;   kill -s 2   $$'  TTIN   # 21
-  trap 'set -x; echo SIGTTOU;   trap SIGTTOU;   kill -s 2   $$'  TTOU   # 22
-  trap 'set -x; echo SIGURG;    trap SIGURG;    kill -s 2   $$'  URG    # 23
-  trap 'set -x; echo SIGXCPU;   trap SIGXCPU;   kill -s 2   $$'  XCPU   # 24
-  trap 'set -x; echo SIGXFSZ;   trap SIGXFSZ;   kill -s 2   $$'  XFSZ   # 25
-  trap 'set -x; echo SIGVTALRM; trap SIGVTALRM; kill -s 2   $$'  VTALRM # 26
-  trap 'set -x; echo SIGPROF;   trap SIGPROF;   kill -s 2   $$'  PROF   # 27
-  trap 'set -x; echo SIGWINCH;  trap SIGWINCH;  kill -s 2   $$'  WINCH  # 28
-  trap 'set -x; echo SIGIO;     trap SIGIO;     kill -s 2   $$'  IO     # 29
-  trap 'set -x; echo SIGPWR;    trap SIGPWR;    kill -s 2   $$'  PWR    # 30
-  trap 'set -x; echo SIGSYS;    trap SIGSYS;    kill -s 2   $$'  SYS    # 31
-  trap 'set -x; echo SIGRTMIN;  trap SIGRTMIN;  kill -s 2   $$'  RTMIN  # 32
+# trap 'set -x; echo SIGEXIT;   trap SIGEXIT;   kill -s INT $$' EXIT # 0
+  trap 'set -x; echo SIGHUP;    trap SIGHUP;    kill -s 2   $$' HUP  # 1
+# trap 'set -x; echo SIGINT;    trap 2;         kill -s 2   $$' 2 # INT 
+#   ^--- ^C 
+  trap 'set -x; echo SIGQUIT;   trap SIGQUIT;   kill -s 2   $$' QUIT # 3
+  trap 'set -x; echo SIGILL;    trap SIGILL;    kill -s 2   $$' ILL  # 4
+  trap 'set -x; echo SIGTRAP;   trap SIGTRAP;   kill -s 2   $$' TRAP # 5
+  trap 'set -x; echo SIGABRT;   trap SIGABRT;   kill -s 2   $$' ABRT # 6
+  trap 'set -x; echo SIGBUS;    trap SIGBUS;    kill -s 2   $$' BUS  # 7
+  trap 'set -x; echo SIGFPE;    trap SIGFPE;    kill -s 2   $$' FPE  # 8
+# trap 'set -x; echo SIGKILL;   trap SIGKILL;   kill -s 2   $$' KILL # 9
+#   ^--- cannot be caught, per `shellcheck`
+  trap 'set -x; echo SIGUSR1;   trap SIGUSR1;   kill -s 2   $$' USR1 # 10
+  trap 'set -x; echo SIGSEGV;   trap SIGSEGV;   kill -s 2   $$' SEGV # 11
+  trap 'set -x; echo SIGUSR2;   trap SIGUSR2;   kill -s 2   $$' USR2 # 12
+  trap 'set -x; echo SIGPIPE;   trap SIGPIPE;   kill -s 2   $$' PIPE # 13
+  trap 'set -x; echo SIGALRM;   trap SIGALRM;   kill -s 2   $$' ALRM # 14
+# trap 'set -x; echo SIGTERM;   trap SIGTERM;   kill -s 2   $$' TERM # 15
+  trap 'set -x; echo SIGSTKFLT; trap SIGSTKFLT; kill -s 2 $$' STKFLT # 16
+# trap 'set -x; echo SIGCHLD;   trap SIGCHLD;   kill -s 2   $$' CHLD # 17
+#   ^--- triggered by returning command substitution
+  trap 'set -x; echo SIGCONT;   trap SIGCONT;   kill -s 2   $$' CONT # 18
+# trap 'set -x; echo SIGSTOP;   trap SIGSTOP;   kill -s 2   $$' STOP # 19
+#   ^--- cannot be caught, per `shellcheck`
+  trap 'set -x; echo SIGTSTP;   trap SIGTSTP;   kill -s 2   $$' TSTP # 20
+  trap 'set -x; echo SIGTTIN;   trap SIGTTIN;   kill -s 2   $$' TTIN # 21
+  trap 'set -x; echo SIGTTOU;   trap SIGTTOU;   kill -s 2   $$' TTOU # 22
+  trap 'set -x; echo SIGURG;    trap SIGURG;    kill -s 2   $$' URG  # 23
+  trap 'set -x; echo SIGXCPU;   trap SIGXCPU;   kill -s 2   $$' XCPU # 24
+  trap 'set -x; echo SIGXFSZ;   trap SIGXFSZ;   kill -s 2   $$' XFSZ # 25
+  trap 'set -x; echo SIGVTALRM; trap SIGVTALRM; kill -s 2 $$' VTALRM # 26
+  trap 'set -x; echo SIGPROF;   trap SIGPROF;   kill -s 2   $$' PROF # 27
+  trap 'set -x; echo SIGWINCH;  trap SIGWINCH;  kill -s 2  $$' WINCH # 28
+  trap 'set -x; echo SIGIO;     trap SIGIO;     kill -s 2   $$' IO   # 29
+  trap 'set -x; echo SIGPWR;    trap SIGPWR;    kill -s 2   $$' PWR  # 30
+  trap 'set -x; echo SIGSYS;    trap SIGSYS;    kill -s 2   $$' SYS  # 31
+  trap 'set -x; echo SIGRTMIN;  trap SIGRTMIN;  kill -s 2  $$' RTMIN # 32
 
 : '<> XTrace'
 funclvl=0
@@ -266,7 +270,7 @@ _full_xtrace() {
 #exit 101
 #_full_xtrace
 
-: 'Implementation dependent arguments for options parsable by -shellcheck-'
+: 'Implementation-dependent arguments for options parsable by ShellCheck'
 
 sc_severity=error
 # shellcheck disable=SC2034
@@ -385,7 +389,8 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
     # by default is assumed (by `find`) to be '-P'. `find -H` is not
     # implemented in this script.
     H)
-      # Input validation: make upper case letters lower case, and truncate all but first letter. this code block repeats below.
+      # Input validation: make upper case letters lower case, and 
+      # truncate all but first letter. this code block repeats below.
       OPTARG="${OPTARG,,[A-Z]}" OPTARG="${OPTARG:0:1}"
 
       # Parse option arguments
@@ -399,7 +404,8 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
         p)
           search_methods_symlinks=physical
           search_methods_prog=bin_find
-          # side effect: setting '-H p' also clobbers this variable. side effects such as these are marked below as "clobber."
+          # Side effect: setting '-H p' also clobbers this variable. 
+          # side effects such as these are marked below as "clobber."
           find_sym_opt='-P'
           ;;
         # Logical
@@ -408,7 +414,9 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
           search_methods_prog=bin_find # clobber
           find_sym_opt='-L'
           ;;
-        # this parameter expansion, ':?', when a parameter is null or unset, causes the shell to immediately halt, ignoring any trap on EXIT.
+        # This parameter expansion, ':?', when a parameter is null or 
+        # unset, causes the shell to immediately halt, ignoring any 
+        # trap on EXIT.
         *)
           "${arg_wrong__h:?}"
           ;;
@@ -429,7 +437,8 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
         *) "${arg_wrong__X:?}" ;;
       esac
       ;;
-    # PATH (array) - Part 1 - Options with no args . ('-P /usr/share' is an option with an argument.)
+    # PATH (array) - Part 1 - Options with no args . 
+    #   '-P /usr/share' is an option with an argument. 
     #   For scanning '/proc' or '/sys', see also option 's'.
     P)
       # Part 1.A -- clobbering settings
@@ -442,7 +451,8 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
           search_methods_path=(actually_all)
           bash_path='/'
 
-          # For consistency, find_path is always defined after bash_path, regardless of which one is used.
+          # For consistency, find_path is always defined after 
+          # bash_path, regardless of which one is used.
           IFS=':' read -ra find_path <<<"${bash_path}"
           search_methods_prog=bin_find
           ;;
@@ -678,15 +688,27 @@ if [[ "${verify[*]}" =~ path ]]; then
   IFS=':' read -ra path <<<"${PATH}" # this
 
   # get the cannonicalized paths of each such dir
-  for p in "${!path[@]}"; do path[p]="$(realpath -e "${path[p]}" 2>/dev/null)"; done
+  for p in "${!path[@]}"; do 
+    path[p]="$(realpath -e "${path[p]}" 2>/dev/null)"; 
+  done
   unset p # this
 
   # if the index is empty, then unset it
-  for p in "${!path[@]}"; do if [[ -z "${path[p]}" ]]; then unset 'path[p]'; fi; done
+  for p in "${!path[@]}"; do 
+    if [[ -z "${path[p]}" ]]; then 
+      unset 'path[p]'; 
+    fi; 
+  done
   unset p # this
 
   # remove any duplicates while preserving order of dirs
-  for p in "${!path[@]}"; do if [[ "${path_2[*]}" =~ ${path[p]} ]]; then unset 'path[p]'; else path_2+=("${path[p]}"); fi; done
+  for p in "${!path[@]}"; do 
+    if [[ "${path_2[*]}" =~ ${path[p]} ]]; then 
+      unset 'path[p]'; 
+    else 
+      path_2+=("${path[p]}"); 
+    fi; 
+  done
   unset p # this
 
   # reset indices of path_2 and print results
@@ -704,7 +726,9 @@ exit 101
 # Bug: greps. parse full outputs of type and command
 
 # Process value of search_methods_prog
-if [[ "${search_methods_prog}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; then
+if [[ "${search_methods_prog}" = \
+  @(bash_command_pV|bash_command_V|bash_type_a) ]]; 
+then
 
   # create a single array of all commands found by each kind of search.
   # to do this...
@@ -715,14 +739,22 @@ if [[ "${search_methods_prog}" = @(bash_command_pV|bash_command_V|bash_type_a) ]
   # create a dictionary list of each possible initial character
   unset allchr char i all_commands real_dirs re
 
-  for i in 8 9 10 11 12 13 {32..127}; do allchr+=(["$i"]="$(printf '%b' "\\$(printf %03o "$i")")"); done
+  for i in 8 9 10 11 12 13 {32..127}; do 
+    allchr+=(["$i"]="$(printf '%b' "\\$(printf %03o "$i")")"); 
+  done
   allchr[10]=$'\n'
   unset i
 
-  for i in "${!allchr[@]}"; do mapfile -O $((i * 1000)) -t all_commands < <(compgen -c "${allchr[i]}"); done
+  for i in "${!allchr[@]}"; do 
+    mapfile -O $((i * 1000)) -t all_commands < <(
+      compgen -c "${allchr[i]}"); 
+    done
   unset i
 
-  mapfile -t real_dirs < <(sudo find / -maxdepth 1 -mindepth 1 -type d \! -empty | sort)
+  mapfile -t real_dirs < <(
+    sudo find / -maxdepth 1 -mindepth 1 -type d \! -empty | 
+      sort
+  )
 
   re="$(
     printf '(%s' "${real_dirs[0]#/}"
@@ -731,7 +763,10 @@ if [[ "${search_methods_prog}" = @(bash_command_pV|bash_command_V|bash_type_a) ]
     printf ')\n'
   )"
 
-  #search_methods_prog=bash_type_a; for i in "${!all_commands[@]}"; do if [[ "${search_methods_prog}" = bash_type_a ]]; then type -a "${all_commands[i]}" ; fi; done
+  #search_methods_prog=bash_type_a; 
+  #for i in "${!all_commands[@]}"; do 
+  #if [[ "${search_methods_prog}" = bash_type_a ]]; then 
+  #type -a "${all_commands[i]}" ; fi; done
 
   # Bug: the tests for search_methods_prog need to be at the top level of
   # logic structure
@@ -1022,8 +1057,8 @@ set +v
 for d in "${a_poss_proces_lock_dirs[@]}"; do
   if [[ -d "${d}" ]]; then
     mapfile -d '' -t lkds < <(
-      S_ find "${d}" -type d -empty -name ".${repo_nm}.[0-9a-zA-Z_-]*.lock" \
-        -print0 2>/dev/null
+      S_ find "${d}" -type d -empty -name \
+        ".${repo_nm}.[0-9a-zA-Z_-]*.lock" -print0 2>/dev/null
     )
 
     : 'lkds, count:' "${#lkds[@]}"
@@ -1103,7 +1138,8 @@ fn_erx() {
 #    # set a local name reference variable
 #    local -n loc_nameref_a="${loc_unquotd_array_nm_a}"
 #
-#    # and use the nameref to print the number of indices in the input array
+#    # and use the nameref to print the number of indices in the 
+#    # input array
 #    echo ${#loc_nameref_a[@]}
 #  done
 #  : 'fn_num ENDS  ' "$((--funclvl))" "${fence}"
@@ -1147,16 +1183,16 @@ fn_write_arrays() {
     local -n loc_nameref_b="${loc_unquotd_array_nm_b}"
     loc_array_nm="${loc_unquotd_array_nm_b}"
     loc_write_f_b="${loc_write_d_b}/_${sc_sev_abrv}"
-    loc_write_f_b="${loc_write_f_b}_${abbrev_rel_search_dirs}_${loc_array_nm}"
+    loc_write_f_b+="_${abbrev_rel_search_dirs}_${loc_array_nm}"
 
     # solved?  BUG: mixing variable and array. sb a nameref
 
-    # Bug? When array correctly is empty. 'declare -p ... > /dev/null ||' ?
+    # Bug? When array correctly is empty. 
+    #   'declare -p ... > /dev/null ||' ?
 
     # if the input array holds no data, then populate it
     if [[ ! -v loc_nameref_b[@] ]]; then
       loc_nameref_b=([0]='fn_write_arrays: Empty array')
-
     fi
 
     # then write a data file to disk
@@ -1246,7 +1282,9 @@ curr_time_ssubd="${data_subd}/t_${timecode}/"
 list_crunchbangs="${curr_time_ssubd}/crunchbangs"
 
 : 'data files'
-a_write_path_nms=("${list_crunchbangs:=crunchbangs}" "/tmp/${list_crunchbangs##*/}")
+a_write_path_nms=( "${list_crunchbangs:=crunchbangs}" 
+  "/tmp/${list_crunchbangs##*/}"
+)
 
 # TODOs: grep scripts for 'todo's
 #   - grep for 'shellcheck disable'
@@ -1297,7 +1335,9 @@ if [[ ! -r "${main_d}" ]]; then
       : 'test failed: acl_realpath is not readable'
 
       acl_execd_setfacl=y
-      export acl_execd_setfacl # SC2034, while trap-s setfacl blk is #-d # this comment means what?
+      # SC2034, while trap-s setfacl blk is #-d 
+      #   ^--- this comment means what???
+      export acl_execd_setfacl 
 
       # readable up to the main_d
       S_ chmod -R 750 -- "${acl_realpath}" \
@@ -1356,7 +1396,9 @@ for prev_time_ssubd in "${a_previous_time_dirs[@]}"; do
   rmdir --ignore-fail-on-non-empty -- "${prev_time_ssubd}"
 
   : of previous prev_time_ssubd
-  if [[ -d "${prev_time_ssubd}" ]] && [[ ! -L "${prev_time_ssubd}" ]]; then
+  if [[ -d "${prev_time_ssubd}" ]] \
+    && [[ ! -L "${prev_time_ssubd}" ]]; 
+  then
     S_ mv -- "${a_previous_time_dirs[@]}" "${main_d}"
   else
     continue
@@ -1382,8 +1424,8 @@ if [[ "${abbrev_rel_search_dirs}" == all ]]; then
   # shellcheck disable=SC2312
   mapfile -d '' -t a_relevant_search_dirs < <(
     S_ find / -mindepth 1 -maxdepth 1 -type d \! -empty \
-      \( \! -name proc -a \! -name sys -a \! -iname "${script_dirnm}*" \) \
-      -print0 2>/dev/null
+      \( \! -name proc -a \! -name sys -a \! \
+      -iname "${script_dirnm}*" \) -print0 2>/dev/null
   )
 
   for sd in "${a_relevant_search_dirs[@]}"; do
@@ -1466,18 +1508,20 @@ if [[ ! -f "/tmp/${list_crunchbangs##*/}" ]] \
     # Bug: [[ -n sb right after exec file
 
     if [[ -n "${file_o}" ]]; then
-      S_ tee -a -- "${curr_time_ssubd}file_out" <<<"${file_o}" >/dev/null
+      S_ tee -a -- "${curr_time_ssubd}file_out" <<<"${file_o}" \
+        > /dev/null
     else
       err_msg="WARNING: -file- produced 0 output:  <${each_sorted_f}>"
-      S_ tee -a -- "${curr_time_ssubd}file_out" <<<"${err_msg}" >/dev/null
+      S_ tee -a -- "${curr_time_ssubd}file_out" <<<"${err_msg}" \
+        > /dev/null
     fi
 
     # Bug: keep `od` output in an array
     # Bug: avoid as many disk writes as possible.
-    #.  Write out only stats?
-    # Bug: use indices to reference each type? Store array diffs btw loop?
-    #. Time loss to disk io? Run file in parallel? Read each file once and
-    #. use var for both od and file?
+    #  Write out only stats?
+    # Bug: use indices to reference each type? Store array diffs btw 
+    # loop? Time loss to disk io? Run file in parallel? Read each file 
+    # once and use var for both od and file?
 
     : 'two bytes each'
 
@@ -1523,7 +1567,8 @@ if [[ ! -f "/tmp/${list_crunchbangs##*/}" ]] \
         strings_o="$(strings -n1 <"${each_sorted_f}" \
           | head -n1 \
           | cut -b -$((2 ** 14)) \
-          || I_ "P:${PIPESTATUS[*]} I:${all_files_index} ${each_sorted_f}")"
+          || I_ "P:${PIPESTATUS[*]} I:${all_files_index} \
+            ${each_sorted_f}")"
 
         IFS= read -r first_line_printable <<<"${strings_o}" \
           || I_ "I:${all_files_index} ${each_sorted_f}"
@@ -1544,11 +1589,14 @@ if [[ ! -f "/tmp/${list_crunchbangs##*/}" ]] \
 
           : 'user or system'
           if [[ "${each_sorted_f}" = /@(root|home|run/media)/* ]]; then
-            a_non_rpm_user_crunches+=([all_files_index]="${each_sorted_f}")
+            a_non_rpm_user_crunches+=(
+              [all_files_index]="${each_sorted_f}"
+            )
             continue
           else
             a_non_rpm_system_crunches+=(
-              [all_files_index]="${each_sorted_f}")
+              [all_files_index]="${each_sorted_f}"
+            )
             continue
           fi
         fi
@@ -1586,7 +1634,11 @@ if [[ ! -f "/tmp/${list_crunchbangs##*/}" ]] \
   : 'and their crashbangs.'
 
   : 'Exporting is necessary of the array names from the above scan'
-  a_arrays=(a_all_files a_all_files_sorted a_file_DNE a_empty_files a_bin_file_output a_bin_od_output a_incorrect_endianness a_crunches_with_hashbang_comments a_non_rpm_user_crunches a_non_rpm_system_crunches a_shell_scripts a_all_other_files a_write_path_nms)
+  a_arrays=( a_all_files a_all_files_sorted a_file_DNE a_empty_files 
+    a_bin_file_output a_bin_od_output a_incorrect_endianness 
+    a_crunches_with_hashbang_comments a_non_rpm_user_crunches 
+    a_non_rpm_system_crunches a_shell_scripts a_all_other_files 
+    a_write_path_nms )
   export "${a_arrays[@]}"
 
   W_ "${a_arrays[@]}"
@@ -1596,7 +1648,9 @@ if [[ ! -f "/tmp/${list_crunchbangs##*/}" ]] \
   : 'if any data files already exist, keep them'
   for any_existing_f in "${a_write_path_nms[@]}"; do
 
-    if [[ -f "${any_existing_f}" ]] && [[ ! -L "${any_existing_f}" ]]; then
+    if [[ -f "${any_existing_f}" ]] \
+      && [[ ! -L "${any_existing_f}" ]]; 
+    then
       S_ mv -- "${any_existing_f}" "${any_existing_f}.${$}.${random_n}" \
         || I_
     fi
@@ -1621,7 +1675,8 @@ else
   # the time_dir needs a copy of the crunchbangs file, also.  copy it in
   # from the hopefully correct backup in /tmp
   if [[ ! -f "${list_crunchbangs}" ]]; then
-    S_ rsync -ca -- "/tmp/${list_crunchbangs##*/}" "${list_crunchbangs}" \
+    S_ rsync -ca -- "/tmp/${list_crunchbangs##*/}" \
+      "${list_crunchbangs}" \
       || I_
   fi
 fi
@@ -1662,7 +1717,8 @@ mapfile -t a_interpreters < <(
 : 'Ways to find an interpreter if it-s available on disk:'
 
 # Bug: `realpath -e` and `command -V` are redundant?
-# Answer: no. `command` is limited to PATH; realpath is limited by FS permissions.
+# Answer: no. `command` is limited to PATH; realpath is limited by 
+# FS permissions.
 
 # `find` can produce symlinks or actual files
 #   # find /usr/sbin -type l | grep resolvconf
@@ -1708,7 +1764,8 @@ L_
 
     printf '%-32s' "${a_interps_rps[b]}"
 
-    # use a shell builtin to test for each interpreter's presence on disk, and write to a variable the test's result
+    # use a shell builtin to test for each interpreter's presence on 
+    # disk, and write to a variable the test's result
 
     if command -pV "${a_interps_rps[b]}" >/dev/null; then
       m="exists on disk"
@@ -1716,7 +1773,8 @@ L_
       m="DNE on disk"
     fi
 
-    # create a new array of structured data: index, interpreter and test result
+    # create a new array of structured data: index, interpreter and 
+    # test result
     a_interps_disk_repo+=([b]="${b} : ${a_interps_rps[b]} : ${m}")
 
     # into the next 8 bits of a line, print the test result
@@ -1838,7 +1896,8 @@ mapfile -t a_each_script_list_sorted_by_linect \
   <<<"${awko}"
 
 # define file name, including severity and path symbols (target file)
-found_scrpts_f="${list_crunchbangs}_found_scripts_${sc_sev_abrv}_${abbrev_rel_search_dirs}"
+found_scrpts_f="${list_crunchbangs}_found_scripts" 
+found_scrpts_f+="_${sc_sev_abrv}_${abbrev_rel_search_dirs}"
 i=0
 
 # Bug? 1st grep extra?
@@ -1856,8 +1915,9 @@ i=0
     # count the number of unique errors
     # sort by the third column: severity
     # collect output in an array
-    # on any non-zero exit status, print an error, incuding PIPEFAIL array, and exit the script
-    # when filters, etc completes, print a NULL to start a new mapfile index
+    # on any non-zero exit status, print an error, incuding PIPEFAIL 
+    # array, and exit the script when filters, etc completes, print 
+    # a NULL to start a new mapfile index
     mapfile -d '' -t a_each_script_SC_results < <(
       shellcheck -S "${sc_severity}" \
         "${a_each_script_list_sorted_by_linect[sorted_script]}" \
@@ -1877,7 +1937,8 @@ i=0
 
       # Bug: iterator sb $sorted_script ? sorted_script should have
 
-      # print a line header. (as-is:) including a new index number for each script
+      # print a line header. (as-is:) including a new index number 
+      # for each script
       printf '\n%-4d%s\n' $((i++)) \
         "${a_each_script_list_sorted_by_linect[sorted_script]}"
       # print all massaged SC results for each script
