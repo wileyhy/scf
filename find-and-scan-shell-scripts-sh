@@ -282,6 +282,7 @@ SC_shells='(sh|bash|dash|ksh)'
 script_dirnm="${repo_nm}.d"
 protected_git_dir_1="${HOME}/MYPROJECTS"
 protected_git_dir_2="${HOME}/OTHERSPROJECTS"
+script_lic='Apache 2 license'
 script_nm=find-and-scan-shell-scripts-sh
 script_proper_nm='Script Finder'
 script_version=1.0
@@ -577,10 +578,9 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
       esac
       ;;
 
-    # Bug: hardcoded info: license
     V)
-      printf '\n\t%s, version %s. Apache 2 license.\n\n' \
-        "${script_proper_nm}" "${script_version}"
+      printf '\n\t%s, version %s. %s.\n\n' "${script_proper_nm}" \
+        "${script_version}" "${script_lic}"
       ;;
     
     # Help message
