@@ -306,7 +306,7 @@ for b in "${reqd_progs[@]}"; do
       reqd_progs_exit=yes
       printf '\n\tThe following programs are required:\n'
     fi
-    printf '\t%s\n' "${b}"
+    printf '\t\t%s\n' "${b}"
   fi
 done; unset b # [Line 2] +./find-and-scan-shell-scripts-sh:311:: unset b
               # ^--- added `wait -f` at line302
