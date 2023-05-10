@@ -29,6 +29,13 @@ PATH="${getconf_o}:/usr/bin:/usr/sbin:${PATH}" \
 PS4='+${BASH_SOURCE[0]}:${LINENO}:${FUNCNAME[0]}: '
 export GREP_COLORS LC_COLLATE LC_CTYPE LC_NUMERIC PATH PS4
 
+# define filenames for the lock directory and temp files
+repo_nm=scf
+random_n="${RANDOM}"
+unique_string="${repo_nm}.${$}.${random_n}"
+proc_lk_f_nm="${unique_string}.lock"
+mktemp_sfx=".${unique_string}.txt"
+
 : '<> Aliases'
 
 shopt -s expand_aliases
@@ -98,10 +105,6 @@ trap '
 # forget about this function's settings. If xtrace was previously off,
 # then leave it off.
 
-repo_nm=scf
-random_n="${RANDOM}"
-unique_string="${repo_nm}.${$}.${random_n}"
-
 _xtrace_duck() {
   local hyphen="$-"
 
@@ -141,7 +144,7 @@ _mk_setenv_prev() {
 }
 
 _mk_setenv_now() {
-  setenv_now="$(mktemp --suffix=".${unique_string}.txt")"
+  setenv_now="$(mktemp --suffix="${mktemp_sfx}")"
   set \
     |& tee -- "${setenv_now}" >/dev/null
   env \
@@ -154,7 +157,7 @@ _mk_setenv_delta() {
     if [[ -n "${setenv_delta}" ]]; then
       R_ -f -- "${setenv_delta}"
     else
-      setenv_delta="$(mktemp --suffix=".${unique_string}.txt")"
+      setenv_delta="$(mktemp --suffix="${mktemp_sfx}")"
     fi
 
     {
@@ -1153,9 +1156,6 @@ fi
 #X_; :_
 
 : 'Process lock'
-
-# define basename and absolute path of the lock directory
-proc_lk_f_nm="${unique_string}.lock"
 
 #:_; D_ a_poss_proces_lock_dirs
 
