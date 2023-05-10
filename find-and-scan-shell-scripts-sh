@@ -412,10 +412,10 @@ EOF
 #exit 101
 _full_xtrace
 
+shopt -s nocasematch
 while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
 
   # Parse command line options
-  shopt -s nocasematch
   case "${cli_input}" in
     
     # Easter egg
@@ -720,8 +720,8 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
       fn_usage 1
       ;;
   esac
-  shopt -u nocasematch
 done
+shopt -u nocasematch
 
 # <>
 set -
