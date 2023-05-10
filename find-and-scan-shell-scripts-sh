@@ -147,24 +147,23 @@ _mk_setenv_delta() {
     fi
 
     {
-      diff -y --suppress-{common-lines,blank-empty} --color=always --palette='ad=1;3;38;5;154:de=1;3;38;5;95' "${setenv_prev}" "${setenv_now}" |& grep -v setenv
+      diff -y --suppress-{common-lines,blank-empty} --color=never "${setenv_prev}" "${setenv_now}" \
+        |& grep -v setenv \
+        | grep -E '.*'
     } \
       |& tee -- "${setenv_delta}"
 
-    #--color=always --palette='ad=1;3;38;5;154:de=1;3;38;5;9' \
     #--unchanged-group-format=$'\e[0;32m%=\e[0m' \
     {
-      diff -B --suppress-{common-lines,blank-empty} \
-        --color=always \
-          --old-group-format=$'\e[0;95m%<\e[0m' --new-group-format=$'\e[0;31m%>\e[0m' \
-        "${setenv_prev}" "${setenv_now}" \
-        |& grep -v setenv
+      diff --suppress-{common-lines,blank-empty} --color=always --palette='ad=1;3;38;5;154:de=1;3;38;5;105' "${setenv_prev}" "${setenv_now}" \
+        | grep -ve BASH_LINENO -e BASH_COMMAND -e BASH_SOURCE -e setenv_ -Fe '---'
     } \
       |& tee -a "${setenv_delta}"
 
     GREP_COLORS='mt=01;43'
     export GREP_COLORS
-    wc "${setenv_delta}"
+    wc "${setenv_delta}" \
+      | grep -E '.*'
     GREP_COLORS='mt=01;104'
     export GREP_COLORS
   fi
