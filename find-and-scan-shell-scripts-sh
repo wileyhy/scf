@@ -20,7 +20,8 @@ fi
 
 : 'Environment variables'
 
-unset LC_ALL
+unset LC_ALL Halt
+declare -rx Halt
 FUNCNEST=8
 GREP_COLORS='mt=01;43'
 export GREP_COLORS
@@ -29,7 +30,7 @@ LC_CTYPE="C.UTF-8"       #  "   "           "
 LC_NUMERIC="en_US.UTF-8" # for commas in large numbers
 getconf_o="$(/usr/bin/command -p getconf PATH)"
 PATH="${getconf_o}:/usr/bin:/usr/sbin:${PATH}" \
-  || "${Halt_PATH:?}" # Causes an immediate halt of caller
+  || "${Halt:?}" # Causes an immediate halt of script
 PS4='+${BASH_SOURCE[0]}:${LINENO}:${FUNCNAME[0]}: '
 export FUNCNEST GREP_COLORS LC_COLLATE LC_CTYPE LC_NUMERIC PATH PS4
 
@@ -62,6 +63,7 @@ a_poss_proces_lock_dirs=([0]="${XDG_RUNTIME_DIR}" [1]="${HOME}"
 
 : User variables
 timecode="$(builtin printf '%(%F_%H%M%S)T')"
+
 
 : '<> Aliases'
 
@@ -100,7 +102,7 @@ trap '
   done
 
     # <>
-    #: "${Halt_trap:?}"
+    #: "${Halt?}"
 
   # Remove any script-s ACL-s based on canary variables
   if [[ -v acl_execd_setfacl ]]; then 
@@ -110,7 +112,7 @@ trap '
       # Manual (non-alias/function) error handling reqd wi traps
       if ! S_ setfacl -R -x "u:${UID}" -- "${acl_abs_path}"; then
         echo Error: trap: setfacl failed, line "${LINENO}"
-        : "${Halt_trap_setfacl:?}"
+        : "${Halt:?}"
       fi
 
     # Bug? Should this var \/ be main_d ?
@@ -120,7 +122,7 @@ trap '
     then
       if ! S_ setfacl -R -x "u:${UID}" -- "${mountpoint}"; then 
         echo Error: trap: setfacl failed, line "${LINENO}"
-        : "${Halt_trap_setfacl:?}"
+        : "${Halt:?}"
       fi
     fi
   fi
@@ -1030,7 +1032,7 @@ for dir in "${path_2[@]}"; do
     grep_o="$(grep -ve '^#' -e ^'user::' -e ^'group::' -e ^'other::' \
       <<<"${getfacl_o}")"
 
-    # If found, halt the script and inform the user
+    # If found, exit the script and inform the user
     if [[ -n "${grep_o}" ]]; then
       printf '\n%s: ACL defined for this directory:\n\t%s\n\n' \
         "${script_nm}" "${sub_dir}"
