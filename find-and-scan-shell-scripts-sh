@@ -374,14 +374,14 @@ fn_usage() {
     Find and scan shell scripts depending on severity level. 
     Options are parsed by bash's builtin "getopts".
   Usage:
-    ./${script_nm} -H[b|p|l] -P[ac|as|bi|bo|ge|sb|pr|sy]
-        -R[DIRECTORY] -S[e|i|s|w] -V -X[r|p|t] -h|? -p[ba|cp|cv|fi|ty] 
-        -q[c|i|p] -r[d|y|n] -s[s|y|n
+    ./${script_nm} -H[b|p|l] -M[r|p|t] -P[ac|as|bi|bo|ge|sb|pr|sy] 
+      -R[DIRECTORY] -S[e|i|s|w] -V -X[r|p|t] -h -p[ba|cp|cv|fi|ty] 
+      -q[a|c|d|i|l|p|u] -r[d|y|n] -s[s|y|n]
 
       H:  Follow symlinks         M:  Memory usage
-       *[b]ash                      [r]   RAM only
-        [p]hysical                  [p]   Persistent storage
-        [l]ogical                  *[t]   Temporary files
+       *[b]   bash                  [r]   RAM only
+        [p]   physical              [p]   Persistent storage
+        [l]   logical              *[t]   Temporary files
       P:  Path                    h   Help message
         [ac]  Actually all        p:  Progam and method
        *[as]  As-is                *[ba]  "bash" binary
@@ -390,15 +390,17 @@ fn_usage() {
         [ge]  Getconf PATH only     [fi]  "find" binary
         [sb]  /sbin only            [ty]  builtin "type -a"
         [pr]  Add /proc           q:  Validate information
-        [sy]  Add /sys              [a]cls
-      R:  Path                      [c]rashbangs
-        [STRING]  Add search dir    [d]acs
-      S:  Severity level            [i]nterpreters
-       *[e]rror                     [p]ath
-        [i]nfo                    r:  Recurse into dirs
-        [s]tyle                     [d|y] Yes   *[n] No
-        [w]arning                 s:  Scan excluded dirs
-      V   Version                   [s|y] Yes   *[n] No 
+        [sy]  Add /sys             *[a]   all
+      R:  Path                      [c]   add crashbangs
+        [DIR]  Add search dir       [d]   add DACs
+      S:  Severity level            [i]   add interpreters
+       *[e]   error                 [l]   add ACLs
+        [i]   info                  [p]   add PATH
+        [s]   style                 [u]   unset all
+        [w]   warning             r:  Recurse into dirs
+      V   Version                   [d|y] Yes   *[n] No
+      s:  Scan excluded dirs      *:  Help message
+        [s|y] Yes   *[n] No       
 EOF
   } | more -e
   : 'fn_usage ENDS  ' "$((--funclvl))" "${fence}"
@@ -465,7 +467,7 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
     
     # Whether and how to save data.
     M)
-      # Input validation
+      # (Input validation)
       OPTARG="${OPTARG,,[A-Z]}" OPTARG="${OPTARG:0:1}"
 
       # Parse option arguments
@@ -479,7 +481,7 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
       esac
       ;;
     
-    # PATH (array) - Part 1 - Options with no args . 
+    # PATH (array) - Part 1 - Options with no args. Default is 'as-is'. 
     #   '-P /usr/share' is an option with an argument. 
     #   For scanning '/proc' or '/sys', see also option 's'.
     P)
@@ -499,7 +501,7 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
           F_ ;;
         as | ai)
           unset find_path search_methods_path
-          search_methods_path=('as-is')
+          search_methods_path=('as-is') # default
           bash_path="${bash_path_orig}"
           F_ ;;
         bi | b)
@@ -549,6 +551,8 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
       # Bug: sb a printf one liner
       # for i in DECIMALS; do printf '%b' "\\${i}"; done #...
 
+      # Bug: \/ this PE probably doesn't work
+
       # Remove unsafe characters
       new_optarg="${OPTARG//["${unsaf_asci[@]}"]/}"
 
@@ -561,7 +565,7 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
       # Canonicalize path
       new_optarg="$(realpath -e "${new_optarg}")"
 
-      $ Value must be a directory
+      $ Amended value must be a directory
       if [[ ! -d "${new_optarg}" ]]; then
         "${arg_wrong__R:?}"
       fi
@@ -631,6 +635,7 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
         c | cr) verify+=(crashbangs) ;;
         d | da) verify+=(dacs) ;;
         i | in) verify+=(interpreters) ;;
+        l | al) verify=(all) ;;
         p | pa) verify+=(path) ;;
         u | un) unset verify ;;
         *) "${arg_wrong__q:?}" ;;
