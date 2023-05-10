@@ -690,20 +690,15 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
       ;;
   esac
 done
-set -
-{
 
-  # <>
-} |& grep -v default 2>/dev/null
-: 'find_exclude_optargs:' "${find_exclude_optargs[@]}"
+# <>
+set -
 exit 101
 
-# Verify PATH
-#   (...before running the builtins [type and command], or they'll
-# print dups)
-if [[ "${verify[*]}" =~ path ]]; then
+: 'Verify PATH' # (...before running the builtins [type and command], 
+# or they'll print dups)
 
-  # for Verify PATH
+if [[ "${verify[*]}" =~ path ]]; then
 
   # Get constituent dirs from PATH
   unset path path_2 p
