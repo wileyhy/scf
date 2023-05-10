@@ -405,11 +405,13 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
 
   # Parse command line options
   case "${cli_input}" in
+    
     # Easter egg
     A)
       printf '%s' "${easter_egg}"
       exit 0
       ;;
+    
     # Follow symlinks
     #   `bash` always follows symlinks, therefore to not follow any
     # symlinks requires `find` and is a clobbering setting, ie,
@@ -451,6 +453,7 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
           ;;
       esac
       ;;
+    
     # Whether and how to save data.
     M)
       # Input validation
@@ -466,6 +469,7 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
         *) "${arg_wrong__M:?}" ;;
       esac
       ;;
+    
     # PATH (array) - Part 1 - Options with no args . 
     #   '-P /usr/share' is an option with an argument. 
     #   For scanning '/proc' or '/sys', see also option 's'.
@@ -527,6 +531,7 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
         *) "${arg_wrong__P:?}" ;;
       esac
       ;;
+    
     # PATH (array) - Part 2 - options with args
     R)
       # Input validation, more thorough. Remove unprintable strings.
@@ -557,9 +562,8 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
 
       # Append dirname to PATH
       bash_path+="${new_optarg}"
-
-      # load directories of PATH into an array
       F_ ;;
+    
     # ShellCheck's '-S' setting, ie, severity level
     S)
       # Mis-spellings allowed
@@ -578,10 +582,12 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
       printf '\n\t%s, version %s. Apache 2 license.\n\n' \
         "${script_proper_nm}" "${script_version}"
       ;;
+    
     # Help message
     h | \?)
       fn_usage 0
       ;;
+    
     # Program to search with (variable) -- all settings clobber
     p)
       OPTARG="${OPTARG,,[A-Z]}" OPTARG="${OPTARG:0:2}"
@@ -606,6 +612,7 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
           ;;
       esac
       ;;
+    
     # What information to verify -- none are enabled by defaulted
     q)
       # ALSO: verify DACs and ACLs is written below!
@@ -621,6 +628,7 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
         *) "${arg_wrong__q:?}" ;;
       esac
       ;;
+    
     # Descend into dirs (recurse)
     #   `bash`s path search cannot descend into dirs; for `find` the
     # default is to 'do descend' into dirs. For this script, the default
@@ -647,6 +655,7 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
           ;;
       esac
       ;;
+    
     # Scan excluded dirs
     #   By default, this script assumes for `find` a set of automatic-
     # ally excluded search directories that often prove to be somewhat
