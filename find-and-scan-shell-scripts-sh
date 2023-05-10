@@ -146,7 +146,7 @@ fence=' ++++++++++++++++++++++++++++++++++++++++++++ '
 # then leave it off.
 
 _xtrace_duck() {
-  : '_xtrace_duck BEGINS' "$((funclvl++))" "${fence}"
+  : '_xtrace_duck BEGINS' "$((++funclvl))" "${fence}"
   local hyphen="$-"
 
   # If xtrace is on...
@@ -171,12 +171,12 @@ _xtrace_duck() {
     # but if xtrace is off and was previously off...
     fi
   fi
-  : '_xtrace_duck ENDS  ' "$((funclvl--))" "${fence}"
+  : '_xtrace_duck ENDS  ' "$((--funclvl))" "${fence}"
 }
 
 export setenv_prev setenv_now setenv_delta env_prev env_now env_delta
 _mk_setenv_prev() {
-  : '_mk_setenv_prev BEGINS' "$((funclvl++))" "${fence}"
+  : '_mk_setenv_prev BEGINS' "$((++funclvl))" "${fence}"
   if [[ -n "${setenv_now}" ]]; then
 
     if [[ -n "${setenv_prev}" ]]; then
@@ -184,21 +184,21 @@ _mk_setenv_prev() {
     fi
     setenv_prev="${setenv_now}"
   fi
-  : '_mk_setenv_prev ENDS  ' "$((funclvl--))" "${fence}"
+  : '_mk_setenv_prev ENDS  ' "$((--funclvl))" "${fence}"
 }
 
 _mk_setenv_now() {
-  : '_mk_setenv_now BEGINS' "$((funclvl++))" "${fence}"
+  : '_mk_setenv_now BEGINS' "$((++funclvl))" "${fence}"
   setenv_now="$(mktemp --suffix="${mktemp_sfx}")"
   set \
     |& tee -- "${setenv_now}" >/dev/null
   env \
     |& tee -a "${setenv_now}" >/dev/null
-  : '_mk_setenv_now ENDS  ' "$((funclvl--))" "${fence}"
+  : '_mk_setenv_now ENDS  ' "$((--funclvl))" "${fence}"
 }
 
 _mk_setenv_delta() {
-  : '_mk_setenv_delta BEGINS' "$((funclvl++))" "${fence}"
+  : '_mk_setenv_delta BEGINS' "$((++funclvl))" "${fence}"
   if [[ -n "${setenv_now}" ]] && [[ -n "${setenv_prev}" ]]; then
 
     if [[ -n "${setenv_delta}" ]]; then
@@ -228,34 +228,34 @@ _mk_setenv_delta() {
     GREP_COLORS='mt=01;104'
     export GREP_COLORS
   fi
-  : '_mk_setenv_delta ENDS  ' "$((funclvl--))" "${fence}"
+  : '_mk_setenv_delta ENDS  ' "$((--funclvl))" "${fence}"
 }
 
 _mk_deltas() {
-  : '_mk_deltas BEGINS' "$((funclvl++))" "${fence}"
+  : '_mk_deltas BEGINS' "$((++funclvl))" "${fence}"
   #_xtrace_duck
   _mk_setenv_prev
   _mk_setenv_now
   _mk_setenv_delta
   #_xtrace_duck
-  : '_mk_deltas ENDS  ' "$((funclvl--))" "${fence}"
+  : '_mk_deltas ENDS  ' "$((--funclvl))" "${fence}"
 }
 
 # ? what of BASH_LINENO
 
 _debug_prompt() {
-  : '_debug_prompt BEGINS' "$((funclvl++))" "${fence}"
+  : '_debug_prompt BEGINS' "$((++funclvl))" "${fence}"
   _mk_deltas
   read -rp "[${BASH_SOURCE[0]}:${LINENO}] ${BASH_COMMAND[0]}?" _
-  : '_debug_prompt ENDS  ' "$((funclvl--))" "${fence}"
+  : '_debug_prompt ENDS  ' "$((--funclvl))" "${fence}"
 }
 
 _full_xtrace() {
-  : '_full_xtrace BEGINS' "$((funclvl++))" "${fence}"
+  : '_full_xtrace BEGINS' "$((++funclvl))" "${fence}"
   #set -o functrace
   trap '_debug_prompt "$_";' DEBUG
   set -x
-  : '_full_xtrace ENDS  ' "$((funclvl--))" "${fence}"
+  : '_full_xtrace ENDS  ' "$((--funclvl))" "${fence}"
 }
 
 #exit 101
@@ -317,7 +317,7 @@ search_methods_symlinks=with
 search_methods_sys=without
 
 fn_usage() {
-  : 'fn_usage BEGINS' "$((funclvl++))" "${fence}"
+  : 'fn_usage BEGINS' "$((++funclvl))" "${fence}"
   # Usage:  fn_usage [exit-code]
   : fn_usage
 
@@ -359,7 +359,7 @@ EOF
 
   # shellcheck disable=SC2086
   exit "${1}"
-  : 'fn_usage ENDS  ' "$((funclvl--))" "${fence}"
+  : 'fn_usage ENDS  ' "$((--funclvl))" "${fence}"
 }
 
 #D_ find_exclude_optargs_default find_exclude_optargs
@@ -844,7 +844,7 @@ A_rsd=(
 umask 117
 
 get_rel_search_dirs() {
-  : 'get_rel_search_dirs BEGINS' "$((funclvl++))" "${fence}"
+  : 'get_rel_search_dirs BEGINS' "$((++funclvl))" "${fence}"
   mapfile -d '' -t "${1}" < <(
     sudo find / -mindepth 1 -maxdepth 1 -type d \! -empty \
       \( \! -name proc -a \! -name sys \
@@ -853,7 +853,7 @@ get_rel_search_dirs() {
       -a \! -iname "${protected_git_dir_2:- tmp}" \
       \) -print0 2>/dev/null
   )
-  : 'get_rel_search_dirs ENDS  ' "$((funclvl--))" "${fence}"
+  : 'get_rel_search_dirs ENDS  ' "$((--funclvl))" "${fence}"
 }
 get_rel_search_dirs a_relevant_search_dirs
 
@@ -876,7 +876,7 @@ for index in "${!A_rsd[@]}"; do
   fi
 done
 get_mountpoint() {
-  : 'get_mountpoint BEGINS' "$((funclvl++))" "${fence}"
+  : 'get_mountpoint BEGINS' "$((++funclvl))" "${fence}"
   unset d dir
   d="$(realpath -e "$1")"
   mapfile -t dir < <(
@@ -893,7 +893,7 @@ get_mountpoint() {
   done
   x="$(realpath -e "$x")"
   echo "$x"
-  : 'get_mountpoint ENDS  ' "$((funclvl--))" "${fence}"
+  : 'get_mountpoint ENDS  ' "$((--funclvl))" "${fence}"
 }
 get_mountpoint /sbin
 
@@ -1019,29 +1019,29 @@ exit 101
 : 'Functions -- for brevity during debugging'
 set -v
 function B_() { 
-  : 'B_ BEGINS' "$((funclvl++))" "${fence}"
+  : 'B_ BEGINS' "$((++funclvl))" "${fence}"
   fn_bak "$@"; 
-  : 'B_ ENDS  ' "$((funclvl--))" "${fence}"
+  : 'B_ ENDS  ' "$((--funclvl))" "${fence}"
 }
 function I_() { 
-  : 'I_ BEGINS' "$((funclvl++))" "${fence}"
+  : 'I_ BEGINS' "$((++funclvl))" "${fence}"
   fn_erx "${LINENO}"; 
-  : 'I_ ENDS  ' "$((funclvl--))" "${fence}"
+  : 'I_ ENDS  ' "$((--funclvl))" "${fence}"
 }
 #function N_() { 
-#  : 'N_ BEGINS' "$((funclvl++))" "${fence}"
+#  : 'N_ BEGINS' "$((++funclvl))" "${fence}"
 #  fn_num "$@";
-#  : 'N_ ENDS  ' "$((funclvl--))" "${fence}"
+#  : 'N_ ENDS  ' "$((--funclvl))" "${fence}"
 #};
 #function V_() { 
-#  : 'V_ BEGINS' "$((funclvl++))" "${fence}"
+#  : 'V_ BEGINS' "$((++funclvl))" "${fence}"
 #  fn_write_vars "$@";
-#  : 'V_ ENDS  ' "$((funclvl--))" "${fence}"
+#  : 'V_ ENDS  ' "$((--funclvl))" "${fence}"
 #};
 function W_() { 
-  : 'W_ BEGINS' "$((funclvl++))" "${fence}"
+  : 'W_ BEGINS' "$((++funclvl))" "${fence}"
   fn_write_arrays "$@"; 
-  : 'W_ ENDS  ' "$((funclvl--))" "${fence}"
+  : 'W_ ENDS  ' "$((--funclvl))" "${fence}"
 }
 set +v
 
@@ -1075,7 +1075,7 @@ done
 : 'Functions'
 
 fn_bak() {
-  : 'fn_bak BEGINS' "$((funclvl++))" "${fence}"
+  : 'fn_bak BEGINS' "$((++funclvl))" "${fence}"
   : fn_bak
 
   # for each of multiple input files
@@ -1110,11 +1110,11 @@ fn_bak() {
     fi
   done
   : 'END OF fn_bak'
-  : 'fn_bak ENDS  ' "$((funclvl--))" "${fence}"
+  : 'fn_bak ENDS  ' "$((--funclvl))" "${fence}"
 }
 
 fn_erx() {
-  : 'fn_erx BEGINS' "$((funclvl++))" "${fence}"
+  : 'fn_erx BEGINS' "$((++funclvl))" "${fence}"
   # this assignment must be the first command
   local loc_exit_code="${?}"
   : fn_erx
@@ -1124,11 +1124,11 @@ fn_erx() {
   : 'END OF fn_erx'
 
   exit "${loc_exit_code}"
-  : 'fn_erx ENDS  ' "$((funclvl--))" "${fence}"
+  : 'fn_erx ENDS  ' "$((--funclvl))" "${fence}"
 }
 
 #fn_num() {
-#  : 'fn_num BEGINS' "$((funclvl++))" "${fence}"
+#  : 'fn_num BEGINS' "$((++funclvl))" "${fence}"
 #  # Usage: N_ [raw arrays names]
 #  : fn_num
 #
@@ -1142,11 +1142,11 @@ fn_erx() {
 #    echo ${#loc_nameref_a[@]}
 #  done
 #  : 'END OF fn_num'
-#  : 'fn_num ENDS  ' "$((funclvl--))" "${fence}"
+#  : 'fn_num ENDS  ' "$((--funclvl))" "${fence}"
 #}
 
 fn_usage() {
-  : 'fn_usage BEGINS' "$((funclvl++))" "${fence}"
+  : 'fn_usage BEGINS' "$((++funclvl))" "${fence}"
   # Usage:  fn_usage [exit-code]
   : fn_usage
 
@@ -1164,12 +1164,12 @@ EOF
 
   # shellcheck disable=SC2086
   exit "${1}"
-  : 'fn_usage ENDS  ' "$((funclvl--))" "${fence}"
+  : 'fn_usage ENDS  ' "$((--funclvl))" "${fence}"
 }
 
 # Write each array to a file on disk.
 fn_write_arrays() {
-  : 'fn_write_arrays BEGINS' "$((funclvl++))" "${fence}"
+  : 'fn_write_arrays BEGINS' "$((++funclvl))" "${fence}"
   # Usage: W_ [arrays]
 
   loc_write_d_b="${curr_time_ssubd}arrays"
@@ -1206,11 +1206,11 @@ fn_write_arrays() {
     B_ "${loc_write_f_b}"
   done
   : 'END OF fn_write_arrays'
-  : 'fn_write_arrays ENDS  ' "$((funclvl--))" "${fence}"
+  : 'fn_write_arrays ENDS  ' "$((--funclvl))" "${fence}"
 }
 
 #fn_write_vars() {
-#  : 'fn_write_vars BEGINS' "$((funclvl++))" "${fence}"
+#  : 'fn_write_vars BEGINS' "$((++funclvl))" "${fence}"
 #  # Usage: V_ [loc_script_section_nm] [raw variable names]
 #
 #  # first pos-parm is string used for differentiating filename
@@ -1231,7 +1231,7 @@ fn_write_arrays() {
 #
 #  B_ "${loc_write_f_a}"
 #  : END OF fn_write_vars
-#  : 'fn_write_vars ENDS  ' "$((funclvl--))" "${fence}"
+#  : 'fn_write_vars ENDS  ' "$((--funclvl))" "${fence}"
 #}
 
 : 'Use -sudo-'
