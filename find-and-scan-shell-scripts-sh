@@ -1040,7 +1040,7 @@ unset end_dirname full_dir_list ext_array dir sub_dir num_sub_dirs \
 
 exit 101
 
-: 'Functions -- for brevity during debugging'
+: '<> Functions'
 set -v
 function B_() { 
   : 'B_ BEGINS' "$((++funclvl))" "${fence}"
