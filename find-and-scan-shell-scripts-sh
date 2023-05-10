@@ -440,22 +440,19 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
       case "${OPTARG:0:1}" in
         # Bash
         b*)
-          search_methods_symlinks=bash # default
-          search_methods_prog=bin_bash # default
+          # default
+          search_methods_symlinks=bash search_methods_prog=bin_bash 
           ;;
         # Physical
         p*)
-          search_methods_symlinks=physical
-          search_methods_prog=bin_find
+          search_methods_symlinks=physical search_methods_prog=bin_find find_sym_opt='-P'
           # Side effect: setting '-H p' also clobbers this variable. 
           # side effects such as these are marked below as "clobber."
-          find_sym_opt='-P'
           ;;
         # Logical
         l*)
-          search_methods_symlinks=logical
-          search_methods_prog=bin_find # clobber
-          find_sym_opt='-L'
+          # clobber
+          search_methods_symlinks=logical search_methods_prog=bin_find find_sym_opt='-L'
           ;;
         # This parameter expansion, ':?', when a parameter is null or 
         # unset, causes the shell to immediately halt, ignoring any 
