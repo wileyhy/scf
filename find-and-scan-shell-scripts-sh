@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 # Written in bash version 5.1 on Fedora 37 & 38
 
 # Note: Keep your goal in mind.
@@ -410,7 +410,7 @@ EOF
 }
 
 #exit 101
-##_full_xtrace
+_full_xtrace
 
 while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
 
