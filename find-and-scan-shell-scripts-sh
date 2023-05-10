@@ -18,7 +18,7 @@ fi
 : 'Environment variables'
 
 unset LC_ALL
-FUNCNEST=5
+FUNCNEST=8
 GREP_COLORS='mt=01;104'
 export GREP_COLORS
 LC_COLLATE="C.UTF-8"     # for predictable sorting
