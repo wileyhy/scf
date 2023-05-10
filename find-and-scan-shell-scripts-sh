@@ -413,7 +413,7 @@ EOF
 #exit 101
 _full_xtrace
 
-while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
+while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
 
   # Parse command line options
   shopt -s nocasematch
