@@ -320,7 +320,6 @@ search_methods_symlinks=bash
 fn_usage() {
   : 'fn_usage BEGINS' "$((++funclvl))" "${fence}"
   # Usage:  fn_usage [exit-code]
-  : fn_usage
 
   # print a usage message and exit with a pre-determined exit code
   {
@@ -356,8 +355,6 @@ fn_usage() {
       V   Version                   [s|y] Yes   *[n] No 
 EOF
   } | more -e
-  : 'END OF fn_usage'
-
   # shellcheck disable=SC2086
   exit "${1}"
   : 'fn_usage ENDS  ' "$((--funclvl))" "${fence}"
@@ -1050,7 +1047,6 @@ done
 
 fn_bak() {
   : 'fn_bak BEGINS' "$((++funclvl))" "${fence}"
-  : fn_bak
 
   # for each of multiple input files
   for loc_filename_a in "${@}"; do
@@ -1083,20 +1079,15 @@ fn_bak() {
       }
     fi
   done
-  : 'END OF fn_bak'
   : 'fn_bak ENDS  ' "$((--funclvl))" "${fence}"
 }
 
 fn_erx() {
+  local loc_exit_code="${?}" # this assignment must be the first command
   : 'fn_erx BEGINS' "$((++funclvl))" "${fence}"
-  # this assignment must be the first command
-  local loc_exit_code="${?}"
-  : fn_erx
 
   # print an error message and exit with the correct exit code
   echo -e Error: "${@}"
-  : 'END OF fn_erx'
-
   exit "${loc_exit_code}"
   : 'fn_erx ENDS  ' "$((--funclvl))" "${fence}"
 }
@@ -1104,7 +1095,6 @@ fn_erx() {
 #fn_num() {
 #  : 'fn_num BEGINS' "$((++funclvl))" "${fence}"
 #  # Usage: N_ [raw arrays names]
-#  : fn_num
 #
 #  # for each of multiple input array names
 #  for loc_unquotd_array_nm_a in "${@}"; do
@@ -1115,14 +1105,12 @@ fn_erx() {
 #    # and use the nameref to print the number of indices in the input array
 #    echo ${#loc_nameref_a[@]}
 #  done
-#  : 'END OF fn_num'
 #  : 'fn_num ENDS  ' "$((--funclvl))" "${fence}"
 #}
 
 fn_usage() {
   : 'fn_usage BEGINS' "$((++funclvl))" "${fence}"
   # Usage:  fn_usage [exit-code]
-  : fn_usage
 
   # print a usage message and exit with a pre-determined exit code
   cat <<-EOF
@@ -1134,8 +1122,6 @@ fn_usage() {
     Only the first option is processed.
 
 EOF
-  : 'END OF fn_usage'
-
   # shellcheck disable=SC2086
   exit "${1}"
   : 'fn_usage ENDS  ' "$((--funclvl))" "${fence}"
@@ -1179,7 +1165,6 @@ fn_write_arrays() {
     # write a backup of the new data file
     B_ "${loc_write_f_b}"
   done
-  : 'END OF fn_write_arrays'
   : 'fn_write_arrays ENDS  ' "$((--funclvl))" "${fence}"
 }
 
@@ -1188,7 +1173,6 @@ fn_write_arrays() {
 #  # Usage: V_ [loc_script_section_nm] [raw variable names]
 #
 #  # first pos-parm is string used for differentiating filename
-#  : fn_write_vars
 #  loc_script_section_nm="${1}"
 #  loc_write_f_a="${curr_time_ssubd}/${loc_script_section_nm}_vars"
 #  shift
@@ -1204,7 +1188,6 @@ fn_write_arrays() {
 #  # and write a .bak file
 #
 #  B_ "${loc_write_f_a}"
-#  : END OF fn_write_vars
 #  : 'fn_write_vars ENDS  ' "$((--funclvl))" "${fence}"
 #}
 
