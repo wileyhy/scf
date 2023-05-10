@@ -315,7 +315,7 @@ search_methods_descend=no
 search_methods_path=('as-is')
 search_methods_prog=bin_bash
 search_methods_scan_excluded=no
-search_methods_symlinks=with
+search_methods_symlinks=bash
 
 fn_usage() {
   : 'fn_usage BEGINS' "$((++funclvl))" "${fence}"
