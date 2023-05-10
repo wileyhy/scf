@@ -52,7 +52,8 @@ alias T_='tee --output-error=exit '
 alias X_='set -x'
 alias awk='gawk --lint '
 
-: 'Trap -- EXIT, INT and TERM'
+
+: 'Traps'
 
 # shellcheck disable=SC2154
 trap '
@@ -99,7 +100,17 @@ trap '
 
   trap - EXIT INT TERM
   kill -s INT "$$"
-' EXIT INT TERM
+' EXIT
+#                                                     INT
+trap 'set -x; echo SIGEXIT;   trap SIGEXIT;   kill -s 2   $$'  EXIT
+trap 'set -x; echo SIGHUP;    trap SIGHUP;    kill -s 2   $$'  HUP
+trap 'set -x; echo 2;         trap 2;         kill -s 2   $$'  2      # INT
+trap 'set -x; echo SIGQUIT;   trap SIGQUIT;   kill -s 2   $$'  QUIT
+trap 'set -x; echo SIGUSR1;   trap SIGUSR1;   kill -s 2   $$'  USR1
+trap 'set -x; echo SIGUSR2;   trap SIGUSR2;   kill -s 2   $$'  USR2
+trap 'set -x; echo SIGPIPE;   trap SIGPIPE;   kill -s 2   $$'  PIPE
+trap 'set -x; echo SIGTERM;   trap SIGTERM;   kill -s 2   $$'  TERM
+trap 'set -x; echo SIGWINCH;  trap SIGWINCH;  kill -s 2   $$'  WINCH
 
 : '<> XTrace'
 
