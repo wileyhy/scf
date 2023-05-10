@@ -996,12 +996,12 @@ for dir in "${path_2[@]}"; do
 
       # <> quote ${extglob_pattern or not? - SC2053=w
       [[ "${sub_dir}" = "${extglob_pattern}" ]] ; echo $?
-      [[ "${sub_dir}" = ${extglob_pattern} ]] ; echo $?
+      #[[ "${sub_dir}" = ${extglob_pattern} ]] ; echo $?
       "${Halt:?}"
 
     # If the sub_dir is already listed in the extglob_pattern, then
     # move on to the next small loop
-    if [[ "${sub_dir}" = ${extglob_pattern} ]]; then
+    if [[ "${sub_dir}" = "${extglob_pattern}" ]]; then
       sub_dir="$(dirname "${sub_dir:="${dir}"}")"
 
       # If the sub_dir is '/', then move on to the next big loop
