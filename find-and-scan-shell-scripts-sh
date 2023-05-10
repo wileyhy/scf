@@ -362,6 +362,7 @@ search_methods_path=('as-is')
 search_methods_prog=bin_bash
 search_methods_scan_excluded=no
 search_methods_symlinks=bash
+verify=(all)
 
 : 'Functions re getopts'
 
@@ -635,7 +636,7 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
         c | cr) verify+=(crashbangs) ;;
         d | da) verify+=(dacs) ;;
         i | in) verify+=(interpreters) ;;
-        l | al) verify=(all) ;;
+        l | al) verify=(all) ;; # default
         p | pa) verify+=(path) ;;
         u | un) unset verify ;;
         *) "${arg_wrong__q:?}" ;;
