@@ -1762,8 +1762,9 @@ S_ head -- "/tmp/${list_crunchbangs##*/}"
 # remove leading whitespace
 # sort and print unique
 # remove leading ^'#!' from each interpreter
+# Note: in `awk` cmd, %=%=%=% may need to be double quoted
 mapfile -t a_interpreters < <(
-  S_ awk 'BEGIN { FS = "%=%=%=%" } ; /#!/ { print $2 }' -- \
+  S_ awk 'BEGIN { FS = %=%=%=% } ; /#!/ { print $2 }' -- \
     "/tmp/${list_crunchbangs##*/}" \
     | awk 'BEGIN { FS = " -" } ; { print $1 }' \
     | sed 's, *,,g' \
