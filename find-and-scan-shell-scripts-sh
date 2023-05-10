@@ -36,7 +36,6 @@ export FUNCNEST GREP_COLORS LC_COLLATE LC_CTYPE LC_NUMERIC PATH PS4
 : 'Implementation-dependent arguments for options parsable by ShellCheck'
 
 sc_severity=error
-# shellcheck disable=SC2034
 SC_shells='(sh|bash|dash|ksh)'
 
 : 'Variables more likely to be manually chaged'
@@ -81,7 +80,6 @@ alias awk='gawk --lint '
 
 : 'Traps'
 
-# shellcheck disable=SC2154
 trap '
   trap - DEBUG
 
@@ -408,7 +406,6 @@ fn_usage() {
 EOF
   } | more -e
   : 'fn_usage ENDS  ' "$((--funclvl))" "${fence}"
-  # shellcheck disable=SC2086
   exit "${1}"
 }
 
@@ -989,7 +986,6 @@ for dir in "${path_2[@]}"; do
 
     # If the sub_dir is already listed in the extglob_pattern, then
     # move on to the next small loop
-    # shellcheck disable=SC2053
     if [[ "${sub_dir}" = ${extglob_pattern} ]]; then
       sub_dir="$(dirname "${sub_dir:="${dir}"}")"
 
@@ -1012,7 +1008,6 @@ for dir in "${path_2[@]}"; do
     ext_first="${ext_array[0]}"
     [[ -n "${ext_first}" ]] \
       && unset 'ext_array[0]'
-    # shellcheck disable=SC2124
     ext_last="${ext_array[@]: -1:1}"
     [[ -n "${ext_last}" ]] \
       && unset "ext_array[${#ext_array[@]}]"
@@ -1196,7 +1191,6 @@ fn_usage() {
     Only the first option is processed.
 
 EOF
-  # shellcheck disable=SC2086
   exit "${1}"
   : 'fn_usage ENDS  ' "$((--funclvl))" "${fence}"
 }
@@ -1410,7 +1404,6 @@ fi
 #M_ -- "${data_subd}"
 
 : Label the current data as -latest.-
-# shellcheck disable=SC2312
 mapfile -d '' -t a_previous_time_dirs < <(
   find "${data_subd}" -mindepth 1 -maxdepth 1 -type d -a \! -type l \
     -name 't_*' -print0
@@ -1447,7 +1440,6 @@ fi
 if [[ "${abbrev_rel_search_dirs}" == all ]]; then
 
   : 'set a value for a_relevant_search_dirs and..'
-  # shellcheck disable=SC2312
   mapfile -d '' -t a_relevant_search_dirs < <(
     S_ find / -mindepth 1 -maxdepth 1 -type d \! -empty \
       \( \! -name proc -a \! -name sys -a \! \
@@ -1463,14 +1455,12 @@ if [[ "${abbrev_rel_search_dirs}" == all ]]; then
 fi
 
 : 'Find all files within the search area. Even the empty ones.'
-# shellcheck disable=SC2312
 mapfile -d '' -t a_all_files < <(
   S_ find "${a_relevant_search_dirs[@]}" -mindepth 1 -type f \
     -print0 2>/dev/null
 )
 
 : 'Sort the original array and test it.'
-# shellcheck disable=SC2312
 mapfile -d '' -t a_all_files_sorted < <(
   printf '%s\0' "${a_all_files[@]}" \
     | sort -z
@@ -1484,7 +1474,6 @@ mapfile -d '' -t a_all_files_sorted < <(
 : 'the rest of the files'
 
 : 'Get the total number of found files, for the progress indicator'
-# shellcheck disable=SC2034
 total_count="$(printf "%'d" "${#a_all_files_sorted[@]}")"
 unset IFS
 
@@ -1723,7 +1712,6 @@ S_ head -- "/tmp/${list_crunchbangs##*/}"
 # remove leading whitespace
 # sort and print unique
 # remove leading ^'#!' from each interpreter
-# shellcheck disable=SC2016
 mapfile -t a_interpreters < <(
   S_ awk 'BEGIN { FS = "%=%=%=%" } ; /#!/ { print $2 }' -- \
     "/tmp/${list_crunchbangs##*/}" \
