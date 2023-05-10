@@ -420,7 +420,7 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
         # unset, causes the shell to immediately halt, ignoring any 
         # trap on EXIT.
         *)
-          "${arg_wrong__h:?}"
+          "${arg_wrong__H:?}"
           ;;
       esac
       ;;
@@ -436,7 +436,7 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
         t) memory_usage=temp_files ;; # default
 
         # Error handling
-        *) "${arg_wrong__X:?}" ;;
+        *) "${arg_wrong__M:?}" ;;
       esac
       ;;
     # PATH (array) - Part 1 - Options with no args . 
@@ -598,7 +598,7 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
         i | in) verify+=(interpreters) ;;
         p | pa) verify+=(path) ;;
         u | un) unset verify ;;
-        *) "${arg_wrong__X:?}" ;;
+        *) "${arg_wrong__q:?}" ;;
       esac
       ;;
     # Descend into dirs (recurse)
