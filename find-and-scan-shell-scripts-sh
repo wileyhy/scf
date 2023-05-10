@@ -163,7 +163,7 @@ trap 'set -x; echo SIGXCPU;   trap SIGXCPU;   kill -s 2   $$' XCPU # 24
 trap 'set -x; echo SIGXFSZ;   trap SIGXFSZ;   kill -s 2   $$' XFSZ # 25
 trap 'set -x; echo SIGVTALRM; trap SIGVTALRM; kill -s 2 $$' VTALRM # 26
 trap 'set -x; echo SIGPROF;   trap SIGPROF;   kill -s 2   $$' PROF # 27
-trap 'set -x; echo SIGWINCH;  trap SIGWINCH;  kill -s 2  $$' WINCH # 28
+#trap 'set -x; echo SIGWINCH;  trap SIGWINCH;  kill -s 2  $$' WINCH # 28
 trap 'set -x; echo SIGIO;     trap SIGIO;     kill -s 2   $$' IO   # 29
 trap 'set -x; echo SIGPWR;    trap SIGPWR;    kill -s 2   $$' PWR  # 30
 trap 'set -x; echo SIGSYS;    trap SIGSYS;    kill -s 2   $$' SYS  # 31
