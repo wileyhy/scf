@@ -534,7 +534,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
       fi
       
       # Append dirname to bash_path and reset find_path
-      bash_path+="${new_optarg}"
+      bash_path+=":${new_optarg}"
       F_ 
       
       # adjust tracking array
