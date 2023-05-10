@@ -79,7 +79,6 @@ alias R_='rm --one-file-system --preserve-root=all '
 alias S_='sudo '
 alias T_='tee --output-error=exit '
 alias X_='set -x'
-alias awk='gawk --lint '
 
 : 'Traps'
 
@@ -955,7 +954,7 @@ get_mountpoint() {
       | tac \
       | grep -A100 ^D \
       | grep -E ^'[Dd]' \
-      | awk '{ print $4 }'
+      | gawk --lint '{ print $4 }'
   )
   unset j x i
   j="${#dir[@]}"
@@ -980,7 +979,7 @@ namei_o="$(
     )"
   done \
     | grep -v ^'f:' \
-    | awk '$2 !~ /root/ || $3 !~ /root/ { print }'
+    | gawk --lint '$2 !~ /root/ || $3 !~ /root/ { print }'
 )"
 if [[ -n "${namei_o}" ]]; then
   echo 'A directory in PATH is not fully owned by root (DAC).'
@@ -1005,7 +1004,7 @@ for dir in "${path_2[@]}"; do
   # names, ie, by using NULL's in place of '/'s
   unset sub_dir
   num_sub_dirs="$(tr '/' '\0' <<<"$dir" \
-    | awk -F'\0' '{ print NF }')"
+    | gawk --lint -F'\0' '{ print NF }')"
   N=$((num_sub_dirs - 1))
 
   # read the ACLs of each dir and sub_dir
@@ -1597,7 +1596,7 @@ if [[ ! -f "/tmp/${list_crunchbangs##*/}" ]] \
     od_o="$(
       S_ od -j 0 -N 2 -t x1z -v -- "${each_sorted_f}" \
         | tr -s ' ' \
-        | awk '{ print $2, $3, $4 }' \
+        | gawk --lint '{ print $2, $3, $4 }' \
         | tr -d '\n' \
         || I_ "P:${PIPESTATUS[*]} I:${all_files_index} ${each_sorted_f}"
     )"
@@ -1764,9 +1763,9 @@ S_ head -- "/tmp/${list_crunchbangs##*/}"
 # remove leading ^'#!' from each interpreter
 # Note: in `awk` cmd, %=%=%=% may need to be double quoted
 mapfile -t a_interpreters < <(
-  sudo awk 'BEGIN { FS = %=%=%=% } ; /#!/ { print $2 }' -- \
+  sudo gawk --lint 'BEGIN { FS = "%=%=%=%" } ; /#!/ { print $2 }' -- \
     "/tmp/${list_crunchbangs##*/}" \
-    | awk 'BEGIN { FS = " -" } ; { print $1 }' \
+    | gawk --lint 'BEGIN { FS = " -" } ; { print $1 }' \
     | sed 's, *,,g' \
     | sort -u \
     | cut -b3- \
@@ -1851,7 +1850,7 @@ L_
     # sort rpms and print each unique
     dnf_po="$(
       S_ dnf provides -- "${a_interps_rps[b]}" \
-        | awk '/x86_64|i686/ { print $1 }' \
+        | gawk --lint '/x86_64|i686/ { print $1 }' \
         | sort -u
     )"
 
@@ -1954,7 +1953,7 @@ wc_o="${wc_o%$'\n*'}"
 sort_o="$(sort -gr <<<"${wc_o}")"
 
 # print script names
-awko="$(awk '{ print $2 }' <<<"${sort_o}")"
+awko="$(gawk --lint '{ print $2 }' <<<"${sort_o}")"
 
 # create a list of script names sorted by line count descending
 mapfile -t a_each_script_list_sorted_by_linect \
