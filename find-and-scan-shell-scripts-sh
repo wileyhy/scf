@@ -149,7 +149,7 @@ _mk_setenv_delta() {
     {
       diff -y --suppress-{common-lines,blank-empty} --color=never "${setenv_prev}" "${setenv_now}" \
         |& grep -v setenv \
-        | grep -E '.*'
+        | grep --color=always -E '.*'
     } \
       |& tee -- "${setenv_delta}"
 
