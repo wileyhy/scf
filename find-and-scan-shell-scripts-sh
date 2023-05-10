@@ -101,7 +101,10 @@ trap '
   trap - EXIT INT TERM
   kill -s INT "$$"
 ' EXIT INT TERM
-  trap 'set -x; echo SIGEXIT;   trap SIGEXIT;   kill -s INT $$'  EXIT   # 0
+
+: 'Table of traps' 
+
+# trap 'set -x; echo SIGEXIT;   trap SIGEXIT;   kill -s INT $$'  EXIT   # 0
   trap 'set -x; echo SIGHUP;    trap SIGHUP;    kill -s 2   $$'  HUP    # 1
 # trap 'set -x; echo SIGINT;    trap 2;         kill -s 2   $$'  2      # INT # ^C 
   trap 'set -x; echo SIGQUIT;   trap SIGQUIT;   kill -s 2   $$'  QUIT   # 3   
@@ -116,7 +119,7 @@ trap '
   trap 'set -x; echo SIGUSR2;   trap SIGUSR2;   kill -s 2   $$'  USR2   # 12  
   trap 'set -x; echo SIGPIPE;   trap SIGPIPE;   kill -s 2   $$'  PIPE   # 13  
   trap 'set -x; echo SIGALRM;   trap SIGALRM;   kill -s 2   $$'  ALRM   # 14  
-  trap 'set -x; echo SIGTERM;   trap SIGTERM;   kill -s 2   $$'  TERM   # 15  
+# trap 'set -x; echo SIGTERM;   trap SIGTERM;   kill -s 2   $$'  TERM   # 15  
   trap 'set -x; echo SIGSTKFLT; trap SIGSTKFLT; kill -s 2   $$'  STKFLT # 16  
 # trap 'set -x; echo SIGCHLD;   trap SIGCHLD;   kill -s 2   $$'  CHLD   # 17  # triggered by returning command substitution
   trap 'set -x; echo SIGCONT;   trap SIGCONT;   kill -s 2   $$'  CONT   # 18
@@ -134,7 +137,6 @@ trap '
   trap 'set -x; echo SIGPWR;    trap SIGPWR;    kill -s 2   $$'  PWR    # 30
   trap 'set -x; echo SIGSYS;    trap SIGSYS;    kill -s 2   $$'  SYS    # 31
   trap 'set -x; echo SIGRTMIN;  trap SIGRTMIN;  kill -s 2   $$'  RTMIN  # 32
-
 
 : '<> XTrace'
 
