@@ -569,7 +569,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
           #unset find_path # again, why unset it?
     r) case "${OPTARG:0:1}" in
         r | d | y) methods_descend=yes methods_prog=bin_find ;;
-        n) methods_descend=no ;;
+        n) methods_descend=no methods_prog=bin_bash ;;
         *) "${arg_wrong__r:?}" ;;
       esac ;;
     
