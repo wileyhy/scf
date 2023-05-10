@@ -655,13 +655,14 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
         r | d | y)
           search_methods_descend=yes
           search_methods_prog=bin_find # clobber
-          #unset bash_path # why unset it?
+          #unset bash_path # why unset it? the setting '-r' could be 
+          # reversed later on the same command line
           ;;
         # no_descend
         n)
           search_methods_descend=no    # default
           search_methods_prog=bin_bash # clobber
-          unset find_path
+          #unset find_path # again, why unset it?
           ;;
         *)
           "${arg_wrong__r:?}"
