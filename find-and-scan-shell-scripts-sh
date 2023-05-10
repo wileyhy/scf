@@ -356,11 +356,11 @@ IFS=':' read -ra find_path <<<"${bash_path}" # aliased to 'F_'
 find_sym_opt='-P'
 memory_usage=temp_files
 sc_sev_abrv="${sc_severity:0:1}"
-search_methods_descend=no
-search_methods_path=('as-is')
-search_methods_prog=bin_bash
-search_methods_scan_excluded=no
-search_methods_symlinks=bash
+methods_descend=no
+methods_path=('as-is')
+methods_prog=bin_bash
+methods_scan_excluded=no
+methods_symlinks=bash
 verify=(all)
 
 : 'Functions re getopts'
@@ -441,18 +441,18 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
         # Bash
         b*)
           # default
-          search_methods_symlinks=bash search_methods_prog=bin_bash 
+          methods_symlinks=bash methods_prog=bin_bash 
           ;;
         # Physical
         p*)
-          search_methods_symlinks=physical search_methods_prog=bin_find find_sym_opt='-P'
+          methods_symlinks=physical methods_prog=bin_find find_sym_opt='-P'
           # Side effect: setting '-H p' also clobbers this variable. 
           # side effects such as these are marked below as "clobber."
           ;;
         # Logical
         l*)
           # clobber
-          search_methods_symlinks=logical search_methods_prog=bin_find find_sym_opt='-L'
+          methods_symlinks=logical methods_prog=bin_find find_sym_opt='-L'
           ;;
         # This parameter expansion, ':?', when a parameter is null or 
         # unset, causes the shell to immediately halt, ignoring any 
@@ -489,52 +489,52 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
 
         # Multiple abbreviations accepted
         ac | aa)
-          unset find_path search_methods_path
-          search_methods_path=(actually_all)
+          unset find_path methods_path
+          methods_path=(actually_all)
           bash_path='/'
 
           # For consistency, find_path is always defined after 
           # bash_path, regardless of which one is used.
-          search_methods_prog=bin_find
+          methods_prog=bin_find
           F_ ;;
         as | ai)
-          unset find_path search_methods_path
-          search_methods_path=('as-is') # default
+          unset find_path methods_path
+          methods_path=('as-is') # default
           bash_path="${bash_path_orig}"
           F_ ;;
         bi | b)
-          unset find_path search_methods_path
-          search_methods_path=(bin_only)
+          unset find_path methods_path
+          methods_path=(bin_only)
           bash_path='/usr/bin'
           F_ ;;
         bo | bs)
-          unset find_path search_methods_path
-          search_methods_path=(both_bin_sbin_only)
+          unset find_path methods_path
+          methods_path=(both_bin_sbin_only)
           bash_path='/usr/bin:/usr/sbin'
           F_ ;;
         ge | g)
-          unset find_path search_methods_path
-          search_methods_path=(getconf_PATH_only)
+          unset find_path methods_path
+          methods_path=(getconf_PATH_only)
           bash_path="${getconf_o}"
           F_ ;;
         sb | so | s)
-          unset find_path search_methods_path
-          search_methods_path=(sbin_only)
+          unset find_path methods_path
+          methods_path=(sbin_only)
           bash_path='/usr/sbin'
           F_ ;;
           # Part 1.B -- additive PATH settings, but the Program
           #   setting gets clobbered
         pr | p | pa)
           unset find_path
-          search_methods_path+=(add_proc)
+          methods_path+=(add_proc)
           bash_path+=':/proc'
-          search_methods_prog=bin_find
+          methods_prog=bin_find
           F_ ;;
         sy | sa)
           unset find_path
-          search_methods_path+=(add_sys)
+          methods_path+=(add_sys)
           bash_path+=':/sys'
-          search_methods_prog=bin_find
+          methods_prog=bin_find
           F_ ;;
           # Part 1.C - handle erroneous input
         *) "${arg_wrong__d:?}" ;;
@@ -569,7 +569,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
       fi
       unset find_path
       new_optarg="${new_optarg//\//_}"
-      search_methods_path+=("add_dir__${new_optarg}")
+      methods_path+=("add_dir__${new_optarg}")
 
       # Append dirname to PATH
       bash_path+="${new_optarg}"
@@ -603,19 +603,19 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
       OPTARG="${OPTARG:0:2}"
       case "${OPTARG}" in
         ba | b)
-          search_methods_prog=bin_bash # default
+          methods_prog=bin_bash # default
           ;;
         cp)
-          search_methods_prog=bash_command_pV
+          methods_prog=bash_command_pV
           ;;
         cv)
-          search_methods_prog=bash_command_V
+          methods_prog=bash_command_V
           ;;
         fi | f)
-          search_methods_prog=bin_find
+          methods_prog=bin_find
           ;;
         ty | t)
-          search_methods_prog=bash_type_a
+          methods_prog=bash_type_a
           ;;
         *)
           "${arg_wrong__p:?}"
@@ -667,15 +667,15 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
       case "${OPTARG}" in
         # recurse|descend|yes
         r | d | y)
-          search_methods_descend=yes
-          search_methods_prog=bin_find # clobber
+          methods_descend=yes
+          methods_prog=bin_find # clobber
           #unset bash_path # why unset it? the setting '-r' could be 
           # reversed later on the same command line
           ;;
         # no_descend
         n)
-          search_methods_descend=no    # default
-          search_methods_prog=bin_bash # clobber
+          methods_descend=no    # default
+          methods_prog=bin_bash # clobber
           #unset find_path # again, why unset it?
           ;;
         *)
@@ -698,14 +698,14 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
       case "${OPTARG}" in
         # scan_excluded|yes
         s | y)
-          search_methods_scan_excluded=yes
-          search_methods_prog=bin_find
+          methods_scan_excluded=yes
+          methods_prog=bin_find
           find_exclude_optargs=()
           ;;
         # no_scan_excluded
         n)
-          search_methods_scan_excluded=no # default
-          search_methods_prog=bin_find
+          methods_scan_excluded=no # default
+          methods_prog=bin_find
           find_exclude_optargs=("${find_exclude_optargs_default[@]}")
           ;;
         *)
@@ -769,19 +769,19 @@ if [[ "${verify[*]}" =~ path ]]; then
 fi
 exit 101
 
-: 'search_methods_descend'
+: 'methods_descend'
 
-export search_methods_descend
+export methods_descend
 
-: 'search_methods_symlinks'
+: 'methods_symlinks'
 
-export search_methods_symlinks
+export methods_symlinks
 
 # Bug: greps. parse full outputs of type and command
 
-: 'search_methods_prog'
+: 'methods_prog'
 
-if [[ "${search_methods_prog}" = \
+if [[ "${methods_prog}" = \
   @(bash_command_pV|bash_command_V|bash_type_a) ]]; 
 then
 
@@ -818,30 +818,30 @@ then
     printf ')\n'
   )"
 
-  #search_methods_prog=bash_type_a; 
+  #methods_prog=bash_type_a; 
   #for i in "${!all_commands[@]}"; do 
-  #if [[ "${search_methods_prog}" = bash_type_a ]]; then 
+  #if [[ "${methods_prog}" = bash_type_a ]]; then 
   #type -a "${all_commands[i]}" ; fi; done
 
-  # Bug: the tests for search_methods_prog need to be at the top level of
+  # Bug: the tests for methods_prog need to be at the top level of
   # logic structure
 
   for i in "${!all_commands[@]}"; do
 
     # For anywhere in PATH: BASH_type_a
-    if [[ "${search_methods_prog}" = *bash_type_a ]]; then
+    if [[ "${methods_prog}" = *bash_type_a ]]; then
       type -a "${all_commands[i]}" \
         | grep -E 'is /'"${re}"
     fi
 
     # For `command -pV` (usually only '/usr/bin'): BASH_command_pV
-    if [[ "${search_methods_prog}" = *bash_command_pV ]]; then
+    if [[ "${methods_prog}" = *bash_command_pV ]]; then
       command -pV "${all_commands[i]}" \
         | grep -E 'is /'"${re}"
     fi
 
     # For `command -V` (usually includes '/usr/sbin'): BASH_command_V
-    if [[ "${search_methods_prog}" = *bash_command_V ]]; then
+    if [[ "${methods_prog}" = *bash_command_V ]]; then
       command -V "${all_commands[i]}" \
         | grep -E 'is /'"${re}"
     fi
@@ -849,11 +849,11 @@ then
   done \
     | sudo tee all_commands
 
-elif [[ "${search_methods_prog}" = *bin_bash ]]; then
+elif [[ "${methods_prog}" = *bin_bash ]]; then
   hash bash 2> /dev/null \
     || exit "${LINENO}"
 
-elif [[ "${search_methods_prog}" = *bin_find ]]; then
+elif [[ "${methods_prog}" = *bin_find ]]; then
   hash find 2> /dev/null \
     || exit "${LINENO}"
 
@@ -1094,7 +1094,7 @@ unset end_dirname full_dir_list ext_array dir sub_dir num_sub_dirs \
 
 export find_path
 export find_sym_opt
-export search_methods_scan_excluded
+export methods_scan_excluded
 export find_exclude_optargs
 
 # <>
