@@ -19,7 +19,7 @@ fi
 
 unset LC_ALL
 FUNCNEST=8
-GREP_COLORS='mt=01;104'
+GREP_COLORS='mt=01;43'
 export GREP_COLORS
 LC_COLLATE="C.UTF-8"     # for predictable sorting
 LC_CTYPE="C.UTF-8"       #  "   "           "
@@ -99,7 +99,7 @@ trap '
   kill -s INT "$$"
 ' EXIT INT TERM
 
-: 'Table of traps' 
+: 'Table of traps' # Learning about how `bash` uses signals  
 
 # trap 'set -x; echo SIGEXIT;   trap SIGEXIT;   kill -s INT $$'  EXIT   # 0
   trap 'set -x; echo SIGHUP;    trap SIGHUP;    kill -s 2   $$'  HUP    # 1
@@ -219,11 +219,11 @@ _mk_setenv_delta() {
     } \
       |& tee -a "${setenv_delta}"
 
-    GREP_COLORS='mt=01;43'
+    GREP_COLORS='mt=01;104'
     export GREP_COLORS
     wc "${setenv_delta}" \
       | grep --color=always -E '.*'
-    GREP_COLORS='mt=01;104'
+    GREP_COLORS='mt=01;43'
     export GREP_COLORS
   fi
   : '_mk_setenv_delta ENDS  ' "$((--funclvl))" "${fence}"
