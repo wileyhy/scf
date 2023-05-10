@@ -42,12 +42,10 @@ alias T_='tee --output-error=exit '
 alias X_='set -x'
 alias awk='gawk --lint '
 
-: 'Set up a trap on signals EXIT, INT and TERM'
+: 'Trap -- EXIT, INT and TERM'
 
 # shellcheck disable=SC2154
 trap '
-  #set -
-
   # Delete all possible existing process directories. 
   for poss_lk_d in "${a_poss_proces_lock_dirs[@]}"; do 
 
@@ -97,7 +95,7 @@ _xtrace_duck() {
   local hyphen="$-"
 
   # If xtrace is on...
-  if [[ "$hyphen" =~ x ]]; then
+  if [[ "${hyphen}" =~ x ]]; then
 
     # ...then record its state
     local -g xtrace_prev
@@ -149,10 +147,7 @@ _mk_setenv_delta() {
     fi
 
     {
-      diff -y --suppress-{common-lines,blank-empty} \
-        --color=always --palette='ad=1;3;38;5;154:de=1;3;38;5;95' \
-        "${setenv_prev}" "${setenv_now}" \
-        |& grep -v setenv
+      diff -y --suppress-{common-lines,blank-empty} --color=always --palette='ad=1;3;38;5;154:de=1;3;38;5;95' "${setenv_prev}" "${setenv_now}" |& grep -v setenv
     } \
       |& tee -- "${setenv_delta}"
 
@@ -161,8 +156,7 @@ _mk_setenv_delta() {
     {
       diff -B --suppress-{common-lines,blank-empty} \
         --color=always \
-          --old-group-format=$'\e[0;95m%<\e[0m' \
-          --new-group-format=$'\e[0;31m%>\e[0m' \
+          --old-group-format=$'\e[0;95m%<\e[0m' --new-group-format=$'\e[0;31m%>\e[0m' \
         "${setenv_prev}" "${setenv_now}" \
         |& grep -v setenv
     } \
