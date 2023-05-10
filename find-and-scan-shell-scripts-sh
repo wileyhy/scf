@@ -87,6 +87,10 @@ trap '
 # forget about this function's settings. If xtrace was previously off,
 # then leave it off.
 
+repo_nm=scf
+random_n="${RANDOM}"
+unique_string="${repo_nm}.${$}.${random_n}"
+
 _xtrace_duck() {
   local hyphen="$-"
 
@@ -126,7 +130,7 @@ _mk_setenv_prev() {
 }
 
 _mk_setenv_now() {
-  setenv_now="$(mktemp)"
+  setenv_now="$(mktemp --suffix=".${unique_string}.txt")"
   set \
     |& tee -- "${setenv_now}" >/dev/null
   env \
@@ -139,7 +143,7 @@ _mk_setenv_delta() {
     if [[ -n "${setenv_delta}" ]]; then
       R_ -f -- "${setenv_delta}"
     else
-      setenv_delta="$(mktemp)"
+      setenv_delta="$(mktemp --suffix=".${unique_string}.txt")"
     fi
 
     {
@@ -203,7 +207,6 @@ SC_shells='(sh|bash|dash|ksh)'
 
 : 'Variables more likely to be manually chaged'
 
-repo_nm=scf
 script_dirnm="${repo_nm}.d"
 protected_git_dir_1="${HOME}/MYPROJECTS"
 protected_git_dir_2="${HOME}/OTHERSPROJECTS"
@@ -1147,8 +1150,7 @@ fi
 : 'Process lock'
 
 # define basename and absolute path of the lock directory
-random_n="${RANDOM}"
-proc_lk_f_nm=".${repo_nm}.$$${random_n}.lock"
+proc_lk_f_nm="${unique_string}.lock"
 
 #:_; D_ a_poss_proces_lock_dirs
 
