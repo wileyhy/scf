@@ -1013,7 +1013,7 @@ for dir in "${path_2[@]}"; do
     # Assign a value to $sub_dir as necessary
     : "${sub_dir:="${dir}"}"
 
-      # <> quote ${extglob_pattern or not? - SC2053=w
+      # <> quote ${extglob_pattern or not? - SC-2053=w
       [[ "${sub_dir}" = "${extglob_pattern}" ]] ; echo $?
       #[[ "${sub_dir}" = ${extglob_pattern} ]] ; echo $?
       "${Halt:?}"
@@ -1045,7 +1045,7 @@ for dir in "${path_2[@]}"; do
     
       X_; :_; D_ ext_array
 
-    ext_last="${ext_array[*]: -1:1}" # [@] or [*] ? SC2124=w
+    ext_last="${ext_array[*]: -1:1}" # [@] or [*] ? SC-2124=w
     
       X_; :_; D_ ext_last
       L_
@@ -1404,7 +1404,7 @@ if [[ ! -r "${main_d}" ]]; then
       : 'test failed: acl_realpath is not readable'
 
       acl_execd_setfacl=y
-      # SC2034, while trap-s setfacl blk is #-d 
+      # SC-2034, while trap-s setfacl blk is #-d 
       #   ^--- this comment means what???
       export acl_execd_setfacl 
 
@@ -1608,7 +1608,7 @@ if [[ ! -f "/tmp/${list_crunchbangs##*/}" ]] \
 
     read -r byte_0 byte_1 printable_chars <<<"${od_o}"
 
-    export printable_chars # SC2034
+    export printable_chars # SC-2034
 
     : '-od_o- non-zero'
     if [[ -z "${byte_0}" ]]; then
