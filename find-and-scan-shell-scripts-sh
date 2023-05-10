@@ -374,10 +374,10 @@ fn_usage() {
     Find and scan shell scripts depending on severity level. 
     Options are parsed by bash's builtin "getopts".
   Usage:
-    ./${script_nm} -H[b|p|l] -M[r|p|t] 
-      -P[ac|as|bi|bo|ge|sb|pr|sy] -R[DIRECTORY] -S[e|i|s|w] 
-      -V -X[r|p|t] -h -p[ba|cp|cv|fi|ty] -q[a|c|d|i|l|p|u] 
-      -r[d|y|n] -s[s|y|n]
+    ./${script_nm} -H [b|p|l] -M [r|p|t] 
+      -P [ac|as|bi|bo|ge|sb|pr|sy] -R [DIRECTORY] -S [e|i|s|w] 
+      -V -X [r|p|t] -h -p [ba|cp|cv|fi|ty] -q [a|c|d|i|l|p|u] 
+      -r [d|y|n] -s [s|y|n]
 
       H:  Follow symlinks         M:  Memory usage
        *[b]   bash                  [r]   RAM only
