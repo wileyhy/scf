@@ -655,7 +655,7 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
         r | d | y)
           search_methods_descend=yes
           search_methods_prog=bin_find # clobber
-          unset bash_path
+          #unset bash_path # why unset it?
           ;;
         # no_descend
         n)
