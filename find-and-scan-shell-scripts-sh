@@ -188,7 +188,7 @@ _debug_prompt() {
 }
 
 _full_xtrace() {
-  set -o functrace
+  #set -o functrace
   trap '_debug_prompt "$_";' DEBUG
   set -x
 }
@@ -1072,10 +1072,9 @@ EOF
   exit "${1}"
 }
 
+# Write each array to a file on disk.
 fn_write_arrays() {
   # Usage: W_ [arrays]
-
-  : fn_write_arrays: Write each array to a file on disk.
 
   loc_write_d_b="${curr_time_ssubd}arrays"
 
@@ -1108,11 +1107,9 @@ fn_write_arrays() {
       | S_ T_ -- "${loc_write_f_b}" >/dev/null
 
     # write a backup of the new data file
-
     B_ "${loc_write_f_b}"
   done
   : 'END OF fn_write_arrays'
-
 }
 
 #fn_write_vars() {
