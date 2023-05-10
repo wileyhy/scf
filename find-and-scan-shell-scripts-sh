@@ -299,6 +299,7 @@ abbrev_rel_search_dirs=/
 : 'Required programs'
 
 reqd_progs=( strings ) 
+hash -r
 #wait -f
 unset b reqd_progs_exit # [Line 1] +./find-and-scan-shell-scripts-sh:302:: unset b reqd_progs_exit
 for b in "${reqd_progs[@]}"; do
