@@ -58,9 +58,6 @@ alias awk='gawk --lint '
 # shellcheck disable=SC2154
 trap '
   trap - DEBUG
-    # <>
-    #set -o errtrace
-    declare -p a_poss_proces_lock_dirs  
 
   # Delete all possible existing process _lock_directories_. 
   for poss_lk_d in "${a_poss_proces_lock_dirs[@]}"; do 
@@ -70,9 +67,6 @@ trap '
 
     [[ "${pl}" =~ "$$"*.lock ]] \
       || continue
-
-      # <>
-      declare -p poss_lk_d pl
 
     # test and delete lock directories.
     if [[ -d "${pl}" ]] && [[ ! -L "${pl}" ]]; then 
