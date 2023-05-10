@@ -58,7 +58,7 @@ alias awk='gawk --lint '
 trap '
     
     # <>
-    set -o errtrace
+    #set -o errtrace
     declare -p a_poss_proces_lock_dirs  
 
   # Delete all possible existing process _lock_directories_. 
