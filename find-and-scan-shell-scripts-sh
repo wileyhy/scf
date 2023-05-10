@@ -396,7 +396,7 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
         # Bash
         b)
           search_methods_symlinks=bash # default
-          search_methods_prog=bin_bash
+          search_methods_prog=bin_bash # default
           ;;
         # Physical
         p)
@@ -571,7 +571,7 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
       OPTARG="${OPTARG:0:2}"
       case "${OPTARG}" in
         ba | b)
-          search_methods_prog=bin_bash
+          search_methods_prog=bin_bash # default
           ;;
         cp)
           search_methods_prog=bash_command_pV
@@ -770,9 +770,13 @@ if [[ "${search_methods_prog}" = @(bash_command_pV|bash_command_V|bash_type_a) ]
     | sudo tee all_commands
 
 elif [[ "${search_methods_prog}" = *bin_bash ]]; then
-  command -v bash || exit "${LINENO}"
+  command -v bash > /dev/null 2>& \
+    || exit "${LINENO}"
+
 elif [[ "${search_methods_prog}" = *bin_find ]]; then
-  command -v find || exit "${LINENO}"
+  command -v find > /dev/null 2>& \
+    || exit "${LINENO}"
+
 else
   echo error
 fi
