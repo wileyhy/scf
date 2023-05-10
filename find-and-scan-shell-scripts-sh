@@ -99,7 +99,7 @@ trap '
   kill -s INT "$$"
 ' EXIT INT TERM
 
-: 'Table of traps' # Learning about how `bash` uses signals  
+: '<> Table of traps' # Learning about how `bash` uses signals  
 
 # trap 'set -x; echo SIGEXIT;   trap SIGEXIT;   kill -s INT $$'  EXIT   # 0
   trap 'set -x; echo SIGHUP;    trap SIGHUP;    kill -s 2   $$'  HUP    # 1
@@ -284,8 +284,8 @@ script_version=1.0
 # <>
 abbrev_rel_search_dirs=/
 
-# to search dirs...
-: Option parsing
+: 'Option parsing'
+
 if [[ $# -gt 0 ]]; then
   cli_input=("${@}")
 fi
@@ -293,10 +293,9 @@ fi
 #exit 101
 _full_xtrace
 
-# Variables re getopts
+: 'Variables re getopts'
 bash_path_orig="${PATH}"
 bash_path="${bash_path_orig}"
-
 find_exclude_optargs_default=(
   [0]='(' [1]='!' [2]='-name' [3]='proc' [4]='-a' [5]='!'
   [6]='-name' [7]='sys' [8]='-a' [9]='!' [10]='-iname'
@@ -306,22 +305,21 @@ find_exclude_optargs_default=(
   [23]='*/git/*' [24]=')'
 )
 find_exclude_optargs=("${find_exclude_optargs_default[@]}")
-
 IFS=':' read -ra find_path <<<"${bash_path}"
 memory_usage=temp_files
 sc_sev_abrv="${sc_severity:0:1}"
-
 search_methods_descend=no
 search_methods_path=('as-is')
 search_methods_prog=bin_bash
 search_methods_scan_excluded=no
 search_methods_symlinks=bash
 
-fn_usage() {
-  : 'fn_usage BEGINS' "$((++funclvl))" "${fence}"
-  # Usage:  fn_usage [exit-code]
+: 'Functions re getopts'
 
-  # print a usage message and exit with a pre-determined exit code
+fn_usage() {
+  # Print a usage message and exit with a pre-determined exit code
+  # Usage:  fn_usage [exit-code]
+  : 'fn_usage BEGINS' "$((++funclvl))" "${fence}"
   {
     cat <<-EOF
   ${repo_nm} - ${script_proper_nm}, version ${script_version}
@@ -355,9 +353,9 @@ fn_usage() {
       V   Version                   [s|y] Yes   *[n] No 
 EOF
   } | more -e
+  : 'fn_usage ENDS  ' "$((--funclvl))" "${fence}"
   # shellcheck disable=SC2086
   exit "${1}"
-  : 'fn_usage ENDS  ' "$((--funclvl))" "${fence}"
 }
 
 exit 101
