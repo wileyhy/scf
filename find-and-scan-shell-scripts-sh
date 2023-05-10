@@ -708,8 +708,8 @@ done
 set -
 exit 101
 
-: 'Verify PATH' # (...before running the builtins [type and command], 
-# or they'll print dups)
+: 'Verify PATH' 
+# ...before running `type` / `command` or they'll print dups
 
 if [[ "${verify[*]}" =~ path ]]; then
 
@@ -752,6 +752,14 @@ if [[ "${verify[*]}" =~ path ]]; then
   )"
 fi
 exit 101
+
+: 'search_methods_descend'
+
+export search_methods_descend
+
+: 'search_methods_symlinks'
+
+export search_methods_symlinks
 
 # Bug: greps. parse full outputs of type and command
 
@@ -899,6 +907,8 @@ get_rel_search_dirs a_relevant_search_dirs
 
 : 'memory_usage'
 
+export memory_usage
+
 # take each found dir and convert abs path [of sym, okay] to a string
 # usable for directory names
 unset index element calc
@@ -984,6 +994,11 @@ for dir in "${path_2[@]}"; do
     # Assign a value to $sub_dir as necessary
     : "${sub_dir:="${dir}"}"
 
+      # <> quote ${extglob_pattern or not? - SC2053=w
+      [[ "${sub_dir}" = "${extglob_pattern}" ]] ; echo $?
+      [[ "${sub_dir}" = ${extglob_pattern} ]] ; echo $?
+      "${Halt:?}"
+
     # If the sub_dir is already listed in the extglob_pattern, then
     # move on to the next small loop
     if [[ "${sub_dir}" = ${extglob_pattern} ]]; then
@@ -1008,7 +1023,14 @@ for dir in "${path_2[@]}"; do
     ext_first="${ext_array[0]}"
     [[ -n "${ext_first}" ]] \
       && unset 'ext_array[0]'
-    ext_last="${ext_array[@]: -1:1}"
+    
+      X_; :_; D_ ext_array
+
+    ext_last="${ext_array[*]: -1:1}" # [@] or [*] ? SC2124=w
+    
+      X_; :_; D_ ext_last
+      L_
+      
     [[ -n "${ext_last}" ]] \
       && unset "ext_array[${#ext_array[@]}]"
     # index math can be a little weird
@@ -1052,6 +1074,14 @@ done
 unset end_dirname full_dir_list ext_array dir sub_dir num_sub_dirs \
   N n extglob_pattern ext_first ext_last getfacl_o grep_o
 
+: 'Find command'
+
+export find_path
+export find_sym_opt
+export search_methods_scan_excluded
+export find_exclude_optargs
+
+# <>
 exit 101
 
 : '<> Functions'
