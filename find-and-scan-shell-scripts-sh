@@ -431,34 +431,24 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
     # `find`. The 'P' and 'L' refer to `find`s first argument, which
     # by default is assumed (by `find`) to be '-P'. `find -H` is not
     # implemented in this script.
+    #   Side effect: setting '-l p' also clobbers this variable. Side 
+    # effects such as these are marked below as "clobber."
+    #   This parameter expansion, ':?', when a parameter is null or 
+    # unset, causes the shell to immediately halt, ignoring any trap 
+    # on EXIT.
     l)
-      # Input validation: make upper case letters lower case, and 
-      # truncate all but first letter. this code block repeats below.
-      #OPTARG="${OPTARG:0:1}"
-
       # Parse option arguments
       case "${OPTARG:0:1}" in
-        # Bash
-        b*)
-          # default
-          methods_symlinks=bash methods_prog=bin_bash 
+        # Bash 
+        b*) methods_symlinks=bash methods_prog=bin_bash # default
           ;;
         # Physical
-        p*)
-          methods_symlinks=physical methods_prog=bin_find find_sym_opt='-P'
-          # Side effect: setting '-H p' also clobbers this variable. 
-          # side effects such as these are marked below as "clobber."
+        p*) methods_symlinks=physical methods_prog=bin_find find_sym_opt='-P'
           ;;
-        # Logical
-        l*)
-          # clobber
-          methods_symlinks=logical methods_prog=bin_find find_sym_opt='-L'
+        # Logical # clobber
+        l*) methods_symlinks=logical methods_prog=bin_find find_sym_opt='-L'
           ;;
-        # This parameter expansion, ':?', when a parameter is null or 
-        # unset, causes the shell to immediately halt, ignoring any 
-        # trap on EXIT.
-        *)
-          "${arg_wrong__l:?}"
+        *) "${arg_wrong__l:?}"
           ;;
       esac
       ;;
