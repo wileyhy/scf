@@ -299,13 +299,13 @@ fi
 _full_xtrace
 
 : 'Variables re getopts'
-      # List unsafe ASCII characters
-      bad_strings=([0]="|" [1]="&" [2]=";" [3]="(" [4]=")" [5]="<"
-        [6]=">" [7]=" " [8]=$'\t' [9]=$'\n' [10]="||" [11]="&&"
-        [12]=";;" [13]=";&" [14]=";;&" [15]="|&" [16]="!" [17]="{"
-        [18]="}" [19]="[" [20]="]" [21]="[[" [22]="]]" [23]="\$"
-        [24]="=")
-
+unsaf_asci=(
+  [0]="|" [1]="&" [2]=";" [3]="(" [4]=")" [5]="<"
+  [6]=">" [7]=" " [8]=$'\t' [9]=$'\n' [10]="||" [11]="&&"
+  [12]=";;" [13]=";&" [14]=";;&" [15]="|&" [16]="!" [17]="{"
+  [18]="}" [19]="[" [20]="]" [21]="[[" [22]="]]" [23]="\$"
+  [24]="="
+)
 bash_path_orig="${PATH}"
 bash_path="${bash_path_orig}"
 easter_egg="$(
@@ -516,7 +516,7 @@ while getopts "AH:M:P:R:S:Vhp:q:r:s:" cli_input; do
       # for i in DECIMALS; do printf '%b' "\\${i}"; done #...
 
       # Remove unsafe characters
-      new_optarg="${OPTARG//["${bad_strings[@]}"]/}"
+      new_optarg="${OPTARG//["${unsaf_asci[@]}"]/}"
 
       # If any ASCII characters were removed, print an error and exit
       if [[ "${new_optarg}" != "${OPTARG}" ]]; then
