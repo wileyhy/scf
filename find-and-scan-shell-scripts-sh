@@ -49,16 +49,15 @@ script_nm=find-and-scan-shell-scripts-sh
 script_proper_nm='Script Finder'
 script_version=1.0
 
-: 'Other user variables'
+: 'Other user parameters'
 
 a_poss_proces_lock_dirs=([0]="${XDG_RUNTIME_DIR}" [1]="${HOME}"
   [2]="${TMPDIR:-/tmp}" [3]=/tmp [4]=/var/tmp)
 random_n="${RANDOM}"
 unique_string="${repo_nm}.${$}.${random_n}"
-timecode="$(builtin printf '%(%F_%H%M%S)T')"
-
 mktemp_sfx=".${unique_string}.txt"
 proc_lk_f_nm="${unique_string}.lock"
+timecode="$(builtin printf '%(%F_%H%M%S)T')"
 
 : '<> Debug variables' # "<>" means, "This is a debugging section."
 
@@ -78,7 +77,6 @@ alias S_='sudo '
 alias T_='tee --output-error=exit '
 alias X_='set -x'
 alias awk='gawk --lint '
-
 
 : 'Traps'
 
