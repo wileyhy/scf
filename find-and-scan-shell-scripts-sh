@@ -637,7 +637,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
         u | un) unset verify 
           ;;
         *)
-          [[ "${verify[@]}" =~ all ]] \
+          [[ "${verify[*]}" =~ all ]] \
             && unset verify
           ;;&
         a | ac) 
