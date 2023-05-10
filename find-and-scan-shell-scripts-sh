@@ -532,13 +532,15 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
       if [[ ! -d "${new_optarg}" ]]; then
         "${arg_wrong__a:?}"
       fi
-      unset find_path
-      new_optarg="${new_optarg//\//_}"
-      methods_path+=("add_dir__${new_optarg}")
-
-      # Append dirname to PATH
+      
+      # Append dirname to bash_path and reset find_path
       bash_path+="${new_optarg}"
-      F_ ;;
+      F_ 
+      
+      # adjust tracking array
+      new_optarg="${new_optarg//\//_}"
+      methods_path+=("add_dir_${new_optarg}")
+      ;;
     
     # ShellCheck's '-S' setting, ie, severity level. Default is error.
     c) case "${OPTARG:0:1}" in
