@@ -290,7 +290,6 @@ if [[ $# -gt 0 ]]; then
   cli_input=("${@}")
 fi
 
-#D_ sc_severity SC_shells repo_nm protected_git_dir_1 protected_git_dir_2 script_nm script_proper_nm script_version a_poss_proces_lock_dirs cli_input
 #exit 101
 _full_xtrace
 
@@ -366,10 +365,6 @@ EOF
   : 'fn_usage ENDS  ' "$((--funclvl))" "${fence}"
 }
 
-#D_ find_exclude_optargs_default find_exclude_optargs
-#D_ bash_path find_path memory_usage sc_severity
-#D_ search_methods_descend search_methods_path search_methods_proc search_methods_prog search_methods_spec_dirs search_methods_symlinks search_methods_sys
-#D_ -f fn_usage
 exit 101
 _full_xtrace
 
@@ -678,11 +673,8 @@ set -
 {
 
   # <>
-  declare -p find_exclude_optargs_default find_exclude_optargs
-  declare -p bash_path find_path find_sym_opt memory_usage sc_severity search_methods_descend search_methods_path search_methods_proc search_methods_prog search_methods_scan_excluded search_methods_spec_dirs search_methods_symlinks search_methods_sys OPTARG bad_strings new_optarg verify 2>/dev/null
 } |& grep -v default 2>/dev/null
 : 'find_exclude_optargs:' "${find_exclude_optargs[@]}"
-#declare -pf fn_usage
 exit 101
 
 # Verify PATH
@@ -710,7 +702,6 @@ if [[ "${verify[*]}" =~ path ]]; then
 
   # reset indices of path_2 and print results
   path_2=("${path_2[@]}")
-  declare -p path_2 # this
 
   # reset PATH
   PATH="$(
@@ -718,9 +709,7 @@ if [[ "${verify[*]}" =~ path ]]; then
     unset 'path_2[0]'
     printf ':%s' "${path_2[@]}"
   )"
-  declare -p PATH
 fi
-#declare -p PATH
 exit 101
 
 # Bug: greps. parse full outputs of type and command
@@ -740,14 +729,11 @@ if [[ "${search_methods_prog}" = @(bash_command_pV|bash_command_V|bash_type_a) ]
   for i in 8 9 10 11 12 13 {32..127}; do allchr+=(["$i"]="$(printf '%b' "\\$(printf %03o "$i")")"); done
   allchr[10]=$'\n'
   unset i
-  declare -p allchr
 
   for i in "${!allchr[@]}"; do mapfile -O $((i * 1000)) -t all_commands < <(compgen -c "${allchr[i]}"); done
   unset i
-  declare -p all_commands
 
   mapfile -t real_dirs < <(sudo find / -maxdepth 1 -mindepth 1 -type d \! -empty | sort)
-  declare -p real_dirs
 
   re="$(
     printf '(%s' "${real_dirs[0]#/}"
@@ -755,7 +741,6 @@ if [[ "${search_methods_prog}" = @(bash_command_pV|bash_command_V|bash_type_a) ]
     printf '|%s' "${real_dirs[@]#/}"
     printf ')\n'
   )"
-  declare -p re
 
   #search_methods_prog=bash_type_a; for i in "${!all_commands[@]}"; do if [[ "${search_methods_prog}" = bash_type_a ]]; then type -a "${all_commands[i]}" ; fi; done
 
@@ -795,11 +780,7 @@ fi
 
 # <>
 [[ -f ./all_commands ]] \
-  && ls lsllssßsd all_commands
-for v in search_method_prog all_chr re char; do
-  declare -p "${v}"
-done
-unset v
+  && ls ./all_commands
 exit 101
 
 # delete? re-work?
@@ -1244,8 +1225,6 @@ fi
 
 : 'Process lock'
 
-#:_; D_ a_poss_proces_lock_dirs
-
 # from among the possible dirnames
 for poss_lk_d in "${a_poss_proces_lock_dirs[@]}"; do
 
@@ -1269,8 +1248,6 @@ if ! mkdir -m 0000 "${process_lock_d}" 2>/dev/null; then
   } 1>&2
   L_
 fi
-
-#:_; D_ process_lock_d; M_ -- "${process_lock_d}"; L_
 
 : User variables
 timecode="$(builtin printf '%(%F_%H%M%S)T')"
@@ -1538,18 +1515,12 @@ if [[ ! -f "/tmp/${list_crunchbangs##*/}" ]] \
         || I_ "P:${PIPESTATUS[*]} I:${all_files_index} ${each_sorted_f}"
     )"
 
-    #D_ od_o
-
     [[ -n "${od_o}" ]] \
       || I_ "I:${all_files_index} ${each_sorted_f}"
 
     a_bin_od_output+=([all_files_index]="${od_o}")
 
-    #D_ a_bin_od_output
-
     read -r byte_0 byte_1 printable_chars <<<"${od_o}"
-
-    #D_ byte_0 byte_1 printable_chars a_all_other_files; L_;
 
     export printable_chars # SC2034
 
@@ -1586,8 +1557,6 @@ if [[ ! -f "/tmp/${list_crunchbangs##*/}" ]] \
           continue
         fi
 
-        #D_ strings_o first_line_printable all_files_index each_sorted_f; L_;
-
         #   Note: with only /bin/sbin, this if-fi block doesn't execute
 
         # FR: sort also per-rpm, awk script, probably
@@ -1623,7 +1592,6 @@ if [[ ! -f "/tmp/${list_crunchbangs##*/}" ]] \
         "${each_sorted_f}")"
       )
 
-      #:_; D_ a_shell_scripts all_files_index first_line_printable each_sorted_f; L_
     else
 
       : 'all others'
@@ -1633,8 +1601,6 @@ if [[ ! -f "/tmp/${list_crunchbangs##*/}" ]] \
       )
     fi
   done
-
-  #X_; :_; D_ a_shell_scripts all_files_index first_line_printable each_sorted_f; L_
 
   # Note, you want to see the full crunchbangs in printed ASCII form
 
@@ -1711,7 +1677,6 @@ mapfile -t a_interpreters < <(
 
 # <>
 :_
-D_ a_interpreters
 #L_
 
 # Duplicate with post-getopts section ?
@@ -1756,7 +1721,6 @@ mapfile -t a_interps_rps < <(
 )
 
 # <>
-D_ a_interps_rps
 L_
 
 # for each interpreter, print it in the 1st 32 bits of a line.
