@@ -22,6 +22,7 @@ fi
 
 unset LC_ALL Halt
 declare -rx Halt
+"${Halt:?}"
 FUNCNEST=8
 GREP_COLORS='mt=01;43'
 export GREP_COLORS
