@@ -486,7 +486,7 @@ if [[ $# -gt 0 ]]; then
 fi
 
 #exit 101
-#_full_xtrace
+_full_xtrace
 
 : 'Variables re getopts'
 unsaf_ascii=(
@@ -544,7 +544,7 @@ fn_usage() {
 
       l:  Follow symlinks         m:  Memory usage
         [p]   physical              [r]   RAM only
-        [l]   logical               [p]   Persistent storage
+       *[l]   logical               [p]   Persistent storage
       d:  Path                     *[t]   Temporary files
         [ac]  Actually all        h   Help message
         [al]  All                 p:  Progam and method
@@ -814,7 +814,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
         methods_scan_excluded_by=no 
         ;;
       n) 
-        methods_prog_b="bin_bash"
+        #methods_prog_b= # could be any of bash command_pV command_V type_a
         methods_recurse_n=no 
         methods_symlinks_l=logical
         find_exclude_optargs=()
