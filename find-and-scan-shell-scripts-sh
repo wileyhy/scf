@@ -625,51 +625,57 @@ shopt -u nocasematch
 _full_xtrace
 #exit 101
 
-: 'Verify PATH'
-# ...before running `type` / `command` or they'll print dups
+_verify_path(){
+  : 'Verify PATH'
+  # ...before running `type` / `command` or they'll print dups
 
-D_ verify bash_path find_path PATH
+  D_ verify bash_path find_path PATH
 
-if [[ "${verify[*]}" == *+(all|path)* ]]; then
+  if [[ "${verify[*]}" == *+(all|path)* ]]; then
 
-  # Get constituent dirs from PATH
-  unset path_1 path_2 p
-  IFS=':' read -ra path_1 <<<"${bash_path}"
+    # Get constituent dirs from PATH
+    unset path_1 path_2 p
+    IFS=':' read -ra path_1 <<<"${bash_path}"
 
-  # get the cannonicalized paths of each such dir
-  for p in "${!path_1[@]}"; do
-    path_1[p]="$(realpath -e "${path_1[p]}" 2>/dev/null)"
-  done; unset p
+    # get the cannonicalized paths of each such dir
+    for p in "${!path_1[@]}"; do
+      path_1[p]="$(realpath -e "${path_1[p]}" 2>/dev/null)"
+    done; unset p
 
-  # if the index is empty, then unset it
-  for p in "${!path_1[@]}"; do
-    if [[ -z "${path_1[p]}" ]]; then
-      unset 'path_1[p]'
-    fi
-  done; unset p
+    # if the index is empty, then unset it
+    for p in "${!path_1[@]}"; do
+      if [[ -z "${path_1[p]}" ]]; then
+        unset 'path_1[p]'
+      fi
+    done; unset p
 
-  # remove any duplicates while preserving order of dirs
-  for p in "${!path_1[@]}"; do
-    if [[ "${path_2[*]}" =~ ${path_1[p]} ]]; then
-      unset 'path_1[p]'
-    else
-      path_2+=("${path_1[p]}")
-    fi
-  done; unset p
+    # remove any duplicates while preserving order of dirs
+    for p in "${!path_1[@]}"; do
+      if [[ "${path_2[*]}" =~ ${path_1[p]} ]]; then
+        unset 'path_1[p]'
+      else
+        path_2+=("${path_1[p]}")
+      fi
+    done; unset p
 
-  # reset indices of path_2 and print results
-  path_2=("${path_2[@]}")
+    # reset indices of path_2 and print results
+    path_2=("${path_2[@]}")
 
-  # reset PATH
-  bash_path="$(
-    printf '%s' "${path_2[0]}";
-    unset 'path_2[0]';
-    [[ -n "${path_2[@]}" ]] \
-      && printf ':%s' "${path_2[@]}"
-  )"
+    # reset PATH
+    bash_path="$(
+      printf '%s' "${path_2[0]}";
+      unset 'path_2[0]';
+      [[ -n "${path_2[@]}" ]] \
+        && printf ':%s' "${path_2[@]}"
+    )"
 
-  F_;
-fi
+    F_;
+  fi
+}
+
+_verify_path PATH
+_verify_path bash_path
+
 _full_xtrace
 exit 101
 
