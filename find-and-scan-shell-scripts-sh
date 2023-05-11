@@ -327,7 +327,7 @@ fn_bak() {
 
       # write a new .bak file
       S_ rsync -acq -- "${loc_filename_a}"{,.bak} \
-        || E_
+        || E_ "${LINENO}"
 
     # if input file DNE, then print an error and exit
     else
@@ -376,7 +376,7 @@ fn_write_arrays() {
 
   if [[ ! -d "${loc_write_d_b}" ]]; then
     S_ mkdir -p -- "${loc_write_d_b}" \
-      || E_
+      || E_ "${LINENO}"
   fi
 
   # for each of multiple input array names
@@ -440,7 +440,7 @@ function B_() {
 }
 function E_() {
   : 'E_ BEGINS' "$((++funclvl))" "${fence}"
-  fn_erx "${LINENO}"
+  fn_erx "$@"
   : 'E_ ENDS  ' "$((--funclvl))" "${fence}"
 }
 #function N_() {
@@ -1303,7 +1303,7 @@ if [[ ! -r "${main_d}" ]]; then
       if [[ ! -d "${acl_abs_path}" ]]; then
 
         S_ mkdir -p -- "${main_d}" \
-          || E_
+          || E_ "${LINENO}"
       fi
 
       acl_realpath="$(realpath -e "${acl_abs_path}" 2>/dev/null)"
@@ -1329,13 +1329,13 @@ if [[ ! -r "${main_d}" ]]; then
 
       # readable up to the main_d
       S_ chmod -R 750 -- "${acl_realpath}" \
-        || E_
+        || E_ "${LINENO}"
 
       S_ setfacl -d -m "${USER}:r-x" -- "${acl_realpath}" \
-        || E_
+        || E_ "${LINENO}"
 
       S_ setfacl -m "${USER}:r-x" -- "${acl_realpath}" \
-        || E_
+        || E_ "${LINENO}"
 
       #:_
       #id "${USER}"
@@ -1344,16 +1344,16 @@ if [[ ! -r "${main_d}" ]]; then
       #S_ getfacl -- "${acl_realpath}"
 
       [[ -r "${acl_realpath}" ]] \
-        || E_
+        || E_ "${LINENO}"
     fi
   done
 
   # writeable within the main_d
   S_ setfacl -d -m "${USER}:rwx" -- "${main_d}" \
-    || E_
+    || E_ "${LINENO}"
 
   S_ setfacl -R -m "${USER}:rwx" -- "${main_d}" \
-    || E_
+    || E_ "${LINENO}"
 
   #:_
   #id "${USER}"
@@ -1398,7 +1398,7 @@ done
 : of curr_time_ssubd
 if [[ ! -d "${curr_time_ssubd}" ]]; then
   S_ mkdir -p -- "${curr_time_ssubd}" \
-    || E_
+    || E_ "${LINENO}"
 fi
 
 #:_
@@ -1643,7 +1643,7 @@ if [[ ! -f "/tmp/${list_crunchbangs##*/}" ]] \
     if [[ -f "${any_existing_f}" ]] \
       && [[ ! -L "${any_existing_f}" ]]; then
       S_ mv -- "${any_existing_f}" "${any_existing_f}.${$}.${random_n}" \
-        || E_
+        || E_ "${LINENO}"
     fi
   done
 
@@ -1668,7 +1668,7 @@ else
   if [[ ! -f "${list_crunchbangs}" ]]; then
     S_ rsync -ca -- "/tmp/${list_crunchbangs##*/}" \
       "${list_crunchbangs}" \
-      || E_
+      || E_ "${LINENO}"
   fi
 fi
 
@@ -1837,11 +1837,11 @@ exit 101
 # file $list_crunchbangs is located in $time_dir.
 S_ grep -E -- '/bin/'"${SC_shells}"'.*%=%=%=%' "${list_crunchbangs}" \
   | S_ tee -a -- "${list_crunchbangs}_SC-scrpts-list" \
-  || E_
+  || E_ "${LINENO}"
 
 # Copy list to /tmp
 S_ rsync -ca -- "${list_crunchbangs}_SC-scrpts-list" /tmp \
-  || E_
+  || E_ "${LINENO}"
 
 # Backup both lists
 B_ "${list_crunchbangs}_SC-scrpts-list" /tmp/*_SC-scrpts-list
@@ -1964,7 +1964,7 @@ B_ "${found_scrpts_f}"
 # make copies of the findings file and backup those copies
 for d in /tmp "${main_d}"; do
   S_ rsync -ca -- "${found_scrpts_f}" "${d}" \
-    || E_
+    || E_ "${LINENO}"
   B_ "${d}/${found_scrpts_f##*/}"
 done
 unset d
