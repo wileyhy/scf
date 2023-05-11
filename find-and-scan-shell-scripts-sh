@@ -1068,7 +1068,7 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
   
   #for i in 8 9 10 11 12 13 {32..127}; do
   
-  for i in 10 33 42 47 58; do
+  for i in {58..60}; do
     allchr+=(["$i"]="$(printf '%b' "\\$(printf %03o "$i")")")
   done
   allchr[10]=$'\n'
@@ -1097,7 +1097,7 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
       # string, then use `grep` to filter out full function definitions.
       mapfile -t type_a_o < <(
         type -a "${per_idx_commands[n]}" \
-          grep ^"${per_idx_commands[n]} is"
+          | grep ^"${per_idx_commands[n]} is"
       )
       
       # if `type -a` has no knowledge of the completion string, 
@@ -1112,26 +1112,26 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
       for v in "${!type_a_o[@]}"; do
       
         # if any result refers to a file
-        if ! grep -qE ' is /' <<< "${type_a_o[v]}"; then 
+        if grep -qE ' is /' <<< "${type_a_o[v]}"; then 
           
           # then keep the "${per_idx_commands[n]}" value
           continue 2
 
         # if any result (ie, index) of `type -a`s output refers to an
         # alias, function or shell keyword, then unset that index
-        elif grep -qE ' is a(liased| function| shell keyword)' <<< \
-            "${type_a_o[v]}"; 
+        elif grep -qE ' is a(liased| function| shell (builtin|keyword))' \
+            <<< "${type_a_o[v]}"; 
           then
             unset 'type_a_o[v]'
         fi
-      done; unset v
       
-      # if all lines of `type -a`s output have been deleted, then 
-      # begin with the next completion string
-      if [[ "${#type_a_o[@]}" -eq 0 ]]; then
-        unset 'per_idx_commands[n]'
-        continue
-      fi
+        # if all lines of `type -a`s output have been deleted, then 
+        # begin with the next completion string
+        if [[ "${#type_a_o[@]}" -eq 0 ]]; then
+          unset 'per_idx_commands[n]'
+          continue
+        fi
+      done; unset v
     done
     
     # add the (sub-)list to the full list, being careful of index numbers
@@ -1187,7 +1187,7 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
     fi
 
   done \
-    | sudo tee all_commands
+    | sudo tee ./all_commands
 
 elif [[ "${methods_prog_cv}" = *bin_find ]]; then
   hash find 2>/dev/null \
@@ -1199,7 +1199,7 @@ fi
 
 # <>
 [[ -f ./all_commands ]] \
-  && ls ./all_commands
+  && ls -alhFi ./all_commands
 _full_xtrace
 exit 101
 
