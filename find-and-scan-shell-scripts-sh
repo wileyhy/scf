@@ -1130,7 +1130,7 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
           # A TERRIBLE, TERRIBLE HACK! ...but it works
           # [[  " ${a[*]} "  =~  \ ${b}\  ]]
           if ! [[ "${all_commands[*]}" =~ ${type_a_o[line]##* } ]] \
-            && ! [[  " ${per_idx_commands[*]} "  =~  \ ${type_a_o[line]##/ }\  ]]
+            && ! [[  " ${per_idx_commands[*]} "  =~  \ ${type_a_o[line]##/}\  ]]
           then
 
             # ...then keep the "${per_idx_commands[n]}" value
