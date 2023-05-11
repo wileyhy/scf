@@ -88,8 +88,8 @@ trap '
   # Delete all possible existing process _lock_directories_. 
   for pld in "${process_lock_dirs[@]}"; do 
 
-    [[ "${pld}" =~ "$$"*.lock ]] \
-      || continue
+    #[[ "${pld}" =~ "$$"*.lock ]] \
+      #|| continue
 
     # test and delete lock directories.
     if [[ -d "${pld}" ]] && [[ ! -L "${pld}" ]]; then 
