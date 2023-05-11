@@ -572,7 +572,7 @@ EOF
 }
 
 #exit 101
-#_full_xtrace
+_full_xtrace
 
 shopt -s nocasematch
 while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
@@ -746,7 +746,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
 
         case "${OPTARG:0:2}" in
           b* ) methods_prog_b=bin_bash ;;
-          c[a-p]*) methods_prog_b=bash_command_pV ;;
+          c|c[a-p]*) methods_prog_b=bash_command_pV ;;
           c[q-z]*) methods_prog_b=bash_command_V ;;
           t* ) methods_prog_b=bash_type_a ;;
         esac
