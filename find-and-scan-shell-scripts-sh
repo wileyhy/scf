@@ -1222,8 +1222,7 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
         | grep -E 'is /'"${re}"
     fi
 
-  done \
-    | sudo tee ./all_commands
+  done 
 
 elif [[ "${methods_prog_cv}" = *bin_find ]]; then
   hash find 2>/dev/null \
@@ -1234,8 +1233,6 @@ else
 fi
 
 # <>
-[[ -f ./all_commands ]] \
-  && ls -alhFi ./all_commands
 _full_xtrace
 exit 101
 
