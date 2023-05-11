@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 # Written in bash version 5.1 on Fedora 37 & 38
 
 # Note: Keep your goal in mind.
