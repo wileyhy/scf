@@ -847,7 +847,7 @@ _verify_path(){
 
   # if the loc_path_1 is now empty, then exit
   if [[ "${#loc_path_1[@]}" -eq 0 ]]; then
-    E_ _verify_path "${loc_namerf}"
+    E_ _verify_path "${loc_nameref}"
   fi
 
   # remove any duplicates while preserving order of dirs
@@ -863,7 +863,7 @@ _verify_path(){
   loc_path_2=("${loc_path_2[@]}")
 
   # reset path vars
-  builtin printf -v "${loc_var_nm}" "$(
+  builtin printf -v "${loc_var_nm}" '%s' "$(
     printf '%s' "${loc_path_2[0]}";
     unset 'loc_path_2[0]';
     [[ -n "${loc_path_2[*]}" ]] \
@@ -885,13 +885,13 @@ _full_xtrace
 
 : 'methods_descend'
 
-D_ methods_descend
+declare -p methods_descend
 
 
 
 : 'methods_symlinks'
 
-D_ methods_symlinks
+declare -p methods_symlinks
 
 
 
