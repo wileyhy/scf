@@ -710,7 +710,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
         methods_scan_excluded_n=no
         methods_symlinks_b=bash 
         ;;
-      [l|p]*)
+      [lp]*)
         methods_recurse_n=yes 
         methods_prog_b=bin_find
         methods_scan_excluded_n=yes 
