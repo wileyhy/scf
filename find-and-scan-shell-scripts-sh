@@ -788,11 +788,13 @@ D_ verify bash_path find_path PATH
 _verify_path(){
   : '_verify_path BEGINS'  "$((++funclvl))" "${fence}"
   # ...before running `type` / `command` or they'll print dups
+  # Note: var $PATH is always processed
 
-  # var $PATH is always processed
+  local -n loc_nameref
+  loc_nameref="${1}"
 
   # var $bash_path is only processed when the CLI optargs say so
-  if [[ "$1" == bash_path ]] \
+  if [[ "${loc_namerf}" == bash_path ]] \
     && [[ "${verify[*]}" != *+(all|path)* ]]
   then
     return
@@ -800,7 +802,7 @@ _verify_path(){
 
   # Get constituent dirs from $1
   local loc_path_{1,2} p
-  IFS=':' read -ra loc_path_1 <<< "$1"
+  IFS=':' read -ra loc_path_1 <<< "${loc_namerf}"
 
   # get the cannonicalized paths of each such dir, replacing the 
   # existing array element with the corrected value. no result
@@ -816,7 +818,7 @@ _verify_path(){
 
   # if the loc_path_1 is now empty, then exit
   if [[ "${#loc_path_1[@]}" -eq 0 ]]; then
-    E_ _verify_path "$1"
+    E_ _verify_path "${loc_namerf}"
   fi
 
   # remove any duplicates while preserving order of dirs
