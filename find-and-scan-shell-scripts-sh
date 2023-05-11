@@ -1042,7 +1042,7 @@ declare -p methods_recurse_n
 : 'methods_symlinks_l'
 declare -p methods_symlinks_l
 
-_full_xtrace
+#_full_xtrace
 #exit 101
 
 # Bug: greps. parse full outputs of type and command
@@ -1073,6 +1073,7 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
   done
   allchr[10]=$'\n'
   unset i
+  _full_xtrace
 
   # for each possible ascii character or value
   for i in "${!allchr[@]}"; do
