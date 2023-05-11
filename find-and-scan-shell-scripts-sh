@@ -515,7 +515,7 @@ find_exclude_optargs_default=(
 )
 find_exclude_optargs=()
 IFS=':' read -ra find_path <<<"${bash_path}"
-find_sym_opt='-L'
+find_sym_opt_P='-L'
 memory_usage=temp_files
 sc_sev_abrv="${sc_severity:0:1}"
 methods_recurse_n=no
@@ -721,7 +721,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
       case "${OPTARG:0:1}" in
         l* ) # follow symlinks
           methods_symlinks_l=logical
-          find_sym_opt='-L' 
+          find_sym_opt_P='-L' 
 
           case "${methods_prog_cv}" in
             *find)
@@ -741,7 +741,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
         p* ) # never follow symlinks
           methods_prog_cv=bin_find
           methods_symlinks_l=physical 
-          find_sym_opt='-P' 
+          find_sym_opt_P='-P' 
           methods_recurse_n=yes 
           find_exclude_optargs=("${find_exclude_optargs_default[@]}")
           methods_scan_excluded_by=no 
@@ -910,7 +910,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
 done
 shopt -u nocasematch
 
-D_ methods_symlinks_l methods_recurse_n methods_prog_cv methods_scan_excluded_by find_sym_opt find_exclude_optargs bash_path find_path PATH methods_path
+D_ methods_symlinks_l methods_recurse_n methods_prog_cv methods_scan_excluded_by find_sym_opt_P find_exclude_optargs bash_path find_path PATH methods_path
 
 # <>
 #_full_xtrace
@@ -1356,7 +1356,7 @@ unset end_dirname full_dir_list ext_array dir sub_dir num_sub_dirs \
 : 'Find command'
 
 export find_path
-export find_sym_opt
+export find_sym_opt_P
 export methods_scan_excluded_by
 export find_exclude_optargs
 
