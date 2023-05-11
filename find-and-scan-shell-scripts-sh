@@ -1066,9 +1066,9 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
   cd "${tempd}" \
     || E_ cd
   
-  #for i in 8 9 10 11 12 13 {32..127}; do
+  #for i in {58..60}; do
   
-  for i in {58..60}; do
+  for i in 8 9 10 11 12 13 {32..127}; do
     allchr+=(["$i"]="$(printf '%b' "\\$(printf %03o "$i")")")
   done
   allchr[10]=$'\n'
