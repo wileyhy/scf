@@ -717,33 +717,43 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
     # unset, causes the shell to immediately halt, ignoring any trap
     # on EXIT.
     #   Mis-spellings beyond the first one or two letters are allowed.
-    l) case "${OPTARG:0:1}" in
-      b*) 
-        methods_recurse_n=no 
-        methods_prog_b=bin_bash 
-        methods_symlinks_b=bash 
-        find_exclude_optargs=()
-        methods_scan_excluded_y=yes
-        ;;
-      [lp]*)
-        methods_recurse_n=yes 
-        methods_prog_b=bin_find
-        find_exclude_optargs=("${find_exclude_optargs_default[@]}")
-        methods_scan_excluded_y=no 
-        
-        case "${OPTARG:0:1}" in
-          l*) 
-            find_sym_opt='-L' 
-            methods_symlinks_b=logical
-            ;;
-          p*) 
-            find_sym_opt='-P' 
-            methods_symlinks_b=physical 
-            ;;
-        esac
-        ;;
-      *) "${arg_wrong__l:?}" ;;
-    esac ;;
+    l)
+      case "${OPTARG:0:1}" in
+        l* ) # follow symlinks
+          methods_symlinks_b=logical
+          find_sym_opt='-L' 
+
+          case "${methods_prog_b}" in
+            *find)
+              methods_prog_b=bin_find
+              
+              methods_recurse_n=yes 
+              find_exclude_optargs=("${find_exclude_optargs_default[@]}")
+              methods_scan_excluded_y=no 
+              ;;
+            *bash*)
+              methods_prog_b=bin_bash 
+              
+              methods_recurse_n=no 
+              find_exclude_optargs=()
+              methods_scan_excluded_y=yes
+              ;;
+          esac
+          ;;
+   
+        p* ) # never follow symlinks
+
+          methods_prog_b=bin_find
+          
+          methods_symlinks_b=physical 
+          find_sym_opt='-P' 
+          
+          methods_recurse_n=yes 
+          find_exclude_optargs=("${find_exclude_optargs_default[@]}")
+          methods_scan_excluded_y=no 
+          ;;
+        *) "${arg_wrong__l:?}" ;;
+      esac ;;
 
     # Whether and how to save data. Default is temp files.
     m) case "${OPTARG:0:1}" in
