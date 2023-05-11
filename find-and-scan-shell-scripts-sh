@@ -299,7 +299,7 @@ _full_xtrace() {
 }
 
 #exit 101
-#_full_xtrace
+_full_xtrace
 
 : 'Regualar script Functions'
 
