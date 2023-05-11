@@ -1111,7 +1111,7 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
       fi
 
       # for each line of output from `type -a`
-      for v in "${!type_a_o[@]}"; do
+      for line in "${!type_a_o[@]}"; do
       
           # <>
           declare -p all_commands
@@ -1119,13 +1119,13 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
         # if any result (ie, index) of `type -a`s output refers to an
         # alias, function or shell keyword, then unset that index
         if grep -qE ' is a(liased| function| shell (builtin|keyword))' \
-            <<< "${type_a_o[v]}"; 
+            <<< "${type_a_o[line]}"; 
           then
-            unset 'type_a_o[v]'
+            unset 'type_a_o[line]'
         
         # if any result refers to a file -- and if that file is not 
         # already included in the all_commands list...
-        elif grep -qE ' is /' <<< "${type_a_o[v]}" \
+        elif grep -qE ' is /' <<< "${type_a_o[line]}" \
             && ! [[ "${all_commands[*]}" =~ "${type_a_o##* }" ]];
           then 
 
@@ -1138,7 +1138,7 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
         if [[ "${#type_a_o[@]}" -eq 0 ]]; then
           unset_per_idx_commands_n=yes
         fi
-      done; unset v type_a_o
+      done; unset line type_a_o
     
       # remove any directories from the (sub-)list
       if [[ -z "${unset_per_idx_commands_n}" ]]; then
