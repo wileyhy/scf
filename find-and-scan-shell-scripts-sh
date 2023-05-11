@@ -642,40 +642,47 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
     d) case "${OPTARG:0:2}" in
 
       ac* | aa*)
-        methods_path=(actually_all) bash_path='/'
-        methods_prog=bin_find
+        bash_path='/'
         F_
+        methods_path=(actually_all) 
+        methods_prog=bin_find
         ;;
       as* | ai*)
-        methods_path=('as-is') bash_path="${bash_path_orig}"
+        bash_path="${bash_path_orig}"
         F_
+        methods_path=('as-is') 
         ;;
       bi* | b)
-        methods_path=(bin_only) bash_path='/usr/bin'
+        bash_path='/usr/bin'
         F_
+        methods_path=(bin_only) 
         ;;
       bo* | bs*)
-        methods_path=(both_bin_sbin_only)
         bash_path='/usr/bin:/usr/sbin'
         F_
+        methods_path=(both_bin_sbin_only)
         ;;
       ge* | g)
-        methods_path=(getconf_PATH_only) bash_path="${getconf_o}"
+        bash_path="${getconf_o}"
         F_
+        methods_path=(getconf_PATH_only) 
         ;;
       sb* | so* | s)
-        methods_path=(sbin_only) bash_path='/usr/sbin'
+        bash_path='/usr/sbin'
         F_
+        methods_path=(sbin_only) 
         ;;
       pr* | p | pa*)
-        methods_path+=(add_proc) bash_path+=':/proc'
-        methods_prog=bin_find
+        bash_path+=':/proc'
         F_
+        methods_path+=(add_proc) 
+        methods_prog=bin_find
         ;;
       sy* | sa*)
-        methods_path+=(add_sys) bash_path+=':/sys'
-        methods_prog=bin_find
+        bash_path+=':/sys'
         F_
+        methods_path+=(add_sys) 
+        methods_prog=bin_find
         ;;
       *) "${arg_wrong__d:?}" ;;
     esac ;;
@@ -697,34 +704,56 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
     # on EXIT.
     #   Mis-spellings beyond the first one or two letters are allowed.
     l) case "${OPTARG:0:1}" in
-      b*) methods_symlinks=bash methods_prog=bin_bash ;;
-      p*)
-        methods_symlinks=physical methods_prog=bin_find
-        find_sym_opt='-P'
+      b*) 
+        methods_descend=no 
+        methods_prog=bin_bash 
+        methods_scan_excluded=no
+        methods_symlinks=bash 
         ;;
-      l*)
-        methods_symlinks=logical methods_prog=bin_find
-        find_sym_opt='-L'
+      [l|p]*)
+        methods_descend=yes 
+        methods_prog=bin_find
+        methods_scan_excluded=yes 
+        methods_symlinks=physical 
+        
+        case "${OPTARG:0:1}" in
+          l*) find_sym_opt='-L' ;;
+          p*) find_sym_opt='-P' ;;
+        esac
         ;;
       *) "${arg_wrong__l:?}" ;;
     esac ;;
 
     # Whether and how to save data. Default is temp files.
     m) case "${OPTARG:0:1}" in
-      r*) memory_usage=RAM_only ;;
       p*) memory_usage=persistent_storage ;;
+      r*) memory_usage=RAM_only ;;
       t*) memory_usage=temp_files ;;
       *) "${arg_wrong__m:?}" ;;
     esac ;;
 
     # Program to search with. All settings clobber; bash is default
     p) case "${OPTARG:0:2}" in
-      ba* | b) methods_prog=bin_bash ;;
-      cp*) methods_prog=bash_command_pV ;;
-      cv*) methods_prog=bash_command_V ;;
-      fi* | f) methods_prog=bin_find ;;
-      ty* | t) methods_prog=bash_type_a ;;
-      *) "${arg_wrong__p:?}" ;;
+      [bct]*)
+        methods_symlinks=bash
+        methods_descend=no 
+        methods_scan_excluded=no
+
+        case "${OPTARG:0:2}" in
+          b* ) methods_prog=bin_bash ;;
+          c[a-p]*) methods_prog=bash_command_pV ;;
+          c[q-z]*) methods_prog=bash_command_V ;;
+          t* ) methods_prog=bash_type_a ;;
+        esac
+        ;;
+      f*) 
+        methods_descend=yes 
+        methods_prog=bin_find 
+        methods_scan_excluded=yes 
+        ;;
+      *) 
+        "${arg_wrong__p:?}" 
+        ;;
     esac ;;
 
     # What information to verify. The default is all.
@@ -751,9 +780,17 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
     # reversed later on the same command line
     #unset find_path # again, why unset it?
     r) case "${OPTARG:0:1}" in
-      r | d | y) methods_descend=yes methods_prog=bin_find ;;
-      n) methods_descend=no methods_prog=bin_bash ;;
-      *) "${arg_wrong__r:?}" ;;
+      r | d | y) 
+        methods_descend=yes 
+        methods_prog=bin_find 
+        ;;
+      n) 
+        methods_descend=no 
+        methods_symlinks=bash
+        ;;
+      *) 
+        "${arg_wrong__r:?}" 
+        ;;
     esac ;;
 
     # Scan excluded dirs
@@ -761,17 +798,24 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
     # ally excluded search directories that often prove to be somewhat
     # problematic: '/proc', '/sys', and anything with a find '-path'
     # of either '*/git/*' or this script's repo's name. With a default
-    # PATH setting, `bash` usually also skips these directories, so
-    # enabling this option indicates the wish to use `find`, and so
-    # clobbers `bash`. To add '/proc' or '/sys' to `find`s search path,
-    # see option 'P', 'add_proc' and 'add_sys'.
+    # PATH setting, `bash` usually also skips these directories. The 
+    # default is bash, so enabling this option indicates the wish to 
+    # use `find`, and so clobbers `bash`. To add '/proc' or '/sys' 
+    # to `find`s search path, see option 'd', 'add_proc' and 'add_sys'.
     s) case "${OPTARG:0:1}" in
-        s | y) methods_scan_excluded=yes find_exclude_optargs=() ;;
-        n) 
-          methods_scan_excluded=no methods_prog=bin_find
-          find_exclude_optargs=("${find_exclude_optargs_default[@]}")
+        s | y) 
+          find_exclude_optargs=() 
+          methods_scan_excluded=yes 
           ;;
-        *) "${arg_wrong__s:?}" ;;
+        n) 
+          find_exclude_optargs=("${find_exclude_optargs_default[@]}")
+          methods_descend=yes
+          methods_prog=bin_find
+          methods_scan_excluded=no 
+          ;;
+        *) 
+          "${arg_wrong__s:?}" 
+          ;;
       esac ;;
 
     v) printf '\n\t%s, version %s. %s.\n\n' "${script_proper_nm}" \
@@ -782,34 +826,48 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
 done
 shopt -u nocasematch
 
+D_ methods_{symlinks,descend,prog,scan_excluded}
+
+# <>
+#_full_xtrace
+exit 101
 
 # Table of opts and settings, precedence
-#         prog    l   p   r   s 
-#               
+#         prog    l   p   r   s     L           P                     R           S
+#                                    3RD         1ST                   2ND         4TH
 #               
 # l           +---------------- 
-#  *b     b   |   #   __  n   n     __ = ba cp cv ty
+#  *b     b   |   #   __  n   n                 __ = ba cp cv ty                                  3RD 
 #   l       f |   #   fi  y   y 
-#   p       f |   #   fi  y   y 
+#  +p       f |   #   fi  y   y 
 # p           +----------------
-#  *ba    b   |   b   ##  n   n  
+#  *ba    b   |   b   ##  n   n                                                                   1ST
 #   cp    b   |   b   ##  n   n 
 #   cv    b   |   b   ##  n   n  
 #   fi      f |   _   ##  y   y     _ = l p     
 #   ty    b   |   b   ##  n   n
 # r           +----------------
-#   y       f |   _   fi  #   ^     _ = l p     ^ = y n
-#  *n     b   |   b   __  #   y     __ = ba cp cv ty
+#   y       f |   _   fi  #   ^     _ = l p                                       ^ = y n         2ND
+#  *n     b   |   b   __  #   y                 __ = ba cp cv ty
 # s           +----------------
-#   y     b f |   _   __  ^   #     _ = b l p   __ = ba cp cv fi ty   ^ = y n  <<< last
-#  *n       f |   _   fi  y   #     _ = l p     
+#  *y     b f |   _   __  ^   #     _ = b l p   __ = ba cp cv fi ty   ^ = y n                     4TH
+#   n       f |   _   fi  y   #     _ = l p     
 #             +---------------- 
-
-
-
-# <>
-#_full_xtrace
-#exit 101
+# 
+# Input >     
+#   eq to def, 
+#     rtn
+#
+#   ne to def
+#     set primary var
+#
+#     set clobber vars
+#
+#     set if-changed vars
+#     
+#       opts if bash  
+#       opts if find
+#
 
 _verify_path(){
   : '_verify_path BEGINS'  "$((++funclvl))" "${fence}"
