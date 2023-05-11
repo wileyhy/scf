@@ -1127,15 +1127,14 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
           command_w_path="${type_a_o[line]##* }"
           command_wo_path="${type_a_o[line]##*/}" 
           
-          # '[' is failing to match '[', perhaps because of non-literality?
-          builtin printf -v command_wo_path '\%s' "${command_wo_path}"
               # <>
               declare -p all_commands per_idx_commands type_a_o line \
                 command_w_path command_wo_path prev_per_idx_cmds
 
           # 
           if ! [[ "${all_commands[*]}" =~ ${command_w_path} ]] \
-            && ! grep -E "\<${command_wo_path}\>" <<< "${prev_per_idx_cmds[@]}"
+            && ! grep -E "$( printf '\%s' ${command_wo_path} )" \
+              <<< "${prev_per_idx_cmds[@]}"
           then
 
             # ...then keep the "${per_idx_commands[n]}" value
