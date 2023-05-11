@@ -1066,9 +1066,8 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
   cd "${tempd}" \
     || E_ cd
   
-  #for i in {58..60}; do
-  
-  for i in 8 9 10 11 12 13 {32..127}; do
+  #for i in 8 9 10 11 12 13 {32..127}; do
+  for i in 33 42 46 58; do
     allchr+=(["$i"]="$(printf '%b' "\\$(printf %03o "$i")")")
   done
   allchr[10]=$'\n'
@@ -1081,7 +1080,11 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
     mapfile -t per_idx_commands < <(
       compgen -A command "${allchr[i]}"
     )
-    
+   
+    # One difficulty is that a completion string can be any of
+    # actual binary command, function, alias, shell keyword,
+    # shell builtin and / or directory
+
     # for each possible completion string found by `compgen`
     for n in "${!per_idx_commands[@]}"; do
       
@@ -1099,8 +1102,7 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
       if [[ -z "${type_a_o[*]}" ]]; then
         
         # then unset the completion string and start with the next one
-        unset 'per_idx_commands[n]'
-        continue
+        unset_per_idx_commands_n=yes
       fi
 
       # for each line of output from `type -a`
@@ -1123,17 +1125,19 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
         # if all lines of `type -a`s output have been deleted, then 
         # begin with the next completion string
         if [[ "${#type_a_o[@]}" -eq 0 ]]; then
-          unset 'per_idx_commands[n]'
-          continue
+          unset_per_idx_commands_n=yes
         fi
       done; unset v
     
       # remove any directories from the (sub-)list
       realpath_e_o="$(realpath -e "${per_idx_commands[n]}" 2>/dev/null)"
       if [[ -d "${realpath_e_o}" ]]; then 
-        unset 'per_idx_commands[n]'
-        continue
+        unset_per_idx_commands_n=yes
       fi; unset realpath_e_o
+    
+      if [[ "${unset_per_idx_commands_n}" == yes ]]; then 
+        unset 'per_idx_commands[n]'
+      fi
     done
     
     # add the (sub-)list to the full list, being careful of index numbers
