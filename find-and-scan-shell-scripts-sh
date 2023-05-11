@@ -327,7 +327,7 @@ fn_bak() {
 
       # write a new .bak file
       S_ rsync -acq -- "${loc_filename_a}"{,.bak} \
-        || I_
+        || E_
 
     # if input file DNE, then print an error and exit
     else
@@ -376,7 +376,7 @@ fn_write_arrays() {
 
   if [[ ! -d "${loc_write_d_b}" ]]; then
     S_ mkdir -p -- "${loc_write_d_b}" \
-      || I_
+      || E_
   fi
 
   # for each of multiple input array names
@@ -438,10 +438,10 @@ function B_() {
   fn_bak "$@"
   : 'B_ ENDS  ' "$((--funclvl))" "${fence}"
 }
-function I_() {
-  : 'I_ BEGINS' "$((++funclvl))" "${fence}"
+function E_() {
+  : 'E_ BEGINS' "$((++funclvl))" "${fence}"
   fn_erx "${LINENO}"
-  : 'I_ ENDS  ' "$((--funclvl))" "${fence}"
+  : 'E_ ENDS  ' "$((--funclvl))" "${fence}"
 }
 #function N_() {
 #  : 'N_ BEGINS' "$((++funclvl))" "${fence}"
@@ -1303,7 +1303,7 @@ if [[ ! -r "${main_d}" ]]; then
       if [[ ! -d "${acl_abs_path}" ]]; then
 
         S_ mkdir -p -- "${main_d}" \
-          || I_
+          || E_
       fi
 
       acl_realpath="$(realpath -e "${acl_abs_path}" 2>/dev/null)"
@@ -1329,13 +1329,13 @@ if [[ ! -r "${main_d}" ]]; then
 
       # readable up to the main_d
       S_ chmod -R 750 -- "${acl_realpath}" \
-        || I_
+        || E_
 
       S_ setfacl -d -m "${USER}:r-x" -- "${acl_realpath}" \
-        || I_
+        || E_
 
       S_ setfacl -m "${USER}:r-x" -- "${acl_realpath}" \
-        || I_
+        || E_
 
       #:_
       #id "${USER}"
@@ -1344,16 +1344,16 @@ if [[ ! -r "${main_d}" ]]; then
       #S_ getfacl -- "${acl_realpath}"
 
       [[ -r "${acl_realpath}" ]] \
-        || I_
+        || E_
     fi
   done
 
   # writeable within the main_d
   S_ setfacl -d -m "${USER}:rwx" -- "${main_d}" \
-    || I_
+    || E_
 
   S_ setfacl -R -m "${USER}:rwx" -- "${main_d}" \
-    || I_
+    || E_
 
   #:_
   #id "${USER}"
@@ -1398,7 +1398,7 @@ done
 : of curr_time_ssubd
 if [[ ! -d "${curr_time_ssubd}" ]]; then
   S_ mkdir -p -- "${curr_time_ssubd}" \
-    || I_
+    || E_
 fi
 
 #:_
@@ -1526,11 +1526,11 @@ if [[ ! -f "/tmp/${list_crunchbangs##*/}" ]] \
         | tr -s ' ' \
         | gawk --lint '{ print $2, $3, $4 }' \
         | tr -d '\n' \
-        || I_ "P:${PIPESTATUS[*]} I:${all_files_index} ${each_sorted_f}"
+        || E_ "P:${PIPESTATUS[*]} I:${all_files_index} ${each_sorted_f}"
     )"
 
     [[ -n "${od_o}" ]] \
-      || I_ "I:${all_files_index} ${each_sorted_f}"
+      || E_ "I:${all_files_index} ${each_sorted_f}"
 
     a_bin_od_output+=([all_files_index]="${od_o}")
 
@@ -1540,7 +1540,7 @@ if [[ ! -f "/tmp/${list_crunchbangs##*/}" ]] \
 
     : '-od_o- non-zero'
     if [[ -z "${byte_0}" ]]; then
-      I_ "I:${all_files_index} <${each_sorted_f}>" \
+      E_ "I:${all_files_index} <${each_sorted_f}>" \
         '*unreachable code*'
     elif [[ "${byte_0}" == @(23|21) ]]; then
       : 'compare hexadecimals'
@@ -1559,11 +1559,11 @@ if [[ ! -f "/tmp/${list_crunchbangs##*/}" ]] \
         strings_o="$(strings -n1 <"${each_sorted_f}" \
           | head -n1 \
           | cut -b -$((2 ** 14)) \
-          || I_ "P:${PIPESTATUS[*]} I:${all_files_index} \
+          || E_ "P:${PIPESTATUS[*]} I:${all_files_index} \
             ${each_sorted_f}")"
 
         IFS= read -r first_line_printable <<<"${strings_o}" \
-          || I_ "I:${all_files_index} ${each_sorted_f}"
+          || E_ "I:${all_files_index} ${each_sorted_f}"
 
         : '-#!comment-'
         if [[ "${first_line_printable}" =~ ^'#!comment' ]]; then
@@ -1643,7 +1643,7 @@ if [[ ! -f "/tmp/${list_crunchbangs##*/}" ]] \
     if [[ -f "${any_existing_f}" ]] \
       && [[ ! -L "${any_existing_f}" ]]; then
       S_ mv -- "${any_existing_f}" "${any_existing_f}.${$}.${random_n}" \
-        || I_
+        || E_
     fi
   done
 
@@ -1668,7 +1668,7 @@ else
   if [[ ! -f "${list_crunchbangs}" ]]; then
     S_ rsync -ca -- "/tmp/${list_crunchbangs##*/}" \
       "${list_crunchbangs}" \
-      || I_
+      || E_
   fi
 fi
 
@@ -1699,7 +1699,7 @@ mapfile -t a_interpreters < <(
     | sed 's, *,,g' \
     | sort -u \
     | cut -b3- \
-    || I_ "P:${PIPESTATUS[*]}"
+    || E_ "P:${PIPESTATUS[*]}"
 )
 
 _full_xtrace
@@ -1837,11 +1837,11 @@ exit 101
 # file $list_crunchbangs is located in $time_dir.
 S_ grep -E -- '/bin/'"${SC_shells}"'.*%=%=%=%' "${list_crunchbangs}" \
   | S_ tee -a -- "${list_crunchbangs}_SC-scrpts-list" \
-  || I_
+  || E_
 
 # Copy list to /tmp
 S_ rsync -ca -- "${list_crunchbangs}_SC-scrpts-list" /tmp \
-  || I_
+  || E_
 
 # Backup both lists
 B_ "${list_crunchbangs}_SC-scrpts-list" /tmp/*_SC-scrpts-list
@@ -1933,7 +1933,7 @@ i=0
         | sort -g \
         | uniq -c \
         | sort -k3 \
-        || I_ "P:${PIPESTATUS[*]} I: S:" # index and script name
+        || E_ "P:${PIPESTATUS[*]} I: S:" # index and script name
       # end of pipe intended
       printf '\0'
     )
@@ -1964,7 +1964,7 @@ B_ "${found_scrpts_f}"
 # make copies of the findings file and backup those copies
 for d in /tmp "${main_d}"; do
   S_ rsync -ca -- "${found_scrpts_f}" "${d}" \
-    || I_
+    || E_
   B_ "${d}/${found_scrpts_f##*/}"
 done
 unset d
