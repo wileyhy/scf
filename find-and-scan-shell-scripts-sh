@@ -809,6 +809,8 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
           find_exclude_optargs=() 
           methods_scan_excluded_n=yes 
           ;;
+
+        # WIP
         n) 
           find_exclude_optargs=("${find_exclude_optargs_default[@]}")
           methods_recurse_n=yes
@@ -816,14 +818,20 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
           methods_scan_excluded_n=no 
          
           if [[ "${methods_path[*]}" = *+(proc|sys)* ]]; then
+            
             for i in "${!methods_path[@]}"; do
-              if [[ "${methods_path[i]}" =~ (proc|sys) ]]; then
-                unset 'methods_path[i]'
-              fi
-              if [[ "${bash_path}" =~ (proc|sys) ]]; then
-                bash_path="${bash_path//":${methods_path[i]}"}"
-              fi
-              F_
+              
+              for x in /proc /sys; do
+                
+                if [[ "${bash_path}" =~  ]]; then
+                  bash_path="${bash_path//:"${methods_path[i]}"}"
+                fi
+                F_
+              
+                if [[ "${methods_path[i]}" =~ (proc|sys) ]]; then
+                  unset 'methods_path[i]'
+                fi
+              done
             done
           fi
           ;;
