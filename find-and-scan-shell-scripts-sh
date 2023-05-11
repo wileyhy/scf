@@ -853,7 +853,7 @@ _verify_path(){
   bash_path="$(
     printf '%s' "${loc_path_2[0]}";
     unset 'loc_path_2[0]';
-    [[ -n "${loc_path_2[@]}" ]] \
+    [[ -n "${loc_path_2[*]}" ]] \
       && printf ':%s' "${loc_path_2[@]}"
   )"
 
@@ -1067,10 +1067,10 @@ exit 101
 
 : 'DACs'
 
-# Bug: var path_2 is now loc_path_2
+# Bug: var path_2 is now loc_path_2 
 
 namei_o="$(
-  for d in "${path_2[@]}"; do
+  for d in "${bash_path[@]}"; do
     namei -xl "$(
       realpath -e "$d" 2>/dev/null
     )"
