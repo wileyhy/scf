@@ -515,7 +515,7 @@ find_exclude_optargs_default=(
 )
 find_exclude_optargs=()
 IFS=':' read -ra find_path <<<"${bash_path}"
-find_sym_opt='-P'
+find_sym_opt='-L'
 memory_usage=temp_files
 sc_sev_abrv="${sc_severity:0:1}"
 methods_recurse_n=no
@@ -908,7 +908,7 @@ exit 101
 #                                    3RD         1ST                   2ND         4TH
 #               
 # l           +---------------- 
-#  *b     b   |   #   __  n   n                 __ = ba cp cv ty                                  3RD 
+#  *l     b   |   #   __  n   n                 __ = ba cp cv ty                                  3RD 
 #   l       f |   #   fi  y   y 
 #  +p       f |   #   fi  y   y 
 # p           +----------------
