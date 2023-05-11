@@ -367,24 +367,6 @@ fn_erx() {
 #  : 'fn_num ENDS  ' "$((--funclvl))" "${fence}"
 #}
 
-fn_usage() {
-  : 'fn_usage BEGINS' "$((++funclvl))" "${fence}"
-  # Usage:  fn_usage [exit-code]
-
-  # print a usage message and exit with a pre-determined exit code
-  cat <<-EOF
-    ${repo_nm} - ${script_proper_nm}, version ${script_version}
-    Find and scan shell scripts depending on severity level. 
-        Usage:  ${script_nm} [-ehiw]
-                -e error          -i info
-                -h help           -w warning
-    Only the first option is processed.
-
-EOF
-  exit "${1}"
-  : 'fn_usage ENDS  ' "$((--funclvl))" "${fence}"
-}
-
 fn_write_arrays() {
   : 'fn_write_arrays BEGINS' "$((++funclvl))" "${fence}"
   # Write each array to a file on disk.
