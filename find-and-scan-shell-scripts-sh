@@ -714,11 +714,16 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
         methods_recurse_n=yes 
         methods_prog_b=bin_find
         methods_scan_excluded_n=yes 
-        methods_symlinks_b=physical 
         
         case "${OPTARG:0:1}" in
-          l*) find_sym_opt='-L' ;;
-          p*) find_sym_opt='-P' ;;
+          l*) 
+            find_sym_opt='-L' 
+            methods_symlinks_b=logical
+            ;;
+          p*) 
+            find_sym_opt='-P' 
+            methods_symlinks_b=physical 
+            ;;
         esac
         ;;
       *) "${arg_wrong__l:?}" ;;
@@ -826,7 +831,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
 done
 shopt -u nocasematch
 
-D_ methods_symlinks_b methods_recurse_n methods_prog_b methods_scan_excluded_n
+D_ methods_symlinks_b methods_recurse_n methods_prog_b methods_scan_excluded_n find_sym_opt find_exclude_optargs
 
 # <>
 #_full_xtrace
