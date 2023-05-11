@@ -633,32 +633,29 @@ D_ verify
 if [[ "${verify[*]}" == *+(all|path)* ]]; then
 
   # Get constituent dirs from PATH
-  unset path path_2 p
-  IFS=':' read -ra path <<<"${bash_path}" # this
+  unset path_1 path_2 p
+  IFS=':' read -ra path_1 <<<"${bash_path}"
 
   # get the cannonicalized paths of each such dir
-  for p in "${!path[@]}"; do
-    path[p]="$(realpath -e "${path[p]}" 2>/dev/null)"
-  done
-  unset p # this
+  for p in "${!path_1[@]}"; do
+    path_1[p]="$(realpath -e "${path_1[p]}" 2>/dev/null)"
+  done; unset p
 
   # if the index is empty, then unset it
-  for p in "${!path[@]}"; do
-    if [[ -z "${path[p]}" ]]; then
-      unset 'path[p]'
+  for p in "${!path_1[@]}"; do
+    if [[ -z "${path_1[p]}" ]]; then
+      unset 'path_1[p]'
     fi
-  done
-  unset p # this
+  done; unset p
 
   # remove any duplicates while preserving order of dirs
-  for p in "${!path[@]}"; do
-    if [[ "${path_2[*]}" =~ ${path[p]} ]]; then
-      unset 'path[p]'
+  for p in "${!path_1[@]}"; do
+    if [[ "${path_2[*]}" =~ ${path_1[p]} ]]; then
+      unset 'path_1[p]'
     else
-      path_2+=("${path[p]}")
+      path_2+=("${path_1[p]}")
     fi
-  done
-  unset p # this
+  done; unset p
 
   # reset indices of path_2 and print results
   path_2=("${path_2[@]}")
