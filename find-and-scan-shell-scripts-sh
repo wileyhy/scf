@@ -826,7 +826,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
 done
 shopt -u nocasematch
 
-D_ methods_{symlinks,descend,prog,scan_excluded}
+D_ methods_symlinks methods_descend methods_prog methods_scan_excluded
 
 # <>
 #_full_xtrace
