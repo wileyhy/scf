@@ -290,11 +290,11 @@ _mk_setenv_delta() {
 
 _mk_deltas() {
   : '_mk_deltas BEGINS' "$((++funclvl))" "${fence}"
-  #_xtrace_duck
+  _xtrace_duck
   _mk_setenv_prev
   _mk_setenv_now
   _mk_setenv_delta
-  #_xtrace_duck
+  _xtrace_duck
   : '_mk_deltas ENDS  ' "$((--funclvl))" "${fence}"
 }
 
