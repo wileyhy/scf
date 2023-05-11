@@ -628,7 +628,9 @@ _full_xtrace
 : 'Verify PATH'
 # ...before running `type` / `command` or they'll print dups
 
-if [[ "${verify[*]}" == @(all|path) ]]; then
+D_ verify
+
+if [[ "${verify[*]}" == *+(all|path)* ]]; then
 
   # Get constituent dirs from PATH
   unset path path_2 p
