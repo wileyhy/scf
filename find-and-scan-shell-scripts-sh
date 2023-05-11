@@ -817,8 +817,17 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
         #methods_prog_b= # could be any of bash command_pV command_V type_a
         methods_recurse_n=no 
         methods_symlinks_l=logical
-        find_exclude_optargs=()
-        methods_scan_excluded_by=yes
+        
+        case "${methods_prog_b}" in
+          *find)
+            find_exclude_optargs=("${find_exclude_optargs_default[@]}")
+            methods_scan_excluded_by=no
+            ;;
+          *bash*)
+            find_exclude_optargs=()
+            methods_scan_excluded_by=yes
+            ;;
+        esac
         ;;
       *) 
         "${arg_wrong__r:?}" 
