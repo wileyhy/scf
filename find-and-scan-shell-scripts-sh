@@ -725,29 +725,23 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
 
           case "${methods_prog_b}" in
             *find)
-              methods_prog_b=bin_find
-              
               methods_recurse_n=yes 
               find_exclude_optargs=("${find_exclude_optargs_default[@]}")
               methods_scan_excluded_by=no 
               ;;
             *bash*)
-              methods_prog_b=bin_bash 
-              
               methods_recurse_n=no 
               find_exclude_optargs=()
               methods_scan_excluded_by=yes
               ;;
+            *) "${arg_wrong__l:?}" 
+              ;;
           esac
           ;;
-   
         p* ) # never follow symlinks
-
           methods_prog_b=bin_find
-          
           methods_symlinks_b=physical 
           find_sym_opt='-P' 
-          
           methods_recurse_n=yes 
           find_exclude_optargs=("${find_exclude_optargs_default[@]}")
           methods_scan_excluded_by=no 
