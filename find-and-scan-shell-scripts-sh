@@ -781,7 +781,7 @@ done
 shopt -u nocasematch
 
 # <>
-_full_xtrace
+#_full_xtrace
 #exit 101
 D_ verify bash_path find_path PATH
 
