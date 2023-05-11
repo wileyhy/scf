@@ -789,12 +789,17 @@ _verify_path(){
   : '_verify_path BEGINS'  "$((++funclvl))" "${fence}"
   # ...before running `type` / `command` or they'll print dups
   # Note: var $PATH is always processed
-
+  local loc_var_nm
   local -n loc_nameref
+  loc_var_nm="${1}"
   loc_nameref="${1}"
 
+    # <>
+    declare -p PATH loc_nameref
+    echo "${loc_nameref}"
+
   # var $bash_path is only processed when the CLI optargs say so
-  if [[ "${loc_namerf}" == bash_path ]] \
+  if [[ "${loc_var_nm}" == bash_path ]] \
     && [[ "${verify[*]}" != *+(all|path)* ]]
   then
     return
