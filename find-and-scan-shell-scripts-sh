@@ -664,11 +664,13 @@ if [[ "${verify[*]}" == *+(all|path)* ]]; then
   path_2=("${path_2[@]}")
 
   # reset PATH
-  PATH="$(
-    printf '%s' "${path_2[0]}"
-    unset 'path_2[0]'
+  bash_path="$(
+    printf '%s' "${path_2[0]}";
+    unset 'path_2[0]';
     printf ':%s' "${path_2[@]}"
   )"
+
+  F_;
 fi
 _full_xtrace
 exit 101
