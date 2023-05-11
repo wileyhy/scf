@@ -543,10 +543,10 @@ fn_usage() {
       -r [d|y|n] -s [s|y|n]
 
       l:  Follow symlinks         m:  Memory usage
-       *[b]   bash                  [r]   RAM only
-        [p]   physical              [p]   Persistent storage
-        [l]   logical              *[t]   Temporary files
-      d:  Path                    h   Help message
+        [p]   physical              [r]   RAM only
+        [l]   logical               [p]   Persistent storage
+      d:  Path                     *[t]   Temporary files
+        [ac]  Actually all        h   Help message
         [al]  All                 p:  Progam and method
        *[as]  As-is                *[ba]  "bash" binary
         [bi]  /bin only             [cp]  builtin "command -pV"
