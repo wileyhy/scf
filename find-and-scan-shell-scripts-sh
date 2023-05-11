@@ -1056,8 +1056,10 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
 
   # create a dictionary list of each possible initial character
   unset allchr char i all_commands real_dirs re tempd
- 
-  tempd="$(mktemp --suffix="${mktemp_sfx}")"
+
+  # Workaround: `compgen -c "*"` was picking up executable shell
+  # scripts from the CWD
+  tempd="$(mktemp -d --suffix="${mktemp_sfx/%.txt/.d}")"
   cd "${tempd}" \
     || E_ cd
   
@@ -1067,12 +1069,28 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
   allchr[10]=$'\n'
   unset i
 
+  # for each possible ascii character or value
   for i in "${!allchr[@]}"; do
-    mapfile -O $((i * 1000)) -t all_commands < <(
-      compgen -c "${allchr[i]}"
+    
+    # get a per-index (sub-)list of possible command completions
+    mapfile -t per_idx_commands < <(
+      compgen -A command "${allchr[i]}"
     )
-  done
-  unset i
+    
+    # remove any directories from the list
+    for n in "${!per_idx_commands[@]}"; do
+      if [[ -d "${per_idx_commands[n]}" ]]; then 
+        unset 'per_idx_commands[n]'
+      fi
+    done; unset n 
+    
+    # add the (sub-)list to the full list, being careful of index numbers
+    mapfile -O $((i * 1000)) -t all_commands < <(
+      for x in "${per_idx_commands[@]}"; do
+        printf '%s\n' "${x}"
+      done; unset x per_idx_commands
+    )
+  done; unset i
   
   cd - \
     || E_ cd
