@@ -813,22 +813,17 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
         methods_scan_excluded_by=no 
         ;;
       n) 
-        #methods_prog_cv= # could be any of bash command_pV command_V type_a
+        #methods_prog_cv= # could be any of command_pV command_V type_a
         methods_recurse_n=no 
         
-        case "${methods_prog_cv}" in
-          *find)
-            methods_prog_cv=bash_command_V
-            ;;
-          *bash*)
-            find_exclude_optargs=()
-            methods_scan_excluded_by=yes
-            methods_symlinks_l=logical
-            ;;
-          *) 
-            "${arg_wrong__rn:?}" 
-            ;;
-        esac
+        if [[ "${methods_prog_cv}" =~ find ]]; then
+          methods_prog_cv=bash_command_V
+        fi
+            
+        find_exclude_optargs=()
+        methods_scan_excluded_by=yes
+        methods_symlinks_l=logical
+        find_sym_opt_L='-L' 
         ;;
       *) 
         "${arg_wrong__r:?}" 
@@ -912,8 +907,8 @@ shopt -u nocasematch
 D_ methods_symlinks_l methods_recurse_n methods_prog_cv methods_scan_excluded_by find_sym_opt_L find_exclude_optargs bash_path find_path PATH methods_path
 
 # <>
-#_full_xtrace
-exit 101
+_full_xtrace
+#exit 101
 
 # Table of opts and settings, precedence
 #         prog    l   p   r   s     L           P                     R           S
@@ -1022,7 +1017,7 @@ _verify_path PATH
 _verify_path bash_path
 
 _full_xtrace
-#exit 101
+exit 101
 
 : 'methods_recurse_n'
 
