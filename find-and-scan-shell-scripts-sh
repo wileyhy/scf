@@ -572,7 +572,7 @@ EOF
 }
 
 #exit 101
-_full_xtrace
+#_full_xtrace
 
 shopt -s nocasematch
 while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
