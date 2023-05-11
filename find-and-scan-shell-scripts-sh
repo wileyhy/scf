@@ -817,23 +817,45 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
           methods_prog_b=bin_find
           methods_scan_excluded_n=no 
          
-          if [[ "${methods_path[*]}" = *+(proc|sys)* ]]; then
-            
-            for i in "${!methods_path[@]}"; do
+          # if /proc or /sys have been added to the list of dirs to 
+          # be searched, then remove each of them from each of the
+          # variables they've been added to. Then reassign find_path.
+
+          # if /proc or /sys...
+          for x in /proc /sys; do
+
+            # (loop in case ':/proc' or ':/sys' have been added multiple 
+            # times)
+            while :; do
               
-              for x in /proc /sys; do
-                
-                if [[ "${bash_path}" =~  ]]; then
-                  bash_path="${bash_path//:"${methods_path[i]}"}"
-                fi
-                F_
+              # ...have been added to the list of dirs to be searched...
+              if [[ "${bash_path}" =~ ${x} ]]; then
+
+                # then remove them, first from $bash_path...
+                bash_path="${bash_path//:"${x}"}"
               
-                if [[ "${methods_path[i]}" =~ (proc|sys) ]]; then
-                  unset 'methods_path[i]'
-                fi
-              done
+              # (finish the loop when there aren'r any more ':/proc's or 
+              # ':/sys's in bash_path)
+              else
+                break
+              fi
             done
-          fi
+
+            # ...then remove them from methods_path.
+            if [[ "${methods_path[*]}" =~ ${x#/} ]]; then
+            
+              # (iterate through each index)
+              for i in "${!methods_path[@]}"; do
+              
+                if [[ "${methods_path[i]}" =~ ${x#/} ]]; then
+                  unset 'methods_path[i]'
+                fi  
+              done
+            fi
+
+            # and then re-assign find_path
+            F_
+          done
           ;;
         *) 
           "${arg_wrong__s:?}" 
