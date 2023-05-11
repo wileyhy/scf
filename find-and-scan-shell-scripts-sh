@@ -1162,9 +1162,11 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
       if [[ -z "${unset_per_idx_commands_n}" ]]; then
         realpath_e_o1="$(realpath -e "${per_idx_commands[n]}" 2>/dev/null)"
         realpath_e_o2="$(realpath -e "${command_basename}" 2>/dev/null)"
+        realpath_e_o3="$(realpath -e "${command_fullpath}" 2>/dev/null)"
       
         if [[ -d "${realpath_e_o1}" ]] \
-          || [[ -d "${realpath_e_o2}" ]];
+          || [[ -d "${realpath_e_o2}" ]] \
+          || [[ -d "${realpath_e_o3}" ]];
         then 
           unset_per_idx_commands_n=yes
         fi; unset realpath_e_o
