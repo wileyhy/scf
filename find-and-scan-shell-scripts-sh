@@ -787,6 +787,8 @@ D_ verify bash_path find_path PATH
 
 _verify_path(){
   : '_verify_path BEGINS'  "$((++funclvl))" "${fence}"
+  set -x
+  
   # ...before running `type` / `command` or they'll print dups
   # Note: var $PATH is always processed
   local loc_var_nm
