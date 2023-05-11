@@ -520,9 +520,9 @@ memory_usage=temp_files
 sc_sev_abrv="${sc_severity:0:1}"
 methods_recurse=no
 methods_path=('as-is')
-methods_prog=bin_bash
-methods_scan_excluded=no
-methods_symlinks=bash
+methods_prog_b=bin_bash
+methods_scan_excluded_n=no
+methods_symlinks_b=bash
 verify=(all)
 
 : 'Functions re getopts'
@@ -645,7 +645,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
         bash_path='/'
         F_
         methods_path=(actually_all) 
-        methods_prog=bin_find
+        methods_prog_b=bin_find
         ;;
       as* | ai*)
         bash_path="${bash_path_orig}"
@@ -676,13 +676,13 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
         bash_path+=':/proc'
         F_
         methods_path+=(add_proc) 
-        methods_prog=bin_find
+        methods_prog_b=bin_find
         ;;
       sy* | sa*)
         bash_path+=':/sys'
         F_
         methods_path+=(add_sys) 
-        methods_prog=bin_find
+        methods_prog_b=bin_find
         ;;
       *) "${arg_wrong__d:?}" ;;
     esac ;;
@@ -706,15 +706,15 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
     l) case "${OPTARG:0:1}" in
       b*) 
         methods_recurse=no 
-        methods_prog=bin_bash 
-        methods_scan_excluded=no
-        methods_symlinks=bash 
+        methods_prog_b=bin_bash 
+        methods_scan_excluded_n=no
+        methods_symlinks_b=bash 
         ;;
       [l|p]*)
         methods_recurse=yes 
-        methods_prog=bin_find
-        methods_scan_excluded=yes 
-        methods_symlinks=physical 
+        methods_prog_b=bin_find
+        methods_scan_excluded_n=yes 
+        methods_symlinks_b=physical 
         
         case "${OPTARG:0:1}" in
           l*) find_sym_opt='-L' ;;
@@ -735,21 +735,21 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
     # Program to search with. All settings clobber; bash is default
     p) case "${OPTARG:0:2}" in
       [bct]*)
-        methods_symlinks=bash
+        methods_symlinks_b=bash
         methods_recurse=no 
-        methods_scan_excluded=no
+        methods_scan_excluded_n=no
 
         case "${OPTARG:0:2}" in
-          b* ) methods_prog=bin_bash ;;
-          c[a-p]*) methods_prog=bash_command_pV ;;
-          c[q-z]*) methods_prog=bash_command_V ;;
-          t* ) methods_prog=bash_type_a ;;
+          b* ) methods_prog_b=bin_bash ;;
+          c[a-p]*) methods_prog_b=bash_command_pV ;;
+          c[q-z]*) methods_prog_b=bash_command_V ;;
+          t* ) methods_prog_b=bash_type_a ;;
         esac
         ;;
       f*) 
         methods_recurse=yes 
-        methods_prog=bin_find 
-        methods_scan_excluded=yes 
+        methods_prog_b=bin_find 
+        methods_scan_excluded_n=yes 
         ;;
       *) 
         "${arg_wrong__p:?}" 
@@ -782,11 +782,11 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
     r) case "${OPTARG:0:1}" in
       r | d | y) 
         methods_recurse=yes 
-        methods_prog=bin_find 
+        methods_prog_b=bin_find 
         ;;
       n) 
         methods_recurse=no 
-        methods_symlinks=bash
+        methods_symlinks_b=bash
         ;;
       *) 
         "${arg_wrong__r:?}" 
@@ -805,13 +805,13 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
     s) case "${OPTARG:0:1}" in
         s | y) 
           find_exclude_optargs=() 
-          methods_scan_excluded=yes 
+          methods_scan_excluded_n=yes 
           ;;
         n) 
           find_exclude_optargs=("${find_exclude_optargs_default[@]}")
           methods_recurse=yes
-          methods_prog=bin_find
-          methods_scan_excluded=no 
+          methods_prog_b=bin_find
+          methods_scan_excluded_n=no 
           ;;
         *) 
           "${arg_wrong__s:?}" 
@@ -947,17 +947,17 @@ declare -p methods_recurse
 
 
 
-: 'methods_symlinks'
+: 'methods_symlinks_b'
 
-declare -p methods_symlinks
+declare -p methods_symlinks_b
 
 
 
 # Bug: greps. parse full outputs of type and command
 
-: 'methods_prog'
+: 'methods_prog_b'
 
-if [[ "${methods_prog}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; then
+if [[ "${methods_prog_b}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; then
 
   # create a single array of all commands found by each kind of search.
   # to do this...
@@ -993,30 +993,30 @@ if [[ "${methods_prog}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; then
     printf ')\n'
   )"
 
-  #methods_prog=bash_type_a;
+  #methods_prog_b=bash_type_a;
   #for i in "${!all_commands[@]}"; do
-  #if [[ "${methods_prog}" = bash_type_a ]]; then
+  #if [[ "${methods_prog_b}" = bash_type_a ]]; then
   #type -a "${all_commands[i]}" ; fi; done
 
-  # Bug: the tests for methods_prog need to be at the top level of
+  # Bug: the tests for methods_prog_b need to be at the top level of
   # logic structure
 
   for i in "${!all_commands[@]}"; do
 
     # For anywhere in PATH: BASH_type_a
-    if [[ "${methods_prog}" = *bash_type_a ]]; then
+    if [[ "${methods_prog_b}" = *bash_type_a ]]; then
       type -a "${all_commands[i]}" \
         | grep -E 'is /'"${re}"
     fi
 
     # For `command -pV` (usually only '/usr/bin'): BASH_command_pV
-    if [[ "${methods_prog}" = *bash_command_pV ]]; then
+    if [[ "${methods_prog_b}" = *bash_command_pV ]]; then
       command -pV "${all_commands[i]}" \
         | grep -E 'is /'"${re}"
     fi
 
     # For `command -V` (usually includes '/usr/sbin'): BASH_command_V
-    if [[ "${methods_prog}" = *bash_command_V ]]; then
+    if [[ "${methods_prog_b}" = *bash_command_V ]]; then
       command -V "${all_commands[i]}" \
         | grep -E 'is /'"${re}"
     fi
@@ -1024,11 +1024,11 @@ if [[ "${methods_prog}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; then
   done \
     | sudo tee all_commands
 
-elif [[ "${methods_prog}" = *bin_bash ]]; then
+elif [[ "${methods_prog_b}" = *bin_bash ]]; then
   hash bash 2>/dev/null \
     || exit "${LINENO}"
 
-elif [[ "${methods_prog}" = *bin_find ]]; then
+elif [[ "${methods_prog_b}" = *bin_find ]]; then
   hash find 2>/dev/null \
     || exit "${LINENO}"
 
@@ -1277,7 +1277,7 @@ unset end_dirname full_dir_list ext_array dir sub_dir num_sub_dirs \
 
 export find_path
 export find_sym_opt
-export methods_scan_excluded
+export methods_scan_excluded_n
 export find_exclude_optargs
 
 # <>
