@@ -412,7 +412,7 @@ EOF
 }
 
 #exit 101
-_full_xtrace
+#_full_xtrace
 
 shopt -s nocasematch
 while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
@@ -622,8 +622,8 @@ done
 shopt -u nocasematch
 
 # <>
-set -
-exit 101
+_full_xtrace
+#exit 101
 
 : 'Verify PATH'
 # ...before running `type` / `command` or they'll print dups
@@ -668,6 +668,7 @@ if [[ "${verify[*]}" =~ path ]]; then
     printf ':%s' "${path_2[@]}"
   )"
 fi
+_full_xtrace
 exit 101
 
 : 'methods_descend'
@@ -764,6 +765,7 @@ fi
 # <>
 [[ -f ./all_commands ]] \
   && ls ./all_commands
+_full_xtrace
 exit 101
 
 # delete? re-work?
@@ -864,6 +866,7 @@ get_mountpoint() {
 get_mountpoint /sbin
 
 # <>
+_full_xtrace
 exit 101
 
 : 'DACs'
@@ -1002,6 +1005,7 @@ export methods_scan_excluded
 export find_exclude_optargs
 
 # <>
+_full_xtrace
 exit 101
 
 : '<> Functions'
@@ -1060,6 +1064,9 @@ for d in "${a_poss_proces_lock_dirs[@]}"; do
 done
 [[ -v delete_locks ]] \
   && L_
+
+_full_xtrace
+exit 101
 
 : 'Functions'
 
@@ -1211,6 +1218,9 @@ fn_write_arrays() {
 
 #X_; :_
 
+_full_xtrace
+exit 101
+
 : 'Process lock'
 
 # from among the possible dirnames
@@ -1237,6 +1247,9 @@ if ! mkdir -m 0000 "${process_lock_d}" 2>/dev/null; then
   L_
 fi
 
+_full_xtrace
+exit 101
+
 # SECTION B
 
 #:_
@@ -1259,6 +1272,9 @@ a_write_path_nms=("${list_crunchbangs:=crunchbangs}"
 # TODOs: grep scripts for 'todo's
 #   - grep for 'shellcheck disable'
 #   - This section seems Buggy.
+
+_full_xtrace
+exit 101
 
 : 'Reduce use of sudo'
 if [[ ! -r "${main_d}" ]]; then
@@ -1345,6 +1361,9 @@ if [[ ! -r "${main_d}" ]]; then
 
 fi
 
+_full_xtrace
+exit 101
+
 : 'make sure -data_subd- is a directory OR create the -data_subd- dir '
 : 'if necessary'
 [[ -d "${data_subd}" ]] \
@@ -1359,8 +1378,9 @@ mapfile -d '' -t a_previous_time_dirs < <(
     -name 't_*' -print0
 )
 
-: if -prev_time_ssubd- is empty, delete it, otherwise -mv- it out
-: of the -latest- dir
+: 'if -prev_time_ssubd- is empty, delete it, otherwise -mv- it out'
+: 'of the -latest- dir'
+
 for prev_time_ssubd in "${a_previous_time_dirs[@]}"; do
   rmdir --ignore-fail-on-non-empty -- "${prev_time_ssubd}"
 
@@ -1381,6 +1401,9 @@ fi
 
 #:_
 #M_ -- "${curr_time_ssubd}"
+
+_full_xtrace
+exit 101
 
 # SECTION C
 
@@ -1414,6 +1437,9 @@ mapfile -d '' -t a_all_files_sorted < <(
   printf '%s\0' "${a_all_files[@]}" \
     | sort -z
 )
+
+_full_xtrace
+exit 101
 
 # SECTION D
 
@@ -1644,6 +1670,9 @@ else
   fi
 fi
 
+_full_xtrace
+exit 101
+
 # <> ?
 W_ a_write_path_nms
 
@@ -1670,6 +1699,9 @@ mapfile -t a_interpreters < <(
     | cut -b3- \
     || I_ "P:${PIPESTATUS[*]}"
 )
+
+_full_xtrace
+exit 101
 
 # <>
 :_
@@ -1716,6 +1748,9 @@ mapfile -t a_interps_rps < <(
   S_ realpath -e -- "${a_interpreters[@]}" \
     | sort -u
 )
+
+_full_xtrace
+exit 101
 
 # <>
 L_
@@ -1781,6 +1816,9 @@ unset b
 W_ a_write_path_nms a_interpreters a_interps_rps a_interps_disk_repo
 L_
 
+_full_xtrace
+exit 101
+
 # SECTION E
 
 : 'CENTRAL TASK, 1 OF 2: Filter the list of crashbangs with the list'
@@ -1811,6 +1849,9 @@ X_
 :_
 W_ timecode list_crunchbangs SC_shells
 L_
+
+_full_xtrace
+exit 101
 
 : 'CENTRAL TASK, 2 of 2: with ShellCheck scan each script for errors'
 
