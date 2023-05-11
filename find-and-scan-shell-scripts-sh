@@ -1067,8 +1067,8 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
     || E_ cd
   
   #for i in 33 42 46 47 58; do
-  #for i in 46 ; do
-  for i in 8 9 10 11 12 13 {32..127}; do
+  for i in 46 91 95; do
+  #for i in 8 9 10 11 12 13 {32..127}; do
     allchr+=(["$i"]="$(printf '%b' "\\$(printf %03o "$i")")")
   done
   allchr[10]=$'\n'
@@ -1082,7 +1082,10 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
     mapfile -t per_idx_commands < <(
       compgen -A command "${allchr[i]}"
     )
-   
+  
+      # <>
+      declare -p per_idx_commands
+
     # One difficulty is that a completion string can be any of
     # actual binary command, function, alias, shell keyword,
     # shell builtin and / or directory
@@ -1097,7 +1100,7 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
       # string, then use `grep` to filter out full function definitions.
       mapfile -t type_a_o < <(
         type -a "${per_idx_commands[n]}" \
-          | grep ^"${per_idx_commands[n]} is"
+          | grep -F "${per_idx_commands[n]} is "
       )
       
       # if `type -a` has no knowledge of the completion string, 
@@ -1129,17 +1132,20 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
         if [[ "${#type_a_o[@]}" -eq 0 ]]; then
           unset_per_idx_commands_n=yes
         fi
-      done; unset v
+      done; unset v type_a_o
     
       # remove any directories from the (sub-)list
-      realpath_e_o="$(realpath -e "${per_idx_commands[n]}" 2>/dev/null)"
-      if [[ -d "${realpath_e_o}" ]]; then 
-        unset_per_idx_commands_n=yes
-      fi; unset realpath_e_o
+      if [[ ! -v unset_per_idx_commands_n ]]; then
+        realpath_e_o="$(realpath -e "${per_idx_commands[n]}" 2>/dev/null)"
+      
+        if [[ -d "${realpath_e_o}" ]]; then 
+          unset_per_idx_commands_n=yes
+        fi; unset realpath_e_o
     
-      if [[ "${unset_per_idx_commands_n}" == yes ]]; then 
-        unset 'per_idx_commands[n]'
-      fi; unset unset_per_idx_commands_n
+        if [[ "${unset_per_idx_commands_n}" == yes ]]; then 
+          unset 'per_idx_commands[n]'
+        fi; unset unset_per_idx_commands_n
+      fi
     done; unset n
     
     # add the (sub-)list to the full list, being careful of index numbers
