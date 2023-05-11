@@ -880,7 +880,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
 done
 shopt -u nocasematch
 
-D_ methods_symlinks_b methods_recurse_n methods_prog_b methods_scan_excluded_n find_sym_opt find_exclude_optargs bash_path find_path PATHmethods_path
+D_ methods_symlinks_b methods_recurse_n methods_prog_b methods_scan_excluded_n find_sym_opt find_exclude_optargs bash_path find_path PATH methods_path
 
 # <>
 #_full_xtrace
