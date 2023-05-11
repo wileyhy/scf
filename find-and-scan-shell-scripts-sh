@@ -518,7 +518,7 @@ IFS=':' read -ra find_path <<<"${bash_path}"
 find_sym_opt='-P'
 memory_usage=temp_files
 sc_sev_abrv="${sc_severity:0:1}"
-methods_recurse=no
+methods_recurse_n=no
 methods_path=('as-is')
 methods_prog_b=bin_bash
 methods_scan_excluded_n=no
@@ -705,13 +705,13 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
     #   Mis-spellings beyond the first one or two letters are allowed.
     l) case "${OPTARG:0:1}" in
       b*) 
-        methods_recurse=no 
+        methods_recurse_n=no 
         methods_prog_b=bin_bash 
         methods_scan_excluded_n=no
         methods_symlinks_b=bash 
         ;;
       [l|p]*)
-        methods_recurse=yes 
+        methods_recurse_n=yes 
         methods_prog_b=bin_find
         methods_scan_excluded_n=yes 
         methods_symlinks_b=physical 
@@ -736,7 +736,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
     p) case "${OPTARG:0:2}" in
       [bct]*)
         methods_symlinks_b=bash
-        methods_recurse=no 
+        methods_recurse_n=no 
         methods_scan_excluded_n=no
 
         case "${OPTARG:0:2}" in
@@ -747,7 +747,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
         esac
         ;;
       f*) 
-        methods_recurse=yes 
+        methods_recurse_n=yes 
         methods_prog_b=bin_find 
         methods_scan_excluded_n=yes 
         ;;
@@ -781,11 +781,11 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
     #unset find_path # again, why unset it?
     r) case "${OPTARG:0:1}" in
       r | d | y) 
-        methods_recurse=yes 
+        methods_recurse_n=yes 
         methods_prog_b=bin_find 
         ;;
       n) 
-        methods_recurse=no 
+        methods_recurse_n=no 
         methods_symlinks_b=bash
         ;;
       *) 
@@ -809,7 +809,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
           ;;
         n) 
           find_exclude_optargs=("${find_exclude_optargs_default[@]}")
-          methods_recurse=yes
+          methods_recurse_n=yes
           methods_prog_b=bin_find
           methods_scan_excluded_n=no 
           ;;
@@ -826,7 +826,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
 done
 shopt -u nocasematch
 
-D_ methods_symlinks_b methods_recurse_n methods_prog_b methods_scan_excluded_n
+D_ methods_symlinks_b methods_recurse_n_n methods_prog_b methods_scan_excluded_n
 
 # <>
 #_full_xtrace
@@ -941,9 +941,9 @@ _verify_path bash_path
 _full_xtrace
 #exit 101
 
-: 'methods_recurse'
+: 'methods_recurse_n'
 
-declare -p methods_recurse
+declare -p methods_recurse_n
 
 
 
