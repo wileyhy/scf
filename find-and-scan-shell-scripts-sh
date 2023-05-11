@@ -522,7 +522,7 @@ methods_recurse_n=no
 methods_path=('as-is')
 methods_prog_b=bin_bash
 methods_scan_excluded_by=yes
-methods_symlinks_b=logical
+methods_symlinks_l=logical
 verify=(all)
 
 : 'Functions re getopts'
@@ -720,7 +720,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
     l)
       case "${OPTARG:0:1}" in
         l* ) # follow symlinks
-          methods_symlinks_b=logical
+          methods_symlinks_l=logical
           find_sym_opt='-L' 
 
           case "${methods_prog_b}" in
@@ -740,7 +740,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
           ;;
         p* ) # never follow symlinks
           methods_prog_b=bin_find
-          methods_symlinks_b=physical 
+          methods_symlinks_l=physical 
           find_sym_opt='-P' 
           methods_recurse_n=yes 
           find_exclude_optargs=("${find_exclude_optargs_default[@]}")
@@ -761,7 +761,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
     p) case "${OPTARG:0:2}" in
       [bct]*)
         methods_recurse_n=no 
-        methods_symlinks_b=logical
+        methods_symlinks_l=logical
         find_exclude_optargs=()
         methods_scan_excluded_by=yes
 
@@ -814,7 +814,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
       n) 
         methods_prog_b="bin_bash"
         methods_recurse_n=no 
-        methods_symlinks_b=logical
+        methods_symlinks_l=logical
         find_exclude_optargs=()
         methods_scan_excluded_by=yes
         ;;
@@ -897,7 +897,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
 done
 shopt -u nocasematch
 
-D_ methods_symlinks_b methods_recurse_n methods_prog_b methods_scan_excluded_by find_sym_opt find_exclude_optargs bash_path find_path PATH methods_path
+D_ methods_symlinks_l methods_recurse_n methods_prog_b methods_scan_excluded_by find_sym_opt find_exclude_optargs bash_path find_path PATH methods_path
 
 # <>
 #_full_xtrace
@@ -1018,9 +1018,9 @@ declare -p methods_recurse_n
 
 
 
-: 'methods_symlinks_b'
+: 'methods_symlinks_l'
 
-declare -p methods_symlinks_b
+declare -p methods_symlinks_l
 
 
 
