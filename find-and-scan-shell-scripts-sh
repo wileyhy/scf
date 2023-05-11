@@ -1062,9 +1062,11 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
 
   # create a dictionary list of each possible initial character
   unset allchr char i all_commands real_dirs re
+  set -o nullglob
 
   #for i in 8 9 10 11 12 13 {32..127}; do
-  
+ 
+
   for i in 42; do
     allchr+=(["$i"]="$(printf '%b' "\\$(printf %03o "$i")")")
   done
@@ -1077,6 +1079,7 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
     )
   done
   unset i
+  set +o nullglob
 
   mapfile -t real_dirs < <(
     sudo find / -maxdepth 1 -mindepth 1 -type d \! -empty \
