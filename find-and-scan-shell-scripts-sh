@@ -769,26 +769,50 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
     # clobbers `bash`. To add '/proc' or '/sys' to `find`s search path,
     # see option 'P', 'add_proc' and 'add_sys'.
     s) case "${OPTARG:0:1}" in
-      s | y) methods_scan_excluded=yes find_exclude_optargs=() ;;
-      n)
-        methods_scan_excluded=no methods_prog=bin_find
-        find_exclude_optargs=("${find_exclude_optargs_default[@]}")
-        ;;
-      *) "${arg_wrong__s:?}" ;;
-    esac ;;
+        s | y) methods_scan_excluded=yes find_exclude_optargs=() ;;
+        n) 
+          methods_scan_excluded=no methods_prog=bin_find
+          find_exclude_optargs=("${find_exclude_optargs_default[@]}")
+          ;;
+        *) "${arg_wrong__s:?}" ;;
+      esac ;;
     *) fn_usage 1 ;;
   esac
 done
 shopt -u nocasematch
 
+
+# Table of opts and settings, precedence
+#         prog    l   p   r   s 
+#               
+#               
+# l           +---------------- 
+#  *b     b   |   #   __  n   n     __ = ba cp cv ty
+#   l       f |   #   fi  y   y 
+#   p       f |   #   fi  y   y 
+# p           +----------------
+#  *ba    b   |   b   ##  n   n  
+#   cp    b   |   b   ##  n   n 
+#   cv    b   |   b   ##  n   n  
+#   fi      f |   _   ##  y   y     _ = l p     
+#   ty    b   |   b   ##  n   n
+# r           +----------------
+#   y       f |   _   fi  #   ^     _ = l p     ^ = y n
+#  *n     b   |   b   __  #   y     __ = ba cp cv ty
+# s           +----------------
+#   y     b f |   _   __  ^   #     _ = b l p   __ = ba cp cv fi ty   ^ = y n  <<< last
+#  *n       f |   _   fi  y   #     _ = l p     
+#             +---------------- 
+
+
+
 # <>
-_full_xtrace
+#_full_xtrace
 #exit 101
-D_ verify bash_path find_path PATH
 
 _verify_path(){
   : '_verify_path BEGINS'  "$((++funclvl))" "${fence}"
-  _full_xtrace
+  #_full_xtrace
   
   # ...before running `type` / `command` or they'll print dups
   # Note: var $PATH is always processed
@@ -796,10 +820,6 @@ _verify_path(){
   local -n loc_nameref
   loc_var_nm="${1}"
   loc_nameref="${1}"
-
-    # <>
-    #declare -p PATH loc_nameref
-    #echo "${loc_nameref}"
 
   # var $bash_path is only processed when the CLI optargs say so
   if [[ "${loc_var_nm}" == bash_path ]] \
@@ -838,10 +858,10 @@ _verify_path(){
     fi
   done; unset p
 
-  # reset indices of loc_path_2 and print results
+  # reset indices of loc_path_2
   loc_path_2=("${loc_path_2[@]}")
 
-  # reset PATH
+  # reset path vars
   builtin printf -v "${loc_var_nm}" "$(
     printf '%s' "${loc_path_2[0]}";
     unset 'loc_path_2[0]';
@@ -849,7 +869,10 @@ _verify_path(){
       && printf ':%s' "${loc_path_2[@]}"
   )"
 
-  F_;
+  # if the path var is bash_path, then reset find_path
+  if [[ "${loc_var_nm}" = bash_path ]]; then 
+    F_
+  fi
   : '_verify_path ENDS  '  "$((--funclvl))" "${fence}"
 }
 
@@ -857,15 +880,19 @@ _verify_path PATH
 _verify_path bash_path
 
 _full_xtrace
-exit 101
+#exit 101
 
 : 'methods_descend'
 
-export methods_descend
+D_ methods_descend
+
+
 
 : 'methods_symlinks'
 
-export methods_symlinks
+D_ methods_symlinks
+
+
 
 # Bug: greps. parse full outputs of type and command
 
