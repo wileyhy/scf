@@ -1123,24 +1123,24 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
         # if any result refers to a file...
         elif grep -qE ' is /' <<< "${type_a_o[line]}"; then 
          
-          command_wo_path="${type_a_o[line]##*/}" 
+          command_basename="${type_a_o[line]##*/}" 
           
               # <>
               declare -p all_commands per_idx_commands type_a_o line \
-                command_wo_path prev_per_idx_cmds
+                command_basename prev_per_idx_cmds
 
           # ...and if that file is not already included in either the 
           # larger all_commands list or the per-ascii-character
           # prev_per_idx_cmds list...
-          if ! [[ "${all_commands[*]}" =~ ${command_wo_path} ]] \
-            && ! grep -E "$( printf '\%s' "${command_wo_path}" )" \
+          if ! [[ "${all_commands[*]}" =~ ${command_basename} ]] \
+            && ! grep -E "$( printf '\%s' "${command_basename}" )" \
               <<< "${prev_per_idx_cmds[@]}"
           then
 
             # ...then record the command's basename in the 
             # prev_per_idx_cmds list, unset the type-a output index
             # and start with the next line of type-a output
-            prev_per_idx_cmds+=("${command_wo_path}")
+            prev_per_idx_cmds+=("${command_basename}")
             unset 'type_a_o[line]'
             continue
         
