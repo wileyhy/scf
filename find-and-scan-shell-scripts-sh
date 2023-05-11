@@ -169,9 +169,12 @@ trap 'set -x; echo SIGPWR;    trap SIGPWR;    kill -s 2   $$' PWR  # 30
 trap 'set -x; echo SIGSYS;    trap SIGSYS;    kill -s 2   $$' SYS  # 31
 trap 'set -x; echo SIGRTMIN;  trap SIGRTMIN;  kill -s 2  $$' RTMIN # 32
 
-: '<> XTrace'
+: '<> XTrace variables and functions'
+
 funclvl=0
 fence=' ++++++++++++++++++++++++++++++++++++++++++++ '
+export setenv_prev setenv_now setenv_delta env_prev env_now env_delta
+
 # If xtrace was previously on, then on first execution of this function,
 # turn xrtrace off, and on second execution, turn xtrace back on and
 # forget about this function's settings. If xtrace was previously off,
@@ -206,7 +209,6 @@ _xtrace_duck() {
   : '_xtrace_duck ENDS  ' "$((--funclvl))" "${fence}"
 }
 
-export setenv_prev setenv_now setenv_delta env_prev env_now env_delta
 _mk_setenv_prev() {
   : '_mk_setenv_prev BEGINS' "$((++funclvl))" "${fence}"
   if [[ -n "${setenv_now}" ]]; then
