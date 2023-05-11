@@ -842,7 +842,7 @@ _verify_path(){
   loc_path_2=("${loc_path_2[@]}")
 
   # reset PATH
-  builtin printf -v "${loc_nameref}" "$(
+  builtin printf -v "${loc_var_nm}" "$(
     printf '%s' "${loc_path_2[0]}";
     unset 'loc_path_2[0]';
     [[ -n "${loc_path_2[*]}" ]] \
