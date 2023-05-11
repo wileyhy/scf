@@ -784,7 +784,6 @@ shopt -u nocasematch
 _full_xtrace
 #exit 101
 D_ verify bash_path find_path PATH
-set -o functrace
 
 _verify_path(){
   : '_verify_path BEGINS'  "$((++funclvl))" "${fence}"
