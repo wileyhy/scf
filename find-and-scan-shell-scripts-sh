@@ -1130,8 +1130,8 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
           #Z=$(())
           #for ((z=0;
 
-          if [[ "${all_commands[*]}" =~ ${type_a_o[line]##* } ]] \
-            || [[ "${per_idx_commands[*]}" =~ ${type_a_o[line]##* } ]]
+          if ! [[ "${all_commands[*]}" =~ ${type_a_o[line]##* } ]] \
+            && ! [[ "${per_idx_commands[*]}" =~ ${type_a_o[line]##* } ]]
           then
 
             # ...then keep the "${per_idx_commands[n]}" value
