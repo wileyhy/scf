@@ -38,7 +38,7 @@ export FUNCNEST GREP_COLORS LC_COLLATE LC_CTYPE LC_NUMERIC PATH PS4
 sc_severity=error
 SC_shells='(sh|bash|dash|ksh)'
 
-: 'Variables more likely to be manually chaged'
+: 'Variables more likely to be manually changed'
 
 protected_git_dir_1="${HOME}/MYPROJECTS"
 protected_git_dir_2="${HOME}/OTHERSPROJECTS"
@@ -49,7 +49,7 @@ script_nm=find-and-scan-shell-scripts-sh
 script_proper_nm='Script Finder'
 script_version=1.0
 
-: 'Other user parameters'
+: 'Other user variables and arrays'
 
 a_poss_proces_lock_dirs=([0]="${XDG_RUNTIME_DIR}" [1]="${HOME}"
   [2]="${TMPDIR:-/tmp}" [3]=/tmp [4]=/var/tmp)
@@ -60,15 +60,14 @@ proc_lk_f_nm="${unique_string}.lock"
 timecode="$(builtin printf '%(%F_%H%M%S)T')"
 for pld in "${a_poss_proces_lock_dirs[@]}"; do
   process_lock_dirs+=("${pld}/${proc_lk_f_nm}")
-done
-unset pld
+done; unset pld
 
-: '<> Debug variables' # "<>" means, "This is a debugging section."
+: '<> Debug Variables' # "<>" means, "This is a debugging section."
 
 abbrev_rel_search_dirs=/
 # "${Halt:?}"
 
-: '<> Aliases'
+: '<> Debug Aliases'
 
 shopt -s expand_aliases
 alias :_=':;: "<>"'
@@ -301,6 +300,182 @@ _full_xtrace() {
 
 #exit 101
 #_full_xtrace
+
+: 'Regualar script Functions'
+
+fn_bak() {
+  : 'fn_bak BEGINS' "$((++funclvl))" "${fence}"
+
+  # for each of multiple input files
+  for loc_filename_a in "${@}"; do
+
+    # test verifying existence of input
+    if S_ test -f "${loc_filename_a}"; then
+
+      # Bug: Why does this ^ test req sudo when this test \/ doesnt?
+
+      # if the destination (.bak) file already exists,
+      # then age it first.
+      if [[ -f "${loc_filename_a}.bak" ]]; then
+
+        if [[ -s "${loc_filename_a}.bak" ]]; then
+          return
+        else
+          S_ R_ -f -- "${loc_filename_a}.bak"
+        fi
+      fi
+
+      # write a new .bak file
+      S_ rsync -acq -- "${loc_filename_a}"{,.bak} \
+        || I_
+
+    # if input file DNE, then print an error and exit
+    else
+      {
+        echo WARNING: file DNE "${loc_filename_a}"
+        return
+      }
+    fi
+  done
+  : 'fn_bak ENDS  ' "$((--funclvl))" "${fence}"
+}
+
+fn_erx() {
+  local loc_exit_code="${?}" # this assignment must be the first command
+  : 'fn_erx BEGINS' "$((++funclvl))" "${fence}"
+
+  # print an error message and exit with the correct exit code
+  echo -e Error: "${@}"
+  exit "${loc_exit_code}"
+  : 'fn_erx ENDS  ' "$((--funclvl))" "${fence}"
+}
+
+#fn_num() {
+#  : 'fn_num BEGINS' "$((++funclvl))" "${fence}"
+#  # Usage: N_ [raw arrays names]
+#
+#  # for each of multiple input array names
+#  for loc_unquotd_array_nm_a in "${@}"; do
+#
+#    # set a local name reference variable
+#    local -n loc_nameref_a="${loc_unquotd_array_nm_a}"
+#
+#    # and use the nameref to print the number of indices in the
+#    # input array
+#    echo ${#loc_nameref_a[@]}
+#  done
+#  : 'fn_num ENDS  ' "$((--funclvl))" "${fence}"
+#}
+
+fn_usage() {
+  : 'fn_usage BEGINS' "$((++funclvl))" "${fence}"
+  # Usage:  fn_usage [exit-code]
+
+  # print a usage message and exit with a pre-determined exit code
+  cat <<-EOF
+    ${repo_nm} - ${script_proper_nm}, version ${script_version}
+    Find and scan shell scripts depending on severity level. 
+        Usage:  ${script_nm} [-ehiw]
+                -e error          -i info
+                -h help           -w warning
+    Only the first option is processed.
+
+EOF
+  exit "${1}"
+  : 'fn_usage ENDS  ' "$((--funclvl))" "${fence}"
+}
+
+fn_write_arrays() {
+  : 'fn_write_arrays BEGINS' "$((++funclvl))" "${fence}"
+  # Write each array to a file on disk.
+  # Usage: W_ [arrays]
+
+  loc_write_d_b="${curr_time_ssubd}arrays"
+
+  if [[ ! -d "${loc_write_d_b}" ]]; then
+    S_ mkdir -p -- "${loc_write_d_b}" \
+      || I_
+  fi
+
+  # for each of multiple input array names
+  for loc_unquotd_array_nm_b in "${@}"; do
+
+    # create local variables, for use as both array and string
+    local -n loc_nameref_b="${loc_unquotd_array_nm_b}"
+    loc_array_nm="${loc_unquotd_array_nm_b}"
+    loc_write_f_b="${loc_write_d_b}/_${sc_sev_abrv}"
+    loc_write_f_b+="_${abbrev_rel_search_dirs}_${loc_array_nm}"
+
+    # solved?  Bug: mixing variable and array. sb a nameref
+
+    # Bug? When array correctly is empty.
+    #   'declare -p ... > /dev/null ||' ?
+
+    # if the input array holds no data, then populate it
+    if [[ ! -v loc_nameref_b[@] ]]; then
+      loc_nameref_b=([0]='fn_write_arrays: Empty array')
+    fi
+
+    # then write a data file to disk
+    declare -p "${loc_array_nm}" \
+      | S_ T_ -- "${loc_write_f_b}" >/dev/null
+
+    # write a backup of the new data file
+    B_ "${loc_write_f_b}"
+  done
+  : 'fn_write_arrays ENDS  ' "$((--funclvl))" "${fence}"
+}
+
+#fn_write_vars() {
+#  : 'fn_write_vars BEGINS' "$((++funclvl))" "${fence}"
+#  # Usage: V_ [loc_script_section_nm] [raw variable names]
+#
+#  # first pos-parm is string used for differentiating filename
+#  loc_script_section_nm="${1}"
+#  loc_write_f_a="${curr_time_ssubd}/${loc_script_section_nm}_vars"
+#  shift
+#
+#  # if the destination file already exists, then return from FN
+#  [[ -e "${loc_write_f_a}" ]] \
+#    && return
+#
+#  # write a new data file
+#  declare -p "${@}" 2>/dev/null \
+#    | S_ T_ -- "${loc_write_f_a}" >/dev/null
+#
+#  # and write a .bak file
+#
+#  B_ "${loc_write_f_a}"
+#  : 'fn_write_vars ENDS  ' "$((--funclvl))" "${fence}"
+#}
+
+: '<> Debug Functions' # Abreviations of arrays of previous section
+
+function B_() {
+  : 'B_ BEGINS' "$((++funclvl))" "${fence}"
+  fn_bak "$@"
+  : 'B_ ENDS  ' "$((--funclvl))" "${fence}"
+}
+function I_() {
+  : 'I_ BEGINS' "$((++funclvl))" "${fence}"
+  fn_erx "${LINENO}"
+  : 'I_ ENDS  ' "$((--funclvl))" "${fence}"
+}
+#function N_() {
+#  : 'N_ BEGINS' "$((++funclvl))" "${fence}"
+#  fn_num "$@";
+#  : 'N_ ENDS  ' "$((--funclvl))" "${fence}"
+#};
+#function V_() {
+#  : 'V_ BEGINS' "$((++funclvl))" "${fence}"
+#  fn_write_vars "$@";
+#  : 'V_ ENDS  ' "$((--funclvl))" "${fence}"
+#};
+function W_() {
+  : 'W_ BEGINS' "$((++funclvl))" "${fence}"
+  fn_write_arrays "$@"
+  : 'W_ ENDS  ' "$((--funclvl))" "${fence}"
+}
 
 : 'Required programs'
 
@@ -1031,36 +1206,6 @@ export find_exclude_optargs
 _full_xtrace
 exit 101
 
-: '<> Functions'
-
-set -v
-function B_() {
-  : 'B_ BEGINS' "$((++funclvl))" "${fence}"
-  fn_bak "$@"
-  : 'B_ ENDS  ' "$((--funclvl))" "${fence}"
-}
-function I_() {
-  : 'I_ BEGINS' "$((++funclvl))" "${fence}"
-  fn_erx "${LINENO}"
-  : 'I_ ENDS  ' "$((--funclvl))" "${fence}"
-}
-#function N_() {
-#  : 'N_ BEGINS' "$((++funclvl))" "${fence}"
-#  fn_num "$@";
-#  : 'N_ ENDS  ' "$((--funclvl))" "${fence}"
-#};
-#function V_() {
-#  : 'V_ BEGINS' "$((++funclvl))" "${fence}"
-#  fn_write_vars "$@";
-#  : 'V_ ENDS  ' "$((--funclvl))" "${fence}"
-#};
-function W_() {
-  : 'W_ BEGINS' "$((++funclvl))" "${fence}"
-  fn_write_arrays "$@"
-  : 'W_ ENDS  ' "$((--funclvl))" "${fence}"
-}
-set +v
-
 : 'Check for Process Locks'
 
 for d in "${a_poss_proces_lock_dirs[@]}"; do
@@ -1090,154 +1235,6 @@ done
 
 _full_xtrace
 exit 101
-
-: 'Functions'
-
-fn_bak() {
-  : 'fn_bak BEGINS' "$((++funclvl))" "${fence}"
-
-  # for each of multiple input files
-  for loc_filename_a in "${@}"; do
-
-    # test verifying existence of input
-    if S_ test -f "${loc_filename_a}"; then
-
-      # Bug: Why does this ^ test req sudo when this test \/ doesnt?
-
-      # if the destination (.bak) file already exists,
-      # then age it first.
-      if [[ -f "${loc_filename_a}.bak" ]]; then
-
-        if [[ -s "${loc_filename_a}.bak" ]]; then
-          return
-        else
-          S_ R_ -f -- "${loc_filename_a}.bak"
-        fi
-      fi
-
-      # write a new .bak file
-      S_ rsync -acq -- "${loc_filename_a}"{,.bak} \
-        || I_
-
-    # if input file DNE, then print an error and exit
-    else
-      {
-        echo WARNING: file DNE "${loc_filename_a}"
-        return
-      }
-    fi
-  done
-  : 'fn_bak ENDS  ' "$((--funclvl))" "${fence}"
-}
-
-fn_erx() {
-  local loc_exit_code="${?}" # this assignment must be the first command
-  : 'fn_erx BEGINS' "$((++funclvl))" "${fence}"
-
-  # print an error message and exit with the correct exit code
-  echo -e Error: "${@}"
-  exit "${loc_exit_code}"
-  : 'fn_erx ENDS  ' "$((--funclvl))" "${fence}"
-}
-
-#fn_num() {
-#  : 'fn_num BEGINS' "$((++funclvl))" "${fence}"
-#  # Usage: N_ [raw arrays names]
-#
-#  # for each of multiple input array names
-#  for loc_unquotd_array_nm_a in "${@}"; do
-#
-#    # set a local name reference variable
-#    local -n loc_nameref_a="${loc_unquotd_array_nm_a}"
-#
-#    # and use the nameref to print the number of indices in the
-#    # input array
-#    echo ${#loc_nameref_a[@]}
-#  done
-#  : 'fn_num ENDS  ' "$((--funclvl))" "${fence}"
-#}
-
-fn_usage() {
-  : 'fn_usage BEGINS' "$((++funclvl))" "${fence}"
-  # Usage:  fn_usage [exit-code]
-
-  # print a usage message and exit with a pre-determined exit code
-  cat <<-EOF
-    ${repo_nm} - ${script_proper_nm}, version ${script_version}
-    Find and scan shell scripts depending on severity level. 
-        Usage:  ${script_nm} [-ehiw]
-                -e error          -i info
-                -h help           -w warning
-    Only the first option is processed.
-
-EOF
-  exit "${1}"
-  : 'fn_usage ENDS  ' "$((--funclvl))" "${fence}"
-}
-
-# Write each array to a file on disk.
-fn_write_arrays() {
-  : 'fn_write_arrays BEGINS' "$((++funclvl))" "${fence}"
-  # Usage: W_ [arrays]
-
-  loc_write_d_b="${curr_time_ssubd}arrays"
-
-  if [[ ! -d "${loc_write_d_b}" ]]; then
-    S_ mkdir -p -- "${loc_write_d_b}" \
-      || I_
-  fi
-
-  # for each of multiple input array names
-  for loc_unquotd_array_nm_b in "${@}"; do
-
-    # create local variables, for use as both array and string
-    local -n loc_nameref_b="${loc_unquotd_array_nm_b}"
-    loc_array_nm="${loc_unquotd_array_nm_b}"
-    loc_write_f_b="${loc_write_d_b}/_${sc_sev_abrv}"
-    loc_write_f_b+="_${abbrev_rel_search_dirs}_${loc_array_nm}"
-
-    # solved?  Bug: mixing variable and array. sb a nameref
-
-    # Bug? When array correctly is empty.
-    #   'declare -p ... > /dev/null ||' ?
-
-    # if the input array holds no data, then populate it
-    if [[ ! -v loc_nameref_b[@] ]]; then
-      loc_nameref_b=([0]='fn_write_arrays: Empty array')
-    fi
-
-    # then write a data file to disk
-    declare -p "${loc_array_nm}" \
-      | S_ T_ -- "${loc_write_f_b}" >/dev/null
-
-    # write a backup of the new data file
-    B_ "${loc_write_f_b}"
-  done
-  : 'fn_write_arrays ENDS  ' "$((--funclvl))" "${fence}"
-}
-
-#fn_write_vars() {
-#  : 'fn_write_vars BEGINS' "$((++funclvl))" "${fence}"
-#  # Usage: V_ [loc_script_section_nm] [raw variable names]
-#
-#  # first pos-parm is string used for differentiating filename
-#  loc_script_section_nm="${1}"
-#  loc_write_f_a="${curr_time_ssubd}/${loc_script_section_nm}_vars"
-#  shift
-#
-#  # if the destination file already exists, then return from FN
-#  [[ -e "${loc_write_f_a}" ]] \
-#    && return
-#
-#  # write a new data file
-#  declare -p "${@}" 2>/dev/null \
-#    | S_ T_ -- "${loc_write_f_a}" >/dev/null
-#
-#  # and write a .bak file
-#
-#  B_ "${loc_write_f_a}"
-#  : 'fn_write_vars ENDS  ' "$((--funclvl))" "${fence}"
-#}
 
 #X_; :_
 
