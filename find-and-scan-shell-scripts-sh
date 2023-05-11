@@ -787,7 +787,7 @@ D_ verify bash_path find_path PATH
 
 _verify_path(){
   : '_verify_path BEGINS'  "$((++funclvl))" "${fence}"
-  set -x
+  _full_xtrace
   
   # ...before running `type` / `command` or they'll print dups
   # Note: var $PATH is always processed
