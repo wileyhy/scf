@@ -547,7 +547,7 @@ fn_usage() {
         [p]   physical              [p]   Persistent storage
         [l]   logical              *[t]   Temporary files
       d:  Path                    h   Help message
-        [ac]  Actually all        p:  Progam and method
+        [al]  All                 p:  Progam and method
        *[as]  As-is                *[ba]  "bash" binary
         [bi]  /bin only             [cp]  builtin "command -pV"
         [bo]  Both /{,s}bin only    [cv]  builtin "command -V"
@@ -644,9 +644,18 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
       ac* | aa*)
         bash_path='/'
         F_
+        find_exclude_optargs=()
         methods_path=(actually_all) 
         methods_prog_b=bin_find
+        methods_scan_excluded_n=yes
         ;;
+      al* )
+        bash_path='/'
+        F_
+        find_exclude_optargs=("${find_exclude_optargs_default[@]}")
+        methods_path=(all) 
+        methods_prog_b=bin_find
+        methods_scan_excluded_n=no
       as* | ai*)
         bash_path="${bash_path_orig}"
         F_
