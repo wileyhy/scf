@@ -521,7 +521,7 @@ sc_sev_abrv="${sc_severity:0:1}"
 methods_recurse_n=no
 methods_path=('as-is')
 methods_prog_b=bin_bash
-methods_scan_excluded_n=yes
+methods_scan_excluded_y=yes
 methods_symlinks_b=bash
 verify=(all)
 
@@ -647,7 +647,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
         find_exclude_optargs=()
         methods_path=(actually_all) 
         methods_prog_b=bin_find
-        methods_scan_excluded_n=yes
+        methods_scan_excluded_y=yes
         ;;
       al* )
         bash_path='/'
@@ -655,7 +655,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
         find_exclude_optargs=("${find_exclude_optargs_default[@]}")
         methods_path=(all) 
         methods_prog_b=bin_find
-        methods_scan_excluded_n=no
+        methods_scan_excluded_y=no
         ;;
       as* | ai*)
         bash_path="${bash_path_orig}"
@@ -687,12 +687,16 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
         F_
         methods_path+=(add_proc) 
         methods_prog_b=bin_find
+        find_exclude_optargs=()
+        methods_scan_excluded_y=yes
         ;;
       sy* | sa*)
         bash_path+=':/sys'
         F_
         methods_path+=(add_sys) 
         methods_prog_b=bin_find
+        find_exclude_optargs=()
+        methods_scan_excluded_y=yes
         ;;
       *) "${arg_wrong__d:?}" ;;
     esac ;;
@@ -718,10 +722,14 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
         methods_recurse_n=no 
         methods_prog_b=bin_bash 
         methods_symlinks_b=bash 
+        find_exclude_optargs=()
+        methods_scan_excluded_y=yes
         ;;
       [lp]*)
         methods_recurse_n=yes 
         methods_prog_b=bin_find
+        find_exclude_optargs=("${find_exclude_optargs_default[@]}")
+        methods_scan_excluded_y=no 
         
         case "${OPTARG:0:1}" in
           l*) 
@@ -749,8 +757,9 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
     p) case "${OPTARG:0:2}" in
       [bct]*)
         methods_recurse_n=no 
-        methods_scan_excluded_n=no
         methods_symlinks_b=bash
+        find_exclude_optargs=()
+        methods_scan_excluded_y=yes
 
         case "${OPTARG:0:2}" in
           b* ) methods_prog_b=bin_bash ;;
@@ -762,6 +771,8 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
       f*) 
         methods_prog_b=bin_find 
         methods_recurse_n=yes 
+        find_exclude_optargs=("${find_exclude_optargs_default[@]}")
+        methods_scan_excluded_y=no 
         ;;
       *) 
         "${arg_wrong__p:?}" 
@@ -817,14 +828,14 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
     s) case "${OPTARG:0:1}" in
         s | y | b) 
           find_exclude_optargs=() 
-          methods_scan_excluded_n=yes 
+          methods_scan_excluded_y=yes 
           ;;
 
         n) 
-          find_exclude_optargs=("${find_exclude_optargs_default[@]}")
           methods_recurse_n=yes
           methods_prog_b=bin_find
-          methods_scan_excluded_n=no 
+          find_exclude_optargs=("${find_exclude_optargs_default[@]}")
+          methods_scan_excluded_y=no 
          
           # if /proc or /sys have been added to the list of dirs to 
           # be searched, then remove each of them from each of the
@@ -879,7 +890,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
 done
 shopt -u nocasematch
 
-D_ methods_symlinks_b methods_recurse_n methods_prog_b methods_scan_excluded_n find_sym_opt find_exclude_optargs bash_path find_path PATH methods_path
+D_ methods_symlinks_b methods_recurse_n methods_prog_b methods_scan_excluded_y find_sym_opt find_exclude_optargs bash_path find_path PATH methods_path
 
 # <>
 #_full_xtrace
@@ -1330,7 +1341,7 @@ unset end_dirname full_dir_list ext_array dir sub_dir num_sub_dirs \
 
 export find_path
 export find_sym_opt
-export methods_scan_excluded_n
+export methods_scan_excluded_y
 export find_exclude_optargs
 
 # <>
