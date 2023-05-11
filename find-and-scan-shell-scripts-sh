@@ -1125,6 +1125,7 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
         elif grep -qE ' is /' <<< "${type_a_o[line]}"; then 
          
           command_basename="${type_a_o[line]##*/}" 
+          command_fullpath="${type_a_o[line]##* }" 
           
               # <>
               declare -p all_commands per_idx_commands type_a_o line \
@@ -1159,9 +1160,12 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
     
       # remove any directories from the (sub-)list
       if [[ -z "${unset_per_idx_commands_n}" ]]; then
-        realpath_e_o="$(realpath -e "${per_idx_commands[n]}" 2>/dev/null)"
+        realpath_e_o1="$(realpath -e "${per_idx_commands[n]}" 2>/dev/null)"
+        realpath_e_o2="$(realpath -e "${command_basename}" 2>/dev/null)"
       
-        if [[ -d "${realpath_e_o}" ]]; then 
+        if [[ -d "${realpath_e_o1}" ]] \
+          || [[ -d "${realpath_e_o2}" ]];
+        then 
           unset_per_idx_commands_n=yes
         fi; unset realpath_e_o
       fi
