@@ -818,8 +818,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
         
         case "${methods_prog_cv}" in
           *find)
-            find_exclude_optargs=("${find_exclude_optargs_default[@]}")
-            methods_scan_excluded_by=no
+            methods_prog_cv=bash_command_V
             ;;
           *bash*)
             find_exclude_optargs=()
