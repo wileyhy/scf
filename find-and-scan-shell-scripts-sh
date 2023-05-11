@@ -1133,7 +1133,7 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
           # larger all_commands list or the per-ascii-character
           # prev_per_idx_cmds list...
           if ! [[ "${all_commands[*]}" =~ ${command_wo_path} ]] \
-            && ! grep -E "$( printf '\%s' ${command_wo_path} )" \
+            && ! grep -E "$( printf '\%s' "${command_wo_path}" )" \
               <<< "${prev_per_idx_cmds[@]}"
           then
 
