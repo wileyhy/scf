@@ -520,7 +520,7 @@ memory_usage=temp_files
 sc_sev_abrv="${sc_severity:0:1}"
 methods_recurse_n=no
 methods_path=('as-is')
-methods_prog_b=bin_bash
+methods_prog_b=bash_command_V
 methods_scan_excluded_by=yes
 methods_symlinks_l=logical
 verify=(all)
@@ -766,7 +766,6 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
         methods_scan_excluded_by=yes
 
         case "${OPTARG:0:2}" in
-          b* ) methods_prog_b=bin_bash ;;
           c|c[a-p]*) methods_prog_b=bash_command_pV ;;
           c[q-z]*) methods_prog_b=bash_command_V ;;
           t* ) methods_prog_b=bash_type_a ;;
@@ -816,7 +815,6 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
       n) 
         #methods_prog_b= # could be any of bash command_pV command_V type_a
         methods_recurse_n=no 
-        methods_symlinks_l=logical
         
         case "${methods_prog_b}" in
           *find)
@@ -826,6 +824,10 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
           *bash*)
             find_exclude_optargs=()
             methods_scan_excluded_by=yes
+            methods_symlinks_l=logical
+            ;;
+          *) 
+            "${arg_wrong__rn:?}" 
             ;;
         esac
         ;;
@@ -1105,10 +1107,6 @@ if [[ "${methods_prog_b}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; th
 
   done \
     | sudo tee all_commands
-
-elif [[ "${methods_prog_b}" = *bin_bash ]]; then
-  hash bash 2>/dev/null \
-    || exit "${LINENO}"
 
 elif [[ "${methods_prog_b}" = *bin_find ]]; then
   hash find 2>/dev/null \
