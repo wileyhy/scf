@@ -740,9 +740,9 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
     # Program to search with. All settings clobber; bash is default
     p) case "${OPTARG:0:2}" in
       [bct]*)
-        methods_symlinks_b=bash
         methods_recurse_n=no 
         methods_scan_excluded_n=no
+        methods_symlinks_b=bash
 
         case "${OPTARG:0:2}" in
           b* ) methods_prog_b=bin_bash ;;
@@ -752,9 +752,10 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
         esac
         ;;
       f*) 
-        methods_recurse_n=yes 
         methods_prog_b=bin_find 
+        methods_recurse_n=yes 
         methods_scan_excluded_n=yes 
+        unset methods_symlinks_b
         ;;
       *) 
         "${arg_wrong__p:?}" 
