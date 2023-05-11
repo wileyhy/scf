@@ -1113,6 +1113,9 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
       # for each line of output from `type -a`
       for v in "${!type_a_o[@]}"; do
       
+          # <>
+          declare -p all_commands
+
         # if any result (ie, index) of `type -a`s output refers to an
         # alias, function or shell keyword, then unset that index
         if grep -qE ' is a(liased| function| shell (builtin|keyword))' \
@@ -1143,8 +1146,8 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
       
         if [[ -d "${realpath_e_o}" ]]; then 
           unset_per_idx_commands_n=yes
-        fi
-      fi; unset realpath_e_o
+        fi; unset realpath_e_o
+      fi
       
       if [[ "${unset_per_idx_commands_n}" == yes ]]; then 
         unset 'per_idx_commands[n]'
