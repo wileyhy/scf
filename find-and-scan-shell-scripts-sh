@@ -814,14 +814,14 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
           methods_recurse_n=yes
           methods_prog_b=bin_find
           methods_scan_excluded_n=no 
-          
+         
           if [[ "${methods_path[*]}" = *+(proc|sys)* ]]; then
             for i in "${!methods_path[@]}"; do
               if [[ "${methods_path[i]}" =~ (proc|sys) ]]; then
                 unset 'methods_path[i]'
               fi
               if [[ "${bash_path}" =~ (proc|sys) ]]; then
-                bash_path="${bash_path//":${methods_path[i]}"/}"
+                bash_path="${bash_path//":${methods_path[i]}"}"
               fi
               F_
             done
