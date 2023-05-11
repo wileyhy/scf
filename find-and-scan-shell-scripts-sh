@@ -1094,7 +1094,7 @@ declare -A full_dir_list
 ext_array=()
 
 # for each actual directory in PATH
-for dir in "${path_2[@]}"; do
+for dir in "${bash_path[@]}"; do
 
   # limit the number of loops to the number of constituent directory
   # inodes. safely split each directory into its constituent directory
