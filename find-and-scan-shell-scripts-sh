@@ -1036,6 +1036,9 @@ _verify_path bash_path
 _full_xtrace
 #exit 101
 
+# TODO: grep output of `rpm -qi` for URL's, ie, github. which can I 
+# repair without adding a new login?
+
 : 'methods_recurse_n'
 declare -p methods_recurse_n
 
@@ -1044,7 +1047,7 @@ declare -p methods_symlinks_l
 
 # Bug: greps. parse full outputs of type and command
 
-: 'methods_prog_cv'
+: 'Get all the commands: bash'
 
 if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; then
 
@@ -1072,17 +1075,62 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
   # for each possible ascii character or value
   for i in "${!allchr[@]}"; do
     
-    # get a per-index (sub-)list of possible command completions
+    # get a per-character (sub-)list of possible command completions
     mapfile -t per_idx_commands < <(
       compgen -A command "${allchr[i]}"
     )
     
-    # remove any directories from the list
+    # for each possible completion string found by `compgen`
     for n in "${!per_idx_commands[@]}"; do
+      
+      # remove any directories from the (sub-)list
       if [[ -d "${per_idx_commands[n]}" ]]; then 
         unset 'per_idx_commands[n]'
+        continue
       fi
-    done; unset n 
+    
+      # remove any functions, aliases and shell keywords from the (sub-)list
+      
+      # use `type` to get the shell's definition of `compgen`s completion 
+      # string, then use `grep` to filter out full function definitions.
+      mapfile -t type_a_o < <(
+        type -a "${per_idx_commands[n]}" \
+          grep ^"${per_idx_commands[n]} is"
+      )
+      
+      # if `type -a` has no knowledge of the completion string, 
+      if [[ -z "${type_a_o[*]}" ]]; then
+        
+        # then unset the completion string and start with the next one
+        unset 'per_idx_commands[n]'
+        continue
+      fi
+
+      # for each line of output from `type -a`
+      for v in "${!type_a_o[@]}"; do
+      
+        # if any result refers to a file
+        if ! grep -qE ' is /' <<< "${type_a_o[v]}"; then 
+          
+          # then keep the "${per_idx_commands[n]}" value
+          continue 2
+
+        # if any result (ie, index) of `type -a`s output refers to an
+        # alias, function or shell keyword, then unset that index
+        elif grep -qE ' is a(liased| function| shell keyword)' <<< \
+            "${type_a_o[v]}"; 
+          then
+            unset 'type_a_o[v]'
+        fi
+      done; unset v
+      
+      # if all lines of `type -a`s output have been deleted, then 
+      # begin with the next completion string
+      if [[ "${#type_a_o[@]}" -eq 0 ]]; then
+        unset 'per_idx_commands[n]'
+        continue
+      fi
+    done
     
     # add the (sub-)list to the full list, being careful of index numbers
     mapfile -O $((i * 1000)) -t all_commands < <(
