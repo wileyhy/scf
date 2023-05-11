@@ -1135,7 +1135,7 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
         if [[ "${#type_a_o[@]}" -eq 0 ]]; then
           unset_per_idx_commands_n=yes
         fi
-      done
+      done; unset v type_a_o
     
       # remove any directories from the (sub-)list
       if [[ -z "${unset_per_idx_commands_n}" ]]; then
@@ -1144,12 +1144,12 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
         if [[ -d "${realpath_e_o}" ]]; then 
           unset_per_idx_commands_n=yes
         fi
-      fi 
+      fi; unset realpath_e_o
       
       if [[ "${unset_per_idx_commands_n}" == yes ]]; then 
         unset 'per_idx_commands[n]'
-      fi
-    done; unset v type_a_o realpath_e_o unset_per_idx_commands_n n
+      fi; unset unset_per_idx_commands_n
+    done; unset n
     
     # add the (sub-)list to the full list, being careful of index numbers
     mapfile -O $((i * 1000)) -t all_commands < <(
