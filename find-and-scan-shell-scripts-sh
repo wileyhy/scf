@@ -80,6 +80,23 @@ alias S_='sudo '
 alias T_='tee --output-error=exit '
 alias X_='set -x'
 
+: 'Delete any left over xtrace files in /tmp'
+
+mapfile -d "" -t xtrace_files < <(
+  find /tmp -maxdepth 1 -type f \
+    -name "tmp.[a-zA-Z0-9]*.scf.[0-9]*.[0-9]*.txt" -print0 
+)
+
+# ...if theyre files & not symlinks, & owned by the same EUID.
+for f in "${xtrace_files[@]}"; do
+  if [[ -f "${f}" ]] \
+    && [[ ! -L "${f}" ]] \
+    && [[ -O "${f}" ]];
+  then
+    R_ "$f"
+  fi
+done; unset f
+
 : 'Traps'
 
 trap '
