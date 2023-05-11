@@ -904,10 +904,10 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
 done
 shopt -u nocasematch
 
-D_ methods_symlinks_l methods_recurse_n methods_prog_cv methods_scan_excluded_by find_sym_opt_L find_exclude_optargs bash_path find_path PATH methods_path
+#D_ methods_symlinks_l methods_recurse_n methods_prog_cv methods_scan_excluded_by find_sym_opt_L find_exclude_optargs bash_path find_path PATH methods_path
 
 # <>
-_full_xtrace
+#_full_xtrace
 #exit 101
 
 # Table of opts and settings, precedence
@@ -1017,7 +1017,7 @@ _verify_path PATH
 _verify_path bash_path
 
 _full_xtrace
-exit 101
+#exit 101
 
 : 'methods_recurse_n'
 
