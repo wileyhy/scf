@@ -816,7 +816,7 @@ _verify_path(){
 
   # if the loc_path_1 is now empty, then exit
   if [[ "${#loc_path_1[@]}" -eq 0 ]]; then
-    L_ _verify_path "$1"
+    E_ _verify_path "$1"
   fi
 
   # remove any duplicates while preserving order of dirs
