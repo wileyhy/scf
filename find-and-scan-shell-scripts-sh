@@ -1123,17 +1123,16 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
         # if any result refers to a file...
         elif grep -qE ' is /' <<< "${type_a_o[line]}"; then 
          
-          command_w_path="${type_a_o[line]##* }"
           command_wo_path="${type_a_o[line]##*/}" 
           
               # <>
               declare -p all_commands per_idx_commands type_a_o line \
-                command_w_path command_wo_path prev_per_idx_cmds
+                command_wo_path prev_per_idx_cmds
 
           # ...and if that file is not already included in either the 
           # larger all_commands list or the per-ascii-character
           # prev_per_idx_cmds list...
-          if ! [[ "${all_commands[*]}" =~ ${command_w_path} ]] \
+          if ! [[ "${all_commands[*]}" =~ ${command_wo_path} ]] \
             && ! grep -E "$( printf '\%s' ${command_wo_path} )" \
               <<< "${prev_per_idx_cmds[@]}"
           then
