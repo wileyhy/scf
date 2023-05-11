@@ -664,7 +664,8 @@ if [[ "${verify[*]}" == *+(all|path)* ]]; then
   bash_path="$(
     printf '%s' "${path_2[0]}";
     unset 'path_2[0]';
-    printf ':%s' "${path_2[@]}"
+    [[ -n "${path_2[@]}" ]] \
+      && printf ':%s' "${path_2[@]}"
   )"
 
   F_;
