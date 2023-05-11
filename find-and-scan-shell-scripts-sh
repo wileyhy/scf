@@ -634,7 +634,7 @@ if [[ "${verify[*]}" == *+(all|path)* ]]; then
 
   # Get constituent dirs from PATH
   unset path path_2 p
-  IFS=':' read -ra path <<<"${PATH}" # this
+  IFS=':' read -ra path <<<"${bash_path}" # this
 
   # get the cannonicalized paths of each such dir
   for p in "${!path[@]}"; do
