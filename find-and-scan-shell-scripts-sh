@@ -810,6 +810,8 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
       r | d | y) 
         methods_prog_b=bin_find 
         methods_recurse_n=yes 
+        find_exclude_optargs=("${find_exclude_optargs_default[@]}")
+        methods_scan_excluded_by=no 
         ;;
       n) 
         methods_prog_b="bin_bash"
