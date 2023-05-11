@@ -1114,7 +1114,7 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
       for line in "${!type_a_o[@]}"; do
       
           # <>
-          declare -p all_commands
+          declare -p all_commands per_idx_commands type_a_o line
 
         # if any result (ie, index) of `type -a`s output refers to an
         # alias, function or shell keyword, then unset that index
