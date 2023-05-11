@@ -522,7 +522,7 @@ methods_recurse_n=no
 methods_path=('as-is')
 methods_prog_b=bin_bash
 methods_scan_excluded_by=yes
-methods_symlinks_b=bash
+methods_symlinks_b=logical
 verify=(all)
 
 : 'Functions re getopts'
@@ -761,7 +761,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
     p) case "${OPTARG:0:2}" in
       [bct]*)
         methods_recurse_n=no 
-        methods_symlinks_b=bash
+        methods_symlinks_b=logical
         find_exclude_optargs=()
         methods_scan_excluded_by=yes
 
@@ -814,7 +814,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
       n) 
         methods_prog_b="bin_bash"
         methods_recurse_n=no 
-        methods_symlinks_b=bash
+        methods_symlinks_b=logical
         find_exclude_optargs=()
         methods_scan_excluded_by=yes
         ;;
