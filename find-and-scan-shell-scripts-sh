@@ -707,13 +707,11 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
       b*) 
         methods_recurse_n=no 
         methods_prog_b=bin_bash 
-        methods_scan_excluded_n=no
         methods_symlinks_b=bash 
         ;;
       [lp]*)
         methods_recurse_n=yes 
         methods_prog_b=bin_find
-        methods_scan_excluded_n=yes 
         
         case "${OPTARG:0:1}" in
           l*) 
@@ -754,8 +752,6 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
       f*) 
         methods_prog_b=bin_find 
         methods_recurse_n=yes 
-        methods_scan_excluded_n=yes 
-        unset methods_symlinks_b
         ;;
       *) 
         "${arg_wrong__p:?}" 
@@ -818,6 +814,14 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
           methods_recurse_n=yes
           methods_prog_b=bin_find
           methods_scan_excluded_n=no 
+          
+          if [[ "${methods_path[*]}" = *+(proc|sys)* ]]; then
+            for i in "${!methods_path[*]}"; do
+              if [[ "${methods_path[i]}" =~ (proc|sys) ]]; then
+                unset 'methods_path[i]'
+              fi
+            done
+          fi
           ;;
         *) 
           "${arg_wrong__s:?}" 
@@ -850,7 +854,7 @@ exit 101
 #  *ba    b   |   b   ##  n   n                                                                   1ST
 #   cp    b   |   b   ##  n   n 
 #   cv    b   |   b   ##  n   n  
-#   fi      f |   _   ##  y   y     _ = l p     
+#   fi      f |   _   ##  y   n     _ = l p     
 #   ty    b   |   b   ##  n   n
 # r           +----------------
 #   y       f |   _   fi  #   ^     _ = l p                                       ^ = y n         2ND
