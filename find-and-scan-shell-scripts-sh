@@ -1037,16 +1037,10 @@ _full_xtrace
 #exit 101
 
 : 'methods_recurse_n'
-
 declare -p methods_recurse_n
 
-
-
 : 'methods_symlinks_l'
-
 declare -p methods_symlinks_l
-
-
 
 # Bug: greps. parse full outputs of type and command
 
@@ -1061,13 +1055,13 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
   # characters, such as \n \t \c or \l
 
   # create a dictionary list of each possible initial character
-  unset allchr char i all_commands real_dirs re
-  set -o nullglob
-
-  #for i in 8 9 10 11 12 13 {32..127}; do
+  unset allchr char i all_commands real_dirs re tempd
  
-
-  for i in 42; do
+  tempd="$(mktemp --suffix="${mktemp_sfx}")"
+  cd "${tempd}" \
+    || E_ cd
+  
+  for i in 8 9 10 11 12 13 {32..127}; do
     allchr+=(["$i"]="$(printf '%b' "\\$(printf %03o "$i")")")
   done
   allchr[10]=$'\n'
@@ -1079,7 +1073,10 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
     )
   done
   unset i
-  set +o nullglob
+  
+  cd - \
+    || E_ cd
+  rmdir "${tempd}"; unset tempd
 
   mapfile -t real_dirs < <(
     sudo find / -maxdepth 1 -mindepth 1 -type d \! -empty \
