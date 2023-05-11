@@ -580,44 +580,55 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
   # Parse command line options
   case "${cli_input}" in
 
+    # PATH (array) - Part 2 - options with args
+    a)
+      # Input validation, more thorough. Remove unprintable strings.
+      OPTARG="$(strings -n1 <<<"${OPTARG}")"
+
+      # Bug: sb a printf one liner
+      # for i in DECIMALS; do printf '%b' "\\${i}"; done #...
+
+      # Bug: \/ this PE probably doesn't work
+
+      # Remove unsafe characters
+      new_optarg="${OPTARG//["${unsaf_ascii[@]}"]/}"
+
+      # If any ASCII characters were removed, print an error and exit
+      if [[ "${new_optarg}" != "${OPTARG}" ]]; then
+        printf '\n\tError: option -R: directory name includes '
+        printf 'an illegal character\n\n'
+      fi
+
+      # Canonicalize path
+      new_optarg="$(realpath -e "${new_optarg}")"
+
+      # Amended value must be a directory
+      if [[ ! -d "${new_optarg}" ]]; then
+        "${arg_wrong__a:?}"
+      fi
+
+      # Append dirname to bash_path and reset find_path
+      bash_path+=":${new_optarg}"
+      F_
+
+      # adjust tracking array
+      new_optarg="${new_optarg//\//_}"
+      methods_path+=("add_dir_${new_optarg}")
+      ;;
+
     # Easter egg
     b)
       printf '%s' "${easter_egg}"
       exit 0
       ;;
 
-    # Follow symlinks
-    #   `bash` always follows symlinks, therefore to not follow any
-    # symlinks requires `find` and is a clobbering setting, ie,
-    # selecting either '-h P' or '-h L' will also select the use of
-    # `find`. The 'P' and 'L' refer to `find`s first argument, which
-    # by default is assumed (by `find`) to be '-P'. `find -H` is not
-    # implemented in this script. Default is bash.
-    #   Side effect: setting '-l p' also clobbers this variable. Side
-    # effects such as these are marked below as "clobber."
-    #   This parameter expansion, ':?', when a parameter is null or
-    # unset, causes the shell to immediately halt, ignoring any trap
-    # on EXIT.
-    #   Mis-spellings beyond the first one or two letters are allowed.
-    l) case "${OPTARG:0:1}" in
-      b*) methods_symlinks=bash methods_prog=bin_bash ;;
-      p*)
-        methods_symlinks=physical methods_prog=bin_find
-        find_sym_opt='-P'
-        ;;
-      l*)
-        methods_symlinks=logical methods_prog=bin_find
-        find_sym_opt='-L'
-        ;;
-      *) "${arg_wrong__l:?}" ;;
-    esac ;;
-
-    # Whether and how to save data. Default is temp files.
-    m) case "${OPTARG:0:1}" in
-      r*) memory_usage=RAM_only ;;
-      p*) memory_usage=persistent_storage ;;
-      t*) memory_usage=temp_files ;;
-      *) "${arg_wrong__m:?}" ;;
+    # ShellCheck's '-S' setting, ie, severity level. Default is error.
+    c) case "${OPTARG:0:1}" in
+      e*) sc_severity=error ;;
+      i*) sc_severity=info ;;
+      s*) sc_severity=style ;;
+      w*) sc_severity=warning ;;
+      *) "${arg_wrong__c:?}" ;;
     esac ;;
 
     # PATH (array) - Part 1 -
@@ -669,56 +680,42 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
       *) "${arg_wrong__d:?}" ;;
     esac ;;
 
-    # PATH (array) - Part 2 - options with args
-    a)
-      # Input validation, more thorough. Remove unprintable strings.
-      OPTARG="$(strings -n1 <<<"${OPTARG}")"
-
-      # Bug: sb a printf one liner
-      # for i in DECIMALS; do printf '%b' "\\${i}"; done #...
-
-      # Bug: \/ this PE probably doesn't work
-
-      # Remove unsafe characters
-      new_optarg="${OPTARG//["${unsaf_ascii[@]}"]/}"
-
-      # If any ASCII characters were removed, print an error and exit
-      if [[ "${new_optarg}" != "${OPTARG}" ]]; then
-        printf '\n\tError: option -R: directory name includes '
-        printf 'an illegal character\n\n'
-      fi
-
-      # Canonicalize path
-      new_optarg="$(realpath -e "${new_optarg}")"
-
-      # Amended value must be a directory
-      if [[ ! -d "${new_optarg}" ]]; then
-        "${arg_wrong__a:?}"
-      fi
-
-      # Append dirname to bash_path and reset find_path
-      bash_path+=":${new_optarg}"
-      F_
-
-      # adjust tracking array
-      new_optarg="${new_optarg//\//_}"
-      methods_path+=("add_dir_${new_optarg}")
-      ;;
-
-    # ShellCheck's '-S' setting, ie, severity level. Default is error.
-    c) case "${OPTARG:0:1}" in
-      e*) sc_severity=error ;;
-      i*) sc_severity=info ;;
-      s*) sc_severity=style ;;
-      w*) sc_severity=warning ;;
-      *) "${arg_wrong__c:?}" ;;
-    esac ;;
-
-    v) printf '\n\t%s, version %s. %s.\n\n' "${script_proper_nm}" \
-      "${script_version}" "${script_lic}" ;;
-
     # Help message
     h) fn_usage 0 ;;
+
+    # Follow symlinks
+    #   `bash` always follows symlinks, therefore to not follow any
+    # symlinks requires `find` and is a clobbering setting, ie,
+    # selecting either '-h P' or '-h L' will also select the use of
+    # `find`. The 'P' and 'L' refer to `find`s first argument, which
+    # by default is assumed (by `find`) to be '-P'. `find -H` is not
+    # implemented in this script. Default is bash.
+    #   Side effect: setting '-l p' also clobbers this variable. Side
+    # effects such as these are marked below as "clobber."
+    #   This parameter expansion, ':?', when a parameter is null or
+    # unset, causes the shell to immediately halt, ignoring any trap
+    # on EXIT.
+    #   Mis-spellings beyond the first one or two letters are allowed.
+    l) case "${OPTARG:0:1}" in
+      b*) methods_symlinks=bash methods_prog=bin_bash ;;
+      p*)
+        methods_symlinks=physical methods_prog=bin_find
+        find_sym_opt='-P'
+        ;;
+      l*)
+        methods_symlinks=logical methods_prog=bin_find
+        find_sym_opt='-L'
+        ;;
+      *) "${arg_wrong__l:?}" ;;
+    esac ;;
+
+    # Whether and how to save data. Default is temp files.
+    m) case "${OPTARG:0:1}" in
+      r*) memory_usage=RAM_only ;;
+      p*) memory_usage=persistent_storage ;;
+      t*) memory_usage=temp_files ;;
+      *) "${arg_wrong__m:?}" ;;
+    esac ;;
 
     # Program to search with. All settings clobber; bash is default
     p) case "${OPTARG:0:2}" in
@@ -744,15 +741,15 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
       *) "${arg_wrong__q:?}" ;;
     esac ;;
 
-      # Descend into dirs (recurse)
-      #   `bash`s path search cannot descend into dirs; for `find` the
-      # default is to 'do descend' into dirs. For this script, the default
-      # for descending follows `bash`, and changing this setting to 'yes',
-      # 'recurse' or 'descend' switches the search program to `find`.
-      # `find`s '-mindepth' and '-maxdepth' are not used.
-      #unset bash_path # why unset it? the setting '-r' could be
-      # reversed later on the same command line
-      #unset find_path # again, why unset it?
+    # Descend into dirs (recurse)
+    #   `bash`s path search cannot descend into dirs; for `find` the
+    # default is to 'do descend' into dirs. For this script, the default
+    # for descending follows `bash`, and changing this setting to 'yes',
+    # 'recurse' or 'descend' switches the search program to `find`.
+    # `find`s '-mindepth' and '-maxdepth' are not used.
+    #unset bash_path # why unset it? the setting '-r' could be
+    # reversed later on the same command line
+    #unset find_path # again, why unset it?
     r) case "${OPTARG:0:1}" in
       r | d | y) methods_descend=yes methods_prog=bin_find ;;
       n) methods_descend=no methods_prog=bin_bash ;;
@@ -776,6 +773,10 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
           ;;
         *) "${arg_wrong__s:?}" ;;
       esac ;;
+
+    v) printf '\n\t%s, version %s. %s.\n\n' "${script_proper_nm}" \
+      "${script_version}" "${script_lic}" ;;
+
     *) fn_usage 1 ;;
   esac
 done
