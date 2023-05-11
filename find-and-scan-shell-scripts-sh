@@ -1085,13 +1085,8 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
     # for each possible completion string found by `compgen`
     for n in "${!per_idx_commands[@]}"; do
       
-      # remove any directories from the (sub-)list
-      if [[ -d "${per_idx_commands[n]}" ]]; then 
-        unset 'per_idx_commands[n]'
-        continue
-      fi
-    
-      # remove any functions, aliases and shell keywords from the (sub-)list
+      # remove any functions, aliases, shell keywords and builtins from 
+      # the (sub-)list
       
       # use `type` to get the shell's definition of `compgen`s completion 
       # string, then use `grep` to filter out full function definitions.
@@ -1132,6 +1127,13 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
           continue
         fi
       done; unset v
+    
+      # remove any directories from the (sub-)list
+      realpath_e_o="$(realpath -e "${per_idx_commands[n]}" 2>/dev/null)"
+      if [[ -d "${realpath_e_o}" ]]; then 
+        unset 'per_idx_commands[n]'
+        continue
+      fi; unset realpath_e_o
     done
     
     # add the (sub-)list to the full list, being careful of index numbers
