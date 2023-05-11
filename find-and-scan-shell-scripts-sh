@@ -531,7 +531,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
       # Canonicalize path
       new_optarg="$(realpath -e "${new_optarg}")"
 
-      $ Amended value must be a directory
+      # Amended value must be a directory
       if [[ ! -d "${new_optarg}" ]]; then
         "${arg_wrong__a:?}"
       fi
