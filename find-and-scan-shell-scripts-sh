@@ -781,7 +781,7 @@ done
 shopt -u nocasematch
 
 # <>
-#_full_xtrace
+_full_xtrace
 #exit 101
 D_ verify bash_path find_path PATH
 
@@ -795,8 +795,8 @@ _verify_path(){
   loc_nameref="${1}"
 
     # <>
-    declare -p PATH loc_nameref
-    echo "${loc_nameref}"
+    #declare -p PATH loc_nameref
+    #echo "${loc_nameref}"
 
   # var $bash_path is only processed when the CLI optargs say so
   if [[ "${loc_var_nm}" == bash_path ]] \
@@ -807,7 +807,7 @@ _verify_path(){
 
   # Get constituent dirs from $1
   local loc_path_{1,2} p
-  IFS=':' read -ra loc_path_1 <<< "${loc_namerf}"
+  IFS=':' read -ra loc_path_1 <<< "${loc_nameref}"
 
   # get the cannonicalized paths of each such dir, replacing the 
   # existing array element with the corrected value. no result
