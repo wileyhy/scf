@@ -518,7 +518,7 @@ IFS=':' read -ra find_path <<<"${bash_path}"
 find_sym_opt='-P'
 memory_usage=temp_files
 sc_sev_abrv="${sc_severity:0:1}"
-methods_descend=no
+methods_recurse=no
 methods_path=('as-is')
 methods_prog=bin_bash
 methods_scan_excluded=no
@@ -705,13 +705,13 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
     #   Mis-spellings beyond the first one or two letters are allowed.
     l) case "${OPTARG:0:1}" in
       b*) 
-        methods_descend=no 
+        methods_recurse=no 
         methods_prog=bin_bash 
         methods_scan_excluded=no
         methods_symlinks=bash 
         ;;
       [l|p]*)
-        methods_descend=yes 
+        methods_recurse=yes 
         methods_prog=bin_find
         methods_scan_excluded=yes 
         methods_symlinks=physical 
@@ -736,7 +736,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
     p) case "${OPTARG:0:2}" in
       [bct]*)
         methods_symlinks=bash
-        methods_descend=no 
+        methods_recurse=no 
         methods_scan_excluded=no
 
         case "${OPTARG:0:2}" in
@@ -747,7 +747,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
         esac
         ;;
       f*) 
-        methods_descend=yes 
+        methods_recurse=yes 
         methods_prog=bin_find 
         methods_scan_excluded=yes 
         ;;
@@ -781,11 +781,11 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
     #unset find_path # again, why unset it?
     r) case "${OPTARG:0:1}" in
       r | d | y) 
-        methods_descend=yes 
+        methods_recurse=yes 
         methods_prog=bin_find 
         ;;
       n) 
-        methods_descend=no 
+        methods_recurse=no 
         methods_symlinks=bash
         ;;
       *) 
@@ -809,7 +809,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
           ;;
         n) 
           find_exclude_optargs=("${find_exclude_optargs_default[@]}")
-          methods_descend=yes
+          methods_recurse=yes
           methods_prog=bin_find
           methods_scan_excluded=no 
           ;;
@@ -941,9 +941,9 @@ _verify_path bash_path
 _full_xtrace
 #exit 101
 
-: 'methods_descend'
+: 'methods_recurse'
 
-declare -p methods_descend
+declare -p methods_recurse
 
 
 
