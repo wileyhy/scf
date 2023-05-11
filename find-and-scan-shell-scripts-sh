@@ -1148,7 +1148,7 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
           else
             unset 'type_a_o[line]'
           fi
-        fi
+        fi; unset command_basename
 
         # if all lines of `type -a`s output have been deleted, then 
         # begin with the next completion string
@@ -1169,7 +1169,7 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
       if [[ "${unset_per_idx_commands_n}" == yes ]]; then 
         unset 'per_idx_commands[n]'
       fi; unset unset_per_idx_commands_n
-    done; unset n
+    done; unset n prev_per_idx_cmds
     
     # add the (sub-)list to the full list, being careful of index numbers
     mapfile -O $((i * 1000)) -t all_commands < <(
