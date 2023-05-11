@@ -656,6 +656,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
         methods_path=(all) 
         methods_prog_b=bin_find
         methods_scan_excluded_n=no
+        ;;
       as* | ai*)
         bash_path="${bash_path_orig}"
         F_
