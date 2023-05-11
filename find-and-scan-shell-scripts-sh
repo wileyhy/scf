@@ -548,9 +548,9 @@ fn_usage() {
       d:  Path                     *[t]   Temporary files
         [ac]  Actually all        h   Help message
         [al]  All                 p:  Progam and method
-       *[as]  As-is                *[ba]  "bash" binary
+       *[as]  As-is                                    
         [bi]  /bin only             [cp]  builtin "command -pV"
-        [bo]  Both /{,s}bin only    [cv]  builtin "command -V"
+        [bo]  Both /{,s}bin only   *[cv]  builtin "command -V"
         [ge]  Getconf PATH only     [fi]  "find" binary
         [sb]  /sbin only            [ty]  builtin "type -a"
         [pr]  Add /proc           q:  Validate information
