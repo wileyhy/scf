@@ -1126,7 +1126,7 @@ then
           # string, then use `grep` to filter out full function definitions.
           mapfile -t shell_builtin_o < <(
             builtin type -a "${per_idx_commands[n]}" \
-              |& grep -E "${per_idx_commands[n]}"' is '"${re}"
+              |& grep -F "${per_idx_commands[n]}"' is '"${re}"
               #|& grep -F "${per_idx_commands[n]} is "
           )
           ;;
