@@ -1080,9 +1080,6 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
   # for each possible ascii character or value
   for i in "${!allchr[@]}"; do
   
-      # <>
-      printf '%d of %d\n' "$1" "${#allchr[@]}"
-      
     # get a per-character (sub-)list of possible command completions
     mapfile -t per_idx_commands < <(
       compgen -A command "${allchr[i]}"
@@ -1099,7 +1096,7 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
     for n in "${!per_idx_commands[@]}"; do
      
         # <>
-        printf '%s\n' "${per_idx_commands[n]}"
+        printf '%s\r' "${per_idx_commands[n]:0:1}"
 
       # remove any functions, aliases, shell keywords and builtins from 
       # the (sub-)list
