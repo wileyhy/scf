@@ -1169,7 +1169,8 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
           || [[ -d "${realpath_e_o3}" ]];
         then 
           unset_per_idx_commands_n=yes
-        fi; unset line type_a_o realpath_e_o command_basename command_fullpath
+        fi; unset line type_a_o realpath_e_o{1..3} command_basename \
+          command_fullpath
       fi
       
       if [[ "${unset_per_idx_commands_n}" == yes ]]; then 
