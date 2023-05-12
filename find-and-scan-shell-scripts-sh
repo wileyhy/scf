@@ -1119,6 +1119,8 @@ then
       # ...why? ...debugging... was the original idea. fewer commands, 
       # easier to run and catch bugs quickly...
 
+      # Bug: command shadowing nightmare
+
       # Search for commands based on the 
       case "${methods_prog_cv}" in 
         bash_type_a)
@@ -1145,7 +1147,12 @@ then
         
         # For `command -V` (usually includes '/usr/sbin'): bash_command_V
         #   Note: aliases will block `command -V` from reporting on 
-        # an existing binary of the same name.
+        # an existing binary of the same name. 
+        
+        # Bug: `command -V` will report whether a binary is hashed:
+        #   | $ command -V ls
+        #   | ls is hashed (/usr/bin/ls)
+        
         bash_command_V)
           mapfile -t shell_builtin_o < <(
             builtin command -V "${per_idx_commands[n]}" \
