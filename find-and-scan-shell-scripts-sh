@@ -1124,12 +1124,12 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
         # if any result refers to a file...
         elif grep -qE ' is /' <<< "${type_a_o[line]}"; then 
          
-          command_basename="${type_a_o[line]##*/}" 
-          command_fullpath="${type_a_o[line]##* }" 
+          command_basename="${type_a_o[line]##*/}" \
+            command_fullpath="${type_a_o[line]##* }" 
           
               # <>
-              declare -p all_commands per_idx_commands type_a_o line \
-                command_basename prev_per_idx_cmds
+              #declare -p all_commands per_idx_commands type_a_o line \
+                #command_basename prev_per_idx_cmds
 
           # ...and if that file is not already included in either the 
           # larger all_commands list or the per-ascii-character
@@ -1156,7 +1156,7 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
         if [[ "${#type_a_o[@]}" -eq 0 ]]; then
           unset_per_idx_commands_n=yes
         fi
-      done; unset line type_a_o
+      done
     
       # remove any directories from the (sub-)list
       if [[ -z "${unset_per_idx_commands_n}" ]]; then
@@ -1169,12 +1169,12 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
           || [[ -d "${realpath_e_o3}" ]];
         then 
           unset_per_idx_commands_n=yes
-        fi; unset realpath_e_o
+        fi; unset line type_a_o realpath_e_o command_basename command_fullpath
       fi
       
       if [[ "${unset_per_idx_commands_n}" == yes ]]; then 
         unset 'per_idx_commands[n]'
-      fi; unset unset_per_idx_commands_n command_basename command_fullpath
+      fi; unset unset_per_idx_commands_n 
     done; unset n prev_per_idx_cmds
     
     # add the (sub-)list to the full list, being careful of index numbers
