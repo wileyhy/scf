@@ -559,10 +559,10 @@ fn_usage() {
       -V -X [r|p|t] -h -p [ba|cp|cv|fi|ty] -q [a|c|d|i|l|p|u] 
       -r [d|y|n] -s [s|y|n]
 
-      l:  Follow symlinks         m:  Memory usage
-        [p]   physical              [r]   RAM only
-       *[l]   logical               [p]   Persistent storage
-      d:  Path                     *[t]   Temporary files
+      l:  Follow symlinks                           
+        [p]   physical                             
+       *[l]   logical                                       
+      d:  Path                                           
         [ac]  Actually all        h   Help message
         [al]  All                 p:  Progam and method
        *[as]  As-is                                    
