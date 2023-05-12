@@ -1037,10 +1037,10 @@ _verify_path bash_path
 # repair without adding a new login?
 
 : 'methods_recurse_n'
-declare -p methods_recurse_n
+#declare -p methods_recurse_n
 
 : 'methods_symlinks_l'
-declare -p methods_symlinks_l
+#declare -p methods_symlinks_l
 
 #_full_xtrace
 #exit 101
@@ -1085,7 +1085,7 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
     )
   
       # <>
-      declare -p per_idx_commands
+      #declare -p per_idx_commands
 
     # One difficulty is that a completion string can be any of
     # actual binary command, function, alias, shell keyword,
@@ -1135,7 +1135,7 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
           # larger all_commands list or the per-ascii-character
           # prev_per_idx_cmds list...
           if ! [[ "${all_commands[*]}" =~ ${command_basename} ]] \
-            && ! grep -E "$( printf '\%s' "${command_basename}" )" \
+            && ! grep -qE "$( printf '\%s' "${command_basename}" )" \
               2> /dev/null <<< "${prev_per_idx_cmds[@]}"
           then
 
