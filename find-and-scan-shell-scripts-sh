@@ -785,6 +785,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
         case "${OPTARG:0:2}" in
           c|c[a-p]*) methods_prog_cv=bash_command_pV ;;
           c[q-z]*) methods_prog_cv=bash_command_V ;;
+          h* ) methods_prog_cv=bash_hash ;;
           t* ) methods_prog_cv=bash_type_a ;;
         esac
         ;;
@@ -1147,7 +1148,7 @@ then
               |& grep -F "${per_idx_commands[n]}"' is '"${re}"
           )
           ;;
-        hash)
+        bash_hash)
           builtin hash "${per_idx_commands[@]}" 2> /dev/null
           mapfile -t shell_builtin_o < <( 
             for c in "${per_idx_commands[@]}"; do
