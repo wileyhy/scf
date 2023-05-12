@@ -1078,7 +1078,10 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
 
   # for each possible ascii character or value
   for i in "${!allchr[@]}"; do
-    
+  
+      # <>
+      printf '%d of %d\r' "$1" "${#allchr[@]}"
+      
     # get a per-character (sub-)list of possible command completions
     mapfile -t per_idx_commands < <(
       compgen -A command "${allchr[i]}"
