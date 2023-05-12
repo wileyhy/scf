@@ -1114,7 +1114,7 @@ then
     for n in "${!per_idx_commands[@]}"; do
      
         # <> A sort of progress meter
-        printf '%s\r' "${per_idx_commands[n]:0:1}"
+        printf '%s\n' "${per_idx_commands[n]}"
 
       # ...why? ...debugging... was the original idea. fewer commands, 
       # easier to run and catch bugs quickly...
