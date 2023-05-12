@@ -766,13 +766,13 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
         *) "${arg_wrong__l:?}" ;;
       esac ;;
 
-    # Whether and how to save data. Default is temp files.
-    m) case "${OPTARG:0:1}" in
-      p*) memory_usage=persistent_storage ;;
-      r*) memory_usage=RAM_only ;;
-      t*) memory_usage=temp_files ;;
-      *) "${arg_wrong__m:?}" ;;
-    esac ;;
+    ## Whether and how to save data. Default is temp files.
+    #m) case "${OPTARG:0:1}" in
+      #p*) memory_usage=persistent_storage ;;
+      #r*) memory_usage=RAM_only ;;
+      #t*) memory_usage=temp_files ;;
+      #*) "${arg_wrong__m:?}" ;;
+    #esac ;;
 
     # Program to search with. All settings clobber; bash is default
     p) case "${OPTARG:0:2}" in
