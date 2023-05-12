@@ -1137,7 +1137,6 @@ then
           mapfile -t shell_builtin_o < <(
             builtin command -pV "${per_idx_commands[n]}" \
               |& grep -F "${per_idx_commands[n]}"' is '"${re}"
-              #|& grep -F "${per_idx_commands[n]} is "
           )
           ;;
         
@@ -1146,7 +1145,6 @@ then
           mapfile -t shell_builtin_o < <(
             builtin command -V "${per_idx_commands[n]}" \
               |& grep -F "${per_idx_commands[n]}"' is '"${re}"
-              #|& grep -F "${per_idx_commands[n]} is "
           )
           ;;
       esac
