@@ -1147,6 +1147,19 @@ then
               |& grep -F "${per_idx_commands[n]}"' is '"${re}"
           )
           ;;
+        hash)
+          builtin hash "${per_idx_commands[@]}" 2> /dev/null
+          mapfile -t shell_builtin_o < <( 
+            for c in "${per_idx_commands[@]}"; do
+              printf '%s\0' "$(builtin hash -t "${c}" 2> /dev/null)" 
+            done
+          ); unset c
+          
+          for b in "${!shell_builtin_o[@]}"; do 
+            if [[ -z "${shell_builtin_o[b]}" ]]; then
+              unset 'shell_builtin_o[b]'
+            fi
+          done
       esac
       
       # if `type -a` has no knowledge of the completion string, 
