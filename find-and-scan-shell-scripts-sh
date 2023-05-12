@@ -1104,7 +1104,7 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
       # string, then use `grep` to filter out full function definitions.
       mapfile -t type_a_o < <(
         type -a "${per_idx_commands[n]}" \
-          | grep -F "${per_idx_commands[n]} is "
+          |& grep -F "${per_idx_commands[n]} is "
       )
       
       # if `type -a` has no knowledge of the completion string, 
