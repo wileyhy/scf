@@ -1037,10 +1037,12 @@ _verify_path bash_path
 # repair without adding a new login?
 
 : 'methods_recurse_n'
-#declare -p methods_recurse_n
+
+declare -p methods_recurse_n # SC-2034
 
 : 'methods_symlinks_l'
-#declare -p methods_symlinks_l
+
+declare -p methods_symlinks_l # SC-2034
 
 #_full_xtrace
 #exit 101
@@ -1049,15 +1051,25 @@ _verify_path bash_path
 
 : 'Get all the commands: bash'
 
-if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; then
+# get list of actual top level directories
+mapfile -t real_dirs < <(
+  sudo find / -maxdepth 1 -mindepth 1 -type d \! -empty \
+    | sort
+)
+re="$(
+  printf '(%s' "${real_dirs[0]#/}"
+  unset 'real_dirs[0]'
+  printf '|%s' "${real_dirs[@]#/}"
+  printf ')\n'
+)"
+
+# get completion strings with `compgen`, and ID commands with either
+# `type -a`, `command -pV` or `command -V`
+if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]
+then
 
   # create a single array of all commands found by each kind of search.
   # to do this...
-
-  # search for commands with odd yet permitted-by-Linux initial
-  # characters, such as \n \t \c or \l
-
-  # create a dictionary list of each possible initial character
   unset allchr char i all_commands real_dirs re tempd
 
   # Workaround: `compgen -c "*"` was picking up executable shell
@@ -1066,16 +1078,21 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
   cd "${tempd}" \
     || E_ cd
   
-  #for i in 33 42 46 47 58; do
-  #for i in 91 95; do
-  #for i in {97..127}; do
+  # create a dictionary list of each possible initial character, and
+  # include commands with odd yet permitted-by-Linux initial
+  # characters, such as \n \t \c or \l, etc
+    #for i in 33 42 46 47 58; do
+    #for i in 91 95; do
+    #for i in {97..127}; do
   for i in 8 9 10 11 12 13 {32..127}; do
     allchr+=(["$i"]="$(printf '%b' "\\$(printf %03o "$i")")")
   done
   allchr[10]=$'\n'
   unset i
-  #_full_xtrace
-  #set -x
+  
+    # <>
+    #_full_xtrace
+    #set -x
 
   # for each possible ascii character or value
   for i in "${!allchr[@]}"; do
@@ -1090,12 +1107,12 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
 
     # One difficulty is that a completion string can be any of
     # actual binary command, function, alias, shell keyword,
-    # shell builtin and / or directory
+    # shell builtin and/or directory
 
     # for each possible completion string found by `compgen`
     for n in "${!per_idx_commands[@]}"; do
      
-        # <>
+        # <> A sort of progress meter
         printf '%s\r' "${per_idx_commands[n]:0:1}"
 
       # remove any functions, aliases, shell keywords and builtins from 
@@ -1201,18 +1218,6 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
     || E_ cd
   rmdir "${tempd}"; unset tempd
 
-  mapfile -t real_dirs < <(
-    sudo find / -maxdepth 1 -mindepth 1 -type d \! -empty \
-      | sort
-  )
-
-  re="$(
-    printf '(%s' "${real_dirs[0]#/}"
-    unset 'real_dirs[0]'
-    printf '|%s' "${real_dirs[@]#/}"
-    printf ')\n'
-  )"
-
   #methods_prog_cv=bash_type_a;
   #for i in "${!all_commands[@]}"; do
   #if [[ "${methods_prog_cv}" = bash_type_a ]]; then
@@ -1222,6 +1227,12 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
   # logic structure
 
   for i in "${!all_commands[@]}"; do
+
+    # For anywhere in PATH: BASH_type_a
+    # For `command -pV` (usually only '/usr/bin'): BASH_command_pV
+    # For `command -V` (usually includes '/usr/sbin'): BASH_command_V
+ 
+
 
     # For anywhere in PATH: BASH_type_a
     if [[ "${methods_prog_cv}" = *bash_type_a ]]; then
