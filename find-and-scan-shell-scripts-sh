@@ -928,42 +928,7 @@ shopt -u nocasematch
 #_full_xtrace
 #exit 101
 
-# Table of opts and settings, precedence
-#         prog    l   p   r   s     L           P                     R           S
-#                                    3RD         1ST                   2ND         4TH
-#               
-# l           +---------------- 
-#  *l     b   |   #   __  n   n                 __ = ba cp cv ty                                  3RD 
-#   l       f |   #   fi  y   y 
-#  +p       f |   #   fi  y   y 
-# p           +----------------
-#  *ba    b   |   b   ##  n   n                                                                   1ST
-#   cp    b   |   b   ##  n   n 
-#   cv    b   |   b   ##  n   n  
-#   fi      f |   _   ##  y   n     _ = l p     
-#   ty    b   |   b   ##  n   n
-# r           +----------------
-#   y       f |   _   fi  #   ^     _ = l p                                       ^ = y n         2ND
-#  *n     b   |   b   __  #   y                 __ = ba cp cv ty
-# s           +----------------
-#  *y     b f |   _   __  ^   #     _ = b l p   __ = ba cp cv fi ty   ^ = y n                     4TH
-#   n       f |   _   fi  y   #     _ = l p     
-#             +---------------- 
-# 
-# Input >     
-#   eq to def, 
-#     rtn
-#
-#   ne to def
-#     set primary var
-#
-#     set clobber vars
-#
-#     set if-changed vars
-#     
-#       opts if bash  
-#       opts if find
-#
+
 
 _verify_path(){
   : '_verify_path BEGINS'  "$((++funclvl))" "${fence}"
