@@ -1242,42 +1242,6 @@ then
     || E_ cd
   rmdir "${tempd}"; unset tempd
 
-  #methods_prog_cv=bash_type_a;
-  #for i in "${!all_commands[@]}"; do
-  #if [[ "${methods_prog_cv}" = bash_type_a ]]; then
-  #type -a "${all_commands[i]}" ; fi; done
-
-  # Bug: the tests for methods_prog_cv need to be at the top level of
-  # logic structure
-
-  for i in "${!all_commands[@]}"; do
-
-    # For anywhere in PATH: BASH_type_a
-    # For `command -pV` (usually only '/usr/bin'): BASH_command_pV
-    # For `command -V` (usually includes '/usr/sbin'): BASH_command_V
- 
-
-
-    # For anywhere in PATH: BASH_type_a
-    if [[ "${methods_prog_cv}" = *bash_type_a ]]; then
-      type -a "${all_commands[i]}" \
-        | grep -E 'is /'"${re}"
-    fi
-
-    # For `command -pV` (usually only '/usr/bin'): BASH_command_pV
-    if [[ "${methods_prog_cv}" = *bash_command_pV ]]; then
-      command -pV "${all_commands[i]}" \
-        | grep -E 'is /'"${re}"
-    fi
-
-    # For `command -V` (usually includes '/usr/sbin'): BASH_command_V
-    if [[ "${methods_prog_cv}" = *bash_command_V ]]; then
-      command -V "${all_commands[i]}" \
-        | grep -E 'is /'"${re}"
-    fi
-
-  done 
-
 elif [[ "${methods_prog_cv}" = *bin_find ]]; then
   hash find 2>/dev/null \
     || exit "${LINENO}"
@@ -1326,7 +1290,7 @@ A_rsd=(
   #[sys]='/sys'
 )
 
-: 'actually_all'
+: 'actually_all' # of `find`
 
 umask 117
 
