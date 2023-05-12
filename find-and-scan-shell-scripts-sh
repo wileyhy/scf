@@ -533,7 +533,7 @@ find_exclude_optargs_default=(
 find_exclude_optargs=()
 IFS=':' read -ra find_path <<<"${bash_path}"
 find_sym_opt_L='-L'
-memory_usage=temp_files
+#memory_usage=temp_files
 sc_sev_abrv="${sc_severity:0:1}"
 methods_recurse_n=no
 methods_path=('as-is')
@@ -1344,9 +1344,9 @@ get_rel_search_dirs() {
 }
 get_rel_search_dirs a_relevant_search_dirs
 
-: 'memory_usage'
+: 'memory_usage' # ie, naming of temp dirs
 
-export memory_usage
+#export memory_usage
 
 # take each found dir and convert abs path [of sym, okay] to a string
 # usable for directory names
