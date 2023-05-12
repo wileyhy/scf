@@ -1124,7 +1124,7 @@ then
           # For anywhere in PATH: bash_type_a
           # use `type` to get the shell's definition(s) of `compgen`s completion 
           # string, then use `grep` to filter out full function definitions.
-          mapfile -t type_a_o < <(
+          mapfile -t shell_builtin_o < <(
             builtin type -a "${per_idx_commands[n]}" \
               |& grep -E "${per_idx_commands[n]}"' is '"${re}"
               #|& grep -F "${per_idx_commands[n]} is "
@@ -1143,30 +1143,30 @@ then
       esac
       
       # if `type -a` has no knowledge of the completion string, 
-      if [[ -z "${type_a_o[*]}" ]]; then
+      if [[ -z "${shell_builtin_o[*]}" ]]; then
         
         # then unset the completion string and start with the next one
         unset_per_idx_commands_n=yes
       fi
 
       # for each line of output from `type -a`
-      for line in "${!type_a_o[@]}"; do
+      for line in "${!shell_builtin_o[@]}"; do
       
         # if any result (ie, index) of `type -a`s output refers to an
         # alias, function or shell keyword, then unset that index
         if grep -qE ' is a(liased| function| shell (builtin|keyword))' \
-            <<< "${type_a_o[line]}"; 
+            <<< "${shell_builtin_o[line]}"; 
           then
-            unset 'type_a_o[line]'
+            unset 'shell_builtin_o[line]'
         
         # if any result refers to a file...
-        elif grep -qE ' is /' <<< "${type_a_o[line]}"; then 
+        elif grep -qE ' is /' <<< "${shell_builtin_o[line]}"; then 
          
-          command_basename="${type_a_o[line]##*/}" \
-            command_fullpath="${type_a_o[line]##* }" 
+          command_basename="${shell_builtin_o[line]##*/}" \
+            command_fullpath="${shell_builtin_o[line]##* }" 
           
               # <>
-              #declare -p all_commands per_idx_commands type_a_o line \
+              #declare -p all_commands per_idx_commands shell_builtin_o line \
                 #command_basename prev_per_idx_cmds
 
           # ...and if that file is not already included in either the 
@@ -1181,17 +1181,17 @@ then
             # prev_per_idx_cmds list, unset the type-a output index
             # and start with the next line of type-a output
             prev_per_idx_cmds+=("${command_basename}")
-            unset 'type_a_o[line]'
+            unset 'shell_builtin_o[line]'
             continue
         
           else
-            unset 'type_a_o[line]'
+            unset 'shell_builtin_o[line]'
           fi
         fi; 
 
         # if all lines of `type -a`s output have been deleted, then 
         # begin with the next completion string
-        if [[ "${#type_a_o[@]}" -eq 0 ]]; then
+        if [[ "${#shell_builtin_o[@]}" -eq 0 ]]; then
           unset_per_idx_commands_n=yes
         fi
       done
@@ -1209,7 +1209,7 @@ then
           || [[ -d "${realpath_e_o3}" ]];
         then 
           unset_per_idx_commands_n=yes
-        fi; unset line type_a_o realpath_e_o{1..3} command_basename \
+        fi; unset line shell_builtin_o realpath_e_o{1..3} command_basename \
           command_fullpath
       fi
       
