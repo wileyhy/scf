@@ -1134,6 +1134,8 @@ then
           ;;
           
         # For `command -pV` (usually only '/usr/bin'): bash_command_pV
+        #   Note: aliases will block `command -pV` from reporting on 
+        # an existing binary of the same name.
         bash_command_pV)
           mapfile -t shell_builtin_o < <(
             builtin command -pV "${per_idx_commands[n]}" \
@@ -1142,13 +1144,16 @@ then
           ;;
         
         # For `command -V` (usually includes '/usr/sbin'): bash_command_V
+        #   Note: aliases will block `command -V` from reporting on 
+        # an existing binary of the same name.
         bash_command_V)
           mapfile -t shell_builtin_o < <(
             builtin command -V "${per_idx_commands[n]}" \
               |& grep -F "${per_idx_commands[n]}"' is '"${re}"
           )
           ;;
-        # `hash` is particularly vulnerable to command shadowing. 
+        # For `hash` (full PATH search): bash_hash
+        #   Note: `hash` is particularly vulnerable to command shadowing. 
         # functions, if defined with the same name as a binary command, 
         # will prevent `hash` from producing the correct output 
         # regarding that binary command. .'., do not use for this 
@@ -1165,6 +1170,8 @@ then
               unset -n "${c}"
               unset -v "${c}"
               hash     "${c}" 2> /dev/null
+              
+              mapfile -t 
               
               printf '%s\0' "$(hash -t "${c}" 2> /dev/null)" 
             done
