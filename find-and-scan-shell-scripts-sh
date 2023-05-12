@@ -776,7 +776,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
 
     # Program to search with. All settings clobber; bash is default
     p) case "${OPTARG:0:2}" in
-      [bct]*)
+      [bcht]*)
         methods_recurse_n=no 
         methods_symlinks_l=logical
         find_exclude_optargs=()
