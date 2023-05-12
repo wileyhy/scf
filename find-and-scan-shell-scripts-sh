@@ -1068,8 +1068,8 @@ if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]; t
   
   #for i in 33 42 46 47 58; do
   #for i in 91 95; do
-  #for i in 8 9 10 11 12 13 {32..127}; do
-  for i in {97..127}; do
+  #for i in {97..127}; do
+  for i in 8 9 10 11 12 13 {32..127}; do
     allchr+=(["$i"]="$(printf '%b' "\\$(printf %03o "$i")")")
   done
   allchr[10]=$'\n'
