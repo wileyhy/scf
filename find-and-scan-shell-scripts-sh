@@ -1148,12 +1148,25 @@ then
               |& grep -F "${per_idx_commands[n]}"' is '"${re}"
           )
           ;;
+        # `hash` is particularly vulnerable to command shadowing. 
+        # functions, if defined with the same name as a binary command, 
+        # will prevent `hash` from producing the correct output 
+        # regarding that binary command. .'., do not use for this 
+        # script.
         bash_hash)
           set -x
-          builtin hash "${per_idx_commands[@]}" 2> /dev/null
+          builtin hash -r
+          
           mapfile -t shell_builtin_o < <( 
             for c in "${per_idx_commands[@]}"; do
-              printf '%s\0' "$(builtin hash -t "${c}" 2> /dev/null)" 
+              
+              unalias  "${c}"
+              unset -f "${c}"
+              unset -n "${c}"
+              unset -v "${c}"
+              hash     "${c}" 2> /dev/null
+              
+              printf '%s\0' "$(hash -t "${c}" 2> /dev/null)" 
             done
           ); unset c
           
