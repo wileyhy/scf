@@ -1066,7 +1066,7 @@ re="$(
 
 # get completion strings with `compgen`, and ID commands with either
 # `type -a`, `command -pV` or `command -V`
-if [[ "${methods_prog_cv}" = @(bash_command_pV|bash_command_V|bash_type_a) ]]
+if [[ "${methods_prog_cv}" = bash_@(command_pV|command_V|hash|type_a) ]]
 then
 
   # create a single array of all commands found by each kind of search.
