@@ -285,10 +285,13 @@ _mk_setenv_delta() {
     } \
       |& tee -a "${setenv_delta}"
 
+    # set colors for `wc` output
     GREP_COLORS='mt=01;104'
     export GREP_COLORS
     wc "${setenv_delta}" \
       | grep --color=always -E '.*'
+
+    # reset colors for `grep` output
     GREP_COLORS='mt=01;43'
     export GREP_COLORS
   fi
@@ -297,11 +300,11 @@ _mk_setenv_delta() {
 
 _mk_deltas() {
   : '_mk_deltas BEGINS' "$((++funclvl))" "${fence}"
-  _xtrace_duck
+  #_xtrace_duck
   _mk_setenv_prev
   _mk_setenv_now
   _mk_setenv_delta
-  _xtrace_duck
+  #_xtrace_duck
   : '_mk_deltas ENDS  ' "$((--funclvl))" "${fence}"
 }
 
@@ -323,7 +326,7 @@ _full_xtrace() {
 }
 
 #exit 101
-#_full_xtrace
+_full_xtrace
 
 : 'Regualar script Functions'
 
@@ -509,7 +512,7 @@ if [[ $# -gt 0 ]]; then
   cli_input=("${@}")
 fi
 
-#exit 101
+exit 101
 #_full_xtrace
 
 : 'Variables re getopts'
