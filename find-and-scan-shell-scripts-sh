@@ -312,7 +312,9 @@ _mk_deltas() {
 _debug_prompt() {
   : '_debug_prompt BEGINS' "$((++funclvl))" "${fence}"
   _mk_deltas
-  read -rp "[${BASH_SOURCE[0]}:${LINENO}] ${BASH_COMMAND[0]}?" _
+  : '~~~~~~~PROMPT~~~~~~~'
+  read -rp " +[${BASH_SOURCE[0]}:${LINENO}] ${BASH_COMMAND[0]}?" _
+  :
   : '_debug_prompt ENDS  ' "$((--funclvl))" "${fence}"
 }
 
