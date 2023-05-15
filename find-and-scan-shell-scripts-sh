@@ -80,14 +80,15 @@ alias S_='sudo '
 alias T_='tee --output-error=exit '
 alias X_='set -x'
 
-: 'Delete any left over xtrace files in /tmp'
+: '<> Delete any left over xtrace files in /tmp'
 
 mapfile -d "" -t xtrace_files < <(
   find /tmp -maxdepth 1 -type f \
     -name "tmp.[a-zA-Z0-9]*.scf.[0-9]*.[0-9]*.txt" -print0 
 )
 
-# ...if theyre files & not symlinks, & owned by the same EUID.
+# ...if they're (inodes are for) files & not symlinks, & owned by the 
+# same EUID.
 for f in "${xtrace_files[@]}"; do
   if [[ -f "${f}" ]] \
     && [[ ! -L "${f}" ]] \
@@ -97,7 +98,7 @@ for f in "${xtrace_files[@]}"; do
   fi
 done; unset f
 
-: 'Traps'
+: 'Trap(s)'
 
 trap '
   trap - DEBUG
@@ -180,6 +181,7 @@ trap 'set -x; echo SIGXFSZ;   trap SIGXFSZ;   kill -s 2   $$' XFSZ # 25
 trap 'set -x; echo SIGVTALRM; trap SIGVTALRM; kill -s 2 $$' VTALRM # 26
 trap 'set -x; echo SIGPROF;   trap SIGPROF;   kill -s 2   $$' PROF # 27
 #trap 'set -x; echo SIGWINCH;  trap SIGWINCH;  kill -s 2  $$' WINCH # 28
+#   ^--- triggered by resizing a terminal window
 trap 'set -x; echo SIGIO;     trap SIGIO;     kill -s 2   $$' IO   # 29
 trap 'set -x; echo SIGPWR;    trap SIGPWR;    kill -s 2   $$' PWR  # 30
 trap 'set -x; echo SIGSYS;    trap SIGSYS;    kill -s 2   $$' SYS  # 31
@@ -189,12 +191,12 @@ trap 'set -x; echo SIGRTMIN;  trap SIGRTMIN;  kill -s 2  $$' RTMIN # 32
 
 funclvl=0
 fence=' ++++++++++++++++++++++++++++++++++++++++++++ '
-export setenv_prev setenv_now setenv_delta env_prev env_now env_delta
+#export setenv_prev setenv_now setenv_delta env_prev env_now env_delta
 
-# If xtrace was previously on, then on first execution of this function,
-# turn xrtrace off, and on second execution, turn xtrace back on and
-# forget about this function's settings. If xtrace was previously off,
-# then leave it off.
+#   _xtrace_duck: If xtrace was previously on, then on first execution 
+# of this function, turn xrtrace off, and on second execution, turn 
+# xtrace back on and forget about this function's settings. If xtrace 
+# was previously off, then leave it off.
 
 _xtrace_duck() {
   : '_xtrace_duck BEGINS' "$((++funclvl))" "${fence}"
@@ -215,15 +217,19 @@ _xtrace_duck() {
     # ...then if xtrace was previously on...
     if [[ -n "${xtrace_prev}" ]]; then
 
-      # ...then restore xtrace and unset its variable
+      # ...then restore xtrace and unset the record of its state
       set -x
       unset xtrace_prev
 
-    # but if xtrace is off and was previously off...
+    # but if xtrace is off and was previously off... (return).
     fi
   fi
   : '_xtrace_duck ENDS  ' "$((--funclvl))" "${fence}"
 }
+
+# A set of functions for printing changes in shell variables and para-
+# meters between each execution of a command; for use when the DEBUG
+# trap is enabled.
 
 _mk_setenv_prev() {
   : '_mk_setenv_prev BEGINS' "$((++funclvl))" "${fence}"
@@ -240,10 +246,11 @@ _mk_setenv_prev() {
 _mk_setenv_now() {
   : '_mk_setenv_now BEGINS' "$((++funclvl))" "${fence}"
   setenv_now="$(mktemp --suffix="${mktemp_sfx}")"
-  set \
+  {
+    set 
+    env
+  } \
     |& tee -- "${setenv_now}" >/dev/null
-  env \
-    |& tee -a "${setenv_now}" >/dev/null
   : '_mk_setenv_now ENDS  ' "$((--funclvl))" "${fence}"
 }
 
@@ -1601,6 +1608,9 @@ a_write_path_nms=("${list_crunchbangs:=crunchbangs}"
 
 # TODOs: grep scripts for 'todo's
 #   - grep for 'shellcheck disable'
+#   - GREP FOR 'bash -c' and 'sh -c'
+#   - grep for '(source|\.) .?.?/'
+# 
 #   - This section seems Buggy.
 
 _full_xtrace
