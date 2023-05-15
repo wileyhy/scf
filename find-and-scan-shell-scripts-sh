@@ -552,7 +552,7 @@ find_sym_opt_L='-L'
 sc_sev_abrv="${sc_severity:0:1}"
 methods_recurse_n=no
 methods_path=('as-is')
-methods_prog_cv=bash_command_V
+methods_prog_cv=bash_type_a
 methods_scan_excluded_by=yes
 methods_symlinks_l=logical
 verify=(all)
@@ -581,10 +581,10 @@ fn_usage() {
         [ac]  Actually all        h   Help message
         [al]  All                 p:  Progam and method
        *[as]  As-is                                    
-        [bi]  /bin only             [cp]  builtin "command -pV"
-        [bo]  Both /{,s}bin only   *[cv]  builtin "command -V"
-        [ge]  Getconf PATH only     [fi]  "find" binary
-        [sb]  /sbin only            [ty]  builtin "type -a"
+        [bi]  /bin only                                         
+        [bo]  Both /{,s}bin only                              
+        [ge]  Getconf PATH only     [fi] "find" binary
+        [sb]  /sbin only           *[ty] "bash" builtin "type -a"
         [pr]  Add /proc           q:  Validate information
         [sy]  Add /sys             *[a]   all
       a:  Path                      [c]   add crashbangs
@@ -786,18 +786,12 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
 
     # Program to search with. All settings clobber; bash is default
     p) case "${OPTARG:0:2}" in
-      [bcht]*)
+      [b]*)
+        methods_prog_cv=bash_type_a
         methods_recurse_n=no 
         methods_symlinks_l=logical
         find_exclude_optargs=()
         methods_scan_excluded_by=yes
-
-        case "${OPTARG:0:2}" in
-          c|c[a-p]*) methods_prog_cv=bash_command_pV ;;
-          c[q-z]*) methods_prog_cv=bash_command_V ;;
-          h* ) methods_prog_cv=bash_hash ;;
-          t* ) methods_prog_cv=bash_type_a ;;
-        esac
         ;;
       f*) 
         methods_prog_cv=bin_find 
@@ -841,11 +835,10 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
         methods_scan_excluded_by=no 
         ;;
       n) 
-        #methods_prog_cv= # could be any of command_pV command_V type_a
         methods_recurse_n=no 
         
         if [[ "${methods_prog_cv}" =~ find ]]; then
-          methods_prog_cv=bash_command_V
+          methods_prog_cv=bash_type_a
         fi
             
         find_exclude_optargs=()
@@ -1045,14 +1038,15 @@ declare -p methods_symlinks_l # SC-2034
 # declare -f bash       # to print functions
 #   unset -f bash       #   to remove functions
 # type -a bash          # to print aliases, functions, builtins, files 
-#                       #   or keywords; performs a complete PATH search
+#                       #   or keywords; performs a complete PATH search;
+#                       #   detects hardlinks and symlinks
 # type -P bash          # forces a PATH search if the hash table is empty 
 # unalias bash          # to remove an alias
 # unalias -a            #   to remove all aliases
 # hash -r               # to clear the hash table
 # hash                  # if empty, prints, 'hash: hash table empty'; 
 #                       #   all lookups limited to PATH
-# command               # all lookups, also, limited to PATH
+# command               # all lookups, also, are limited to PATH
 # info bash BUILTIN     # info pages
 # help -m BUILTIN       # help pages
 #   help BUILTIN        #   
@@ -1071,15 +1065,163 @@ declare -p methods_symlinks_l # SC-2034
 # type -a bash          # performs full PATH search, returns mult matches
 #                       #   for the same file name 
 
+# as root
+[root@localhost-live ~]# vim /usr/bin/export
+[root@localhost-live ~]# ln --symbolic /usr/bin/export /usr/sbin/export
+[root@localhost-live ~]# ls -alhFi /usr/bin/export /usr/sbin/export
+174822 -rw-r--r--. 1 root root 24 May 15 09:05 /usr/bin/export
+166934 lrwxrwxrwx. 1 root root 15 May 15 09:06 /usr/sbin/export -> /usr/bin/export
+[root@localhost-live ~]# echo $PATH
+/root/.local/bin:/root/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/var/lib/snapd/snap/bin
+[root@localhost-live ~]# ls /usr/local/sbin
+[root@localhost-live ~]# ln /usr/bin/export /usr/local/sbin/export
+[root@localhost-live ~]# ls -alhFi /usr/bin/export /usr/local/sbin/export
+174822 -rw-r--r--. 2 root root 24 May 15 09:05 /usr/bin/export
+174822 -rw-r--r--. 2 root root 24 May 15 09:05 /usr/local/sbin/export
+[root@localhost-live ~]# cat /usr/bin/export
+#!/bin/sh
+
+export "$@"
+
+# as liveuser
+[liveuser@localhost-live scf]$ type -a export
+export is a shell builtin
+[liveuser@localhost-live scf]$ hash -r
+[liveuser@localhost-live scf]$ type -a export
+export is a shell builtin
+[liveuser@localhost-live scf]$ type -P export
+/usr/bin/export
+[liveuser@localhost-live scf]$ type -a export
+export is a shell builtin
+
+# new shell
+[liveuser@localhost-live scf]$ type -a export
+export is a shell builtin
+[liveuser@localhost-live scf]$ hash
+hash: hash table empty
+[liveuser@localhost-live scf]$ type -P export
+/usr/bin/export
+[liveuser@localhost-live scf]$ sudo find / \( -type f -o -type l \) -name export -exec ls -alhFi '{}' ';' 2> /dev/null | grep -ve zsh -e tracker -e selinux
+166934 lrwxrwxrwx. 1 root root 15 May 15 09:06 /usr/sbin/export -> /usr/bin/export
+174822 -rw-r--r--. 2 root root 24 May 15 09:05 /usr/local/sbin/export
+174822 -rw-r--r--. 2 root root 24 May 15 09:05 /usr/bin/export
+174822 -rw-r--r--. 2 root root 24 May 15 09:05 /usr/local/sbin/export
+174822 -rw-r--r--. 2 root root 24 May 15 09:05 /usr/bin/export
+[liveuser@localhost-live scf]$ sudo find / \( -type f -o -type l \) -name export -exec ls -alhFi '{}' ';' 2> /dev/null | grep -ve zsh -e tracker -e selinux
+166934 lrwxrwxrwx. 1 root root 15 May 15 09:06 /usr/sbin/export -> /usr/bin/export
+174822 -rw-r--r--. 2 root root 24 May 15 09:05 /usr/local/sbin/export
+174822 -rw-r--r--. 2 root root 24 May 15 09:05 /usr/bin/export
+
+[liveuser@localhost-live scf]$ function export()( echo foo;)
+[liveuser@localhost-live scf]$ alias export='echo bar'
+[liveuser@localhost-live scf]$ hash -r
+[liveuser@localhost-live scf]$ hash
+hash: hash table empty
+[liveuser@localhost-live scf]$ type -P export
+/usr/bin/export
+[liveuser@localhost-live scf]$ type -a export
+export is aliased to 'echo bar'
+export is a function
+export () 
+{ 
+    ( echo foo )
+}
+export is a shell builtin
+
+# you can also use `env`
+[liveuser@localhost-live scf]$ env hash
+[liveuser@localhost-live scf]$ type -t env 
+file
+[liveuser@localhost-live scf]$ type -P env 
+/usr/bin/env
+[liveuser@localhost-live scf]$ hash -r
+[liveuser@localhost-live scf]$ type -P env 
+/usr/bin/env
+[liveuser@localhost-live scf]$ hash -r
+[liveuser@localhost-live scf]$ hash 
+hash: hash table empty
+[liveuser@localhost-live scf]$ type -P export
+/usr/local/sbin/export
+[liveuser@localhost-live scf]$ type -a export
+bash: type: export: not found
+[liveuser@localhost-live scf]$ command -pV export
+bash: command: export: not found
+[liveuser@localhost-live scf]$ sudo find / \( -type f -o -type l \) -name export -exec ls -alhFi '{}' ';' 2> /dev/null | grep -ve zsh -e tracker -e selinux
+[sudo] password for liveuser: 
+166934 lrwxrwxrwx. 1 root root 15 May 15 09:06 /usr/sbin/export -> /usr/bin/export
+174822 -rw-r--r--. 1 root root 24 May 15 09:05 /usr/local/sbin/export
+[liveuser@localhost-live scf]$ sudo find / \( -type f -o -type l \) -name export -exec ls -alhFi '{}' ';' 2> /dev/null | grep -ve zsh -e tracker -e selinux
+174822 -rw-r--r--. 1 root root 24 May 15 09:05 /usr/local/sbin/export
+[liveuser@localhost-live scf]$ hash
+hash: hash table empty
+[liveuser@localhost-live scf]$ type -P export
+/usr/local/sbin/export
+[liveuser@localhost-live scf]$ sudo find / \( -type f -o -type l \) -name export -exec ls -alhFi '{}' ';' 2> /dev/null | grep -ve zsh -e tracker -e selinux
+166934 lrwxrwxrwx. 1 root root 15 May 15 09:32 /usr/sbin/export -> /usr/bin/export
+174822 -rw-r--r--. 1 root root 24 May 15 09:05 /usr/local/sbin/export
+[liveuser@localhost-live scf]$ sudo find / \( -type f -o -type l \) -name export -exec ls -alhFi '{}' ';' 2> /dev/null | grep -ve zsh -e tracker -e selinux
+166934 lrwxrwxrwx. 1 root root 15 May 15 09:32 /usr/sbin/export -> /usr/bin/export
+[liveuser@localhost-live scf]$ hash 
+hash: hash table empty
+[liveuser@localhost-live scf]$ type -P export
+[liveuser@localhost-live scf]$ type -a export
+bash: type: export: not found
+[liveuser@localhost-live scf]$ env type -a export
+export is a special shell builtin
+[liveuser@localhost-live scf]$ env type -t export
+builtin
+[liveuser@localhost-live scf]$ sh -c 'type -t export'
+builtin
+
+
+
+# even when the `hash` builtin is disabled with `enable -n hash`, 
+# command hashing still occurs.
+
+
+# return from functions and sourcing
+until [[ "${ec}" != 0 ]]; do
+  return
+  ec=$?
+done
+
+# remove all variable name collisions
+dec_o="$(declare -p STRING)"
+
+if [[ -n "${dec_o}" ]]; then
+  unset -v STRING
+  unset -n STRING
+fi
+
+# type -t
+tt_o="$(type -t STRING)"
+case "${tt_o}" in
+  # remove alias
+  alias)  unalias STRING ;;
+  # remove functions
+  function) unset -f STRING ;;
+  builtin) 
+  file)
+  keyword)
+
+# remove hash table
+# lookup file and force a PATH search with type -P
+# type -a
+
+# dnf provides FILE
+# rpm -V RPM
+# dnf -y --allowerasing reinstall RPM
+
+
+
 ##  Thoughts
 #   Have only two options, via `bash` or via `find`. with bash, use 
 # `type -t` and case to (1) ID how the shell would call a command name, 
 # and take appropriarte action from there by removing anything that 
 # isn't a file, ie, an alias, function, etc.  Then use `type -a` and
 # parse the output of that also, removing non-files as necc. Then 
-# use `hash -r; type -P` to get the list of matches within PATH, and 
-# compare that against the output of `command -p`.  ...and / or
-# `getconf PATH`. If there are still multiple options, -- no. Just
+# use `hash -r; type -P` to get the list of matches within PATH
+#   If there are still multiple options, -- no. Just
 # the results against `rpm -V`, and do any rpm reinstallations as
 # necc, and if there are (God forbid) any files w/o rpms, print an
 # error and exit. That should be enough to reliably get the correct
@@ -1088,7 +1230,7 @@ declare -p methods_symlinks_l # SC-2034
 # course! Also remove variables and parameters. 
 #   It might be useful to flag as an error any command names that 
 # conflict with any of the shell's metacharacters, keywords, reserved 
-# words, etc. ...or their option flags. 
+# words, etc. ...or the bianry commands' option flags conflicting. 
 
 
 # get list of actual top level directories
@@ -1103,9 +1245,8 @@ re="$(
   printf ')\n'
 )"
 
-# get completion strings with `compgen`, and ID commands with either
-# `type -a`, `command -pV` or `command -V`
-if [[ "${methods_prog_cv}" = bash_@(command_pV|command_V|hash|type_a) ]]
+# get completion strings with `compgen`, and ID commands with `type -a`
+if [[ "${methods_prog_cv}" = bash_type_a ]]
 then
 
   # create a single array of all commands found by each kind of search.
@@ -1161,75 +1302,15 @@ then
       # Bug: command shadowing nightmare
 
       # Search for commands based on the 
-      case "${methods_prog_cv}" in 
-        bash_type_a)
         
-          # For anywhere in PATH: bash_type_a
-          # use `type` to get the shell's definition(s) of `compgen`s completion 
-          # string, then use `grep` to filter out full function definitions.
-          mapfile -t shell_builtin_o < <(
-            builtin type -a "${per_idx_commands[n]}" \
-              |& grep -F "${per_idx_commands[n]}"' is '"${re}"
-              #|& grep -F "${per_idx_commands[n]} is "
-          )
-          ;;
-          
-        # For `command -pV` (usually only '/usr/bin'): bash_command_pV
-        #   Note: aliases will block `command -pV` from reporting on 
-        # an existing binary of the same name.
-        bash_command_pV)
-          mapfile -t shell_builtin_o < <(
-            builtin command -pV "${per_idx_commands[n]}" \
-              |& grep -F "${per_idx_commands[n]}"' is '"${re}"
-          )
-          ;;
-        
-        # For `command -V` (usually includes '/usr/sbin'): bash_command_V
-        #   Note: aliases will block `command -V` from reporting on 
-        # an existing binary of the same name. 
-        
-        # Bug: `command -V` will report whether a binary is hashed:
-        #   | $ command -V ls
-        #   | ls is hashed (/usr/bin/ls)
-        
-        bash_command_V)
-          mapfile -t shell_builtin_o < <(
-            builtin command -V "${per_idx_commands[n]}" \
-              |& grep -F "${per_idx_commands[n]}"' is '"${re}"
-          )
-          ;;
-        # For `hash` (full PATH search): bash_hash
-        #   Note: `hash` is particularly vulnerable to command shadowing. 
-        # functions, if defined with the same name as a binary command, 
-        # will prevent `hash` from producing the correct output 
-        # regarding that binary command. .'., do not use for this 
-        # script.
-        bash_hash)
-          set -x
-          builtin hash -r
-          
-          mapfile -t shell_builtin_o < <( 
-            for c in "${per_idx_commands[@]}"; do
-              
-              unalias  "${c}"
-              unset -f "${c}"
-              unset -n "${c}"
-              unset -v "${c}"
-              hash     "${c}" 2> /dev/null
-              
-              mapfile -t 
-              
-              printf '%s\0' "$(hash -t "${c}" 2> /dev/null)" 
-            done
-          ); unset c
-          
-          for b in "${!shell_builtin_o[@]}"; do 
-            if [[ -z "${shell_builtin_o[b]}" ]]; then
-              unset 'shell_builtin_o[b]'
-            fi
-          done
-          set -
-      esac
+      # For anywhere in PATH: bash_type_a
+      # use `type` to get the shell's definition(s) of `compgen`s completion 
+      # string, then use `grep` to filter out full function definitions.
+      mapfile -t shell_builtin_o < <(
+        builtin type -a "${per_idx_commands[n]}" \
+          |& grep -F "${per_idx_commands[n]}"' is '"${re}"
+          #|& grep -F "${per_idx_commands[n]} is "
+      )
       
       # if `type -a` has no knowledge of the completion string, 
       if [[ -z "${shell_builtin_o[*]}" ]]; then
@@ -2054,7 +2135,7 @@ exit 101
 
 : 'Ways to find an interpreter if it-s available on disk:'
 
-# Bug: `realpath -e` and `command -V` are redundant?
+# Bug: `realpath -e` and `type -a` are redundant?
 # Answer: no. `command` is limited to PATH; realpath is limited by
 # FS permissions.
 
@@ -2062,15 +2143,17 @@ exit 101
 #   # find /usr/sbin -type l | grep resolvconf
 #       /usr/sbin/resolvconf
 # `command` can produce symlinks
-#   # command -V resolvconf
+#   # type -a resolvconf
 #       resolvconf is /usr/sbin/resolvconf
 # `realpath` produces physical paths
 #   # realpath -e /usr/sbin/resolvconf
 #       /usr/bin/resolvectl
 
+# Bug: parse output of type -a
+
 for program in "${a_interpreters[@]}"; do
-  : 'command -pV'
-  command_o="$(command -pV "${program}" 2>&1)"
+  : 'type -a'
+  command_o="$(type -a "${program}" 2>&1)"
 
   if [[ -n "${command_o}" ]]; then
     realpath_o="$(realpath -e "${command_o}" 2>/dev/null)"
@@ -2105,10 +2188,12 @@ L_
 
     printf '%-32s' "${a_interps_rps[b]}"
 
+    # Bug: use `type -a`; parse its output
+
     # use a shell builtin to test for each interpreter's presence on
     # disk, and write to a variable the test's result
 
-    if command -pV "${a_interps_rps[b]}" >/dev/null; then
+    if type -a "${a_interps_rps[b]}" >/dev/null; then
       m="exists on disk"
     else
       m="DNE on disk"
