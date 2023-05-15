@@ -233,9 +233,10 @@ _xtrace_duck() {
 
 _mk_setenv_prev() {
   : '_mk_setenv_prev BEGINS' "$((++funclvl))" "${fence}"
+  : 'if'
   if [[ -n "${setenv_now}" ]]; then
-
-    if [[ -n "${setenv_prev}" ]]; then
+    : 'if'
+    if [[ ! -z "${setenv_prev}" ]]; then
       R_ -f -- "${setenv_prev}"
     fi
     setenv_prev="${setenv_now}"
@@ -256,7 +257,7 @@ _mk_setenv_now() {
 
 _mk_setenv_delta() {
   : '_mk_setenv_delta BEGINS' "$((++funclvl))" "${fence}"
-  if [[ -n "${setenv_now}" ]] && [[ -n "${setenv_prev}" ]]; then
+  if [[ -n "${setenv_now}" ]] && [[ ! -z "${setenv_prev}" ]]; then
 
     if [[ -n "${setenv_delta}" ]]; then
       R_ -f -- "${setenv_delta}"
@@ -278,7 +279,7 @@ _mk_setenv_delta() {
 
     {
       diff --suppress-{common-lines,blank-empty} --color=always \
-        --palette="ad=1;3;38;5;190:de=1;3;38;5;129" \
+        --palette='ad=1;3;38;5;190:de=1;3;38;5;129' \
         "${setenv_prev}" "${setenv_now}" \
         | grep -ve BASH_LINENO -e BASH_COMMAND -e BASH_SOURCE \
           -e setenv_ -Fe '---'
