@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 # Written in bash version 5.1 on Fedora 37 & 38
 
 # Note: Keep your goal in mind.
@@ -247,11 +247,11 @@ _mk_setenv_prev() {
 _mk_setenv_now() {
   : '_mk_setenv_now BEGINS' "$((++funclvl))" "${fence}"
   setenv_now="$(mktemp --suffix="${mktemp_sfx}")"
-  {
-    set 
-    env
-  } \
-    |& tee -- "${setenv_now}" >/dev/null
+    # `{ set; env;} | tee`: env & set dont print in simple xtrace 
+    set \
+      |& tee -- "${setenv_now}" >/dev/null 
+    env \
+      |& tee -a -- "${setenv_now}" >/dev/null
   : '_mk_setenv_now ENDS  ' "$((--funclvl))" "${fence}"
 }
 
@@ -261,12 +261,11 @@ _mk_setenv_delta() {
 
     if [[ -n "${setenv_delta}" ]]; then
       R_ -f -- "${setenv_delta}"
-      # [line 1] rm --one-file-system --preserve-root=all -f -- \
-      #   /tmp/tmp.HjN8ow8GHi.scf.32869.15382.txt
       wait -f
-    else
-      setenv_delta="$(mktemp --suffix="${mktemp_sfx}")" #
     fi
+    
+    # create a new delta file, each time
+    setenv_delta="$(mktemp --suffix="${mktemp_sfx}")" #
 
     {
       diff -y --suppress-{common-lines,blank-empty} --color=never \
@@ -275,7 +274,6 @@ _mk_setenv_delta() {
         | grep --color=always -E '.*'
     } \
       |& tee -- "${setenv_delta}"
-    # [line 2] tee -- /tmp/tmp.HjN8ow8GHi.scf.32869.15382.txt
 
     {
       diff --suppress-{common-lines,blank-empty} --color=always \
