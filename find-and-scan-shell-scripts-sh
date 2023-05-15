@@ -101,6 +101,7 @@ done; unset f
 : 'Trap(s)'
 
 trap '
+  : "EXIT trap BEGINS ++++++++++++++++++++++++++++++++++++++++++++++"
   trap - DEBUG
 
   # Delete all possible existing process _lock_directories_. 
@@ -130,7 +131,8 @@ trap '
         : "${Halt:?}"
       fi
 
-    # Bug? Should this var \/ be main_d ?
+    # Bug? Should this var \/ be main_d ? Requires setfacl section 
+    # to debug this. (~ line 1600, 15 May)
 
     elif [[ -v mountpoint ]] \
       || [[ -v main_d ]] 
@@ -236,7 +238,7 @@ _mk_setenv_prev() {
   : 'if'
   if [[ -n "${setenv_now}" ]]; then
     : 'if'
-    if [[ ! -z "${setenv_prev}" ]]; then
+    if [[ -n "${setenv_prev}" ]]; then
       R_ -f -- "${setenv_prev}"
     fi
     setenv_prev="${setenv_now}"
@@ -257,7 +259,7 @@ _mk_setenv_now() {
 
 _mk_setenv_delta() {
   : '_mk_setenv_delta BEGINS' "$((++funclvl))" "${fence}"
-  if [[ -n "${setenv_now}" ]] && [[ ! -z "${setenv_prev}" ]]; then
+  if [[ -n "${setenv_now}" ]] && [[ -n "${setenv_prev}" ]]; then
 
     if [[ -n "${setenv_delta}" ]]; then
       R_ -f -- "${setenv_delta}"
@@ -341,6 +343,8 @@ fn_bak() {
     if S_ test -f "${loc_filename_a}"; then
 
       # Bug: Why does this ^ test req sudo when this test \/ doesnt?
+      # Requires use of fn_bak or B_ to debug this.
+      # (~line 2000, 15 May)
 
       # if the destination (.bak) file already exists,
       # then age it first.
@@ -416,10 +420,9 @@ fn_write_arrays() {
     loc_write_f_b="${loc_write_d_b}/_${sc_sev_abrv}"
     loc_write_f_b+="_${abbrev_rel_search_dirs}_${loc_array_nm}"
 
-    # solved?  Bug: mixing variable and array. sb a nameref
-
-    # Bug? When array correctly is empty.
-    #   'declare -p ... > /dev/null ||' ?
+    # Bug? When array correctly is empty: 'declare -p ... > /dev/null ||' ?
+    # requires use of fn_write_arrays or W_ to debug this. 
+    # (~line 2000, 15 May)
 
     # if the input array holds no data, then populate it
     if [[ ! -v loc_nameref_b[@] ]]; then
@@ -507,24 +510,25 @@ if [[ "${reqd_progs_exit}" == yes ]]; then
   exit 1
 fi
 
+exit 101
+#_full_xtrace
+
 : 'Option parsing'
 
 if [[ $# -gt 0 ]]; then
   cli_input=("${@}")
 fi
 
-exit 101
-#_full_xtrace
-
 : 'Variables re getopts'
+
 unsaf_ascii=(
   [0]="|" [1]="&" [2]=";" [3]="(" [4]=")" [5]="<"
-  [6]=">" [7]=" " [8]=$'\t' [9]=$'\n' [10]="||" [11]="&&"
+  [6]=">" [8]=$'\t' [9]=$'\n' [10]="||" [11]="&&"
   [12]=";;" [13]=";&" [14]=";;&" [15]="|&" [16]="!" [17]="{"
   [18]="}" [19]="[" [20]="]" [21]="[[" [22]="]]" [23]="\$"
   [24]="="
 )
-readonly unsaf_ascii
+unsaf_ascii_PE_string="$(printf '%s' "${unsaf_ascii[@]}")"
 bash_path_orig="${PATH}"
 bash_path="${bash_path_orig}"
 easter_egg="$(
@@ -613,13 +617,8 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
       # Input validation, more thorough. Remove unprintable strings.
       OPTARG="$(strings -n1 <<<"${OPTARG}")"
 
-      # Bug: sb a printf one liner
-      # for i in DECIMALS; do printf '%b' "\\${i}"; done #...
-
-      # Bug: \/ this PE probably doesn't work
-
       # Remove unsafe characters
-      new_optarg="${OPTARG//["${unsaf_ascii[@]}"]/}"
+      new_optarg="${OPTARG//["${unsaf_ascii_PE_string[@]}"]/}"
 
       # If any ASCII characters were removed, print an error and exit
       if [[ "${new_optarg}" != "${OPTARG}" ]]; then
