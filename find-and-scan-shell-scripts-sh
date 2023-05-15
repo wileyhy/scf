@@ -1061,6 +1061,25 @@ declare -p methods_symlinks_l # SC-2034
 # type -a bash          # performs full PATH search, returns mult matches
 #                       #   for the same file name 
 
+##  Thoughts
+#   Have only two options, via `bash` or via `find`. with bash, use 
+# `type -t` and case to (1) ID how the shell would call a command name, 
+# and take appropriarte action from there by removing anything that 
+# isn't a file, ie, an alias, function, etc.  Then use `type -a` and
+# parse the output of that also, removing non-files as necc. Then 
+# use `hash -r; type -P` to get the list of matches within PATH, and 
+# compare that against the output of `command -p`.  ...and / or
+# `getconf PATH`. If there are still multiple options, -- no. Just
+# the results against `rpm -V`, and do any rpm reinstallations as
+# necc, and if there are (God forbid) any files w/o rpms, print an
+# error and exit. That should be enough to reliably get the correct
+# binary executable 99% of the time. ...to the best of my knowledge
+# at this time. I might change my mind tomorrow morning, though, of 
+# course! Also remove variables and parameters. 
+#   It might be useful to flag as an error any command names that 
+# conflict with any of the shell's metacharacters, keywords, reserved 
+# words, etc. ...or their option flags. 
+
 
 # get list of actual top level directories
 mapfile -t real_dirs < <(
