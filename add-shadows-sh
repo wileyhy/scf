@@ -79,7 +79,7 @@ for f in "${xff[@]}"; do
     )"
   fi
 
-  if [[ -z "${lo:0:16}" ]]; then
+  if [[ -z "${lo:0:32}" ]]; then
     if [[ -d "${d}" ]]; then
       sudo rmdir -- "${d}" \
         || fn_erx "${LINENO}"
@@ -94,11 +94,11 @@ enable -n "${x}"
 unset -f "${x}"
 
 :;: 'Remove: Alias' :;:
-unalias "${x}"
+unalias -a 
 
 
 
-:;: 'Shadow variable' :;:
+:;: 'Create Shadow variable' :;:
 dpo="$(declare -p "${x}")"
 
 if [[ -z "${dpo}" ]]; then
@@ -112,7 +112,7 @@ fi; unset dpo
 
 
 
-:;: 'Shadow nameref' :;:
+:;: 'Create Shadow nameref' :;:
 dao="$(declare -p "${x}" \
   | awk '$2 ~ /n/'
 )"
@@ -142,7 +142,7 @@ done; unset f
 
 
 
-:;: 'Shadow executable file' :;:
+:;: 'Create Shadow executable file' :;:
 if [[ ! -f "${xfa}" ]]; then
   printf '\x23\x21/usr/bin/sh\n%s \x22\x24\x40\x22\n' "${x}"\
     | sudo tee  "${xfa}" \
@@ -255,7 +255,7 @@ fi
 
 
 
-:;: 'Shadow function' :;:
+:;: 'Create Shadow function' :;:
 dpfo="$(declare -pf "${x}")"
 
 if [[ -z "${dpfo}" ]]; then
@@ -279,7 +279,7 @@ fi
 
 
 
-:;: 'Shadow alias' :;:
+:;: 'Create Shadow alias' :;:
 shopt -s expand_aliases
 ao="$(alias "${x}")"
 
