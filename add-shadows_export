@@ -1,0 +1,306 @@
+#!/usr/bin/bash -x
+#!/usr/bin/env -iS bash -x
+# shellcheck disable=SC2316,SC2312
+
+# entire notion of "a single function for setting up a set of command
+# shadows" violates the entire principle of 'separation of data and
+# code.'
+
+
+
+: 'Target string:'
+x='export'
+
+
+
+: 'Regular users only, and -sudo- required'
+
+if [[ "${UID}" == 0 ]]; then
+  printf '\n\t Must be a regular user and use sudo. \n\n'
+  exit 1
+
+elif ! sudo -v; then
+  printf '\n\t Validation failed of user\x27s \x60sudo\x60 timestamp. '
+  printf 'Exiting.\n\n'
+  exit "${LINENO}"
+fi
+
+
+
+: 'Variables, functions and umask'
+
+declare -p PATH
+
+xfa=/usr/bin/"${x}"
+xfb=/usr/sbin/"${x}"
+xfc=/usr/local/sbin/"${x}"
+xfd=/home/liveuser/bin/"${x}"
+xfe=/usr/local/bin/"${x}"
+xff=("${xfa}" "${xfb}" "${xfc}" "${xfd}" "${xfe}")
+
+function fn_erx(){
+  # shellcheck disable=SC2319
+  local ec="${?}"
+  echo ERROR: "${@}"
+  exit "${ec}"
+}
+
+umask 022
+
+
+
+: 'Tests'
+
+: 'Remove certain values'
+
+: 'Remove: Regular variable'
+unset -v "${x}"
+
+: 'Remove: Namerefs'
+unset -n "${x}"
+
+: 'Remove: Files (or symlinks) and Unused dirs in PATH'
+for f in "${xff[@]}"; do
+
+  if [[ -f "${f}" ]] \
+    || [[ -L "${f}" ]]
+  then
+    sudo rm -f i--one-file-system --preserve-root=all -- "${f}" \
+      || fn_erx "${LINENO}"
+  fi
+done; unset f
+
+for f in "${xff[@]}"; do
+  d="$(dirname "${f}")"
+  lo="$(find /usr/bin -type f -printf '%p' \
+    | cut -b -32
+  )"
+
+  if [[ -z "${lo:0:16}" ]]; then
+    sudo rmdir -- "${d}" \
+      || fn_erx "${LINENO}"
+  fi; unset d lo
+done; unset f
+
+: 'Remove: Builtin'
+enable -n "${x}"
+
+: 'Remove: Function'
+unset -f "${x}"
+
+: 'Remove: Alias'
+unalias "${x}"
+
+
+
+: 'Shadow variable'
+dpo="$(declare -p "${x}")"
+
+if [[ -z "${dpo}" ]]; then
+  eval "${x}"=quux
+  dpo="$(declare -p "${x}")"
+
+  if [[ -z "${dpo}" ]]; then
+    fn_erx
+  fi
+fi; unset dpo
+
+
+
+: 'Shadow nameref'
+dao="$(declare -p "${x}" \
+  | awk '$2 ~ /n/'
+)"
+
+if [[ -z "${dao}" ]]; then
+  declare -n "${x}"=USER
+  dao="$(declare -p "${x}" \
+    | awk '$2 ~ /n/'
+  )"
+
+  if [[ -z "${dao}" ]]; then
+    fn_erx
+  fi
+fi; unset dao
+
+
+
+: 'create PATH dirs as necc'
+for f in "${xff[@]}"; do
+  d="$(dirname "${f}")"
+
+  if [[ ! -d "${d}" ]]; then
+    sudo mkdir -p "${d}" \
+      || fn_erx "${LINENO}"
+  fi; unset d
+done; unset f
+
+
+
+: 'Shadow executable file'
+if [[ ! -f "${xfa}" ]]; then
+  printf '\x23\x21/usr/bin/sh\n%s \x22\x24\x40\x22\n' "${x}"\
+    | sudo tee  "${xfa}" \
+    || fn_erx "${LINENO}"
+
+  if [[ ! -f "${xfa}" ]]; then
+    fn_erx
+  fi
+fi
+
+if [[ "$(type -t "${x}")" != file ]]; then
+  fn_erx "${LINENO}"
+fi
+
+
+
+: 'Symlink of shadow file'
+if [[ ! -f "${xfb}" ]]; then
+  sudo ln -s "${xfa}" "${xfb}" \
+    || fn_erx "${LINENO}"
+
+  if [[ ! -f "${xfb}" ]]; then
+    fn_erx
+  fi
+fi
+
+
+
+: 'Hardlink of shadow file'
+if [[ ! -f "${xfc}" ]]; then
+  sudo ln "${xfa}" "${xfc}" \
+    || fn_erx "${LINENO}"
+
+  if [[ ! -f "${xfc}" ]]; then
+    fn_erx
+  fi
+fi
+
+
+
+: 'Dangling symlink of shadow file'
+if [[ ! -f "${xfd}" ]]; then
+  sudo cp -b "${xfa}" "${xfd}" \
+    || fn_erx "${LINENO}"
+
+  if [[ ! -f "${xfd}" ]]; then
+    fn_erx
+  fi
+fi
+
+if [[ ! -f "${xfe}" ]]; then
+  sudo ln -s "${xfd}" "${xfe}" \
+    || fn_erx "${LINENO}"
+
+  if [[ ! -f "${xfd}" ]]; then
+    fn_erx
+  fi
+  sudo rm -f i--one-file-system --preserve-root=all -- "${xfd}" \
+    || fn_erx "${LINENO}"
+
+  if [[ -f "${xfd}" ]]; then
+    fn_erx
+  fi
+fi
+
+: 'the actual files been removed so the extra symlink may "dangle"'
+unset 'xff[3]'
+
+
+
+: 'DAC permissions of shadow files'
+for f in "${xff[@]}" ; do
+  fa="$(sudo stat -c%a "${f}")"
+
+  if [[ "${fa}" != 755 ]] \
+    && [[ ! -L "${f}" ]]
+  then
+    sudo chmod 755 "${f}" \
+      || fn_erx "${LINENO}"
+    so="$(sudo stat -c%a "${f}")" \
+      || fn_erx "${LINENO}"
+
+    if ! grep -q 755 <<< "${so}"; then
+      fn_erx
+    fi
+  fi
+done
+
+
+
+: 'Builtin'
+eago="$(enable \
+  | grep "${x}"
+)"
+
+if [[ -z "${eago}" ]]; then
+  enable "${x}"
+  eago="$(enable \
+    | grep "${x}"
+  )"
+
+  if [[ -z "${eago}" ]]; then
+    fn_erx
+  fi
+fi; unset eago
+
+if [[ "$(type -t "${x}")" != builtin ]]; then
+  fn_erx "${LINENO}"
+fi
+
+
+
+: 'Shadow function'
+dpfo="$(declare -pf "${x}")"
+
+if [[ -z "${dpfo}" ]]; then
+  : 'define function'
+  eval function "${x}" '{ echo function bar;}'
+  : 'function call'
+  "${x}"
+  dpfo="$(declare -pf "${x}")"
+
+  if [[ -z "${dpfo}" ]]; then
+    fn_erx
+  fi
+fi; unset dpfo
+
+  : '<>'
+  type -a "${x}"
+
+if [[ "$(type -t "${x}")" != function ]]; then
+  fn_erx "${LINENO}"
+fi
+
+
+
+: 'Shadow alias'
+shopt -s expand_aliases
+ao="$(alias "${x}")"
+
+if [[ -z "${ao}" ]]; then
+  eval alias "${x}='{ echo alias foo;}'"
+  ao="$(alias "${x}")"
+
+  if [[ -z "${ao}" ]]; then
+    fn_erx
+  fi
+fi; unset ao
+
+if [[ "$(type -t "${x}")" != alias ]]; then
+  fn_erx "${LINENO}"
+fi
+
+
+
+: 'Verification'
+hash -r
+hash
+type -P "${x}"
+alias "${x}"
+command -pV "${x}"
+command -V "${x}"
+type -a "${x}"
+
+exit 00
+
