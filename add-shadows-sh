@@ -31,11 +31,11 @@ fi
 
 declare -p PATH
 
-xfa=/usr/bin/"${x}"
-xfb=/usr/sbin/"${x}"
-xfc=/usr/local/sbin/"${x}"
-xfd=/home/liveuser/bin/"${x}"
-xfe=/usr/local/bin/"${x}"
+xfa="/usr/bin/${x}"
+xfb="/usr/sbin/${x}_symlink"
+xfc="/usr/local/sbin/${x}_hardlink"
+xfd="/home/liveuser/bin/${x}"
+xfe="/usr/local/bin/${x}_symlink"
 xff=("${xfa}" "${xfb}" "${xfc}" "${xfd}" "${xfe}")
 
 function fn_erx(){
@@ -156,7 +156,7 @@ fi
 
 : 'Symlink of shadow file'
 if [[ ! -f "${xfb}" ]]; then
-  sudo ln -s "${xfa}" "${xfb}_symlink" \
+  sudo ln -s "${xfa}" "${xfb}" \
     || fn_erx "${LINENO}"
 
   if [[ ! -f "${xfb}" ]]; then
@@ -168,7 +168,7 @@ fi
 
 : 'Hardlink of shadow file'
 if [[ ! -f "${xfc}" ]]; then
-  sudo ln "${xfa}" "${xfc}_hardlink" \
+  sudo ln "${xfa}" "${xfc}" \
     || fn_erx "${LINENO}"
 
   if [[ ! -f "${xfc}" ]]; then
@@ -189,7 +189,7 @@ if [[ ! -f "${xfd}" ]]; then
 fi
 
 if [[ ! -f "${xfe}" ]]; then
-  sudo ln -s "${xfd}" "${xfe}_symlink" \
+  sudo ln -s "${xfd}" "${xfe}" \
     || fn_erx "${LINENO}"
 
   if [[ ! -f "${xfd}" ]]; then
