@@ -329,9 +329,7 @@ fi
 
 :;: 'Verification' :;:
 declare -p PATH
-sudo find "${find_path[@]}" \( \
-  -type f -o -type l \) \( \
-  -name "${x}" -o -name "${x}_*" \) 2> /dev/null \
+sudo find / '(' -name "${x}" -o -name "${x}_*" ')' \
   | grep -ve zsh -e tracker -e selinux
 hash -r
 hash
