@@ -37,7 +37,7 @@ declare -p find_path
 for d in "${!find_path[@]}"; do
   if [[ "${find_path[d]}" == /usr/bin ]]; then
     unset 'find_path[d]'
-  fi
+  fi; :
 done; unset d; :
 find_path=("${find_path[@]}")
 
@@ -79,7 +79,7 @@ for f in "${xff[@]}"; do
   then
     sudo rm -f i--one-file-system --preserve-root=all -- "${f}" \
       || fn_erx "${LINENO}"
-  fi
+  fi; :
 done; unset f; :
 
 for f in "${xff[@]}"; do
@@ -97,7 +97,7 @@ for f in "${xff[@]}"; do
       sudo rmdir -- "${d}" \
         || fn_erx "${LINENO}"
     fi
-  fi; unset d lo
+  fi; unset d lo; :
 done; unset f; :
 
 :;: 'Remove: Builtin' :;:
@@ -150,7 +150,7 @@ for f in "${xff[@]}"; do
   if [[ ! -d "${d}" ]]; then
     sudo mkdir -p "${d}" \
       || fn_erx "${LINENO}"
-  fi; unset d
+  fi; unset d; :
 done; unset f; :
 
 
@@ -241,7 +241,7 @@ for f in "${xff[@]}" ; do
     if ! grep -q 755 <<< "${so}"; then
       fn_erx
     fi
-  fi
+  fi; :
 done; :
 
 
