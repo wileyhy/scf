@@ -50,7 +50,7 @@ for fnm in "${file_names[@]}"; do
     if [[ -f "${nm}" ]] \
       || [[ -L "${nm}" ]]
     then
-      rm -f "${nm}" \
+      rm -f i--one-file-system --preserve-root=all -- "${nm}" \
         || fn_erx
     fi; unset nm; :
   done; unset dnm; :
