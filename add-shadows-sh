@@ -73,9 +73,11 @@ done; unset f
 
 for f in "${xff[@]}"; do
   d="$(dirname "${f}")"
-  lo="$(find "${d}" -printf '%p' \
-    | cut -b -32
-  )"
+  if [[ -d "${d}" ]]; then
+    lo="$(find -mindepth 1 -maxdepth 1 "${d}" -printf '%p' \
+      | cut -b -32
+    )"
+  fi
 
   if [[ -z "${lo:0:16}" ]]; then
     if [[ -d "${d}" ]]; then
