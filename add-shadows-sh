@@ -32,7 +32,7 @@ x='export'
 declare -p PATH
 
 : 'Set up testing of PATH dirs' :
-IFS= read -ra find_path <<< "${PATH}"
+IFS=':' read -ra find_path <<< "${PATH}"
 declare -p find_path
 for d in "${!find_path[2]}"; do
   if [[ "${find_path[d]}" == /usr/bin ]]; then
