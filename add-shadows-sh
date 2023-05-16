@@ -8,12 +8,12 @@
 
 
 
-: 'Target string:'
+:;: 'Target string:' :;:
 x='export'
 
 
 
-: 'Regular users only, and -sudo- required'
+:;: 'Regular users only, and -sudo- required' :;:
 
 if [[ "${UID}" == 0 ]]; then
   printf '\n\t Must be a regular user and use sudo. \n\n'
@@ -27,7 +27,7 @@ fi
 
 
 
-: 'Variables, functions and umask'
+:;: 'Variables, functions and umask' :;:
 
 declare -p PATH
 
@@ -49,21 +49,22 @@ umask 022
 
 
 
-: 'Tests'
+:;: 'Tests' :;:
 
-: 'Remove certain values'
+:;: 'Remove certain values' :;:
 
-: 'Remove: Regular variable'
+:;: 'Remove: Regular variable' :;:
 unset -v "${x}"
 
-: 'Remove: Namerefs'
+:;: 'Remove: Namerefs' :;:
 unset -n "${x}"
 
-: 'Remove: Files (or symlinks) and Unused dirs in PATH'
+:;: 'Remove: Files (or symlinks) and Unused dirs in PATH' :;:
 for f in "${xff[@]}"; do
 
   if [[ -f "${f}" ]] \
-    || [[ -L "${f}" ]]
+    || [[ -L "${f}" ]] \
+    || [[ -e "${f}" ]]
   then
     sudo rm -f i--one-file-system --preserve-root=all -- "${f}" \
       || fn_erx "${LINENO}"
@@ -82,18 +83,18 @@ for f in "${xff[@]}"; do
   fi; unset d lo
 done; unset f
 
-: 'Remove: Builtin'
+:;: 'Remove: Builtin' :;:
 enable -n "${x}"
 
-: 'Remove: Function'
+:;: 'Remove: Function' :;:
 unset -f "${x}"
 
-: 'Remove: Alias'
+:;: 'Remove: Alias' :;:
 unalias "${x}"
 
 
 
-: 'Shadow variable'
+:;: 'Shadow variable' :;:
 dpo="$(declare -p "${x}")"
 
 if [[ -z "${dpo}" ]]; then
@@ -107,7 +108,7 @@ fi; unset dpo
 
 
 
-: 'Shadow nameref'
+:;: 'Shadow nameref' :;:
 dao="$(declare -p "${x}" \
   | awk '$2 ~ /n/'
 )"
@@ -125,7 +126,7 @@ fi; unset dao
 
 
 
-: 'create PATH dirs as necc'
+:;: 'create PATH dirs as necc' :;:
 for f in "${xff[@]}"; do
   d="$(dirname "${f}")"
 
@@ -137,7 +138,7 @@ done; unset f
 
 
 
-: 'Shadow executable file'
+:;: 'Shadow executable file' :;:
 if [[ ! -f "${xfa}" ]]; then
   printf '\x23\x21/usr/bin/sh\n%s \x22\x24\x40\x22\n' "${x}"\
     | sudo tee  "${xfa}" \
@@ -154,7 +155,7 @@ fi
 
 
 
-: 'Symlink of shadow file'
+:;: 'Symlink of shadow file' :;:
 if [[ ! -f "${xfb}" ]]; then
   sudo ln -s "${xfa}" "${xfb}" \
     || fn_erx "${LINENO}"
@@ -166,7 +167,7 @@ fi
 
 
 
-: 'Hardlink of shadow file'
+:;: 'Hardlink of shadow file' :;:
 if [[ ! -f "${xfc}" ]]; then
   sudo ln "${xfa}" "${xfc}" \
     || fn_erx "${LINENO}"
@@ -178,7 +179,7 @@ fi
 
 
 
-: 'Dangling symlink of shadow file'
+:;: 'Dangling symlink of shadow file' :;:
 if [[ ! -f "${xfd}" ]]; then
   sudo cp -b "${xfa}" "${xfd}" \
     || fn_erx "${LINENO}"
@@ -203,12 +204,12 @@ if [[ ! -f "${xfe}" ]]; then
   fi
 fi
 
-: 'the actual file has been removed so the extra symlink may "dangle"'
+:;: 'the actual file has been removed so the extra symlink may "dangle"' :;:
 unset 'xff[3]'
 
 
 
-: 'DAC permissions of shadow files'
+:;: 'DAC permissions of shadow files' :;:
 for f in "${xff[@]}" ; do
   fa="$(sudo stat -c%a "${f}")"
 
@@ -228,7 +229,7 @@ done
 
 
 
-: 'Builtin'
+:;: 'Builtin' :;:
 eago="$(enable \
   | grep "${x}"
 )"
@@ -250,7 +251,7 @@ fi
 
 
 
-: 'Shadow function'
+:;: 'Shadow function' :;:
 dpfo="$(declare -pf "${x}")"
 
 if [[ -z "${dpfo}" ]]; then
@@ -274,7 +275,7 @@ fi
 
 
 
-: 'Shadow alias'
+:;: 'Shadow alias' :;:
 shopt -s expand_aliases
 ao="$(alias "${x}")"
 
@@ -293,7 +294,7 @@ fi
 
 
 
-: 'Verification'
+:;: 'Verification' :;:
 hash -r
 hash
 type -P "${x}"
