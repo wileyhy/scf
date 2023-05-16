@@ -35,7 +35,7 @@ xfa="/usr/bin/${x}"
 xfb="/usr/sbin/${x}_symlink"
 xfc="/usr/local/sbin/${x}_hardlink"
 xfd="/home/liveuser/bin/${x}"
-xfe="/usr/local/bin/${x}_symlink"
+xfe="/usr/local/bin/${x}_dangling_symlink"
 xff=("${xfa}" "${xfb}" "${xfc}" "${xfd}" "${xfe}")
 
 function fn_erx(){
