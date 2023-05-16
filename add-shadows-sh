@@ -34,7 +34,7 @@ declare -p PATH
 : 'Set up testing of PATH dirs' :
 IFS=':' read -ra find_path <<< "${PATH}"
 declare -p find_path
-for d in "${!find_path[2]}"; do
+for d in "${!find_path[@]}"; do
   if [[ "${find_path[d]}" == /usr/bin ]]; then
     unset 'find_path[d]'
   fi
