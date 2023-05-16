@@ -27,7 +27,14 @@ x='export'
 
 
 
-:;: 'Variables, functions and umask' :;:
+:;: 'Functions, variables and umask' :;:
+
+function fn_erx(){
+  # shellcheck disable=SC2319
+  local ec="${?}"
+  echo ERROR: "${@}"
+  exit "${ec}"
+}
 
 declare -p PATH
 
@@ -63,13 +70,6 @@ xfc="${find_path[1]}/${file_names[2]}"
 xfd="${find_path[2]}/${file_names[0]}"
 xfe="${find_path[3]}/${file_names[3]}"
 xff=("${xfa}" "${xfb}" "${xfc}" "${xfd}" "${xfe}")
-
-function fn_erx(){
-  # shellcheck disable=SC2319
-  local ec="${?}"
-  echo ERROR: "${@}"
-  exit "${ec}"
-}
 
 umask 022
 
