@@ -41,6 +41,8 @@ for d in "${!find_path[@]}"; do
 done; unset d; :
 find_path=("${find_path[@]}")
 
+# Bug: removal sb of [all dirnames]/[all filenames]
+
 : 'Set up testing of PATH dirs and files' :
 xfa="/usr/bin/${x}"
 xfb="${find_path[0]}/${x}_symlink"
@@ -85,7 +87,7 @@ done; unset f; :
 for f in "${xff[@]}"; do
   d="$(dirname "${f}")"
   if [[ -d "${d}" ]]; then
-    lo="$(find "${d}" -mindepth 1 -maxdepth 1 -printf '%p' \
+    lo="$(find "${d}" -mindepth 1 -printf '%p' \
       | cut -b -32
     )"
   fi
