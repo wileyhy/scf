@@ -78,8 +78,10 @@ for f in "${xff[@]}"; do
   )"
 
   if [[ -z "${lo:0:16}" ]]; then
-    sudo rmdir -- "${d}" \
-      || fn_erx "${LINENO}"
+    if [[ -d "${d}" ]]; then
+      sudo rmdir -- "${d}" \
+        || fn_erx "${LINENO}"
+    fi
   fi; unset d lo
 done; unset f
 
