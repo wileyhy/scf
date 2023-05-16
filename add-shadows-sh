@@ -91,7 +91,9 @@ for f in "${xff[@]}"; do
   fi
 
   if [[ -z "${lo:0:32}" ]]; then
-    if [[ -d "${d}" ]]; then
+    if [[ -d "${d}" ]] \
+      && [[ ! -L "${d}" ]]
+    then
       sudo rmdir -- "${d}" \
         || fn_erx "${LINENO}"
     fi
