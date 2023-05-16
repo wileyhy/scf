@@ -101,11 +101,11 @@ unalias -a
 :;: 'Create Shadow variable' :;:
 dpo="$(declare -p "${x}")"
 
-if [[ -z "${dpo}" ]]; then
+if [[ -z "${dpo:0:8}" ]]; then
   eval "${x}"=quux
   dpo="$(declare -p "${x}")"
 
-  if [[ -z "${dpo}" ]]; then
+  if [[ -z "${dpo:0:8}" ]]; then
     fn_erx
   fi
 fi; unset dpo
@@ -117,13 +117,13 @@ dao="$(declare -p "${x}" \
   | awk '$2 ~ /n/'
 )"
 
-if [[ -z "${dao}" ]]; then
+if [[ -z "${dao:0:8}" ]]; then
   declare -n "${x}"=USER
   dao="$(declare -p "${x}" \
     | awk '$2 ~ /n/'
   )"
 
-  if [[ -z "${dao}" ]]; then
+  if [[ -z "${dao:0:8}" ]]; then
     fn_erx
   fi
 fi; unset dao
@@ -238,13 +238,13 @@ eago="$(enable \
   | grep "${x}"
 )"
 
-if [[ -z "${eago}" ]]; then
+if [[ -z "${eago:0:8}" ]]; then
   enable "${x}"
   eago="$(enable \
     | grep "${x}"
   )"
 
-  if [[ -z "${eago}" ]]; then
+  if [[ -z "${eago:0:8}" ]]; then
     fn_erx
   fi
 fi; unset eago
@@ -258,14 +258,14 @@ fi
 :;: 'Create Shadow function' :;:
 dpfo="$(declare -pf "${x}")"
 
-if [[ -z "${dpfo}" ]]; then
+if [[ -z "${dpfo:0:8}" ]]; then
   : 'define function'
   eval function "${x}" '{ echo function bar;}'
   : 'function call'
   "${x}"
   dpfo="$(declare -pf "${x}")"
 
-  if [[ -z "${dpfo}" ]]; then
+  if [[ -z "${dpfo:0:8}" ]]; then
     fn_erx
   fi
 fi; unset dpfo
@@ -283,11 +283,11 @@ fi
 shopt -s expand_aliases
 ao="$(alias "${x}")"
 
-if [[ -z "${ao}" ]]; then
+if [[ -z "${ao:0:8}" ]]; then
   eval alias "${x}='{ echo alias foo;}'"
   ao="$(alias "${x}")"
 
-  if [[ -z "${ao}" ]]; then
+  if [[ -z "${ao:0:8}" ]]; then
     fn_erx
   fi
 fi; unset ao
