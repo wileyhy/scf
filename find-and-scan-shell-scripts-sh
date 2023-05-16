@@ -1,4 +1,5 @@
 #!/bin/bash -x
+  #!/usr/bin/env -iS bash -x
 # Written in bash version 5.1 on Fedora 37 & 38
 
 # Note: Keep your goal in mind.
@@ -10,12 +11,10 @@
 if [[ "${UID}" == 0 ]]; then
   printf '\n\t Must be a regular user and use sudo. \n\n'
   exit 1
-else
-  if ! sudo -v; then
-    printf '\n\tValidation failed of user\x27s \x60sudo\x60 timestamp; '
-    printf 'exiting.\n\n'
-    exit "${LINENO}"
-  fi
+elif ! sudo -v; then
+  printf '\n\tValidation failed of user\x27s \x60sudo\x60 timestamp; '
+  printf 'exiting.\n\n'
+  exit "${LINENO}"
 fi
 
 : 'Environment variables'
@@ -1067,33 +1066,74 @@ declare -p methods_symlinks_l # SC-2034
 
 
 ## Set up
-#   alias
-#     alias export='echo alias foo'
-#   function
-#     function export(){ echo function bar;}
-#   builtin
-#     enable export
-#   variable
+# Alias
+#     ao="$(alias export)"
+#     if [[ -z "${ao}" ]]; then
+#       alias export='echo alias foo'
+#       ao="$(alias export)"
+#       if [[ -z "${ao}" ]]; then
+#         fn_erx
+#       fi
+#     fi; unset ao
+# Function
+#     dpfo="$(declare -pf export)"
+#     if [[ -z "${dpfo}" ]]; then
+#       function export(){ echo function bar;}
+#       dpfo="$(declare -pf export)"
+#       if [[ -z "${dpfo}" ]]; then
+#         fn_erx
+#       fi
+#     fi; unset dpfo
+# Builtin
+#     eago="$(enable -a | grep export)"
+#     if [[ -z "${eago}" ]]; then
+#       enable export
+#       eago="$(enable -a | grep export)"
+#       if [[ -z "${eago}" ]]; then
+#         fn_erx
+#       fi
+#     fi; unset eago
+# Variable
+#     declare -p export
 #     declare export=quux
-#   nameref
+#     declare -p export
+# Nameref
+#     declare -p export | awk '$2 ~ /n/ { print }'
 #     declare -n export=USER
-#   executable file
-#     cat << EOF > /usr/bin/export
-# #!/usr/bin/sh
-# export "$@"
-#
-# EOF
-#   DAC permissions
-#     chmod 755 FILES
-#   sym of file
-#     ln -s /usr/bin/export /usr//sbin/export
-#   hardlink of file
-#     ln /usr/bin/export /usr/local/sbin/export
-#   dangling sym of file
+# Executable file
+#     xfa=/usr/bin/export
+#     [[ -f "${xfa}" ]]
+cat << EOF > "${xfa}"
+#!/usr/bin/sh
+export "$@"
+
+EOF
+# Sym of file
+#     xfb=/usr/sbin/export
+#     ln -s "${xfa}" "${xfb}"
+#     stat -c%a "${xfa}" "${xfb}"
+# Hardlink of file
+#     xfc=/usr/local/sbin/export
+#     ln "${xfa}" "${xfc}"
+#     stat -c%a "${xfa}" "${xfc}"
+# Dangling sym of file
 #     mkdir /home/liveuser/bin
-#     cp -b /usr/bin/export /home/liveuser/bin/export
-#     ln -s /home/liveuser/bin/export /usr/local/bin/export
-#     rm -f /home/liveuser/bin/export
+#       #   ^-- re find_path
+#     xfd=/home/liveuser/bin/export
+#     xfe=/usr/local/bin/export
+#     cp -b "${xfa}" "${xfd}"
+#     ln -s "${xfd}" "${xfe}"
+#     rm -f "${xfd}"
+#   DAC permissions
+#     for f in "${xfa}" "${xfb}" "${xfc}" "${xfd}" "${xfe}"; do
+#       fa="$(stat -c%a "${f}")"
+#       if [[ "${fa}" != 755 ]]; then
+#         chmod 755 "${f}"
+#         if ! stat -c%a "${f}" | grep -q 755; then
+#           fn_erx
+#         fi
+#       fi
+#     done
 
 
 ## search
@@ -1143,18 +1183,18 @@ declare -p methods_symlinks_l # SC-2034
 #     alias             # get
 #     command -pV       # get
 #     command -V        # get
-#     type -a           # get       #
-#     type -t           # get       #
-#     type -P           # get       #
+#     type -a           # get
+#     type -t           # get
+#     type -P           # get
 #     
 #     alias             # set 
 #     declare -n        # set
-#     enable            # set       #
+#     enable            # set
 #     function          # set
 #
-#     enable -n         # remove    #
+#     enable -n         # remove
 #     hash -r           # remove
-#     return            # remove    #
+#     return            # remove
 #     unalias           # remove
 #     unset -v          # remove
 #     unset -n          # remove
@@ -1176,25 +1216,23 @@ declare -p methods_symlinks_l # SC-2034
 #   mkdir
 #   find
 #   grep
+#   awk
+#   stat -c%a
 
 
 # as root
-[root@localhost-live ~]# vim /usr/bin/export
 [root@localhost-live ~]# ln --symbolic /usr/bin/export /usr/sbin/export
 [root@localhost-live ~]# ls -alhFi /usr/bin/export /usr/sbin/export
 174822 -rw-r--r--. 1 root root 24 May 15 09:05 /usr/bin/export
 166934 lrwxrwxrwx. 1 root root 15 May 15 09:06 /usr/sbin/export -> /usr/bin/export
+
 [root@localhost-live ~]# echo $PATH
 /root/.local/bin:/root/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/var/lib/snapd/snap/bin
-[root@localhost-live ~]# ls /usr/local/sbin
+
 [root@localhost-live ~]# ln /usr/bin/export /usr/local/sbin/export
 [root@localhost-live ~]# ls -alhFi /usr/bin/export /usr/local/sbin/export
 174822 -rw-r--r--. 2 root root 24 May 15 09:05 /usr/bin/export
 174822 -rw-r--r--. 2 root root 24 May 15 09:05 /usr/local/sbin/export
-[root@localhost-live ~]# cat /usr/bin/export
-#!/bin/sh
-
-export "$@"
 
 # as liveuser
 [liveuser@localhost-live scf]$ type -a export
