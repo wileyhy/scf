@@ -156,7 +156,7 @@ fi
 
 : 'Symlink of shadow file'
 if [[ ! -f "${xfb}" ]]; then
-  sudo ln -s "${xfa}" "${xfb}" \
+  sudo ln -s "${xfa}" "${xfb}_symlink" \
     || fn_erx "${LINENO}"
 
   if [[ ! -f "${xfb}" ]]; then
@@ -168,7 +168,7 @@ fi
 
 : 'Hardlink of shadow file'
 if [[ ! -f "${xfc}" ]]; then
-  sudo ln "${xfa}" "${xfc}" \
+  sudo ln "${xfa}" "${xfc}_hardlink" \
     || fn_erx "${LINENO}"
 
   if [[ ! -f "${xfc}" ]]; then
@@ -189,7 +189,7 @@ if [[ ! -f "${xfd}" ]]; then
 fi
 
 if [[ ! -f "${xfe}" ]]; then
-  sudo ln -s "${xfd}" "${xfe}" \
+  sudo ln -s "${xfd}" "${xfe}_symlink" \
     || fn_erx "${LINENO}"
 
   if [[ ! -f "${xfd}" ]]; then
@@ -203,7 +203,7 @@ if [[ ! -f "${xfe}" ]]; then
   fi
 fi
 
-: 'the actual files been removed so the extra symlink may "dangle"'
+: 'the actual file has been removed so the extra symlink may "dangle"'
 unset 'xff[3]'
 
 
