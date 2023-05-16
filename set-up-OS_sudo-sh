@@ -78,7 +78,7 @@ sudo chown "${UID}:${UID}" "/home/${USER}/.vimrc"
 chmod 0400 "/home/${USER}/.vimrc"
 
 # Dnf
-sudo dnf -y install info ShellCheck git gh kcov shfmt patch angband lynx libreoffice-calc chromium binutils
+sudo dnf -y install info ShellCheck git gh kcov shfmt patch angband lynx libreoffice-calc chromium binutils strace
 sudo dnf -y --security upgrade
 #set -x
 sleep 10
