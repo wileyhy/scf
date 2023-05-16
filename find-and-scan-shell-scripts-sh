@@ -1038,7 +1038,7 @@ declare -p methods_symlinks_l # SC-2034
 # declare -f bash       # to print functions
 #   unset -f bash       #   to remove functions
 # type -a bash          # to print aliases, functions, builtins, files 
-#                       #   or keywords; performs a complete PATH search;
+#                       #   or keywords; performs a complete PATH search (??);
 #                       #   detects hardlinks and symlinks
 # type -P bash          # forces a PATH search if the hash table is empty 
 # unalias bash          # to remove an alias
@@ -1064,6 +1064,116 @@ declare -p methods_symlinks_l # SC-2034
 #                       #   returns first match only
 # type -a bash          # performs full PATH search, returns mult matches
 #                       #   for the same file name 
+
+
+## Set up
+#   alias
+#     alias export='echo alias foo'
+#   function
+#     function export(){ echo function bar;}
+#   builtin
+#     enable export
+#   variable
+#     declare export=quux
+#   nameref
+#     declare -n export=USER
+#   executable file
+#     cat << EOF > /usr/bin/export
+# #!/usr/bin/sh
+# export "$@"
+#
+# EOF
+#   DAC permissions
+#     chmod 755 FILES
+#   sym of file
+#     ln -s /usr/bin/export /usr//sbin/export
+#   hardlink of file
+#     ln /usr/bin/export /usr/local/sbin/export
+#   dangling sym of file
+#     mkdir /home/liveuser/bin
+#     cp -b /usr/bin/export /home/liveuser/bin/export
+#     ln -s /home/liveuser/bin/export /usr/local/bin/export
+#     rm -f /home/liveuser/bin/export
+
+
+## search
+# type -t export
+# hash -r; hash; enable -n hash
+# type -P export
+# type -a export
+# command -pV export
+# command -V export
+# declare | grep export
+# alias | grep export
+
+# env 'ALL COMMANDS'
+# sh -c 'ALL COMMANDS'
+# bash -c 'ALL COMMANDS'
+# env sh -c 'ALL COMMANDS'
+# env bash -c 'ALL COMMANDS'
+
+
+#     export
+#   env 
+#
+####
+#
+#   bash                
+#     declare -p        # get
+#       unset -v          # remove
+#       unset -n          # remove
+#
+#     type -t           # get 
+#       unalias           # remove
+#       unset -f          # remove
+#
+#       hash -r           # remove
+#       enable -n hash    # remove 
+#     type -P           # get       #
+#     type -a           # get       #
+#     command -pV       # get
+#     command -V        # get
+#
+####
+#
+#     alias             # get
+#     command -pV       # get
+#     command -V        # get
+#     type -a           # get       #
+#     type -t           # get       #
+#     type -P           # get       #
+#     
+#     alias             # set 
+#     declare -n        # set
+#     enable            # set       #
+#     function          # set
+#
+#     enable -n         # remove    #
+#     hash -r           # remove
+#     return            # remove    #
+#     unalias           # remove
+#     unset -v          # remove
+#     unset -n          # remove
+#     unset -f          # remove
+#
+#   sh -c
+#   strace
+#   chmod
+#   ln -s
+#   ls -alhFi
+#   rm -f
+#   vim 
+#   cat 
+#   rpm -V|q[f|l]
+#   man -k|K 
+#   info bash BUILTIN
+#   echo
+#   reset
+#   mkdir
+#   find
+#   grep
+#
+
 
 # as root
 [root@localhost-live ~]# vim /usr/bin/export
