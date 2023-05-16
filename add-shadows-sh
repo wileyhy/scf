@@ -38,7 +38,7 @@ for d in "${!find_path[@]}"; do
   if [[ "${find_path[d]}" == /usr/bin ]]; then
     unset 'find_path[d]'
   fi
-done; unset d
+done; unset d; :
 find_path=("${find_path[@]}")
 
 : 'Set up testing of PATH dirs and files' :
@@ -80,7 +80,7 @@ for f in "${xff[@]}"; do
     sudo rm -f i--one-file-system --preserve-root=all -- "${f}" \
       || fn_erx "${LINENO}"
   fi
-done; unset f
+done; unset f; :
 
 for f in "${xff[@]}"; do
   d="$(dirname "${f}")"
@@ -98,7 +98,7 @@ for f in "${xff[@]}"; do
         || fn_erx "${LINENO}"
     fi
   fi; unset d lo
-done; unset f
+done; unset f; :
 
 :;: 'Remove: Builtin' :;:
 enable -n "${x}"
@@ -151,7 +151,7 @@ for f in "${xff[@]}"; do
     sudo mkdir -p "${d}" \
       || fn_erx "${LINENO}"
   fi; unset d
-done; unset f
+done; unset f; :
 
 
 
@@ -242,7 +242,7 @@ for f in "${xff[@]}" ; do
       fn_erx
     fi
   fi
-done
+done; :
 
 
 
