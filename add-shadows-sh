@@ -41,14 +41,27 @@ for d in "${!find_path[@]}"; do
 done; unset d; :
 find_path=("${find_path[@]}")
 
-# Bug: removal sb of [all dirnames]/[all filenames]
+file_names=([0]="${x}" [1]="${x}_symlink" [2]="${x}_hardlink" 
+  [3]="${x}_dangling_symlink"
+)
+for fnm in "${file_names[@]}"; do
+  for dnm in "${find_path[@]}"; do
+    nm="${dnm}/${fnm}"
+    if [[ -f "${nm}" ]] \
+      || [[ -L "${nm}" ]]
+    then
+      rm -f "${nm}" \
+        || fn_erx
+    fi; unset nm; :
+  done; unset dnm; :
+done; unset fnm; :
 
 : 'Set up testing of PATH dirs and files' :
-xfa="/usr/bin/${x}"
-xfb="${find_path[0]}/${x}_symlink"
-xfc="${find_path[1]}/${x}_hardlink"
-xfd="${find_path[2]}/${x}"
-xfe="${find_path[3]}/${x}_dangling_symlink"
+xfa="/usr/bin/${file_names[0]}"
+xfb="${find_path[0]}/${file_names[1]}"
+xfc="${find_path[1]}/${file_names[2]}"
+xfd="${find_path[2]}/${file_names[0]}"
+xfe="${find_path[3]}/${file_names[3]}"
 xff=("${xfa}" "${xfb}" "${xfc}" "${xfd}" "${xfe}")
 
 function fn_erx(){
@@ -184,6 +197,10 @@ if [[ ! -f "${xfb}" ]]; then
   fi
 fi
 
+if [[ "$(type -t "${x}")" != file ]]; then
+  fn_erx "${LINENO}"
+fi
+
 
 
 :;: 'Hardlink of shadow file' :;:
@@ -194,6 +211,10 @@ if [[ ! -f "${xfc}" ]]; then
   if [[ ! -f "${xfc}" ]]; then
     fn_erx
   fi
+fi
+
+if [[ "$(type -t "${x}")" != file ]]; then
+  fn_erx "${LINENO}"
 fi
 
 
@@ -221,6 +242,10 @@ if [[ ! -f "${xfe}" ]]; then
   if [[ -f "${xfd}" ]]; then
     fn_erx
   fi
+fi
+
+if [[ "$(type -t "${x}")" != file ]]; then
+  fn_erx "${LINENO}"
 fi
 
 :;: 'the actual file has been removed so the extra symlink may "dangle"' :;:
