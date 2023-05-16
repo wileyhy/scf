@@ -1119,20 +1119,24 @@ declare -p methods_symlinks_l # SC-2034
 ####
 #
 #   bash                
-#     declare -p        # get
-#       unset -v          # remove
-#       unset -n          # remove
+#     declare | grep export   # get
+#       unset -v export         # remove
+#       unset -n export         # remove
 #
-#     type -t           # get 
-#       unalias           # remove
-#       unset -f          # remove
+#     type -t export          # get 
+#       unalias export          # remove
+#       unset -f export         # remove
+#       enable -n export        # remove
 #
-#       hash -r           # remove
-#       enable -n hash    # remove 
-#     type -P           # get       #
-#     type -a           # get       #
-#     command -pV       # get
-#     command -V        # get
+#       hash -r               # remove
+#       hash                    # verify
+#       enable -n hash        # remove
+#       enable -a | grep -e hash -e export 
+#                               # verify
+#     type -P export          # get
+#     type -a export          # get
+#     command -pV export      # get
+#     command -V export       # get
 #
 ####
 #
@@ -1172,7 +1176,6 @@ declare -p methods_symlinks_l # SC-2034
 #   mkdir
 #   find
 #   grep
-#
 
 
 # as root
