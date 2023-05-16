@@ -85,18 +85,7 @@ unset -v "${x}"
 :;: 'Remove: Namerefs' :;:
 unset -n "${x}"
 
-:;: 'Remove: Files (or symlinks) and Unused dirs in PATH' :;:
-for f in "${xff[@]}"; do
-
-  if [[ -f "${f}" ]] \
-    || [[ -L "${f}" ]] \
-    || [[ -e "${f}" ]]
-  then
-    sudo rm -f i--one-file-system --preserve-root=all -- "${f}" \
-      || fn_erx "${LINENO}"
-  fi; :
-done; unset f; :
-
+:;: 'Remove: Unused dirs in PATH' :;:
 for f in "${xff[@]}"; do
   d="$(dirname "${f}")"
   if [[ -d "${d}" ]]; then
