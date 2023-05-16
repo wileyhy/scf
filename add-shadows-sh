@@ -329,7 +329,7 @@ fi
 
 :;: 'Verification' :;:
 declare -p PATH
-sudo find / \( \
+sudo find "${find_path[@]}" \( \
   -type f -o -type l \) \( \
   -name 'export' -o -name 'export_*' \) 2> /dev/null \
   | grep -ve zsh -e tracker -e selinux
