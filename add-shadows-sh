@@ -1,4 +1,4 @@
-#!/usr/bin/bash -x
+#!/usr/bin/bash
 #!/usr/bin/env -iS bash -x
 # shellcheck disable=SC2316,SC2312
 
@@ -68,8 +68,9 @@ xff=("${xfa}" "${xfb}" "${xfc}" "${xfd}" "${xfe}")
 
 umask 022
 
-exit 101
+#exit 101
 set -x
+
 
 
 :;: 'Tests' :;:
@@ -109,6 +110,9 @@ unset -f "${x}"
 :;: 'Remove: Alias' :;:
 unalias -a 
 
+exit 101
+set -x
+
 
 
 :;: 'Create Shadow variable' :;:
@@ -120,6 +124,9 @@ if [[ -z "${dpo:0:8}" ]]; then
     fn_erx
   fi
 fi; unset dpo
+
+exit 101
+set -x
 
 
 
@@ -137,6 +144,9 @@ if [[ -z "${dao:0:8}" ]]; then
   fi
 fi; unset dao
 
+exit 101
+set -x
+
 
 
 :;: 'create PATH dirs as necc' :;:
@@ -147,6 +157,9 @@ for f in "${xff[@]}"; do
       || fn_erx "${LINENO}"
   fi; unset d; :
 done; unset f; :
+
+exit 101
+set -x
 
 
 
@@ -163,6 +176,9 @@ if [[ "$(type -t "${x}")" != file ]]; then
   fn_erx "${LINENO}"
 fi
 
+exit 101
+set -x
+
 
 
 :;: 'Symlink of shadow file' :;:
@@ -177,6 +193,9 @@ if [[ "$(type -t "${x}")" != file ]]; then
   fn_erx "${LINENO}"
 fi
 
+exit 101
+set -x
+
 
 
 :;: 'Hardlink of shadow file' :;:
@@ -190,6 +209,9 @@ fi
 if [[ "$(type -t "${x}")" != file ]]; then
   fn_erx "${LINENO}"
 fi
+
+exit 101
+set -x
 
 
 
@@ -219,6 +241,9 @@ fi
 :;: 'the actual file has been removed so the extra symlink may "dangle"' :;:
 unset 'xff[3]'
 
+exit 101
+set -x
+
 
 
 :;: 'DAC permissions of shadow files' :;:
@@ -236,6 +261,9 @@ for f in "${xff[@]}" ; do
     fi
   fi; :
 done; :
+
+exit 101
+set -x
 
 
 
@@ -255,6 +283,9 @@ fi; unset eago
 if [[ "$(type -t "${x}")" != builtin ]]; then
   fn_erx "${LINENO}"
 fi
+
+exit 101
+set -x
 
 
 
@@ -276,6 +307,9 @@ if [[ "$(type -t "${x}")" != function ]]; then
   fn_erx "${LINENO}"
 fi
 
+exit 101
+set -x
+
 
 
 :;: 'Create Shadow alias' :;:
@@ -291,6 +325,9 @@ fi; unset ao
 if [[ "$(type -t "${x}")" != alias ]]; then
   fn_erx "${LINENO}"
 fi
+
+exit 101
+set -x
 
 
 
