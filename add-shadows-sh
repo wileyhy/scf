@@ -36,12 +36,12 @@ function fn_erx(){
   exit "${ec}"
 }
 
-PATH="/home/liveuser/.local/bin_symlink"  # <
-PATH+=":/home/liveuser/bin_hardlink"      # <
-PATH+=":/usr/local/bin_dangling_symlink"  # <
+PATH="/home/liveuser/.local/bin_symlink"  # < 0
+PATH+=":/home/liveuser/bin_hardlink"      # < 1
+PATH+=":/usr/local/bin_copu-of-inode"     # < 2
 PATH+=":/usr/bin"
 PATH+=":/bin"
-PATH+=":/usr/local/sbin"
+PATH+=":/usr/local/sbin_dangling_symlink" # < 5
 PATH+=":/usr/sbin"
 declare -p PATH
 
@@ -67,10 +67,10 @@ done; unset dnm; :
 
 : 'Set up testing of PATH dirs and files' :
 xfa="/usr/bin/${x}"
-xfb="${find_path[0]}/${x}"
-xfc="${find_path[1]}/${x}"
-xfd="${find_path[2]}/${x}"
-xfe="${find_path[3]}/${x}"
+xfb="${find_path[0]}/${x}" # symlink
+xfc="${find_path[1]}/${x}" # hardlink
+xfd="${find_path[2]}/${x}" # copy of inode
+xfe="${find_path[5]}/${x}" # dangling symlink
 xff=("${xfa}" "${xfb}" "${xfc}" "${xfd}" "${xfe}")
 
 umask 022
