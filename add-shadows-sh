@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/usr/bin/bash -x
 #!/usr/bin/env -iS bash
 # shellcheck disable=SC2316,SC2312,SC2317
 
@@ -24,6 +24,7 @@ fi
 :;: 'Target string:' :;:
 
 x='export'
+readonly x
 
 
 
@@ -33,9 +34,9 @@ reqd_cmds=( awk chmod cp cut dirname find grep ln ls mkdir rm rmdir stat sudo te
 if [[ "${BASH_VERSION:0:1}" -lt 5 ]]; then
   echo Please install Bash version 5, thanks.
 fi
-for x in "${reqd_cmds[@]}"; do 
+for c in "${reqd_cmds[@]}"; do 
   hash -r; 
-  if ! type -P "${x}" > /dev/null; then 
+  if ! type -P "${c}" > /dev/null; then 
     yn=n; 
   fi; 
 done; 
@@ -43,7 +44,7 @@ if [[ "${yn}" == n ]]; then
   echo fail; 
 else 
   echo succeed; 
-fi; unset x yn
+fi; unset c yn
 
 
 
