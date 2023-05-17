@@ -1,6 +1,7 @@
 #!/usr/bin/bash
 #!/usr/bin/env -iS bash -x
 # shellcheck disable=SC2316,SC2312,SC2317
+# add-shadows.bsh
 
 
 
@@ -74,7 +75,7 @@ for dnm in "${find_path[@]}"; do
       || fn_erx
   fi; unset nm; :
 done; unset dnm; :
-: 'Set up testing of PATH dirs and files' :
+: 'Set up testing of files' :
 xfa="/usr/bin/${x}"
 xfb="${find_path[0]}/${x}" # symlink
 xfc="${find_path[1]}/${x}" # hardlink
@@ -95,6 +96,7 @@ unset -v "${x}"
 :;: 'Remove: Namerefs' :;:
 unset -n "${x}"
 
+# This code block: for testing only
 :;: 'Remove: Unused dirs in PATH' :;:
 for f in "${xff[@]}"; do
   d="$(dirname "${f}")"

@@ -1041,6 +1041,7 @@ declare -p methods_symlinks_l # SC-2034
 #_full_xtrace
 #exit 101
 
+# TODO: Have only two options, via `bash` or via `find`. 
 # Bug: greps. parse full outputs of type and command
 
 
@@ -1054,6 +1055,22 @@ until [[ "${ec}" != 0 ]]; do
   ec=$?
 done
 
+# define STRING
+#   Note: Using readonly could work within a function ?
+# x='export'
+# readonly x
+
+
+# ID's and other strings
+# compgen -A user
+# compgen -A group
+# compgen -A hostname
+# compgen -A service
+# compgen -A setopt 
+# compgen -A shopt
+# compgen -A signal
+
+
 # remove all variable name collisions
 dec_o="$(declare -p STRING)"
 
@@ -1062,21 +1079,98 @@ if [[ -n "${dec_o}" ]]; then
   unset -n STRING
 fi
 
+  # compgen -A arrayvar
+  # compgen -A export
+  # compgen -A variable
+
 # type -t
 tt_o="$(type -t STRING)"
 case "${tt_o}" in
   
-  # remove alias
-  alias)  unalias STRING ;;
+  # remove builtin
+  builtin) enable -n STRING 
+    
+    # compgen -A builtin
+    # compgen -A disabled
+    # compgen -A enabled
+    ;;
   
   # remove functions
-  function) unset -f STRING ;;
+  function) 
+    # compgen -A function
+
+    unset -f STRING 
+    ;;
   
-  builtin) 
+  # remove alias
+  alias) unalias STRING 
+    
+    # compgen -A alias
+    ;;
   
   file)
+    # compgen -A file
+
+    x=export; 
+    mapfile -d '' -t type_a_files < <(
+      type -a "${x}" \
+        | awk -F"${x} is " "/^${x} is \//"' { printf "%s\0", $2 }' 
+    )
+
+
+    for f in "${type_a_files[@]}"; do 
+      rpm_Vf_o="$(rpm -Vf "${f}" 2>&1)"; 
+      
+      if [[ -n "${rpm_Vf_o}" ]]; then 
+        printf 'rpm: %s\n' "${rpm_Vf_o}"; 
+      
+        # parse output of `rpm`:
+          # [root@localhost-live ~]# type -a export
+          # export is a shell builtin
+          # export is /usr/bin/export
+          # export is /bin/export
+          #
+          # [root@localhost-live ~]# rpm -Vf /usr/bin/export
+          # file /usr/bin/export is not owned by any package    # <
+          #
+      
+      fi; 
+    done; unset f
+    ;;
+    
+
+    # And... what if it's "owned" by a package from some other package 
+    # manager (PM)?
+    
+    # each distro has a "primary" package manager, through which any 
+    # "secondary" package managers would be installed. The distro - 
+    # primary PM associations... is a conf file. 
+    #   So, (a) which distro is this script running on, then
+    #       (b) query the primary PM
+
+    #   (Partial) List:
+    #   0install chocolatey cpan cran dnf docker dpkg emerge flatpak 
+    # guix homebrew ipkg maven nix npm opkg pacman petget pip portage 
+    # rpm rubygems scoop slapt-get snap apk-tools zypper
   
-  keyword)
+    # see also: https://metacpan.org/release/Alien-Packages
+
+
+  keyword) true
+    
+    # testing: shadow a string that is a keyword and that doesn't
+    #   also fall into any other category defined by `type -a`
+    #
+    # [root@localhost-live ~]# compgen -k
+    # if then else elif fi case esac for select while until do done in
+    # function time { } ! [[ ]] coproc
+    #
+
+ 
+
+
+    ;;
+esac
 
 # remove hash table
 # lookup file and force a PATH search with type -P
@@ -1089,22 +1183,23 @@ case "${tt_o}" in
 
 
 ##  Thoughts
-#   Have only two options, via `bash` or via `find`. with bash, use 
-# `type -t` and case to (1) ID how the shell would call a command name, 
-# and take appropriarte action from there by removing anything that 
-# isn't a file, ie, an alias, function, etc.  Then use `type -a` and
-# parse the output of that also, removing non-files as necc. Then 
-# use `hash -r; type -P` to get the list of matches within PATH
-#   If there are still multiple options, -- no. Just
-# the results against `rpm -V`, and do any rpm reinstallations as
-# necc, and if there are (God forbid) any files w/o rpms, print an
-# error and exit. That should be enough to reliably get the correct
-# binary executable 99% of the time. ...to the best of my knowledge
-# at this time. I might change my mind tomorrow morning, though, of 
-# course! Also remove variables and parameters. 
-#   It might be useful to flag as an error any command names that 
-# conflict with any of the shell's metacharacters, keywords, reserved 
-# words, etc. ...or the bianry commands' option flags conflicting. 
+#   
+#   Remove variables and parameters. 
+#   
+#   with bash, use `type -t` and case to ID how the shell would call a command name, and take appropriarte action from there by removing anything that isn't a file, ie, an alias, function, etc.  
+#
+#   Then use `type -a` and parse the output of that also, removing non-files (ie, syms) as necc.
+#     - `type -a` ignores dangling symlinks
+#   
+#   Then use `hash -r; type -P` to get the list of matches within PATH
+#   
+#   compare the results against `rpm -V`
+#     do any rpm reinstallations as necc
+#
+#   if there are (God forbid) any files w/o rpms, either 
+#     print an error and exit, or
+#     offer option to remove the file. 
+#
 
 
 
