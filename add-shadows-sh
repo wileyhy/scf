@@ -36,6 +36,13 @@ function fn_erx(){
   exit "${ec}"
 }
 
+PATH="/home/liveuser/.local/bin_SYMLINK"  # <
+PATH+=":/home/liveuser/bin_HARDLINK"      # <
+PATH+=":/usr/local/bin_DANGLING_SYMLINK"  # <
+PATH+=":/usr/bin"
+PATH+=":/bin"
+PATH+=":/usr/local/sbin"
+PATH+=":/usr/sbin"
 declare -p PATH
 
 : 'Set up testing of PATH dirs' :
@@ -48,27 +55,22 @@ for d in "${!find_path[@]}"; do
 done; unset d; :
 find_path=("${find_path[@]}")
 
-file_names=([0]="${x}" [1]="${x}_symlink" [2]="${x}_hardlink" 
-  [3]="${x}_dangling_symlink"
-)
-for fnm in "${file_names[@]}"; do
-  for dnm in "${find_path[@]}"; do
-    nm="${dnm}/${fnm}"
-    if [[ -f "${nm}" ]] \
-      || [[ -L "${nm}" ]]
-    then
-      sudo rm -f i--one-file-system --preserve-root=all -- "${nm}" \
-        || fn_erx
-    fi; unset nm; :
-  done; unset dnm; :
-done; unset fnm; :
+for dnm in "${find_path[@]}"; do
+  nm="${dnm}/${fnm}"
+  if [[ -f "${nm}" ]] \
+    || [[ -L "${nm}" ]]
+  then
+    sudo rm -f i--one-file-system --preserve-root=all -- "${nm}" \
+      || fn_erx
+  fi; unset nm; :
+done; unset dnm; :
 
 : 'Set up testing of PATH dirs and files' :
-xfa="/usr/bin/${file_names[0]}"
-xfb="${find_path[0]}/${file_names[1]}"
-xfc="${find_path[1]}/${file_names[2]}"
-xfd="${find_path[2]}/${file_names[0]}"
-xfe="${find_path[3]}/${file_names[3]}"
+xfa="/usr/bin/${x}"
+xfb="${find_path[0]}/${x}"
+xfc="${find_path[1]}/${x}"
+xfd="${find_path[2]}/${x}"
+xfe="${find_path[3]}/${x}"
 xff=("${xfa}" "${xfb}" "${xfc}" "${xfd}" "${xfe}")
 
 umask 022
@@ -329,8 +331,7 @@ fi
 
 :;: 'Verification' :;:
 declare -p PATH
-sudo find / '(' -name "${x}" -o -name "${x}_*" ')' 2> /dev/null \
-  | grep -ve zsh -e tracker -e selinux
+sudo find / '(' -name "${x}" -o -name "${x}_*" ')' 2> /dev/null | grep -ve zsh -e tracker -e selinux
 hash -r
 hash
 type -P "${x}"
