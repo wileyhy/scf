@@ -13,7 +13,6 @@
 if [[ "${UID}" == 0 ]]; then
   printf '\n\t Must be a regular user and use sudo. \n\n'
   exit 1
-
 elif ! sudo -v; then
   printf '\n\t Validation failed of user\x27s \x60sudo\x60 timestamp. '
   printf 'Exiting.\n\n'
@@ -36,9 +35,10 @@ function fn_erx(){
   exit "${ec}"
 }
 
+unset PATH
 PATH="/home/liveuser/.local/bin_symlink"  # < 0
 PATH+=":/home/liveuser/bin_hardlink"      # < 1
-PATH+=":/usr/local/bin_copu-of-inode"     # < 2
+PATH+=":/usr/local/bin_copy-of-inode"     # < 2
 PATH+=":/usr/bin"
 PATH+=":/bin"
 PATH+=":/usr/local/sbin_dangling_symlink" # < 5
@@ -48,15 +48,8 @@ declare -p PATH
 : 'Set up testing of PATH dirs' :
 IFS=':' read -ra find_path <<< "${PATH}"
 declare -p find_path
-for d in "${!find_path[@]}"; do
-  if [[ "${find_path[d]}" == /usr/bin ]]; then
-    unset 'find_path[d]'
-  fi; :
-done; unset d; :
-find_path=("${find_path[@]}")
-
 for dnm in "${find_path[@]}"; do
-  nm="${dnm}/${fnm}"
+  nm="${dnm}/${x}"
   if [[ -f "${nm}" ]] \
     || [[ -L "${nm}" ]]
   then
@@ -75,6 +68,8 @@ xff=("${xfa}" "${xfb}" "${xfc}" "${xfd}" "${xfe}")
 
 umask 022
 
+exit 101
+set -x
 
 
 :;: 'Tests' :;:
@@ -95,7 +90,6 @@ for f in "${xff[@]}"; do
       | cut -b -32
     )"
   fi
-
   if [[ -z "${lo:0:32}" ]]; then
     if [[ -d "${d}" ]] \
       && [[ ! -L "${d}" ]]
@@ -119,11 +113,9 @@ unalias -a
 
 :;: 'Create Shadow variable' :;:
 dpo="$(declare -p "${x}")"
-
 if [[ -z "${dpo:0:8}" ]]; then
   eval "${x}"=quux
   dpo="$(declare -p "${x}")"
-
   if [[ -z "${dpo:0:8}" ]]; then
     fn_erx
   fi
@@ -135,13 +127,11 @@ fi; unset dpo
 dao="$(declare -p "${x}" \
   | awk '$2 ~ /n/'
 )"
-
 if [[ -z "${dao:0:8}" ]]; then
   declare -n "${x}"=USER
   dao="$(declare -p "${x}" \
     | awk '$2 ~ /n/'
   )"
-
   if [[ -z "${dao:0:8}" ]]; then
     fn_erx
   fi
@@ -152,7 +142,6 @@ fi; unset dao
 :;: 'create PATH dirs as necc' :;:
 for f in "${xff[@]}"; do
   d="$(dirname "${f}")"
-
   if [[ ! -d "${d}" ]]; then
     sudo mkdir -p "${d}" \
       || fn_erx "${LINENO}"
@@ -166,12 +155,10 @@ if [[ ! -f "${xfa}" ]]; then
   printf '\x23\x21/usr/bin/sh\n%s \x22\x24\x40\x22\n' "${x}"\
     | sudo tee  "${xfa}" \
     || fn_erx "${LINENO}"
-
   if [[ ! -f "${xfa}" ]]; then
     fn_erx
   fi
 fi
-
 if [[ "$(type -t "${x}")" != file ]]; then
   fn_erx "${LINENO}"
 fi
@@ -182,12 +169,10 @@ fi
 if [[ ! -f "${xfb}" ]]; then
   sudo ln -s "${xfa}" "${xfb}" \
     || fn_erx "${LINENO}"
-
   if [[ ! -f "${xfb}" ]]; then
     fn_erx
   fi
 fi
-
 if [[ "$(type -t "${x}")" != file ]]; then
   fn_erx "${LINENO}"
 fi
@@ -198,12 +183,10 @@ fi
 if [[ ! -f "${xfc}" ]]; then
   sudo ln "${xfa}" "${xfc}" \
     || fn_erx "${LINENO}"
-
   if [[ ! -f "${xfc}" ]]; then
     fn_erx
   fi
 fi
-
 if [[ "$(type -t "${x}")" != file ]]; then
   fn_erx "${LINENO}"
 fi
@@ -214,31 +197,25 @@ fi
 if [[ ! -f "${xfd}" ]]; then
   sudo cp -b "${xfa}" "${xfd}" \
     || fn_erx "${LINENO}"
-
   if [[ ! -f "${xfd}" ]]; then
     fn_erx
   fi
 fi
-
 if [[ ! -f "${xfe}" ]]; then
   sudo ln -s "${xfd}" "${xfe}" \
     || fn_erx "${LINENO}"
-
   if [[ ! -f "${xfd}" ]]; then
     fn_erx
   fi
   sudo rm -f i--one-file-system --preserve-root=all -- "${xfd}" \
     || fn_erx "${LINENO}"
-
   if [[ -f "${xfd}" ]]; then
     fn_erx
   fi
 fi
-
 if [[ "$(type -t "${x}")" != file ]]; then
   fn_erx "${LINENO}"
 fi
-
 :;: 'the actual file has been removed so the extra symlink may "dangle"' :;:
 unset 'xff[3]'
 
@@ -247,7 +224,6 @@ unset 'xff[3]'
 :;: 'DAC permissions of shadow files' :;:
 for f in "${xff[@]}" ; do
   fa="$(sudo stat -c%a "${f}")"
-
   if [[ "${fa}" != 755 ]] \
     && [[ ! -L "${f}" ]]
   then
@@ -255,7 +231,6 @@ for f in "${xff[@]}" ; do
       || fn_erx "${LINENO}"
     so="$(sudo stat -c%a "${f}")" \
       || fn_erx "${LINENO}"
-
     if ! grep -q 755 <<< "${so}"; then
       fn_erx
     fi
@@ -268,18 +243,15 @@ done; :
 eago="$(enable \
   | grep "${x}"
 )"
-
 if [[ -z "${eago:0:8}" ]]; then
   enable "${x}"
   eago="$(enable \
     | grep "${x}"
   )"
-
   if [[ -z "${eago:0:8}" ]]; then
     fn_erx
   fi
 fi; unset eago
-
 if [[ "$(type -t "${x}")" != builtin ]]; then
   fn_erx "${LINENO}"
 fi
@@ -288,22 +260,18 @@ fi
 
 :;: 'Create Shadow function' :;:
 dpfo="$(declare -pf "${x}")"
-
 if [[ -z "${dpfo:0:8}" ]]; then
   : 'define function'
   eval function "${x}" '{ echo function bar;}'
   : 'function call'
   "${x}"
   dpfo="$(declare -pf "${x}")"
-
   if [[ -z "${dpfo:0:8}" ]]; then
     fn_erx
   fi
 fi; unset dpfo
-
   : '<>'
   type -a "${x}"
-
 if [[ "$(type -t "${x}")" != function ]]; then
   fn_erx "${LINENO}"
 fi
@@ -313,16 +281,13 @@ fi
 :;: 'Create Shadow alias' :;:
 shopt -s expand_aliases
 ao="$(alias "${x}")"
-
 if [[ -z "${ao:0:8}" ]]; then
   eval alias "${x}='{ echo alias foo;}'"
   ao="$(alias "${x}")"
-
   if [[ -z "${ao:0:8}" ]]; then
     fn_erx
   fi
 fi; unset ao
-
 if [[ "$(type -t "${x}")" != alias ]]; then
   fn_erx "${LINENO}"
 fi
@@ -331,9 +296,7 @@ fi
 
 :;: 'Verification' :;:
 declare -p PATH
-
 sudo find / '(' '!' -path '*/1000/*' -a '!' -path '*/zsh/*' -a '!' -path '*/selinux/*' -a '!' -path '*/tracker3/*' ')' '(' -name "${x}" -o -name "${x}_*" ')'
-
 hash -r
 hash
 type -P "${x}"
@@ -341,6 +304,7 @@ alias "${x}"
 command -pV "${x}"
 command -V "${x}"
 type -a "${x}"
+rm -fr "${new_dirs[@]}"
 
 exit 00
 
