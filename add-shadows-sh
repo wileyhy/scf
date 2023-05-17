@@ -36,9 +36,9 @@ function fn_erx(){
   exit "${ec}"
 }
 
-PATH="/home/liveuser/.local/bin_SYMLINK"  # <
-PATH+=":/home/liveuser/bin_HARDLINK"      # <
-PATH+=":/usr/local/bin_DANGLING_SYMLINK"  # <
+PATH="/home/liveuser/.local/bin_symlink"  # <
+PATH+=":/home/liveuser/bin_hardlink"      # <
+PATH+=":/usr/local/bin_dangling_symlink"  # <
 PATH+=":/usr/bin"
 PATH+=":/bin"
 PATH+=":/usr/local/sbin"
@@ -331,7 +331,9 @@ fi
 
 :;: 'Verification' :;:
 declare -p PATH
-sudo find / '(' -name "${x}" -o -name "${x}_*" ')' 2> /dev/null | grep -ve zsh -e tracker -e selinux
+
+sudo find / '(' '!' -path '*/1000/*' -a '!' -path '*/zsh/*' -a '!' -path '*/selinux/*' -a '!' -path '*/tracker3/*' ')' '(' -name "${x}" -o -name "${x}_*" ')'
+
 hash -r
 hash
 type -P "${x}"
