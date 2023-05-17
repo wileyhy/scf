@@ -31,19 +31,21 @@ readonly x
 :;: 'Required commands' ;:;
 
 reqd_cmds=( awk chmod cp cut dirname find grep ln ls mkdir rm rmdir stat sudo tee )
+yn=n
 if [[ "${BASH_VERSION:0:1}" -lt 5 ]]; then
   echo Please install Bash version 5, thanks.
 fi
 for c in "${reqd_cmds[@]}"; do 
   hash -r; 
   if ! type -P "${c}" > /dev/null; then 
-    yn=n; 
+    yn+=" ${c}"
   fi; 
 done; 
-if [[ "${yn}" == n ]]; then 
-  echo fail; 
+if [[ "${yn}" == 'n' ]]; then 
+  : 'No additional commands are required'
 else 
-  echo succeed; 
+  echo 'Please install the following commands:' "${yn}"
+  exit 1
 fi; unset c yn
 
 
@@ -56,7 +58,7 @@ function fn_erx(){
   echo ERROR: "${@}"
   exit "${ec}"
 }
-unset PATH
+unset PATH 
 PATH="/home/liveuser/.local/bin_symlink"  # < 0
 PATH+=":/home/liveuser/bin_hardlink"      # < 1
 PATH+=":/usr/local/bin_copy-of-inode"     # < 2
