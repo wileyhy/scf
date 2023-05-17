@@ -17,6 +17,32 @@ elif ! sudo -v; then
   exit "${LINENO}"
 fi
 
+:;: 'Required commands' ;:; 
+
+# Bug: innaccurate list for this script, 17 May
+
+reqd_cmds=( awk chmod cp cut dirname find grep ln ls mkdir rm rmdir 
+  stat sudo tee )
+yn=n
+if [[ "${BASH_VERSION:0:1}" -lt 5 ]]; then
+  echo Please install Bash version 5, thanks.
+fi
+for c in "${reqd_cmds[@]}"; do  
+  hash -r; 
+  if ! type -P "${c}" > /dev/null; then 
+    yn+=" ${c}"
+  fi; 
+done; 
+if [[ "${yn}" == 'n' ]]; then 
+  : 'No additional commands are required'
+else 
+  printf '\n\t Please install the following commands: \n\t   %s \n\n' \
+    "${yn#n }"
+  exit 1
+fi; unset c yn
+#exit 101
+#set -x
+
 : 'Environment variables'
 
 unset LC_ALL Halt
@@ -1019,78 +1045,7 @@ declare -p methods_symlinks_l # SC-2034
 
 
 
-: 'Get all the commands: bash'
 
-# command -pV bash      # if there's an alias, prints only the alias
-#                       #   then same with function, then file
-# command -V bash       # if there's an alias....
-#                       #    same with function...
-# command -p bash       # returns '/usr/bin/bash' even when '/usr/bin/bash'
-#                       #   is not the first command named 'bash' in PATH
-#
-# type -t bash          # returns one word, how shell would interpret it
-#                       #   if used as a command name
-# hash -r; type -P bash # to force a PATH lookup
-# declare -p bash       # to print all parameters, incl namerefs
-#   unset               #   to remove variables; if no var, then removes 
-#                       #     functions
-#   unset -v            #   to remove variables
-#   unset -n            #   to remove namerefs
-# declare -f bash       # to print functions
-#   unset -f bash       #   to remove functions
-# type -a bash          # to print aliases, functions, builtins, files 
-#                       #   or keywords; performs a complete PATH search (??);
-#                       #   detects hardlinks and symlinks
-# type -P bash          # forces a PATH search if the hash table is empty 
-# unalias bash          # to remove an alias
-# unalias -a            #   to remove all aliases
-# hash -r               # to clear the hash table
-# hash                  # if empty, prints, 'hash: hash table empty'; 
-#                       #   all lookups limited to PATH
-# command               # all lookups, also, are limited to PATH
-# info bash BUILTIN     # info pages
-# help -m BUILTIN       # help pages
-#   help BUILTIN        #   
-# bind                  # binds keyboard keys to commands
-# local                 # sets variables inside functions
-# return                # returns from functions and sourcing of files
-#
-# declare -p bash       # print all variables matching NAME
-# unset -n bash         # only way to remove a nameref
-# unset -v bash         # removes variables
-# unset -f bash         # removes functions
-# unalias -a            # remove all aliases 
-# hash -r               # remove hash table
-# type -P bash          # force a path search, if the hash table is empty;
-#                       #   returns first match only
-# type -a bash          # performs full PATH search, returns mult matches
-#                       #   for the same file name 
-
-# env 'ALL COMMANDS'
-# sh -c 'ALL COMMANDS'
-# bash -c 'ALL COMMANDS'
-# env sh -c 'ALL COMMANDS'
-# env bash -c 'ALL COMMANDS'
-
-#   sh -c
-#   strace
-#   rpm -V|q[f|l]
-#   info bash BUILTIN
-
-
-## again with the commands
-[[ printf exit sudo : function local echo unset declare read rm umask set find cut rmdir enable unalias eval awk dirname mkdir tee type ln cp continue stat chmod grep shopt alias hash ls command
-
-
-[liveuser@localhost-live scf]$ env type -a export
-export is a special shell builtin
-[liveuser@localhost-live scf]$ env type -t export
-builtin
-[liveuser@localhost-live scf]$ sh -c 'type -t export'
-builtin
-
-# even when the `hash` builtin is disabled with `enable -n hash`, 
-# command hashing still occurs.
 
 
 # return from functions and sourcing
@@ -1110,12 +1065,17 @@ fi
 # type -t
 tt_o="$(type -t STRING)"
 case "${tt_o}" in
+  
   # remove alias
   alias)  unalias STRING ;;
+  
   # remove functions
   function) unset -f STRING ;;
+  
   builtin) 
+  
   file)
+  
   keyword)
 
 # remove hash table
@@ -1153,6 +1113,7 @@ case "${tt_o}" in
 
 
 
+: 'Get all the commands: bash'
 
 # get list of actual top level directories
 mapfile -t real_dirs < <(

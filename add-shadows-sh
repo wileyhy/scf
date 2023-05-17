@@ -1,15 +1,10 @@
-#!/usr/bin/bash -x
-#!/usr/bin/env -iS bash
+#!/usr/bin/bash
+#!/usr/bin/env -iS bash -x
 # shellcheck disable=SC2316,SC2312,SC2317
-
-# entire notion of "a single function for setting up a set of command
-# shadows" violates the entire principle of 'separation of data and
-# code.'
 
 
 
 :;: 'Regular users only, and -sudo- required' :;:
-
 if [[ "${UID}" == 0 ]]; then
   printf '\n\t Must be a regular user and use sudo. \n\n'
   exit 1
@@ -22,15 +17,14 @@ fi
 
 
 :;: 'Target string:' :;:
-
 x='export'
 readonly x
 
 
 
 :;: 'Required commands' ;:;
-
-reqd_cmds=( awk chmod cp cut dirname find grep ln ls mkdir rm rmdir stat sudo tee )
+reqd_cmds=( awk chmod cp cut dirname find grep ln ls mkdir rm rmdir 
+  stat sudo tee )
 yn=n
 if [[ "${BASH_VERSION:0:1}" -lt 5 ]]; then
   echo Please install Bash version 5, thanks.
@@ -44,14 +38,15 @@ done;
 if [[ "${yn}" == 'n' ]]; then 
   : 'No additional commands are required'
 else 
-  echo 'Please install the following commands:' "${yn}"
+  printf '\n\t Please install the following commands: \n\t   %s \n\n' \
+    "${yn#n }"
   exit 1
 fi; unset c yn
-
+#exit 101
+#set -x
 
 
 :;: 'Functions, variables and umask' :;:
-
 function fn_erx(){
   # shellcheck disable=SC2319
   local ec="${?}"
@@ -87,15 +82,12 @@ xfd="${find_path[2]}/${x}" # copy of inode
 xfe="${find_path[5]}/${x}" # dangling symlink
 xff=("${xfa}" "${xfb}" "${xfc}" "${xfd}" "${xfe}")
 umask 022
-
 #exit 101
 #set -x
 
 
 
-:;: 'Tests' :;:
-
-:;: 'Remove certain values' :;:
+:;: 'Tests: Remove certain values' :;:
 
 :;: 'Remove: Regular variable' :;:
 unset -v "${x}"
@@ -129,7 +121,6 @@ unset -f "${x}"
 
 :;: 'Remove: Alias' :;:
 unalias -a 
-
 #exit 101
 #set -x
 
@@ -144,7 +135,6 @@ if [[ -z "${dpo:0:8}" ]]; then
     fn_erx
   fi
 fi; unset dpo
-
 #exit 101
 #set -x
 
@@ -163,7 +153,6 @@ if [[ -z "${dao:0:8}" ]]; then
     fn_erx
   fi
 fi; unset dao
-
 #exit 101
 #set -x
 
@@ -177,7 +166,6 @@ for f in "${xff[@]}"; do
       || fn_erx "${LINENO}"
   fi; unset d; :
 done; unset f; :
-
 #exit 101
 #set -x
 
@@ -195,7 +183,6 @@ fi
 if [[ "$(type -t "${x}")" != file ]]; then
   fn_erx "${LINENO}"
 fi
-
 #exit 101
 #set -x
 
@@ -212,7 +199,6 @@ fi
 if [[ "$(type -t "${x}")" != file ]]; then
   fn_erx "${LINENO}"
 fi
-
 #exit 101
 #set -x
 
@@ -229,7 +215,6 @@ fi
 if [[ "$(type -t "${x}")" != file ]]; then
   fn_erx "${LINENO}"
 fi
-
 #exit 101
 #set -x
 
@@ -260,7 +245,6 @@ if [[ "$(type -t "${x}")" != file ]]; then
 fi
 :;: 'the actual file has been removed so the extra symlink may "dangle"' :;:
 unset 'xff[3]'
-
 #exit 101
 #set -x
 
@@ -282,7 +266,6 @@ for f in "${xff[@]}" ; do
     fi
   fi; :
 done; :
-
 #exit 101
 #set -x
 
@@ -304,7 +287,6 @@ fi; unset eago
 if [[ "$(type -t "${x}")" != builtin ]]; then
   fn_erx "${LINENO}"
 fi
-
 #exit 101
 #set -x
 
@@ -323,7 +305,6 @@ fi; unset dpfo
 if [[ "$(type -t "${x}")" != function ]]; then
   fn_erx "${LINENO}"
 fi
-
 #exit 101
 #set -x
 
@@ -342,7 +323,6 @@ fi; unset ao
 if [[ "$(type -t "${x}")" != alias ]]; then
   fn_erx "${LINENO}"
 fi
-
 #exit 101
 #set -x
 
@@ -355,7 +335,6 @@ type_P_o="$(type -P "${x}")"
 printf '\n\t ls -alhFi [FILE]; ls -alhFiL [FILE] \n\n' 
 ls -alhFi --quoting-style=shell-always --color=always "${type_P_o}"
 ls -alhFiL --quoting-style=shell-always --color=always "${type_P_o}"
-
 #exit 101
 #set -x
 
@@ -364,13 +343,12 @@ ls -alhFiL --quoting-style=shell-always --color=always "${type_P_o}"
 :;: 'Verification 2: type -a' :;:
 printf '\n\t declare -p find_path # (Same as PATH.) \n\n' 
 declare -p find_path
-
 printf '\n\t command -pV; command -v \n\n' 
 command -pV "${x}"; command -v "${x}"
-
 printf '\n\t find \n\n' 
-sudo find / '(' '!' -path '*/1000/*' -a '!' -path '*/zsh/*' -a '!' -path '*/selinux/*' -a '!' -path '*/tracker3/*' ')' '(' -name "${x}" -o -name "${x}_*" ')' 2> /dev/null
-
+sudo find / '(' '!' -path '*/1000/*' -a '!' -path '*/zsh/*' -a '!' \
+  -path '*/selinux/*' -a '!' -path '*/tracker3/*' ')' '(' \
+  -name "${x}" -o -name "${x}_*" ')' 2> /dev/null
 printf '\n\t type -a\n\n' 
 type -a "${x}"
 
