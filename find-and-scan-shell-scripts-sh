@@ -1017,6 +1017,8 @@ declare -p methods_symlinks_l # SC-2034
 
 # Bug: greps. parse full outputs of type and command
 
+
+
 : 'Get all the commands: bash'
 
 # command -pV bash      # if there's an alias, prints only the alias
@@ -1064,267 +1066,28 @@ declare -p methods_symlinks_l # SC-2034
 # type -a bash          # performs full PATH search, returns mult matches
 #                       #   for the same file name 
 
-
-## Set up
-# Alias
-#     ao="$(alias export)"
-#     if [[ -z "${ao}" ]]; then
-#       alias export='echo alias foo'
-#       ao="$(alias export)"
-#       if [[ -z "${ao}" ]]; then
-#         fn_erx
-#       fi
-#     fi; unset ao
-# Function
-#     dpfo="$(declare -pf export)"
-#     if [[ -z "${dpfo}" ]]; then
-#       function export(){ echo function bar;}
-#       dpfo="$(declare -pf export)"
-#       if [[ -z "${dpfo}" ]]; then
-#         fn_erx
-#       fi
-#     fi; unset dpfo
-# Builtin
-#     eago="$(enable -a | grep export)"
-#     if [[ -z "${eago}" ]]; then
-#       enable export
-#       eago="$(enable -a | grep export)"
-#       if [[ -z "${eago}" ]]; then
-#         fn_erx
-#       fi
-#     fi; unset eago
-# Variable
-#     declare -p export
-#     declare export=quux
-#     declare -p export
-# Nameref
-#     declare -p export | awk '$2 ~ /n/ { print }'
-#     declare -n export=USER
-# Executable file
-#     xfa=/usr/bin/export
-#     [[ -f "${xfa}" ]]
-cat << EOF > "${xfa}"
-#!/usr/bin/sh
-export "$@"
-
-EOF
-# Sym of file
-#     xfb=/usr/sbin/export
-#     ln -s "${xfa}" "${xfb}"
-#     stat -c%a "${xfa}" "${xfb}"
-# Hardlink of file
-#     xfc=/usr/local/sbin/export
-#     ln "${xfa}" "${xfc}"
-#     stat -c%a "${xfa}" "${xfc}"
-# Dangling sym of file
-#     mkdir /home/liveuser/bin
-#       #   ^-- re find_path
-#     xfd=/home/liveuser/bin/export
-#     xfe=/usr/local/bin/export
-#     cp -b "${xfa}" "${xfd}"
-#     ln -s "${xfd}" "${xfe}"
-#     rm -f "${xfd}"
-#   DAC permissions
-#     for f in "${xfa}" "${xfb}" "${xfc}" "${xfd}" "${xfe}"; do
-#       fa="$(stat -c%a "${f}")"
-#       if [[ "${fa}" != 755 ]]; then
-#         chmod 755 "${f}"
-#         if ! stat -c%a "${f}" | grep -q 755; then
-#           fn_erx
-#         fi
-#       fi
-#     done
-
-
-## search
-# type -t export
-# hash -r; hash; enable -n hash
-# type -P export
-# type -a export
-# command -pV export
-# command -V export
-# declare | grep export
-# alias | grep export
-
 # env 'ALL COMMANDS'
 # sh -c 'ALL COMMANDS'
 # bash -c 'ALL COMMANDS'
 # env sh -c 'ALL COMMANDS'
 # env bash -c 'ALL COMMANDS'
 
-
-#     export
-#   env 
-#
-####
-#
-#   bash                
-#     declare | grep export   # get
-#       unset -v export         # remove
-#       unset -n export         # remove
-#
-#     type -t export          # get 
-#       unalias export          # remove
-#       unset -f export         # remove
-#       enable -n export        # remove
-#
-#       hash -r               # remove
-#       hash                    # verify
-#       enable -n hash        # remove
-#       enable -a | grep -e hash -e export 
-#                               # verify
-#     type -P export          # get
-#     type -a export          # get
-#     command -pV export      # get
-#     command -V export       # get
-#
-####
-#
-#     alias             # get
-#     command -pV       # get
-#     command -V        # get
-#     type -a           # get
-#     type -t           # get
-#     type -P           # get
-#     
-#     alias             # set 
-#     declare -n        # set
-#     enable            # set
-#     function          # set
-#
-#     enable -n         # remove
-#     hash -r           # remove
-#     return            # remove
-#     unalias           # remove
-#     unset -v          # remove
-#     unset -n          # remove
-#     unset -f          # remove
-#
 #   sh -c
 #   strace
-#   chmod
-#   ln -s
-#   ls -alhFi
-#   rm -f
-#   vim 
-#   cat 
 #   rpm -V|q[f|l]
-#   man -k|K 
 #   info bash BUILTIN
-#   echo
-#   reset
-#   mkdir
-#   find
-#   grep
-#   awk
-#   stat -c%a
 
 
-# as root
-[root@localhost-live ~]# ln --symbolic /usr/bin/export /usr/sbin/export
-[root@localhost-live ~]# ls -alhFi /usr/bin/export /usr/sbin/export
-174822 -rw-r--r--. 1 root root 24 May 15 09:05 /usr/bin/export
-166934 lrwxrwxrwx. 1 root root 15 May 15 09:06 /usr/sbin/export -> /usr/bin/export
+## again with the commands
+[[ printf exit sudo : function local echo unset declare read rm umask set find cut rmdir enable unalias eval awk dirname mkdir tee type ln cp continue stat chmod grep shopt alias hash ls command
 
-[root@localhost-live ~]# echo $PATH
-/root/.local/bin:/root/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/var/lib/snapd/snap/bin
 
-[root@localhost-live ~]# ln /usr/bin/export /usr/local/sbin/export
-[root@localhost-live ~]# ls -alhFi /usr/bin/export /usr/local/sbin/export
-174822 -rw-r--r--. 2 root root 24 May 15 09:05 /usr/bin/export
-174822 -rw-r--r--. 2 root root 24 May 15 09:05 /usr/local/sbin/export
-
-# as liveuser
-[liveuser@localhost-live scf]$ type -a export
-export is a shell builtin
-[liveuser@localhost-live scf]$ hash -r
-[liveuser@localhost-live scf]$ type -a export
-export is a shell builtin
-[liveuser@localhost-live scf]$ type -P export
-/usr/bin/export
-[liveuser@localhost-live scf]$ type -a export
-export is a shell builtin
-
-# new shell
-[liveuser@localhost-live scf]$ type -a export
-export is a shell builtin
-[liveuser@localhost-live scf]$ hash
-hash: hash table empty
-[liveuser@localhost-live scf]$ type -P export
-/usr/bin/export
-[liveuser@localhost-live scf]$ sudo find / \( -type f -o -type l \) -name export -exec ls -alhFi '{}' ';' 2> /dev/null | grep -ve zsh -e tracker -e selinux
-166934 lrwxrwxrwx. 1 root root 15 May 15 09:06 /usr/sbin/export -> /usr/bin/export
-174822 -rw-r--r--. 2 root root 24 May 15 09:05 /usr/local/sbin/export
-174822 -rw-r--r--. 2 root root 24 May 15 09:05 /usr/bin/export
-174822 -rw-r--r--. 2 root root 24 May 15 09:05 /usr/local/sbin/export
-174822 -rw-r--r--. 2 root root 24 May 15 09:05 /usr/bin/export
-[liveuser@localhost-live scf]$ sudo find / \( -type f -o -type l \) -name export -exec ls -alhFi '{}' ';' 2> /dev/null | grep -ve zsh -e tracker -e selinux
-166934 lrwxrwxrwx. 1 root root 15 May 15 09:06 /usr/sbin/export -> /usr/bin/export
-174822 -rw-r--r--. 2 root root 24 May 15 09:05 /usr/local/sbin/export
-174822 -rw-r--r--. 2 root root 24 May 15 09:05 /usr/bin/export
-
-[liveuser@localhost-live scf]$ function export()( echo foo;)
-[liveuser@localhost-live scf]$ alias export='echo bar'
-[liveuser@localhost-live scf]$ hash -r
-[liveuser@localhost-live scf]$ hash
-hash: hash table empty
-[liveuser@localhost-live scf]$ type -P export
-/usr/bin/export
-[liveuser@localhost-live scf]$ type -a export
-export is aliased to 'echo bar'
-export is a function
-export () 
-{ 
-    ( echo foo )
-}
-export is a shell builtin
-
-# you can also use `env`
-[liveuser@localhost-live scf]$ env hash
-[liveuser@localhost-live scf]$ type -t env 
-file
-[liveuser@localhost-live scf]$ type -P env 
-/usr/bin/env
-[liveuser@localhost-live scf]$ hash -r
-[liveuser@localhost-live scf]$ type -P env 
-/usr/bin/env
-[liveuser@localhost-live scf]$ hash -r
-[liveuser@localhost-live scf]$ hash 
-hash: hash table empty
-[liveuser@localhost-live scf]$ type -P export
-/usr/local/sbin/export
-[liveuser@localhost-live scf]$ type -a export
-bash: type: export: not found
-[liveuser@localhost-live scf]$ command -pV export
-bash: command: export: not found
-[liveuser@localhost-live scf]$ sudo find / \( -type f -o -type l \) -name export -exec ls -alhFi '{}' ';' 2> /dev/null | grep -ve zsh -e tracker -e selinux
-[sudo] password for liveuser: 
-166934 lrwxrwxrwx. 1 root root 15 May 15 09:06 /usr/sbin/export -> /usr/bin/export
-174822 -rw-r--r--. 1 root root 24 May 15 09:05 /usr/local/sbin/export
-[liveuser@localhost-live scf]$ sudo find / \( -type f -o -type l \) -name export -exec ls -alhFi '{}' ';' 2> /dev/null | grep -ve zsh -e tracker -e selinux
-174822 -rw-r--r--. 1 root root 24 May 15 09:05 /usr/local/sbin/export
-[liveuser@localhost-live scf]$ hash
-hash: hash table empty
-[liveuser@localhost-live scf]$ type -P export
-/usr/local/sbin/export
-[liveuser@localhost-live scf]$ sudo find / \( -type f -o -type l \) -name export -exec ls -alhFi '{}' ';' 2> /dev/null | grep -ve zsh -e tracker -e selinux
-166934 lrwxrwxrwx. 1 root root 15 May 15 09:32 /usr/sbin/export -> /usr/bin/export
-174822 -rw-r--r--. 1 root root 24 May 15 09:05 /usr/local/sbin/export
-[liveuser@localhost-live scf]$ sudo find / \( -type f -o -type l \) -name export -exec ls -alhFi '{}' ';' 2> /dev/null | grep -ve zsh -e tracker -e selinux
-166934 lrwxrwxrwx. 1 root root 15 May 15 09:32 /usr/sbin/export -> /usr/bin/export
-[liveuser@localhost-live scf]$ hash 
-hash: hash table empty
-[liveuser@localhost-live scf]$ type -P export
-[liveuser@localhost-live scf]$ type -a export
-bash: type: export: not found
 [liveuser@localhost-live scf]$ env type -a export
 export is a special shell builtin
 [liveuser@localhost-live scf]$ env type -t export
 builtin
 [liveuser@localhost-live scf]$ sh -c 'type -t export'
 builtin
-
-
 
 # even when the `hash` builtin is disabled with `enable -n hash`, 
 # command hashing still occurs.
@@ -1382,6 +1145,13 @@ case "${tt_o}" in
 #   It might be useful to flag as an error any command names that 
 # conflict with any of the shell's metacharacters, keywords, reserved 
 # words, etc. ...or the bianry commands' option flags conflicting. 
+
+
+
+
+
+
+
 
 
 # get list of actual top level directories

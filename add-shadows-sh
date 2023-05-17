@@ -1,6 +1,6 @@
 #!/usr/bin/bash
-#!/usr/bin/env -iS bash -x
-# shellcheck disable=SC2316,SC2312
+#!/usr/bin/env -iS bash
+# shellcheck disable=SC2316,SC2312,SC2317
 
 # entire notion of "a single function for setting up a set of command
 # shadows" violates the entire principle of 'separation of data and
@@ -22,7 +22,28 @@ fi
 
 
 :;: 'Target string:' :;:
+
 x='export'
+
+
+
+:;: 'Required commands' ;:;
+
+reqd_cmds=( awk chmod cp cut dirname find grep ln ls mkdir rm rmdir stat sudo tee )
+if [[ "${BASH_VERSION:0:1}" -lt 5 ]]; then
+  echo Please install Bash version 5, thanks.
+fi
+for x in "${reqd_cmds[@]}"; do 
+  hash -r; 
+  if ! type -P "${x}" > /dev/null; then 
+    yn=n; 
+  fi; 
+done; 
+if [[ "${yn}" == n ]]; then 
+  echo fail; 
+else 
+  echo succeed; 
+fi; unset x yn
 
 
 
@@ -34,7 +55,6 @@ function fn_erx(){
   echo ERROR: "${@}"
   exit "${ec}"
 }
-
 unset PATH
 PATH="/home/liveuser/.local/bin_symlink"  # < 0
 PATH+=":/home/liveuser/bin_hardlink"      # < 1
@@ -43,11 +63,10 @@ PATH+=":/usr/bin"
 PATH+=":/bin"
 PATH+=":/usr/local/sbin_dangling_symlink" # < 5
 PATH+=":/usr/sbin"
-declare -p PATH
-
+#declare -p PATH
 : 'Set up testing of PATH dirs' :
 IFS=':' read -ra find_path <<< "${PATH}"
-declare -p find_path
+#declare -p find_path
 for dnm in "${find_path[@]}"; do
   nm="${dnm}/${x}"
   if [[ -f "${nm}" ]] \
@@ -57,7 +76,6 @@ for dnm in "${find_path[@]}"; do
       || fn_erx
   fi; unset nm; :
 done; unset dnm; :
-
 : 'Set up testing of PATH dirs and files' :
 xfa="/usr/bin/${x}"
 xfb="${find_path[0]}/${x}" # symlink
@@ -65,11 +83,10 @@ xfc="${find_path[1]}/${x}" # hardlink
 xfd="${find_path[2]}/${x}" # copy of inode
 xfe="${find_path[5]}/${x}" # dangling symlink
 xff=("${xfa}" "${xfb}" "${xfc}" "${xfd}" "${xfe}")
-
 umask 022
 
 #exit 101
-set -x
+#set -x
 
 
 
@@ -110,13 +127,13 @@ unset -f "${x}"
 :;: 'Remove: Alias' :;:
 unalias -a 
 
-exit 101
-set -x
+#exit 101
+#set -x
 
 
 
 :;: 'Create Shadow variable' :;:
-dpo="$(declare -p "${x}")"
+dpo="$(declare -p "${x}" 2> /dev/null)"
 if [[ -z "${dpo:0:8}" ]]; then
   eval "${x}"=quux
   dpo="$(declare -p "${x}")"
@@ -125,8 +142,8 @@ if [[ -z "${dpo:0:8}" ]]; then
   fi
 fi; unset dpo
 
-exit 101
-set -x
+#exit 101
+#set -x
 
 
 
@@ -144,8 +161,8 @@ if [[ -z "${dao:0:8}" ]]; then
   fi
 fi; unset dao
 
-exit 101
-set -x
+#exit 101
+#set -x
 
 
 
@@ -158,15 +175,15 @@ for f in "${xff[@]}"; do
   fi; unset d; :
 done; unset f; :
 
-exit 101
-set -x
+#exit 101
+#set -x
 
 
 
 :;: 'Create Shadow executable file' :;:
 if [[ ! -f "${xfa}" ]]; then
   printf '\x23\x21/usr/bin/sh\n%s \x22\x24\x40\x22\n' "${x}"\
-    | sudo tee  "${xfa}" \
+    | sudo tee  "${xfa}" > /dev/null \
     || fn_erx "${LINENO}"
   if [[ ! -f "${xfa}" ]]; then
     fn_erx
@@ -176,8 +193,8 @@ if [[ "$(type -t "${x}")" != file ]]; then
   fn_erx "${LINENO}"
 fi
 
-exit 101
-set -x
+#exit 101
+#set -x
 
 
 
@@ -193,8 +210,8 @@ if [[ "$(type -t "${x}")" != file ]]; then
   fn_erx "${LINENO}"
 fi
 
-exit 101
-set -x
+#exit 101
+#set -x
 
 
 
@@ -210,8 +227,8 @@ if [[ "$(type -t "${x}")" != file ]]; then
   fn_erx "${LINENO}"
 fi
 
-exit 101
-set -x
+#exit 101
+#set -x
 
 
 
@@ -241,17 +258,18 @@ fi
 :;: 'the actual file has been removed so the extra symlink may "dangle"' :;:
 unset 'xff[3]'
 
-exit 101
-set -x
+#exit 101
+#set -x
 
 
 
 :;: 'DAC permissions of shadow files' :;:
 for f in "${xff[@]}" ; do
+  if [[ -L "${f}" ]]; then
+    continue
+  fi
   fa="$(sudo stat -c%a "${f}")"
-  if [[ "${fa}" != 755 ]] \
-    && [[ ! -L "${f}" ]]
-  then
+  if [[ "${fa}" != 755 ]]; then
     sudo chmod 755 "${f}" \
       || fn_erx "${LINENO}"
     so="$(sudo stat -c%a "${f}")" \
@@ -262,8 +280,8 @@ for f in "${xff[@]}" ; do
   fi; :
 done; :
 
-exit 101
-set -x
+#exit 101
+#set -x
 
 
 
@@ -284,37 +302,33 @@ if [[ "$(type -t "${x}")" != builtin ]]; then
   fn_erx "${LINENO}"
 fi
 
-exit 101
-set -x
+#exit 101
+#set -x
 
 
 
 :;: 'Create Shadow function' :;:
-dpfo="$(declare -pf "${x}")"
+dpfo="$(declare -pf "${x}" 2> /dev/null)"
 if [[ -z "${dpfo:0:8}" ]]; then
   : 'define function'
   eval function "${x}" '{ echo function bar;}'
-  : 'function call'
-  "${x}"
   dpfo="$(declare -pf "${x}")"
   if [[ -z "${dpfo:0:8}" ]]; then
     fn_erx
   fi
 fi; unset dpfo
-  : '<>'
-  type -a "${x}"
 if [[ "$(type -t "${x}")" != function ]]; then
   fn_erx "${LINENO}"
 fi
 
-exit 101
-set -x
+#exit 101
+#set -x
 
 
 
 :;: 'Create Shadow alias' :;:
 shopt -s expand_aliases
-ao="$(alias "${x}")"
+ao="$(alias "${x}" 2> /dev/null)"
 if [[ -z "${ao:0:8}" ]]; then
   eval alias "${x}='{ echo alias foo;}'"
   ao="$(alias "${x}")"
@@ -326,22 +340,36 @@ if [[ "$(type -t "${x}")" != alias ]]; then
   fn_erx "${LINENO}"
 fi
 
-exit 101
-set -x
+#exit 101
+#set -x
 
 
 
-:;: 'Verification' :;:
-declare -p PATH
-sudo find / '(' '!' -path '*/1000/*' -a '!' -path '*/zsh/*' -a '!' -path '*/selinux/*' -a '!' -path '*/tracker3/*' ')' '(' -name "${x}" -o -name "${x}_*" ')'
-hash -r
-hash
-type -P "${x}"
-alias "${x}"
-command -pV "${x}"
-command -V "${x}"
+:;: 'Verification 1: type -P' :;:
+printf '\n\t hash -r; hash; type -P \n\n' 
+hash -r; hash; type -P "${x}" 
+type_P_o="$(type -P "${x}")"
+printf '\n\t ls -alhFi [FILE]; ls -alhFiL [FILE] \n\n' 
+ls -alhFi --quoting-style=shell-always --color=always "${type_P_o}"
+ls -alhFiL --quoting-style=shell-always --color=always "${type_P_o}"
+
+#exit 101
+#set -x
+
+
+
+:;: 'Verification 2: type -a' :;:
+printf '\n\t declare -p find_path # (Same as PATH.) \n\n' 
+declare -p find_path
+
+printf '\n\t command -pV; command -v \n\n' 
+command -pV "${x}"; command -v "${x}"
+
+printf '\n\t find \n\n' 
+sudo find / '(' '!' -path '*/1000/*' -a '!' -path '*/zsh/*' -a '!' -path '*/selinux/*' -a '!' -path '*/tracker3/*' ')' '(' -name "${x}" -o -name "${x}_*" ')' 2> /dev/null
+
+printf '\n\t type -a\n\n' 
 type -a "${x}"
-rm -fr "${new_dirs[@]}"
 
 exit 00
 
