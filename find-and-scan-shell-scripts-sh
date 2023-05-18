@@ -1081,7 +1081,7 @@ if [[ -n "${dec_o}" ]]; then
 fi
 
 # type -t
-while :; do
+while true; do
   tt_o="$(type -t "${STRING}")"
   case "${tt_o}" in
   
@@ -1104,7 +1104,7 @@ while :; do
         type -a "${STRING}" \
           | awk -F"${STRING} is " "/^${STRING} is \//"' { printf "%s\0", $2 }' 
       )
-
+      declare -p type_a_files
 
       for f in "${type_a_files[@]}"; do 
         rpm_Vf_o="$(rpm -Vf "${f}" 2>&1)"; 
@@ -1123,14 +1123,12 @@ while :; do
             #
     
           if grep -q 'is not owned by any package' <<< "${rpm_Vf_o}"; then 
-            :;:;:
-            echo DELETING "${f}"
             echo rm --one-file-system --preserve-root=all -f "${f}"
-            :;:;:
-            continue 2
+            continue 1
           fi
         fi; 
-      done; unset f
+      done; unset f rpm_Vf_o
+      unset type_a_files
     
       # And... what if it's "owned" by a package from some other package 
       # manager (PM)?
@@ -1160,7 +1158,7 @@ while :; do
       # function time { } ! [[ ]] coproc
       ;;
   esac
-done
+done; unset tt_o
 
 # remove hash table
 # lookup file and force a PATH search with type -P
