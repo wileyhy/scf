@@ -4,6 +4,14 @@
 
 # Note: Keep your goal in mind.
 
+# TODO: 
+#   - grep output of `rpm -qi` for URL's, ie, github. which can I 
+#       repair without adding a new login?
+#   - grep scripts for 'todo's
+#   - grep for 'shellcheck disable'
+#   - grep for 'bash -c' and 'sh -c'
+#   - grep for '(source|\.) .?.?/'
+
 # SECTION A
 
 : 'Regular users only, and -sudo- required'
@@ -93,6 +101,8 @@ abbrev_rel_search_dirs=/
 # "${Halt:?}"
 
 : '<> Debug Aliases'
+
+# TODO: use alias w namei
 
 shopt -s expand_aliases
 alias :_=':;: "<>"'
@@ -957,6 +967,7 @@ shopt -u nocasematch
 #exit 101
 
 
+: 'Verify PATH'
 
 _verify_path(){
   : '_verify_path BEGINS'  "$((++funclvl))" "${fence}"
@@ -1027,8 +1038,9 @@ _verify_path(){
 _verify_path PATH
 _verify_path bash_path
 
-# TODO: grep output of `rpm -qi` for URL's, ie, github. which can I 
-# repair without adding a new login?
+
+
+
 
 : 'methods_recurse_n'
 
@@ -1041,13 +1053,13 @@ declare -p methods_symlinks_l # SC-2034
 #_full_xtrace
 #exit 101
 
-# TODO: Have only two options, via `bash` or via `find`. 
+
+
+
+
+: 'Command/script search: only two options, -bash- or via -find-' 
+
 # Bug: greps. parse full outputs of type and command
-
-
-
-
-
 
 # return from functions and sourcing
 until [[ "${ec}" != 0 ]]; do
@@ -1667,11 +1679,6 @@ a_write_path_nms=("${list_crunchbangs:=crunchbangs}"
   "/tmp/${list_crunchbangs##*/}"
 )
 
-# TODOs: grep scripts for 'todo's
-#   - grep for 'shellcheck disable'
-#   - GREP FOR 'bash -c' and 'sh -c'
-#   - grep for '(source|\.) .?.?/'
-# 
 #   - This section seems Buggy.
 
 _full_xtrace
@@ -1708,8 +1715,6 @@ if [[ ! -r "${main_d}" ]]; then
       acl_realpath="$(realpath -e "${acl_abs_path}" 2>/dev/null)"
 
       #:_
-
-      # TODO: use alias w namei
 
       #M_ -- "${acl_realpath}"
 
@@ -2262,6 +2267,7 @@ exit 101
 
 # TODO: keep "$all_files_index" tracked with content all the way through
 #   into the "_found_scripts" file
+
 # Bug? line 1 of script could contain percent symbols
 
 : 'A hell world of pipelines'
