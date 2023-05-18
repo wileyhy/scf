@@ -953,7 +953,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
 
             # and then re-assign find_path
             F_
-          done
+          done; unset x
           ;;
         *) 
           "${arg_wrong__s:?}" 
@@ -1069,22 +1069,24 @@ declare -p methods_symlinks_l # SC-2034
 
 # Bug: greps. parse full outputs of type and command
 
-# define STRIN
-STRIN='export'
+# define STRING
+STRING='export'
 
-# remove all variable name collisions
-dec_o="$(declare -p ""${STRING}")"
+# remove all variable and nameref name collisions
+dec_o="$(declare -p "${STRING}")"
 if [[ -n "${dec_o}" ]]; then
   unset -v "${STRING}"
   unset -n "${STRING}"
 fi
 
 # type -t
+
 tt_o="$(type -t "${STRING}")"
 case "${tt_o}" in
   
   # remove builtin
-  builtin) enable -n "${STRING}" 
+  builtin) 
+    enable -n "${STRING}" 
     ;;
   
   # remove functions
@@ -1097,10 +1099,9 @@ case "${tt_o}" in
     ;;
   
   file)
-    x='export'; 
     mapfile -d '' -t type_a_files < <(
-      type -a "${x}" \
-        | awk -F"${x} is " "/^${x} is \//"' { printf "%s\0", $2 }' 
+      type -a "${STRING}" \
+        | awk -F"${STRING} is " "/^${STRING} is \//"' { printf "%s\0", $2 }' 
     )
 
 
