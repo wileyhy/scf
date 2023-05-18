@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
   #!/usr/bin/env -iS bash -x
 # Written in bash version 5.1 on Fedora 37 & 38
 
@@ -30,8 +30,6 @@ else
     ec=$?
   done; unset ec
 fi
-
-exit 101
 
 :;: 'Required commands' ;:; 
 
@@ -344,11 +342,11 @@ _mk_setenv_delta() {
 
 _mk_deltas() {
   : '_mk_deltas BEGINS' "$((++funclvl))" "${fence}"
-  #_xtrace_duck
+  _xtrace_duck
   _mk_setenv_prev
   _mk_setenv_now
   _mk_setenv_delta
-  #_xtrace_duck
+  _xtrace_duck
   : '_mk_deltas ENDS  ' "$((--funclvl))" "${fence}"
 }
 
@@ -1080,84 +1078,86 @@ if [[ -n "${dec_o}" ]]; then
 fi
 
 # type -t
+while :; do
+  tt_o="$(type -t "${STRING}")"
+  case "${tt_o}" in
+  
+    # remove builtin
+    builtin) 
+      enable -n "${STRING}" 
+      ;;
+  
+    # remove functions
+    function) 
+      unset -f "${STRING}" 
+      ;;
+  
+    # remove alias
+    alias) unalias "${STRING}" 
+      ;;
+  
+    file)
+      mapfile -d '' -t type_a_files < <(
+        type -a "${STRING}" \
+          | awk -F"${STRING} is " "/^${STRING} is \//"' { printf "%s\0", $2 }' 
+      )
 
-tt_o="$(type -t "${STRING}")"
-case "${tt_o}" in
-  
-  # remove builtin
-  builtin) 
-    enable -n "${STRING}" 
-    ;;
-  
-  # remove functions
-  function) 
-    unset -f "${STRING}" 
-    ;;
-  
-  # remove alias
-  alias) unalias "${STRING}" 
-    ;;
-  
-  file)
-    mapfile -d '' -t type_a_files < <(
-      type -a "${STRING}" \
-        | awk -F"${STRING} is " "/^${STRING} is \//"' { printf "%s\0", $2 }' 
-    )
 
-
-    for f in "${type_a_files[@]}"; do 
-      rpm_Vf_o="$(rpm -Vf "${f}" 2>&1)"; 
+      for f in "${type_a_files[@]}"; do 
+        rpm_Vf_o="$(rpm -Vf "${f}" 2>&1)"; 
       
-      if [[ -n "${rpm_Vf_o}" ]]; then 
-        printf 'rpm: %s\n' "${rpm_Vf_o}"; 
+        if [[ -n "${rpm_Vf_o}" ]]; then 
+          printf 'rpm: %s\n' "${rpm_Vf_o}"; 
       
-        # parse output of `rpm`:
-          # [root@localhost-live ~]# type -a export
-          # export is a shell builtin
-          # export is /usr/bin/export
-          # export is /bin/export
-          #
-          # [root@localhost-live ~]# rpm -Vf /usr/bin/export
-          # file /usr/bin/export is not owned by any package    # <
-          #
-      
-      fi; 
-    done; unset f
-    ;;
+          # parse output of `rpm`:
+            # [root@localhost-live ~]# type -a export
+            # export is a shell builtin
+            # export is /usr/bin/export
+            # export is /bin/export
+            #
+            # [root@localhost-live ~]# rpm -Vf /usr/bin/export
+            # file /usr/bin/export is not owned by any package    # <
+            #
     
-
-    # And... what if it's "owned" by a package from some other package 
-    # manager (PM)?
+          if grep -q 'is not owned by any package' <<< "${rpm_Vf_o}"; then 
+            :;:;:
+            echo DELETING "${f}"
+            echo rm --one-file-system --preserve-root=all -f "${f}"
+            :;:;:
+            continue 2
+          fi
+        fi; 
+      done; unset f
     
-    # each distro has a "primary" package manager, through which any 
-    # "secondary" package managers would be installed. The distro - 
-    # primary PM associations... is a conf file. 
-    #   So, (a) which distro is this script running on, then
-    #       (b) query the primary PM
+      # And... what if it's "owned" by a package from some other package 
+      # manager (PM)?
+      #
+      # each distro has a "primary" package manager, through which any 
+      # "secondary" package managers would be installed. The distro - 
+      # primary PM associations... is a conf file. 
+      #   So, (a) which distro is this script running on, then
+      #       (b) query the primary PM
+      #
+      #   (Partial) List:
+      #   0install chocolatey cpan cran dnf docker dpkg emerge flatpak 
+      # guix homebrew ipkg maven nix npm opkg pacman petget pip portage 
+      # rpm rubygems scoop slapt-get snap apk-tools zypper
+      #
+      # see also: https://metacpan.org/release/Alien-Packages
+      ;;
 
-    #   (Partial) List:
-    #   0install chocolatey cpan cran dnf docker dpkg emerge flatpak 
-    # guix homebrew ipkg maven nix npm opkg pacman petget pip portage 
-    # rpm rubygems scoop slapt-get snap apk-tools zypper
-  
-    # see also: https://metacpan.org/release/Alien-Packages
-
-
-  keyword) true
+    keyword) 
+      true
     
-    # testing: shadow a string that is a keyword and that doesn't
-    #   also fall into any other category defined by `type -a`
-    #
-    # [root@localhost-live ~]# compgen -k
-    # if then else elif fi case esac for select while until do done in
-    # function time { } ! [[ ]] coproc
-    #
-
- 
-
-
-    ;;
-esac
+      # testing: shadow a string that is a keyword and that doesn't
+      #   also fall into any other category defined by `type -a`
+      #
+      # [root@localhost-live ~]# compgen -k
+      # if then else elif fi case esac for select while until do done in
+      # function time { } ! [[ ]] coproc
+      ;;
+  esac
+done
 
 # remove hash table
 # lookup file and force a PATH search with type -P
