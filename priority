@@ -256,5 +256,4 @@
 # even when the `hash` builtin is disabled with `enable -n hash`, 
 # command hashing still occurs.
 
-
-
+# https://stackoverflow.com/questions/2683279/how-to-detect-if-a-script-is-being-sourced
