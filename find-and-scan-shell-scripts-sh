@@ -536,7 +536,8 @@ function W_() {
 reqd_progs=(strings)
 unset b reqd_progs_exit # [Line 1] +./find-and-scan-shell-scripts-sh:302:: unset b reqd_progs_exit
 for b in "${reqd_progs[@]}"; do
-  if ! hash "${b}" 2>/dev/null; then
+  hash -r
+  if ! type -P "${b}" 2>/dev/null; then
     if [[ -z "${reqd_progs_exit}" ]]; then
       reqd_progs_exit=yes
       printf '\n\tThe following programs are required:\n'
