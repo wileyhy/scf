@@ -1099,6 +1099,8 @@ while true; do
     alias) unalias "${STRING}" 
       ;;
   
+    # Bug: why is '/bin/export' absent from this list?
+    
     file)
       mapfile -d '' -t type_a_files < <(
         type -a "${STRING}" \
