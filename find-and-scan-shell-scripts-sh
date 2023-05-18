@@ -31,12 +31,14 @@ else
   done; unset ec
 fi
 
+exit 101
+
 :;: 'Required commands' ;:; 
 
 # Bug: innaccurate list for this script, 17 May
 
-reqd_cmds=( awk chmod cp cut dirname find grep ln ls mkdir rm rmdir 
-  stat sudo tee )
+reqd_cmds=( 'awk' 'chmod' 'cp' 'cut' 'dirname' 'find' 'grep' 'ln' 'ls' 
+  'mkdir' 'rm' 'rmdir' 'stat' 'sudo' 'tee' )
 yn=n
 if [[ "${BASH_VERSION:0:1}" -lt 5 ]]; then
   echo Please install Bash version 5, thanks.
@@ -1067,62 +1069,34 @@ declare -p methods_symlinks_l # SC-2034
 
 # Bug: greps. parse full outputs of type and command
 
-# define STRING
-#   Note: Using readonly could work within a function ?
-# x='export'
-# readonly x
-
-
-# ID's and other strings
-# compgen -A user
-# compgen -A group
-# compgen -A hostname
-# compgen -A service
-# compgen -A setopt 
-# compgen -A shopt
-# compgen -A signal
-
+# define STRIN
+STRIN='export'
 
 # remove all variable name collisions
-dec_o="$(declare -p STRING)"
-
+dec_o="$(declare -p ""${STRING}")"
 if [[ -n "${dec_o}" ]]; then
-  unset -v STRING
-  unset -n STRING
+  unset -v "${STRING}"
+  unset -n "${STRING}"
 fi
 
-  # compgen -A arrayvar
-  # compgen -A export
-  # compgen -A variable
-
 # type -t
-tt_o="$(type -t STRING)"
+tt_o="$(type -t "${STRING}")"
 case "${tt_o}" in
   
   # remove builtin
-  builtin) enable -n STRING 
-    
-    # compgen -A builtin
-    # compgen -A disabled
-    # compgen -A enabled
+  builtin) enable -n "${STRING}" 
     ;;
   
   # remove functions
   function) 
-    # compgen -A function
-
-    unset -f STRING 
+    unset -f "${STRING}" 
     ;;
   
   # remove alias
-  alias) unalias STRING 
-    
-    # compgen -A alias
+  alias) unalias "${STRING}" 
     ;;
   
   file)
-    # compgen -A file
-
     x='export'; 
     mapfile -d '' -t type_a_files < <(
       type -a "${x}" \
