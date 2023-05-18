@@ -370,7 +370,7 @@ _full_xtrace() {
 }
 
 #exit 101
-_full_xtrace
+#_full_xtrace
 
 : 'Regualar script Functions'
 
@@ -552,9 +552,9 @@ if [[ "${reqd_progs_exit}" = 'yes' ]]; then
   printf '\n\tThe following programs are required:\n'
   printf '\t  %s\n' "${reqd_progs_list[@]}"
   exit 1
-fi; reqd_progs reqd_progs_list reqd_progs_exit
+fi; unset reqd_progs reqd_progs_list reqd_progs_exit
 
-exit 101
+#exit 101
 #_full_xtrace
 
 : 'Option parsing'
@@ -1059,7 +1059,7 @@ declare -p methods_recurse_n # SC-2034
 
 declare -p methods_symlinks_l # SC-2034
 
-#_full_xtrace
+_full_xtrace
 #exit 101
 
 
@@ -1192,7 +1192,8 @@ done
 #
 
 
-
+exit 101
+_full_xtrace
 
 
 
