@@ -29,8 +29,9 @@ fi
 
 # Bug: innaccurate list for this script, 17 May
 
-reqd_cmds=( 'awk' 'chmod' 'cp' 'cut' 'dirname' 'find' 'grep' 'ln' 'ls' 
-  'mkdir' 'od' 'rm' 'rmdir' 'stat' 'strings' 'sudo' 'tee' )
+reqd_cmds=( 'awk' 'chmod' 'cp' 'cut' 'dirname' 'file' 
+  'find' 'getconf' 'grep' 'ln' 'ls' 'mkdir' 'od' 'rm' 'rmdir' 
+  'stat' 'strings' 'sudo' 'tee' )
 yn=n
 if [[ "${BASH_VERSION:0:1}" -lt 5 ]]; then
   echo Please install Bash version 5, thanks.
@@ -142,9 +143,6 @@ trap '
   # Delete all possible existing process _lock_directories_. 
   for pld in "${process_lock_dirs[@]}"; do 
 
-    #[[ "${pld}" =~ "$$"*.lock ]] \
-      #|| continue
-
     # test and delete lock directories.
     if [[ -d "${pld}" ]] && [[ ! -L "${pld}" ]]; then 
       echo S_ R_ -rf -- "${pld}" \
@@ -154,30 +152,6 @@ trap '
 
     # <>
     #: "${Halt?}"
-
-  # Remove any script-s ACL-s based on canary variables
-  if [[ -n "${acl_execd_setfacl}" ]]; then 
-
-    if [[ -n "${acl_abs_path}" ]]; then 
-      
-      # Manual (non-alias/function) error handling reqd wi traps
-      if ! S_ setfacl -R -x "u:${UID}" -- "${acl_abs_path}"; then
-        echo Error: trap: setfacl failed, line "${LINENO}"
-        : "${Halt:?}"
-      fi
-
-    # Bug? Should this var \/ be main_d ? Requires setfacl section 
-    # to debug this. (~ line 1600, 15 May)
-
-    elif [[ -v mountpoint ]] \
-      || [[ -v main_d ]] 
-    then
-      if ! S_ setfacl -R -x "u:${UID}" -- "${mountpoint}"; then 
-        echo Error: trap: setfacl failed, line "${LINENO}"
-        : "${Halt:?}"
-      fi
-    fi
-  fi
 
   trap - EXIT INT TERM
   kill -s INT "$$"
@@ -1589,92 +1563,6 @@ a_write_path_nms=("${list_crunchbangs:=crunchbangs}"
 )
 
 #   - This section seems Buggy.
-
-_full_xtrace
-exit 101
-
-: 'Reduce use of sudo'
-if [[ ! -r "${main_d}" ]]; then
-
-  mapfile -d / -t a_acl_name_indiv_dir <<<"${main_d}"
-
-  a_acl_name_indiv_dir[0]=/
-  a_acl_name_indiv_dir[-1]="${a_acl_name_indiv_dir[-1]//$'\n'/}"
-
-  acl_each_dir="${#a_acl_name_indiv_dir[@]}"
-
-  for ((iterator_1 = 0; iterator_1 < acl_each_dir; iterator_1++)); do
-    acl_abs_path+="/${a_acl_name_indiv_dir[iterator_1]}"
-    acl_realpath="$(realpath -e "${acl_abs_path}")"
-
-    # Bug: why sudo? \/
-
-    if S_ test -e -- "${acl_realpath}"; then
-      : 'test succeeded: acl_realpath exists '
-    else
-
-      : 'test failed: acl_realpath DNE'
-
-      if [[ ! -d "${acl_abs_path}" ]]; then
-
-        S_ mkdir -p -- "${main_d}" \
-          || E_ "${LINENO}"
-      fi
-
-      acl_realpath="$(realpath -e "${acl_abs_path}" 2>/dev/null)"
-
-      #:_
-
-      #M_ -- "${acl_realpath}"
-
-    fi
-
-    if [[ -r "${acl_realpath}" ]]; then
-      : 'test succeeded: acl_realpath is readable'
-    else
-
-      : 'test failed: acl_realpath is not readable'
-
-      acl_execd_setfacl=y
-      # SC-2034, while trap-s setfacl blk is #-d
-      #   ^--- this comment means what???
-      export acl_execd_setfacl
-
-      # readable up to the main_d
-      S_ chmod -R 750 -- "${acl_realpath}" \
-        || E_ "${LINENO}"
-
-      S_ setfacl -d -m "${USER}:r-x" -- "${acl_realpath}" \
-        || E_ "${LINENO}"
-
-      S_ setfacl -m "${USER}:r-x" -- "${acl_realpath}" \
-        || E_ "${LINENO}"
-
-      #:_
-      #id "${USER}"
-      #groups "${USER}"
-      #M_ -- "${acl_realpath}"
-      #S_ getfacl -- "${acl_realpath}"
-
-      [[ -r "${acl_realpath}" ]] \
-        || E_ "${LINENO}"
-    fi
-  done
-
-  # writeable within the main_d
-  S_ setfacl -d -m "${USER}:rwx" -- "${main_d}" \
-    || E_ "${LINENO}"
-
-  S_ setfacl -R -m "${USER}:rwx" -- "${main_d}" \
-    || E_ "${LINENO}"
-
-  #:_
-  #id "${USER}"
-  #groups "${USER}"
-  #M_ -- "${main_d}"
-  #S_ getfacl -- "${main_d}"
-
-fi
 
 _full_xtrace
 exit 101
