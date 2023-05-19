@@ -6,6 +6,159 @@
 
 # SECTION A
 
+: '<> Debug: Variables'
+abbrev_rel_search_dirs=/
+# "${Halt:?}"
+
+: '<> Debug: Aliases'
+shopt -s expand_aliases
+alias :_=':;: "<>"'
+alias D_='declare -p '
+alias F_='IFS=":" read -ra find_path <<<"${bash_path}"'
+alias L_='exit "${LINENO}"'
+alias M_='sudo namei -xl '
+alias R_='rm --one-file-system --preserve-root=all '
+alias S_='sudo '
+alias T_='tee --output-error=exit '
+alias X_='set -x'
+
+: '<> Debug: Delete any left over xtrace files in /tmp'
+mapfile -d "" -t xtrace_files < <(
+  find /tmp -maxdepth 1 -type f \
+    -name "tmp.[a-zA-Z0-9]*.scf.[0-9]*.[0-9]*.txt" -print0 
+)
+# ...if they're (inodes are for) files & not symlinks, & owned by the 
+# same EUID.
+for f in "${xtrace_files[@]}"; do
+  if [[ -f "${f}" ]] \
+    && [[ ! -L "${f}" ]] \
+    && [[ -O "${f}" ]];
+  then
+    R_ "$f"
+  fi
+done; unset f
+
+: '<> Debug: XTrace variables and functions'
+funclvl=0
+fence=' ++++++++++++++++++++++++++++++++++++++++++++ '
+
+#   _xtrace_duck: If xtrace was previously on, then on first execution 
+# of this function, turn xrtrace off, and on second execution, turn 
+# xtrace back on and forget about this function's settings. If xtrace 
+# was previously off, then leave it off.
+_xtrace_duck() {
+  : '_xtrace_duck BEGINS' "$((++funclvl))" "${fence}"
+  local hyphen="$-"
+  # If xtrace is on...
+  if [[ "${hyphen}" =~ x ]]; then
+    # ...then record its state
+    local -g xtrace_prev
+    export xtrace_prev
+    # and turn xtrace off
+    set -
+  # but if xtrace is off...
+  else
+    # ...then if xtrace was previously on...
+    if [[ -n "${xtrace_prev}" ]]; then
+      # ...then restore xtrace and unset the record of its state
+      set -x
+      unset xtrace_prev
+    # but if xtrace is off and was previously off... (return).
+    fi
+  fi
+  : '_xtrace_duck ENDS  ' "$((--funclvl))" "${fence}"
+}
+
+# A set of functions for printing changes in shell variables and para-
+# meters between each execution of a command; for use when the DEBUG
+# trap is enabled.
+_mk_setenv_prev() {
+  : '_mk_setenv_prev BEGINS' "$((++funclvl))" "${fence}"
+  : 'if'
+  if [[ -n "${setenv_now}" ]]; then
+    : 'if'
+    if [[ -n "${setenv_prev}" ]]; then
+      R_ -f -- "${setenv_prev}"
+    fi
+    setenv_prev="${setenv_now}"
+  fi
+  : '_mk_setenv_prev ENDS  ' "$((--funclvl))" "${fence}"
+}
+
+_mk_setenv_now() {
+  : '_mk_setenv_now BEGINS' "$((++funclvl))" "${fence}"
+  setenv_now="$(mktemp --suffix="${mktemp_sfx}")"
+    # `{ set; env;} | tee`: env & set dont print in simple xtrace 
+    set \
+      |& tee -- "${setenv_now}" >/dev/null 
+    env \
+      |& tee -a -- "${setenv_now}" >/dev/null
+  : '_mk_setenv_now ENDS  ' "$((--funclvl))" "${fence}"
+}
+
+_mk_setenv_delta() {
+  : '_mk_setenv_delta BEGINS' "$((++funclvl))" "${fence}"
+  if [[ -n "${setenv_now}" ]] && [[ -n "${setenv_prev}" ]]; then
+    if [[ -n "${setenv_delta}" ]]; then
+      R_ -f -- "${setenv_delta}"
+      wait -f
+    fi
+    # create a new delta file, each time
+    setenv_delta="$(mktemp --suffix="${mktemp_sfx}")" #
+    {
+      diff -y --suppress-{common-lines,blank-empty} --color=never \
+        "${setenv_prev}" "${setenv_now}" \
+        |& grep -v setenv \
+        | grep --color=always -E '.*'
+    } \
+      |& tee -- "${setenv_delta}"
+    {
+      diff --suppress-{common-lines,blank-empty} --color=always \
+        --palette='ad=1;3;38;5;190:de=1;3;38;5;129' \
+        "${setenv_prev}" "${setenv_now}" \
+        | grep -ve BASH_LINENO -e BASH_COMMAND -e BASH_SOURCE \
+          -e setenv_ -Fe '---'
+    } \
+      |& tee -a "${setenv_delta}"
+    # set colors for `wc` output
+    GREP_COLORS='mt=01;104'
+    export GREP_COLORS
+    wc "${setenv_delta}" \
+      | grep --color=always -E '.*'
+    # reset colors for `grep` output
+    GREP_COLORS='mt=01;43'
+    export GREP_COLORS
+  fi
+  : '_mk_setenv_delta ENDS  ' "$((--funclvl))" "${fence}"
+}
+
+_mk_deltas() {
+  : '_mk_deltas BEGINS' "$((++funclvl))" "${fence}"
+  _xtrace_duck
+  _mk_setenv_prev
+  _mk_setenv_now
+  _mk_setenv_delta
+  _xtrace_duck
+  : '_mk_deltas ENDS  ' "$((--funclvl))" "${fence}"
+}
+
+_debug_prompt() {
+  : '_debug_prompt BEGINS' "$((++funclvl))" "${fence}"
+  _mk_deltas
+  : '~~~~~~~PROMPT~~~~~~~'
+  read -rp " +[${BASH_SOURCE[0]}:${LINENO}] ${BASH_COMMAND[0]}?" _
+  :
+  : '_debug_prompt ENDS  ' "$((--funclvl))" "${fence}"
+}
+
+_full_xtrace() {
+  : '_full_xtrace BEGINS' "$((++funclvl))" "${fence}"
+  #set -o functrace
+  trap '_debug_prompt "$_";' DEBUG
+  set -x
+  : '_full_xtrace ENDS  ' "$((--funclvl))" "${fence}"
+}
+
 : 'ID and sudo'
 
 if [[ "${UID}" == 0 ]]; then
@@ -370,7 +523,8 @@ fn_write_arrays() {
 # usable for directory names
 unset index element calc
 # for each dirname / directory in search path
-for index in "${!A_rsd[@]}"; do
+for index in "${!A_rsd[@]}";                                            # <
+do
   element="${A_rsd["$index"]}"
   calc="$(realpath -e "$element")"
   calc="${calc//\//_}"
@@ -455,159 +609,6 @@ function W_() {
   : 'W_ BEGINS' "$((++funclvl))" "${fence}"
   fn_write_arrays "$@"
   : 'W_ ENDS  ' "$((--funclvl))" "${fence}"
-}
-
-: '<> Debug: Variables'
-abbrev_rel_search_dirs=/
-# "${Halt:?}"
-
-: '<> Debug: Aliases'
-shopt -s expand_aliases
-alias :_=':;: "<>"'
-alias D_='declare -p '
-alias F_='IFS=":" read -ra find_path <<<"${bash_path}"'
-alias L_='exit "${LINENO}"'
-alias M_='sudo namei -xl '
-alias R_='rm --one-file-system --preserve-root=all '
-alias S_='sudo '
-alias T_='tee --output-error=exit '
-alias X_='set -x'
-
-: '<> Debug: Delete any left over xtrace files in /tmp'
-mapfile -d "" -t xtrace_files < <(
-  find /tmp -maxdepth 1 -type f \
-    -name "tmp.[a-zA-Z0-9]*.scf.[0-9]*.[0-9]*.txt" -print0 
-)
-# ...if they're (inodes are for) files & not symlinks, & owned by the 
-# same EUID.
-for f in "${xtrace_files[@]}"; do
-  if [[ -f "${f}" ]] \
-    && [[ ! -L "${f}" ]] \
-    && [[ -O "${f}" ]];
-  then
-    R_ "$f"
-  fi
-done; unset f
-
-: '<> Debug: XTrace variables and functions'
-funclvl=0
-fence=' ++++++++++++++++++++++++++++++++++++++++++++ '
-
-#   _xtrace_duck: If xtrace was previously on, then on first execution 
-# of this function, turn xrtrace off, and on second execution, turn 
-# xtrace back on and forget about this function's settings. If xtrace 
-# was previously off, then leave it off.
-_xtrace_duck() {
-  : '_xtrace_duck BEGINS' "$((++funclvl))" "${fence}"
-  local hyphen="$-"
-  # If xtrace is on...
-  if [[ "${hyphen}" =~ x ]]; then
-    # ...then record its state
-    local -g xtrace_prev
-    export xtrace_prev
-    # and turn xtrace off
-    set -
-  # but if xtrace is off...
-  else
-    # ...then if xtrace was previously on...
-    if [[ -n "${xtrace_prev}" ]]; then
-      # ...then restore xtrace and unset the record of its state
-      set -x
-      unset xtrace_prev
-    # but if xtrace is off and was previously off... (return).
-    fi
-  fi
-  : '_xtrace_duck ENDS  ' "$((--funclvl))" "${fence}"
-}
-
-# A set of functions for printing changes in shell variables and para-
-# meters between each execution of a command; for use when the DEBUG
-# trap is enabled.
-_mk_setenv_prev() {
-  : '_mk_setenv_prev BEGINS' "$((++funclvl))" "${fence}"
-  : 'if'
-  if [[ -n "${setenv_now}" ]]; then
-    : 'if'
-    if [[ -n "${setenv_prev}" ]]; then
-      R_ -f -- "${setenv_prev}"
-    fi
-    setenv_prev="${setenv_now}"
-  fi
-  : '_mk_setenv_prev ENDS  ' "$((--funclvl))" "${fence}"
-}
-
-_mk_setenv_now() {
-  : '_mk_setenv_now BEGINS' "$((++funclvl))" "${fence}"
-  setenv_now="$(mktemp --suffix="${mktemp_sfx}")"
-    # `{ set; env;} | tee`: env & set dont print in simple xtrace 
-    set \
-      |& tee -- "${setenv_now}" >/dev/null 
-    env \
-      |& tee -a -- "${setenv_now}" >/dev/null
-  : '_mk_setenv_now ENDS  ' "$((--funclvl))" "${fence}"
-}
-
-_mk_setenv_delta() {
-  : '_mk_setenv_delta BEGINS' "$((++funclvl))" "${fence}"
-  if [[ -n "${setenv_now}" ]] && [[ -n "${setenv_prev}" ]]; then
-    if [[ -n "${setenv_delta}" ]]; then
-      R_ -f -- "${setenv_delta}"
-      wait -f
-    fi
-    # create a new delta file, each time
-    setenv_delta="$(mktemp --suffix="${mktemp_sfx}")" #
-    {
-      diff -y --suppress-{common-lines,blank-empty} --color=never \
-        "${setenv_prev}" "${setenv_now}" \
-        |& grep -v setenv \
-        | grep --color=always -E '.*'
-    } \
-      |& tee -- "${setenv_delta}"
-    {
-      diff --suppress-{common-lines,blank-empty} --color=always \
-        --palette='ad=1;3;38;5;190:de=1;3;38;5;129' \
-        "${setenv_prev}" "${setenv_now}" \
-        | grep -ve BASH_LINENO -e BASH_COMMAND -e BASH_SOURCE \
-          -e setenv_ -Fe '---'
-    } \
-      |& tee -a "${setenv_delta}"
-    # set colors for `wc` output
-    GREP_COLORS='mt=01;104'
-    export GREP_COLORS
-    wc "${setenv_delta}" \
-      | grep --color=always -E '.*'
-    # reset colors for `grep` output
-    GREP_COLORS='mt=01;43'
-    export GREP_COLORS
-  fi
-  : '_mk_setenv_delta ENDS  ' "$((--funclvl))" "${fence}"
-}
-
-_mk_deltas() {
-  : '_mk_deltas BEGINS' "$((++funclvl))" "${fence}"
-  _xtrace_duck
-  _mk_setenv_prev
-  _mk_setenv_now
-  _mk_setenv_delta
-  _xtrace_duck
-  : '_mk_deltas ENDS  ' "$((--funclvl))" "${fence}"
-}
-
-_debug_prompt() {
-  : '_debug_prompt BEGINS' "$((++funclvl))" "${fence}"
-  _mk_deltas
-  : '~~~~~~~PROMPT~~~~~~~'
-  read -rp " +[${BASH_SOURCE[0]}:${LINENO}] ${BASH_COMMAND[0]}?" _
-  :
-  : '_debug_prompt ENDS  ' "$((--funclvl))" "${fence}"
-}
-
-_full_xtrace() {
-  : '_full_xtrace BEGINS' "$((++funclvl))" "${fence}"
-  #set -o functrace
-  trap '_debug_prompt "$_";' DEBUG
-  set -x
-  : '_full_xtrace ENDS  ' "$((--funclvl))" "${fence}"
 }
 
 #exit 101
@@ -853,7 +854,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
             
         find_exclude_optargs=()
         methods_scan_excluded_by=yes
-        methods_symlinks_l=logical
+        methods_symlinks_l=logical                                      # <
         find_sym_opt_L='-L' 
         ;;
       *) 
@@ -877,10 +878,10 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
           ;;
 
         n) 
-          methods_recurse_n=yes
+          methods_recurse_n=yes                                         # <
           methods_prog_cv=bin_find
           find_exclude_optargs=("${find_exclude_optargs_default[@]}")
-          methods_scan_excluded_by=no 
+          methods_scan_excluded_by=no                                   # <
          
           # if /proc or /sys have been added to the list of dirs to 
           # be searched, then remove each of them from each of the
