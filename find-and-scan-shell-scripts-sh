@@ -1,6 +1,7 @@
 #!/bin/bash -x
   #!/usr/bin/env -iS bash -x
 # Written in bash version 5.1 on Fedora 37 & 38
+repo_nm=scf
 
 # Note: Keep your goal in mind.
 
@@ -8,14 +9,10 @@
 
 : '<> Debugging' # "<>" means, "This is a debugging section."
 
-: '<> Debug: Variables'
-ABBREV_REL_SEARCH_DIRS=/
-# "${Halt:?}"
-
 : '<> Debug: Delete any left over xtrace files in /tmp'
 mapfile -d "" -t xtrace_files < <(
   find /tmp -maxdepth 1 -type f \
-    -name "tmp.[a-zA-Z0-9]*.scf.[0-9]*.[0-9]*.txt" -print0 
+    -name "tmp.[a-zA-Z0-9]*.${repo_nm}.[0-9]*.[0-9]*.txt" -print0 
 )
 # ...if they're (inodes are for) files & not symlinks, & owned by the 
 # same EUID.
@@ -149,6 +146,8 @@ _full_xtrace() {
   : '_full_xtrace ENDS  ' "$((--funclvl))" "${fence}"
 }
 
+#_full_xtrace
+
 : 'ID and sudo'
 
 if [[ "${UID}" == 0 ]]; then
@@ -186,9 +185,10 @@ else
   printf '\n\t Please install the following commands: \n\t   %s \n\n' \
     "${yn#n }"
   exit 1
-fi; unset c yn
+fi; unset c yn reqd_cmds
+
 #exit 101
-#_full_xtrace
+_full_xtrace
 
 : 'Variables for Trap and Process Locks'
 a_poss_proces_lock_dirs=([0]="${XDG_RUNTIME_DIR}" [1]="${HOME}"
@@ -196,16 +196,27 @@ a_poss_proces_lock_dirs=([0]="${XDG_RUNTIME_DIR}" [1]="${HOME}"
 random_n="${RANDOM}"
 unique_string="${repo_nm}.${$}.${random_n}"
 proc_lk_f_nm="${unique_string}.lock"
-mktemp_sfx=".${unique_string}.txt"
-timecode="$(builtin printf '%(%IFS=":" read -ra find_path <<<"${bash_path}"%H%M%S)T')"
+mktemp_sfx=."${unique_string}.txt"
+timecode="$(builtin printf '%(%F_%H%M%S)T')"
+
+a_poss_proces_lock_dirs+=([2]=/tmp)
+declare -A A_process_lock_dirs
+i=0
 for pld in "${a_poss_proces_lock_dirs[@]}"; do
+  pld="$(realpath -e "${pld}")"
   if [[ -d "${pld}" ]]; then
-    a_process_lock_dirs+=("${pld}/${proc_lk_f_nm}")
+    A_process_lock_dirs+=( ["${pld}/${proc_lk_f_nm}"]=$((i++)) )
   fi
 done; unset pld
-if [[ "$@" =~ delete_locks ]]; then 
+for i in "${!A_process_lock_dirs[@]}"; do 
+  a_process_lock_dirs+=( ["${A_process_lock_dirs[$i]}"]="$i" ); 
+done; unset A_process_lock_dirs i
+if [[ "$*" =~ delete_locks ]]; then 
   delete_locks='y'
 fi
+
+  declare -p A_process_lock_dirs
+  ${Halt:?}
 
 : 'Trap'
 
@@ -214,7 +225,7 @@ trap '
   trap - DEBUG
 
   # Delete all possible existing process _lock_directories_. 
-  for pld in "${a_process_lock_dirs[@]}"; do 
+  for pld in "${A_process_lock_dirs[@]}"; do 
 
     # test and delete lock directories.
     if [[ -d "${pld}" ]] && [[ ! -L "${pld}" ]]; then 
@@ -234,7 +245,7 @@ trap '
 
 : 'Process Lock: Vars'
 : 'Process Lock: Search for existing lockdirs'
-for d in "${a_process_lock_dirs[@]}"; do
+for d in "${A_process_lock_dirs[@]}"; do
   mapfile -d '' -t lkdrs < <(
     sudo  find "${d}" -type d -empty -name \
       ".${repo_nm}.[0-9a-zA-Z_-]*.lock" -print0 2>/dev/null
@@ -306,7 +317,6 @@ SC_shells='(sh|bash|dash|ksh)'
 : 'Vars more frequently subject to change'
 protected_git_dir_1="${HOME}/MYPROJECTS"
 protected_git_dir_2="${HOME}/OTHERSPROJECTS"
-repo_nm=scf
 script_dirnm="${repo_nm}.d"
 script_lic='Apache 2 license'
 script_nm=find-and-scan-shell-scripts-sh
