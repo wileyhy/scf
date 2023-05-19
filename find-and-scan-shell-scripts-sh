@@ -1800,16 +1800,6 @@ W_ "${a_arrays[@]}"
 B_ "${curr_time_ssubd}/file_out"
 #L_;
 
-: 'if any data files already exist, keep them'
-for any_existing_f in "${a_write_path_nms[@]}"; do
-
-  if [[ -f "${any_existing_f}" ]] \
-    && [[ ! -L "${any_existing_f}" ]]; then
-    S_ mv -- "${any_existing_f}" "${any_existing_f}.${$}.${random_n}" \
-      || E_ "${LINENO}"
-  fi
-done
-
 : 'create the original list_crunchbangs'
 S_ touch -- "${a_write_path_nms[@]}"
 
