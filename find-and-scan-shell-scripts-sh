@@ -44,6 +44,69 @@ fi; unset c yn
 #exit 101
 #set -x
 
+: 'Process Lock'
+
+a_poss_proces_lock_dirs=([0]="${XDG_RUNTIME_DIR}" [1]="${HOME}"
+  [2]="${TMPDIR:-/tmp}" [3]=/tmp [4]=/var/tmp)
+random_n="${RANDOM}"
+unique_string="${repo_nm}.${$}.${random_n}"
+mktemp_sfx=".${unique_string}.txt"
+proc_lk_f_nm="${unique_string}.lock"
+timecode="$(builtin printf '%(%F_%H%M%S)T')"
+for pld in "${a_poss_proces_lock_dirs[@]}"; do
+  process_lock_dirs+=("${pld}/${proc_lk_f_nm}")
+done; unset pld
+
+for d in "${a_poss_proces_lock_dirs[@]}"; do
+  if [[ -d "${d}" ]]; then
+    mapfile -d '' -t lkds < <(
+      S_ find "${d}" -type d -empty -name \
+        ".${repo_nm}.[0-9a-zA-Z_-]*.lock" -print0 2>/dev/null
+    )
+    : 'lkds, count:' "${#lkds[@]}"
+    for l in "${lkds[@]}"; do
+      if [[ -d "${l}" ]]; then
+        if [[ -v delete_locks ]]; then
+          rmdir -v -- "${l}"
+        else
+          printf '\n\t A process lock exists for this script. Exiting '
+          printf 'now.\n\n'
+          L_
+        fi
+      fi
+    done
+  fi
+done
+[[ -v delete_locks ]] \
+  && L_
+
+_full_xtrace
+exit 101
+
+# from among the possible dirnames
+for poss_lk_d in "${a_poss_proces_lock_dirs[@]}"; do
+  # use the first one that fulfills certain requirements
+  if [[ -d "${poss_lk_d}" ]] \
+    && [[ ! -L "${poss_lk_d}" ]] \
+    && [[ -w "${poss_lk_d}" ]]; then
+    # define the lock directory
+    process_lock_d="${poss_lk_d}/${proc_lk_f_nm}"
+    break
+  fi
+done
+
+if ! mkdir -m 0000 "${process_lock_d}" 2>/dev/null; then
+  {
+    printf '\n\tCannot acquire process lock: <%s>.\n' "${process_lock_d}"
+    #printf '\tID: %s\n' "${USER}" # why?
+    printf 'Exiting.\n\n'
+  } 1>&2
+  L_
+fi
+
+_full_xtrace
+exit 101
+
 : 'Environment variables'
 
 unset LC_ALL Halt
@@ -76,17 +139,6 @@ script_proper_nm='Script Finder'
 script_version=1.0
 
 : 'Other user variables and arrays'
-
-a_poss_proces_lock_dirs=([0]="${XDG_RUNTIME_DIR}" [1]="${HOME}"
-  [2]="${TMPDIR:-/tmp}" [3]=/tmp [4]=/var/tmp)
-random_n="${RANDOM}"
-unique_string="${repo_nm}.${$}.${random_n}"
-mktemp_sfx=".${unique_string}.txt"
-proc_lk_f_nm="${unique_string}.lock"
-timecode="$(builtin printf '%(%F_%H%M%S)T')"
-for pld in "${a_poss_proces_lock_dirs[@]}"; do
-  process_lock_dirs+=("${pld}/${proc_lk_f_nm}")
-done; unset pld
 
 if [[ $# -gt 0 ]]; then
   cli_input=("${@}")
@@ -1436,70 +1488,6 @@ unset end_dirname full_dir_list ext_array dir sub_dir num_sub_dirs \
   N n extglob_pattern ext_first ext_last getfacl_o grep_o
 
 # <>
-_full_xtrace
-exit 101
-
-: 'Check for Process Locks'
-
-for d in "${a_poss_proces_lock_dirs[@]}"; do
-  if [[ -d "${d}" ]]; then
-    mapfile -d '' -t lkds < <(
-      S_ find "${d}" -type d -empty -name \
-        ".${repo_nm}.[0-9a-zA-Z_-]*.lock" -print0 2>/dev/null
-    )
-
-    : 'lkds, count:' "${#lkds[@]}"
-
-    for l in "${lkds[@]}"; do
-      if [[ -d "${l}" ]]; then
-        if [[ -v delete_locks ]]; then
-          rmdir -v -- "${l}"
-        else
-          printf '\n\t A process lock exists for this script. Exiting '
-          printf 'now.\n\n'
-          L_
-        fi
-      fi
-    done
-  fi
-done
-[[ -v delete_locks ]] \
-  && L_
-
-_full_xtrace
-exit 101
-
-#X_; :_
-
-_full_xtrace
-exit 101
-
-: 'Process lock'
-
-# from among the possible dirnames
-for poss_lk_d in "${a_poss_proces_lock_dirs[@]}"; do
-
-  # use the first one that fulfills certain requirements
-  if [[ -d "${poss_lk_d}" ]] \
-    && [[ ! -L "${poss_lk_d}" ]] \
-    && [[ -w "${poss_lk_d}" ]]; then
-
-    # define the lock directory
-    process_lock_d="${poss_lk_d}/${proc_lk_f_nm}"
-    break
-  fi
-done
-
-# create the lock directory
-if ! mkdir -m 0000 "${process_lock_d}" 2>/dev/null; then
-  {
-    printf '\n\tCannot acquire process lock: <%s>.\n' "${process_lock_d}"
-    #printf '\tID: %s\n' "${USER}" # why?
-    printf 'Exiting.\n\n'
-  } 1>&2
-  L_
-fi
-
 _full_xtrace
 exit 101
 
