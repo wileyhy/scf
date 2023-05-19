@@ -6,7 +6,7 @@
 
 # SECTION A
 
-: 'Regular users only, -sudo- required and no sourcing allowed'
+: 'ID and sudo'
 
 if [[ "${UID}" == 0 ]]; then
   printf '\n\t Must be a regular user and use sudo. \n\n'
@@ -17,7 +17,7 @@ elif ! sudo -v; then
   exit "${LINENO}"
 fi
 
-: 'Required commands' 
+: 'Required programs' 
 
 # Bug: innaccurate list for this script, 17 May
 
@@ -47,7 +47,7 @@ fi; unset c yn
 #exit 101
 #set -x
 
-: 'Trap(s)'
+: 'Trap'
 
 trap '
   : "EXIT trap BEGINS ++++++++++++++++++++++++++++++++++++++++++++++"
@@ -152,11 +152,11 @@ PATH="${getconf_o}:/usr/bin:/usr/sbin:${PATH}"
 PS4='+${BASH_SOURCE[0]}:${LINENO}:${FUNCNAME[0]}: '
 export FUNCNEST GREP_COLORS LC_COLLATE LC_CTYPE LC_NUMERIC PATH PS4
 
-: 'Vars: Implementation-dependent arguments for options parsable by ShellCheck'
+: 'Vars: Implementation-dependent args for options parsable by ShellCheck'
 sc_severity=error
 SC_shells='(sh|bash|dash|ksh)'
 
-: 'Vars more likely to be manually changed'
+: 'Vars more frequently subject to change'
 protected_git_dir_1="${HOME}/MYPROJECTS"
 protected_git_dir_2="${HOME}/OTHERSPROJECTS"
 repo_nm=scf
@@ -364,7 +364,7 @@ fn_write_arrays() {
 #  : 'fn_write_vars ENDS  ' "$((--funclvl))" "${fence}"
 #}
 
-: 'Data dirs' # This section seems Buggy.
+: 'Data dirs' # This section is super buggy.
 
 # take each found dir and convert abs path [of sym, okay] to a string
 # usable for directory names
@@ -1022,7 +1022,7 @@ _verify_path(){
 _verify_path PATH
 _verify_path bash_path
 
-: 'DACs'
+: 'Verify DACs'
 
 # Bug: var path_2 is now loc_path_2 
 
@@ -1041,7 +1041,7 @@ if [[ -n "${namei_o}" ]]; then
   exit "${LINENO}"
 fi
 
-: 'ACLs'
+: 'Verify ACLs'
 
 # Variables, this section
 unset end_dirname full_dir_list ext_array dir sub_dir num_sub_dirs N n \
@@ -1159,7 +1159,9 @@ exit 101
 
 # SECTION C
 
-: 'Command/script search: only two options, -bash- or via -find-' 
+: 'Search for scripts using either -bash- or -find-' 
+
+: 'BASH'
 
 # Bug: greps. parse full outputs of type and command
 
@@ -1284,10 +1286,11 @@ done; unset tt_o
 #     offer option to remove the file. 
 #
 
-
 exit 101
 _full_xtrace
 
+
+# Bug: this section /\ and this section \/ need to be merged.
 
 : 'Get all the commands: bash'
 
@@ -1477,6 +1480,8 @@ exit 101
 
 
 
+: 'FIND'
+
 : 'Gather filenames from local attached disk storage'
 
 if [[ "${abbrev_rel_search_dirs}" == all ]]; then
@@ -1495,9 +1500,6 @@ if [[ "${abbrev_rel_search_dirs}" == all ]]; then
   done
 
 fi
-
-
-
 
 : 'Find all files within the search area. Even the empty ones.'
 mapfile -d '' -t a_all_files < <(
