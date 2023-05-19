@@ -1627,222 +1627,213 @@ exit 101
 total_count="$(printf "%'d" "${#a_all_files_sorted[@]}")"
 unset IFS
 
-[[ -f /tmp/"${list_crunchbangs##*/}" ]] \
-  && S_ R_ -f -- "/tmp/${list_crunchbangs##*/}"
 
 # Bug: the search dirs must be the same, as well as the dnf tx number
 # Bug: Use of /tmp/crunchbangs as yn on do loop q. Sb a set of file lists
 #.   difftd by search dir / search type / etc. See file "priority"
 
-: 'if the full list exists -- of files on disk which begin with'
-: 'crashbangs -- skip the 30-90 minute search phase.'
-if [[ ! -f "/tmp/${list_crunchbangs##*/}" ]] \
-  || [[ -L "/tmp/${list_crunchbangs##*/}" ]]; then
 
-  for all_files_index in "${!a_all_files_sorted[@]}"; do
+for all_files_index in "${!a_all_files_sorted[@]}"; do
 
-    : 'Loop'
+  : 'Loop'
 
-    loop_idx="$(printf "%'d" $((all_files_index + 1)))"
-    printf '%s of %s files\r' "${loop_idx}" "${total_count}"
+  loop_idx="$(printf "%'d" $((all_files_index + 1)))"
+  printf '%s of %s files\r' "${loop_idx}" "${total_count}"
 
-    : 'file must exist'
-    each_sorted_f="${a_all_files_sorted[all_files_index]}"
+  : 'file must exist'
+  each_sorted_f="${a_all_files_sorted[all_files_index]}"
 
-    if [[ ! -e "${each_sorted_f}" ]]; then
-      a_file_DNE+=([all_files_index]="${each_sorted_f}")
-      continue
-    fi
+  if [[ ! -e "${each_sorted_f}" ]]; then
+    a_file_DNE+=([all_files_index]="${each_sorted_f}")
+    continue
+  fi
 
-    : 'list of empties'
-    if [[ ! -s "${each_sorted_f}" ]]; then
-      a_empty_files+=([all_files_index]="${each_sorted_f}")
-      continue
-    fi
+  : 'list of empties'
+  if [[ ! -s "${each_sorted_f}" ]]; then
+    a_empty_files+=([all_files_index]="${each_sorted_f}")
+    continue
+  fi
 
-    : '-file- magic'
-    printf '+ %-8d: ' "${all_files_index}" \
-      | S_ tee -a -- "${curr_time_ssubd}file_out" >/dev/null
+  : '-file- magic'
+  printf '+ %-8d: ' "${all_files_index}" \
+    | S_ tee -a -- "${curr_time_ssubd}file_out" >/dev/null
 
-    file_o="$(S_ file -pk -- "${each_sorted_f}" 2>&1)" # Bug: needs erx
-    file_o="${file_o%%64-bit LSB *}"
-    a_bin_file_output+=([all_files_index]="${file_o}")
+  file_o="$(S_ file -pk -- "${each_sorted_f}" 2>&1)" # Bug: needs erx
+  file_o="${file_o%%64-bit LSB *}"
+  a_bin_file_output+=([all_files_index]="${file_o}")
 
-    # Bug? Needs tracking index? One array or file, one line per fso,
-    #. use symbols or csv to indicate test results, w common indices
-    # Bug: [[ -n sb right after exec file
+  # Bug? Needs tracking index? One array or file, one line per fso,
+  #. use symbols or csv to indicate test results, w common indices
+  # Bug: [[ -n sb right after exec file
 
-    if [[ -n "${file_o}" ]]; then
-      S_ tee -a -- "${curr_time_ssubd}file_out" <<<"${file_o}" \
-        >/dev/null
+  if [[ -n "${file_o}" ]]; then
+    S_ tee -a -- "${curr_time_ssubd}file_out" <<<"${file_o}" \
+      >/dev/null
+  else
+    err_msg="WARNING: -file- produced 0 output:  <${each_sorted_f}>"
+    S_ tee -a -- "${curr_time_ssubd}file_out" <<<"${err_msg}" \
+      >/dev/null
+  fi
+
+  # Bug: keep `od` output in an array
+  # Bug: avoid as many disk writes as possible.
+  #  Write out only stats?
+  # Bug: use indices to reference each type? Store array diffs btw
+  # loop? Time loss to disk io? Run file in parallel? Read each file
+  # once and use var for both od and file?
+
+  : 'two bytes each'
+
+  #X_; :_
+
+  # fix?: mapfile -d '' -t -O "${all_files_index}" a_od_output
+
+  od_o="$(
+    S_ od -j 0 -N 2 -t x1z -v -- "${each_sorted_f}" \
+      | tr -s ' ' \
+      | gawk --lint '{ print $2, $3, $4 }' \
+      | tr -d '\n' \
+      || E_ "P:${PIPESTATUS[*]} I:${all_files_index} ${each_sorted_f}"
+  )"
+
+  [[ -n "${od_o}" ]] \
+    || E_ "I:${all_files_index} ${each_sorted_f}"
+
+  a_bin_od_output+=([all_files_index]="${od_o}")
+
+  read -r byte_0 byte_1 printable_chars <<<"${od_o}"
+
+  export printable_chars # SC-2034
+
+  : '-od_o- non-zero'
+  if [[ -z "${byte_0}" ]]; then
+    E_ "I:${all_files_index} <${each_sorted_f}>" \
+      '*unreachable code*'
+  elif [[ "${byte_0}" == @(23|21) ]]; then
+    : 'compare hexadecimals'
+
+    : 'endianness'
+    if [[ "${byte_0}${byte_1}" == 2123 ]]; then
+      a_incorrect_endianness+=([all_files_index]="${each_sorted_f}")
+
     else
-      err_msg="WARNING: -file- produced 0 output:  <${each_sorted_f}>"
-      S_ tee -a -- "${curr_time_ssubd}file_out" <<<"${err_msg}" \
-        >/dev/null
+
+      : 'Crunchbangs'
+
+      # q, does strings recognize unicode? Color codes? Cr's? Etc
+      # test dd vs strings
+
+      strings_o="$(strings -n1 <"${each_sorted_f}" \
+        | head -n1 \
+        | cut -b -$((2 ** 14)) \
+        || E_ "P:${PIPESTATUS[*]} I:${all_files_index} \
+          ${each_sorted_f}")"
+
+      IFS= read -r first_line_printable <<<"${strings_o}" \
+        || E_ "I:${all_files_index} ${each_sorted_f}"
+
+      : '-#!comment-'
+      if [[ "${first_line_printable}" =~ ^'#!comment' ]]; then
+        a_crunches_with_hashbang_comments+=(
+          [all_files_index]="${each_sorted_f}")
+        continue
+      fi
+
+      #   Note: with only /bin/sbin, this if-fi block doesn't execute
+
+      # FR: sort also per-rpm, awk script, probably
+
+      : 'outside of rpm'
+      if ! rpm -qf "${each_sorted_f}" 2>/dev/null 1>&2; then
+
+        : 'user or system'
+        if [[ "${each_sorted_f}" = /@(root|home|run/media)/* ]]; then
+          a_non_rpm_user_crunches+=(
+            [all_files_index]="${each_sorted_f}"
+          )
+          continue
+        else
+          a_non_rpm_system_crunches+=(
+            [all_files_index]="${each_sorted_f}"
+          )
+          continue
+        fi
+      fi
     fi
-
-    # Bug: keep `od` output in an array
-    # Bug: avoid as many disk writes as possible.
-    #  Write out only stats?
-    # Bug: use indices to reference each type? Store array diffs btw
-    # loop? Time loss to disk io? Run file in parallel? Read each file
-    # once and use var for both od and file?
-
-    : 'two bytes each'
 
     #X_; :_
 
-    # fix?: mapfile -d '' -t -O "${all_files_index}" a_od_output
+    # scan non-shell scripts for shell escapes ie sys-bin calls
+    # https://www.sans.org/blog/escaping-restricted-linux-shells/
 
-    od_o="$(
-      S_ od -j 0 -N 2 -t x1z -v -- "${each_sorted_f}" \
-        | tr -s ' ' \
-        | gawk --lint '{ print $2, $3, $4 }' \
-        | tr -d '\n' \
-        || E_ "P:${PIPESTATUS[*]} I:${all_files_index} ${each_sorted_f}"
-    )"
+    # Bug, "shell scripts" incls python perl etc
 
-    [[ -n "${od_o}" ]] \
-      || E_ "I:${all_files_index} ${each_sorted_f}"
+    # how to make IRT lists for each interpreter?
 
-    a_bin_od_output+=([all_files_index]="${od_o}")
+    : 'Make an array of the relevant filenames and their crashbangs.'
+    a_shell_scripts+=([all_files_index]="$(printf \
+      "%'-12d %%=%%=%%=%% %-50s %%=%%=%%=%% %s\n" \
+      "${all_files_index}" "${first_line_printable}" \
+      "${each_sorted_f}")"
+    )
 
-    read -r byte_0 byte_1 printable_chars <<<"${od_o}"
+  else
 
-    export printable_chars # SC-2034
+    : 'all others'
+    a_all_other_files+=([all_files_index]="$(printf \
+      "%'-12d %%=%%=%%=%% %s\n" "${all_files_index}" \
+      "${each_sorted_f}")"
+    )
+  fi
+done
 
-    : '-od_o- non-zero'
-    if [[ -z "${byte_0}" ]]; then
-      E_ "I:${all_files_index} <${each_sorted_f}>" \
-        '*unreachable code*'
-    elif [[ "${byte_0}" == @(23|21) ]]; then
-      : 'compare hexadecimals'
+# Note, you want to see the full crunchbangs in printed ASCII form
 
-      : 'endianness'
-      if [[ "${byte_0}${byte_1}" == 2123 ]]; then
-        a_incorrect_endianness+=([all_files_index]="${each_sorted_f}")
+: 'Open a timestamped file and append into it the list of filenames'
+: 'and their crashbangs.'
 
-      else
+: 'Exporting is necessary of the array names from the above scan'
+a_arrays=(a_all_files a_all_files_sorted a_file_DNE a_empty_files
+  a_bin_file_output a_bin_od_output a_incorrect_endianness
+  a_crunches_with_hashbang_comments a_non_rpm_user_crunches
+  a_non_rpm_system_crunches a_shell_scripts a_all_other_files
+  a_write_path_nms)
+export "${a_arrays[@]}"
 
-        : 'Crunchbangs'
+W_ "${a_arrays[@]}"
+B_ "${curr_time_ssubd}/file_out"
+#L_;
 
-        # q, does strings recognize unicode? Color codes? Cr's? Etc
-        # test dd vs strings
+: 'if any data files already exist, keep them'
+for any_existing_f in "${a_write_path_nms[@]}"; do
 
-        strings_o="$(strings -n1 <"${each_sorted_f}" \
-          | head -n1 \
-          | cut -b -$((2 ** 14)) \
-          || E_ "P:${PIPESTATUS[*]} I:${all_files_index} \
-            ${each_sorted_f}")"
-
-        IFS= read -r first_line_printable <<<"${strings_o}" \
-          || E_ "I:${all_files_index} ${each_sorted_f}"
-
-        : '-#!comment-'
-        if [[ "${first_line_printable}" =~ ^'#!comment' ]]; then
-          a_crunches_with_hashbang_comments+=(
-            [all_files_index]="${each_sorted_f}")
-          continue
-        fi
-
-        #   Note: with only /bin/sbin, this if-fi block doesn't execute
-
-        # FR: sort also per-rpm, awk script, probably
-
-        : 'outside of rpm'
-        if ! rpm -qf "${each_sorted_f}" 2>/dev/null 1>&2; then
-
-          : 'user or system'
-          if [[ "${each_sorted_f}" = /@(root|home|run/media)/* ]]; then
-            a_non_rpm_user_crunches+=(
-              [all_files_index]="${each_sorted_f}"
-            )
-            continue
-          else
-            a_non_rpm_system_crunches+=(
-              [all_files_index]="${each_sorted_f}"
-            )
-            continue
-          fi
-        fi
-      fi
-
-      #X_; :_
-
-      # scan non-shell scripts for shell escapes ie sys-bin calls
-      # https://www.sans.org/blog/escaping-restricted-linux-shells/
-
-      # Bug, "shell scripts" incls python perl etc
-
-      # how to make IRT lists for each interpreter?
-
-      : 'Make an array of the relevant filenames and their crashbangs.'
-      a_shell_scripts+=([all_files_index]="$(printf \
-        "%'-12d %%=%%=%%=%% %-50s %%=%%=%%=%% %s\n" \
-        "${all_files_index}" "${first_line_printable}" \
-        "${each_sorted_f}")"
-      )
-
-    else
-
-      : 'all others'
-      a_all_other_files+=([all_files_index]="$(printf \
-        "%'-12d %%=%%=%%=%% %s\n" "${all_files_index}" \
-        "${each_sorted_f}")"
-      )
-    fi
-  done
-
-  # Note, you want to see the full crunchbangs in printed ASCII form
-
-  : 'Open a timestamped file and append into it the list of filenames'
-  : 'and their crashbangs.'
-
-  : 'Exporting is necessary of the array names from the above scan'
-  a_arrays=(a_all_files a_all_files_sorted a_file_DNE a_empty_files
-    a_bin_file_output a_bin_od_output a_incorrect_endianness
-    a_crunches_with_hashbang_comments a_non_rpm_user_crunches
-    a_non_rpm_system_crunches a_shell_scripts a_all_other_files
-    a_write_path_nms)
-  export "${a_arrays[@]}"
-
-  W_ "${a_arrays[@]}"
-  B_ "${curr_time_ssubd}/file_out"
-  #L_;
-
-  : 'if any data files already exist, keep them'
-  for any_existing_f in "${a_write_path_nms[@]}"; do
-
-    if [[ -f "${any_existing_f}" ]] \
-      && [[ ! -L "${any_existing_f}" ]]; then
-      S_ mv -- "${any_existing_f}" "${any_existing_f}.${$}.${random_n}" \
-        || E_ "${LINENO}"
-    fi
-  done
-
-  : 'create the original list_crunchbangs'
-  S_ touch -- "${a_write_path_nms[@]}"
-
-  : 'write a file header'
-  {
-    printf '# crunchbangs -- %s\n' "${timecode%-*}"
-    printf '# %s\n' "$(declare -p a_relevant_search_dirs)"
-  } | S_ T_ -- "${a_write_path_nms[@]}" >/dev/null
-
-  : 'printing contents of a_shell_scripts array, with backup'
-  printf '%s\n' "${a_shell_scripts[@]}" \
-    | S_ T_ -a -- "${a_write_path_nms[@]}" >/dev/null
-  B_ "${a_write_path_nms[@]}"
-
-else
-
-  # the time_dir needs a copy of the crunchbangs file, also.  copy it in
-  # from the hopefully correct backup in /tmp
-  if [[ ! -f "${list_crunchbangs}" ]]; then
-    S_ rsync -ca -- "/tmp/${list_crunchbangs##*/}" \
-      "${list_crunchbangs}" \
+  if [[ -f "${any_existing_f}" ]] \
+    && [[ ! -L "${any_existing_f}" ]]; then
+    S_ mv -- "${any_existing_f}" "${any_existing_f}.${$}.${random_n}" \
       || E_ "${LINENO}"
   fi
+done
+
+: 'create the original list_crunchbangs'
+S_ touch -- "${a_write_path_nms[@]}"
+
+: 'write a file header'
+{
+  printf '# crunchbangs -- %s\n' "${timecode%-*}"
+  printf '# %s\n' "$(declare -p a_relevant_search_dirs)"
+} | S_ T_ -- "${a_write_path_nms[@]}" >/dev/null
+
+: 'printing contents of a_shell_scripts array, with backup'
+printf '%s\n' "${a_shell_scripts[@]}" \
+  | S_ T_ -a -- "${a_write_path_nms[@]}" >/dev/null
+B_ "${a_write_path_nms[@]}"
+
+# the time_dir needs a copy of the crunchbangs file, also.  copy it in
+# from the hopefully correct backup in /tmp
+if [[ ! -f "${list_crunchbangs}" ]]; then
+  S_ rsync -ca -- "/tmp/${list_crunchbangs##*/}" \
+    "${list_crunchbangs}" \
+    || E_ "${LINENO}"
 fi
 
 _full_xtrace
