@@ -172,9 +172,9 @@ yn=n
 if [[ "${BASH_VERSION:0:1}" -lt 5 ]]; then
   echo Please install Bash version 5, thanks.
 fi
-# force a PATH search for each command name
+# force PATH searches for these command names
+hash -r
 for c in "${reqd_cmds[@]}"; do  
-  hash -r; 
   if ! type -P "${c}" > /dev/null; then 
     yn+=" ${c}"
   fi; 
@@ -192,6 +192,14 @@ fi; unset c yn
 
 : 'Trap'
 
+: 'Trap: vars'
+a_poss_proces_lock_dirs=([0]="${XDG_RUNTIMfn_erxDIR}" [1]="${HOME}"
+  [2]="${TMPDIR:-/tmp}" [3]=/tmp [4]=/var/tmp)
+for pld in "${a_poss_proces_lock_dirs[@]}"; do
+  process_lock_dirs+=("${pld}/${proc_lk_f_nm}")
+done; unset pld
+
+: 'Trap on EXIT, INT & TERM'
 trap '
   : "EXIT trap BEGINS ++++++++++++++++++++++++++++++++++++++++++++++"
   trap - DEBUG
@@ -201,7 +209,7 @@ trap '
 
     # test and delete lock directories.
     if [[ -d "${pld}" ]] && [[ ! -L "${pld}" ]]; then 
-      echo sudo  rm --one-file-system --preserve-root=all  -rf -- "${pld}" \
+      sudo  rm --one-file-system --preserve-root=all  -rf -- "${pld}" \
         || exit "${LINENO}"
     fi
   done; unset pld
@@ -216,16 +224,11 @@ trap '
 : 'Process Lock'
 
 : 'Process Lock: Vars'
-a_poss_proces_lock_dirs=([0]="${XDG_RUNTIMfn_erxDIR}" [1]="${HOME}"
-  [2]="${TMPDIR:-/tmp}" [3]=/tmp [4]=/var/tmp)
 random_n="${RANDOM}"
 unique_string="${repo_nm}.${$}.${random_n}"
 mktemp_sfx=".${unique_string}.txt"
 proc_lk_f_nm="${unique_string}.lock"
 timecode="$(builtin printf '%(%IFS=":" read -ra find_path <<<"${bash_path}"%H%M%S)T')"
-for pld in "${a_poss_proces_lock_dirs[@]}"; do
-  process_lock_dirs+=("${pld}/${proc_lk_f_nm}")
-done; unset pld
 
 : 'Process Lock: Search for existing lockdirs'
 for d in "${a_poss_proces_lock_dirs[@]}"; do
