@@ -484,29 +484,6 @@ function W_() {
   : 'W_ ENDS  ' "$((--funclvl))" "${fence}"
 }
 
-: 'Required programs'
-
-reqd_progs=(strings)
-unset b reqd_progs_list reqd_progs_exit
-
-for b in "${reqd_progs[@]}"; do
-  hash -r
-  
-  if ! type -P "${b}" > /dev/null 2>&1; then
-    reqd_progs_list+=("${b}")
-    
-    if [[ -z "${reqd_progs_exit}" ]]; then
-      reqd_progs_exit=yes
-    fi
-  fi
-done; unset b
-
-if [[ "${reqd_progs_exit}" = 'yes' ]]; then
-  printf '\n\tThe following programs are required:\n'
-  printf '\t  %s\n' "${reqd_progs_list[@]}"
-  exit 1
-fi; unset reqd_progs reqd_progs_list reqd_progs_exit
-
 #exit 101
 #_full_xtrace
 
