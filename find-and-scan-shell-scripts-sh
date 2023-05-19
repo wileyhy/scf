@@ -44,6 +44,29 @@ fi; unset c yn
 #exit 101
 #set -x
 
+: 'Trap(s)'
+
+trap '
+  : "EXIT trap BEGINS ++++++++++++++++++++++++++++++++++++++++++++++"
+  trap - DEBUG
+
+  # Delete all possible existing process _lock_directories_. 
+  for pld in "${process_lock_dirs[@]}"; do 
+
+    # test and delete lock directories.
+    if [[ -d "${pld}" ]] && [[ ! -L "${pld}" ]]; then 
+      echo S_ R_ -rf -- "${pld}" \
+        || L_
+    fi
+  done; unset pld
+
+    # <>
+    #: "${Halt?}"
+
+  trap - EXIT INT TERM
+  kill -s INT "$$"
+' EXIT INT TERM
+
 : 'Process Lock'
 
 a_poss_proces_lock_dirs=([0]="${XDG_RUNTIME_DIR}" [1]="${HOME}"
@@ -179,6 +202,35 @@ methods_scan_excluded_by=yes
 methods_symlinks_l=logical
 verify=(all)
 
+# <>
+_full_xtrace
+exit 101
+
+: 'Data dirs' 
+
+# take each found dir and convert abs path [of sym, okay] to a string
+# usable for directory names
+unset index element calc
+
+# for each dirname /  directory in search path
+for index in "${!A_rsd[@]}"; do
+  element="${A_rsd["$index"]}"
+  calc="$(realpath -e "$element")"
+  calc="${calc//\//_}"
+  calc="${calc#_}"
+  printf 'element: %-12s index: %-12s calc: %s \n' \
+    "$element" "$index" "$calc"
+  if [[ "$index" != "$calc" ]]; then
+    echo wrong
+    exit
+  fi
+done
+
+# <>
+_full_xtrace
+exit 101
+
+
 : '<> Debugging'
 
 : '<> Debug: Variables' # "<>" means, "This is a debugging section."
@@ -218,29 +270,6 @@ for f in "${xtrace_files[@]}"; do
     R_ "$f"
   fi
 done; unset f
-
-: 'Trap(s)'
-
-trap '
-  : "EXIT trap BEGINS ++++++++++++++++++++++++++++++++++++++++++++++"
-  trap - DEBUG
-
-  # Delete all possible existing process _lock_directories_. 
-  for pld in "${process_lock_dirs[@]}"; do 
-
-    # test and delete lock directories.
-    if [[ -d "${pld}" ]] && [[ ! -L "${pld}" ]]; then 
-      echo S_ R_ -rf -- "${pld}" \
-        || L_
-    fi
-  done; unset pld
-
-    # <>
-    #: "${Halt?}"
-
-  trap - EXIT INT TERM
-  kill -s INT "$$"
-' EXIT INT TERM
 
 : '<> XTrace variables and functions'
 
@@ -1330,32 +1359,6 @@ _full_xtrace
 exit 101
 
 
-
-: 'memory_usage' # ie, naming of temp dirs
-
-#export memory_usage
-
-# take each found dir and convert abs path [of sym, okay] to a string
-# usable for directory names
-unset index element calc
-
-# for each dirname /  directory in search path
-for index in "${!A_rsd[@]}"; do
-  element="${A_rsd["$index"]}"
-  calc="$(realpath -e "$element")"
-  calc="${calc//\//_}"
-  calc="${calc#_}"
-  printf 'element: %-12s index: %-12s calc: %s \n' \
-    "$element" "$index" "$calc"
-  if [[ "$index" != "$calc" ]]; then
-    echo wrong
-    exit
-  fi
-done
-
-# <>
-_full_xtrace
-exit 101
 
 : 'DACs'
 
