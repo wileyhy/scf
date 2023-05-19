@@ -535,7 +535,7 @@ fn_usage() {
         [sb]  /sbin only           *[ty] "bash" builtin "type -a"
         [pr]  Add /proc           q:  Validate information
         [sy]  Add /sys             *[a]   all
-      a:  Path                      [c]   add crashbangs
+      a:  Path                                            
         [DIR]  Add search dir       [d]   add DACs
       c:  Severity level            [i]   add interpreters
        *[e]   error                 [l]   add ACLs
@@ -759,7 +759,6 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
       *) [[ "${verify[*]}" =~ all ]] \
         && unset verify ;;&
       a | ac*) verify+=(acls) ;;
-      c | cr*) verify+=(crashbangs) ;;
       d | da*) verify+=(dacs) ;;
       i | in*) verify+=(interpreters) ;;
       p | pa*) verify+=(path) ;;
