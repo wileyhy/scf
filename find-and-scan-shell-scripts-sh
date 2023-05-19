@@ -204,8 +204,8 @@ declare -A A_process_lock_dirs
 i=0 
 
 for pld in "${a_poss_proces_lock_dirs[@]}"; do
-  pld="$(realpath -e "${pld}")"
   if [[ -d "${pld}" ]]; then
+    pld="$(realpath -e "${pld}")"
     A_process_lock_dirs+=( ["${pld}/${proc_lk_f_nm}"]=$((i++)) )
   fi
 done; unset pld
@@ -218,7 +218,7 @@ if [[ "$*" =~ delete_locks ]]; then
   delete_locks='y'
 fi
 
-_full_xtrace
+#_full_xtrace
 #exit 101
 
 : 'Trap'
@@ -228,7 +228,7 @@ trap '
   trap - DEBUG
 
   # Delete all possible existing process _lock_directories_. 
-  for pld in "${A_process_lock_dirs[@]}"; do 
+  for pld in "${a_process_lock_dirs[@]}"; do 
 
     # test and delete lock directories.
     if [[ -d "${pld}" ]] && [[ ! -L "${pld}" ]]; then 
@@ -246,56 +246,76 @@ trap '
 
 : 'Process Lock'
 
-: 'Process Lock: Vars'
 : 'Process Lock: Search for existing lockdirs'
-for d in "${A_process_lock_dirs[@]}"; do
-  mapfile -d '' -t lkdrs < <(
-    sudo  find "${d}" -type d -empty -name \
-      ".${repo_nm}.[0-9a-zA-Z_-]*.lock" -print0 2>/dev/null
-  )
-  : 'lkdrs, count:' "${#lkdrs[@]}"
-  for l in "${lkdrs[@]}"; do
-    if [[ -d "${l}" ]]; then
-      if [[ -v delete_locks ]]; then
-        rmdir -v -- "${l}"
-      else
-        printf '\n\t A process lock exists for this script. Exiting '
-        printf 'now.\n\n'
-        exit "${LINENO}"
-      fi
+mapfile -d '' -t lkdrs < <(
+  sudo find "${a_process_lock_dirs[@]}" -maxdepth 1 -type d -name \
+    ".${repo_nm}.[0-9a-zA-Z_-]*.lock" -print0 2>/dev/null
+)
+: 'lkdrs, count:' "${#lkdrs[@]}"
+for l in "${lkdrs[@]}"; do
+  if [[ -d "${l}" ]]; then
+    if [[ -v delete_locks ]]; then
+      rmdir -v -- "${l}"
+    else
+      printf '\n\t A process lock exists for this script. Exiting '
+      printf 'now.\n\n'
+      exit "${LINENO}"
     fi
-  done
+  fi
 done
 # Note: delete_locks is an undocumented CLI option
 [[ -v delete_locks ]] \
   && exit "${LINENO}"
 
-
+#exit 101
 _full_xtrace
-exit 101
 
-: 'Process Lock: Define the lockdir'
-for poss_lk_d in "${a_poss_proces_lock_dirs[@]}"; do
+# Bug: race condition btw defining and `mkdir`
+declare -p a_process_lock_dirs
+
+: 'Process Lock: Define & create the lockdir'
+
+target_fso=d
+
+for poss_lk_d in "${a_process_lock_dirs[@]}"; do 
+  case "${target_fso}" in
+    d)
+      if find "${poss_lk_d%/*}" -maxdepth 0 '(' -type d -a '!' -type l ')' -writable -readable -executable -true -exec mkdir -vm 0700 "${poss_lk_d}" ';'; then
+        process_lock_d="${poss_lk_d}" target_fso=L
+      fi
+      ;;
+    L)
+      find "${poss_lk_d%/*}" -maxdepth 0 '(' -type d -a '!' -type l ')' -writable -readable -executable -true -exec ln -vs "${process_lock_d}" "${poss_lk_d}" ';' 
+      ;; # ln cannot make hardlinks to dirs; chattr -i not supported
+  esac
+done; set -
+
+  # Bug: for some reason, the lockdir gets deleted while the symlinks stay put.
+  ${Halt:?}
+
+for poss_lk_d in "${a_process_lock_dirs[@]}"; do
   # use the first one that fulfills certain requirements
-  if [[ -d "${poss_lk_d}" ]] \
-    && [[ ! -L "${poss_lk_d}" ]] \
-    && [[ -w "${poss_lk_d}" ]]; then
-    process_lock_d="${poss_lk_d}/${proc_lk_f_nm}"
-    break
+  find_out="$( find "${poss_lk_d}" -maxdepth 0 '(' -type d -a '!' -type l ')' -writable -readable -executable -exec mkdir -m 0700 '()' ';')"
+  
+  if [[ -n "${find_out}" ]]; then
+
+    if mkdir -m 0700 "${process_lock_d:="${find_out}"}" 2>/dev/null; then
+      break
+    else
+      continue
+    fi
+  else
+  : 'Process Lock: Create a lockdir and handle any error'
+    {
+      printf '\n\tCannot acquire process lock: <%s>.\n' "${process_lock_d}"
+      printf 'Exiting.\n\n'
+    } 1>&2
+    exit "${LINENO}"
   fi
 done
 
-: 'Process Lock: Create a lockdir and handle any error'
-if ! mkdir -m 0000 "${process_lock_d}" 2>/dev/null; then
-  {
-    printf '\n\tCannot acquire process lock: <%s>.\n' "${process_lock_d}"
-    printf 'Exiting.\n\n'
-  } 1>&2
-  exit "${LINENO}"
-fi
-
-_full_xtrace
 exit 101
+_full_xtrace
 
 : 'Variables'
 
