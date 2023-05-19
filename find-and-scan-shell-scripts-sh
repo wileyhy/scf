@@ -1468,13 +1468,6 @@ done
 unset end_dirname full_dir_list ext_array dir sub_dir num_sub_dirs \
   N n extglob_pattern ext_first ext_last getfacl_o grep_o
 
-: 'Find command'
-
-export find_path
-export find_sym_opt_L
-export methods_scan_excluded_by
-export find_exclude_optargs
-
 # <>
 _full_xtrace
 exit 101
