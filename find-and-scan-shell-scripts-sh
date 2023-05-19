@@ -74,7 +74,7 @@ _mk_setenv_prev() {
 
 _mk_setenv_now() {
   : '_mk_setenv_now BEGINS' "$((++funclvl))" "${fence}"
-  setenv_now="$(mktemp --suffix="${mktemp_sfx}")"
+  setenv_now="$(mktemp -p /tmp --suffix="${mktemp_sfx}")"
     # `{ set; env;} | tee`: env & set dont print in simple xtrace 
     set \
       |& tee -- "${setenv_now}" >/dev/null 
@@ -91,7 +91,7 @@ _mk_setenv_delta() {
       wait -f
     fi
     # create a new delta file, each time
-    setenv_delta="$(mktemp --suffix="${mktemp_sfx}")" #
+    setenv_delta="$(mktemp -p /tmp --suffix="${mktemp_sfx}")" #
     {
       diff -y --suppress-{common-lines,blank-empty} --color=never \
         "${setenv_prev}" "${setenv_now}" \
@@ -164,7 +164,7 @@ fi
 # Bug: innaccurate list for this script, 17 May
 
 reqd_cmds=( 'awk' 'chmod' 'cp' 'cut' 'dirname' 'file' 
-  'find' 'getconf' 'grep' 'ln' 'ls' 'mkdir' 'od' 'rm' 'rmdir' 
+  'find' 'getconf' 'grep' 'ln' 'ls' 'mkdir' 'mktemp' 'od' 'rm' 'rmdir' 
   'stat' 'strings' 'sudo' 'tee' )
 yn='n'
 # Requires a minimum of bash version 5
