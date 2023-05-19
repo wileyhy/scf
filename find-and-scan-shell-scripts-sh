@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
   #!/usr/bin/env -iS bash -x
 # Written in bash version 5.1 on Fedora 37 & 38
 repo_nm=scf
@@ -9,7 +9,7 @@ repo_nm=scf
 
 : '<> Debugging' # "<>" means, "This is a debugging section."
 
-: '<> Debug: Delete any left over xtrace files in /tmp'
+: '<> Debug: Delete any left over xtrace files from -mktemp -p /tmp-'
 mapfile -d "" -t xtrace_files < <(
   find /tmp -maxdepth 1 -type f \
     -name "tmp.[a-zA-Z0-9]*.${repo_nm}.[0-9]*.[0-9]*.txt" -print0 
@@ -188,7 +188,7 @@ else
 fi; unset c yn reqd_cmds
 
 #exit 101
-_full_xtrace
+#_full_xtrace
 
 : 'Variables for Trap and Process Locks'
 a_poss_proces_lock_dirs=([0]="${XDG_RUNTIME_DIR}" [1]="${HOME}"
@@ -199,24 +199,27 @@ proc_lk_f_nm="${unique_string}.lock"
 mktemp_sfx=."${unique_string}.txt"
 timecode="$(builtin printf '%(%F_%H%M%S)T')"
 
-a_poss_proces_lock_dirs+=([2]=/tmp)
+# An associative array, in case TMPDIR duplicates another array value
 declare -A A_process_lock_dirs
-i=0
+i=0 
+
 for pld in "${a_poss_proces_lock_dirs[@]}"; do
   pld="$(realpath -e "${pld}")"
   if [[ -d "${pld}" ]]; then
     A_process_lock_dirs+=( ["${pld}/${proc_lk_f_nm}"]=$((i++)) )
   fi
 done; unset pld
+
 for i in "${!A_process_lock_dirs[@]}"; do 
   a_process_lock_dirs+=( ["${A_process_lock_dirs[$i]}"]="$i" ); 
 done; unset A_process_lock_dirs i
+
 if [[ "$*" =~ delete_locks ]]; then 
   delete_locks='y'
 fi
 
-  declare -p A_process_lock_dirs
-  ${Halt:?}
+_full_xtrace
+#exit 101
 
 : 'Trap'
 
