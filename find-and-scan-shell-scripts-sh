@@ -1312,27 +1312,6 @@ for index in "${!A_rsd[@]}"; do
     exit
   fi
 done
-get_mountpoint() {
-  : 'get_mountpoint BEGINS' "$((++funclvl))" "${fence}"
-  unset d dir
-  d="$(realpath -e "$1")"
-  mapfile -t dir < <(
-    namei -xl "$d" \
-      | tac \
-      | grep -A100 ^D \
-      | grep -E ^'[Dd]' \
-      | gawk --lint '{ print $4 }'
-  )
-  unset j x i
-  j="${#dir[@]}"
-  for ((i = j; i > 0; i--)); do
-    x+="${dir[$i - 1]}"/
-  done
-  x="$(realpath -e "$x")"
-  echo "$x"
-  : 'get_mountpoint ENDS  ' "$((--funclvl))" "${fence}"
-}
-get_mountpoint /sbin
 
 # <>
 _full_xtrace
