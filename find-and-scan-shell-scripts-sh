@@ -30,7 +30,7 @@ fi
 # Bug: innaccurate list for this script, 17 May
 
 reqd_cmds=( 'awk' 'chmod' 'cp' 'cut' 'dirname' 'find' 'grep' 'ln' 'ls' 
-  'mkdir' 'rm' 'rmdir' 'stat' 'sudo' 'tee' )
+  'mkdir' 'od' 'rm' 'rmdir' 'stat' 'strings' 'sudo' 'tee' )
 yn=n
 if [[ "${BASH_VERSION:0:1}" -lt 5 ]]; then
   echo Please install Bash version 5, thanks.
