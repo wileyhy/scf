@@ -10,18 +10,6 @@
 abbrev_rel_search_dirs=/
 # "${Halt:?}"
 
-: '<> Debug: Aliases'
-shopt -s expand_aliases
-alias :_=':;: "<>"'
-alias D_='declare -p '
-alias F_='IFS=":" read -ra find_path <<<"${bash_path}"'
-alias L_='exit "${LINENO}"'
-alias M_='sudo namei -xl '
-alias R_='rm --one-file-system --preserve-root=all '
-alias S_='sudo '
-alias T_='tee --output-error=exit '
-alias X_='set -x'
-
 : '<> Debug: Delete any left over xtrace files in /tmp'
 mapfile -d "" -t xtrace_files < <(
   find /tmp -maxdepth 1 -type f \
@@ -34,7 +22,7 @@ for f in "${xtrace_files[@]}"; do
     && [[ ! -L "${f}" ]] \
     && [[ -O "${f}" ]];
   then
-    R_ "$f"
+    rm --one-file-system --preserve-root=all  "$f"
   fi
 done; unset f
 
@@ -78,7 +66,7 @@ _mk_setenv_prev() {
   if [[ -n "${setenv_now}" ]]; then
     : 'if'
     if [[ -n "${setenv_prev}" ]]; then
-      R_ -f -- "${setenv_prev}"
+      rm --one-file-system --preserve-root=all  -f -- "${setenv_prev}"
     fi
     setenv_prev="${setenv_now}"
   fi
@@ -100,7 +88,7 @@ _mk_setenv_delta() {
   : '_mk_setenv_delta BEGINS' "$((++funclvl))" "${fence}"
   if [[ -n "${setenv_now}" ]] && [[ -n "${setenv_prev}" ]]; then
     if [[ -n "${setenv_delta}" ]]; then
-      R_ -f -- "${setenv_delta}"
+      rm --one-file-system --preserve-root=all  -f -- "${setenv_delta}"
       wait -f
     fi
     # create a new delta file, each time
@@ -211,8 +199,8 @@ trap '
 
     # test and delete lock directories.
     if [[ -d "${pld}" ]] && [[ ! -L "${pld}" ]]; then 
-      echo S_ R_ -rf -- "${pld}" \
-        || L_
+      echo sudo  rm --one-file-system --preserve-root=all  -rf -- "${pld}" \
+        || exit "${LINENO}"
     fi
   done; unset pld
 
@@ -232,7 +220,7 @@ random_n="${RANDOM}"
 unique_string="${repo_nm}.${$}.${random_n}"
 mktemp_sfx=".${unique_string}.txt"
 proc_lk_f_nm="${unique_string}.lock"
-timecode="$(builtin printf '%(%F_%H%M%S)T')"
+timecode="$(builtin printf '%(%IFS=":" read -ra find_path <<<"${bash_path}"%H%M%S)T')"
 for pld in "${a_poss_proces_lock_dirs[@]}"; do
   process_lock_dirs+=("${pld}/${proc_lk_f_nm}")
 done; unset pld
@@ -241,7 +229,7 @@ done; unset pld
 for d in "${a_poss_proces_lock_dirs[@]}"; do
   if [[ -d "${d}" ]]; then
     mapfile -d '' -t lkds < <(
-      S_ find "${d}" -type d -empty -name \
+      sudo  find "${d}" -type d -empty -name \
         ".${repo_nm}.[0-9a-zA-Z_-]*.lock" -print0 2>/dev/null
     )
     : 'lkds, count:' "${#lkds[@]}"
@@ -252,14 +240,14 @@ for d in "${a_poss_proces_lock_dirs[@]}"; do
         else
           printf '\n\t A process lock exists for this script. Exiting '
           printf 'now.\n\n'
-          L_
+          exit "${LINENO}"
         fi
       fi
     done
   fi
 done
 [[ -v delete_locks ]] \
-  && L_
+  && exit "${LINENO}"
 
 # FeatReq: ^--- delete_locks sb a cli option
 
@@ -283,7 +271,7 @@ if ! mkdir -m 0000 "${process_lock_d}" 2>/dev/null; then
     printf '\n\tCannot acquire process lock: <%s>.\n' "${process_lock_d}"
     printf 'Exiting.\n\n'
   } 1>&2
-  L_
+  exit "${LINENO}"
 fi
 
 set -x
@@ -369,7 +357,7 @@ fn_bak() {
   # for each of multiple input files
   for loc_filename_a in "${@}"; do
     # test verifying existence of input
-    if S_ test -f "${loc_filename_a}"; then
+    if sudo  test -f "${loc_filename_a}"; then
 
       # Bug: Why does this ^ test req sudo when this test \/ doesnt?
       # Requires use of fn_bak or B_ to debug this.
@@ -381,11 +369,11 @@ fn_bak() {
         if [[ -s "${loc_filename_a}.bak" ]]; then
           return
         else
-          S_ R_ -f -- "${loc_filename_a}.bak"
+          sudo  rm --one-file-system --preserve-root=all  -f -- "${loc_filename_a}.bak"
         fi
       fi
       # write a new .bak file
-      S_ rsync -acq -- "${loc_filename_a}"{,.bak} \
+      sudo  rsync -acq -- "${loc_filename_a}"{,.bak} \
         || E_ "${LINENO}"
     # if input file DNE, then print an error and exit
     else
@@ -471,7 +459,7 @@ fn_write_arrays() {
   # Usage: W_ [arrays]
   loc_write_d_b="${curr_time_ssubd}arrays"
   if [[ ! -d "${loc_write_d_b}" ]]; then
-    S_ mkdir -p -- "${loc_write_d_b}" \
+    sudo  mkdir -p -- "${loc_write_d_b}" \
       || E_ "${LINENO}"
   fi
   # for each of multiple input array names
@@ -492,7 +480,7 @@ fn_write_arrays() {
     fi
     # then write a data file to disk
     declare -p "${loc_array_nm}" \
-      | S_ T_ -- "${loc_write_f_b}" >/dev/null
+      | sudo  tee --output-error=exit  -- "${loc_write_f_b}" >/dev/null
     # write a backup of the new data file
     B_ "${loc_write_f_b}"
   done
@@ -511,7 +499,7 @@ fn_write_arrays() {
 #    && return
 #  # write a new data file
 #  declare -p "${@}" 2>/dev/null \
-#    | S_ T_ -- "${loc_write_f_a}" >/dev/null
+#    | sudo  tee --output-error=exit  -- "${loc_write_f_a}" >/dev/null
 #  # and write a .bak file
 #  B_ "${loc_write_f_a}"
 #  : 'fn_write_vars ENDS  ' "$((--funclvl))" "${fence}"
@@ -553,7 +541,7 @@ a_write_path_nms=("${list_crunchbangs:=crunchbangs}"
 : 'if necessary'
 [[ -d "${data_subd}" ]] \
   || mkdir "${data_subd}" # as liveuser
-#X_; :_; M_ -- "${data_subd}"
+#set -x; :;: "<>"; sudo namei -xl  -- "${data_subd}"
 : 'Label the current data as -latest.-'
 mapfile -d '' -t a_previous_time_dirs < <(
   find "${data_subd}" -mindepth 1 -maxdepth 1 -type d -a \! -type l \
@@ -566,17 +554,17 @@ for prev_time_ssubd in "${a_previous_time_dirs[@]}"; do
   : 'of previous prev_time_ssubd'
   if [[ -d "${prev_time_ssubd}" ]] \
     && [[ ! -L "${prev_time_ssubd}" ]]; then
-    S_ mv -- "${a_previous_time_dirs[@]}" "${main_d}"
+    sudo  mv -- "${a_previous_time_dirs[@]}" "${main_d}"
   else
     continue
   fi
 done
 : 'of curr_time_ssubd'
 if [[ ! -d "${curr_time_ssubd}" ]]; then
-  S_ mkdir -p -- "${curr_time_ssubd}" \
+  sudo  mkdir -p -- "${curr_time_ssubd}" \
     || E_ "${LINENO}"
 fi
-#X_; :_; M_ -- "${curr_time_ssubd}"
+#set -x; :;: "<>"; sudo namei -xl  -- "${curr_time_ssubd}"
 
 # <>
 set -x
@@ -648,7 +636,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
 
       # Append dirname to bash_path and reset find_path
       bash_path+=":${new_optarg}"
-      F_
+      IFS=":" read -ra find_path <<<"${bash_path}"
 
       # adjust tracking array
       new_optarg="${new_optarg//\//_}"
@@ -682,7 +670,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
 
       ac* | aa*)
         bash_path='/'
-        F_
+        IFS=":" read -ra find_path <<<"${bash_path}"
         find_exclude_optargs=()
         methods_path=(actually_all) 
         methods_prog_cv=bin_find
@@ -690,7 +678,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
         ;;
       al* )
         bash_path='/'
-        F_
+        IFS=":" read -ra find_path <<<"${bash_path}"
         find_exclude_optargs=("${find_exclude_optargs_default[@]}")
         methods_path=(all) 
         methods_prog_cv=bin_find
@@ -698,32 +686,32 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
         ;;
       as* | ai*)
         bash_path="${bash_path_orig}"
-        F_
+        IFS=":" read -ra find_path <<<"${bash_path}"
         methods_path=('as-is') 
         ;;
       bi* | b)
         bash_path='/usr/bin'
-        F_
+        IFS=":" read -ra find_path <<<"${bash_path}"
         methods_path=(bin_only) 
         ;;
       bo* | bs*)
         bash_path='/usr/bin:/usr/sbin'
-        F_
+        IFS=":" read -ra find_path <<<"${bash_path}"
         methods_path=(both_bin_sbin_only)
         ;;
       ge* | g)
         bash_path="${getconf_o}"
-        F_
+        IFS=":" read -ra find_path <<<"${bash_path}"
         methods_path=(getconf_PATH_only) 
         ;;
       sb* | so* | s)
         bash_path='/usr/sbin'
-        F_
+        IFS=":" read -ra find_path <<<"${bash_path}"
         methods_path=(sbin_only) 
         ;;
       pr* | p | pa*)
         bash_path+=':/proc'
-        F_
+        IFS=":" read -ra find_path <<<"${bash_path}"
         methods_path+=(add_proc) 
         methods_prog_cv=bin_find
         find_exclude_optargs=()
@@ -731,7 +719,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
         ;;
       sy* | sa*)
         bash_path+=':/sys'
-        F_
+        IFS=":" read -ra find_path <<<"${bash_path}"
         methods_path+=(add_sys) 
         methods_prog_cv=bin_find
         find_exclude_optargs=()
@@ -791,7 +779,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
     ## Whether and how to save data. Default is temp files.
     #m) case "${OPTARG:0:1}" in
       #p*) memory_usage=persistent_storage ;;
-      #r*) memory_usage=RAM_only ;;
+      #r*) memory_usage=RAsudo namei -xl only ;;
       #t*) memory_usage=temp_files ;;
       #*) "${arg_wrong__m:?}" ;;
     #esac ;;
@@ -920,7 +908,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
             fi
 
             # and then re-assign find_path
-            F_
+            IFS=":" read -ra find_path <<<"${bash_path}"
           done; unset x
           ;;
         *) 
@@ -936,7 +924,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
 done
 shopt -u nocasematch
 
-#D_ methods_symlinks_l methods_recurse_n methods_prog_cv methods_scan_excluded_by find_sym_opt_L find_exclude_optargs bash_path find_path PATH methods_path
+#declare -p  methods_symlinks_l methods_recurse_n methods_prog_cv methods_scan_excluded_by find_sym_opt_L find_exclude_optargs bash_path find_path PATH methods_path
 
 # <>
 #_full_xtrace
@@ -1005,7 +993,7 @@ _verify_path(){
 
   # if the path var is bash_path, then reset find_path
   if [[ "${loc_var_nm}" = bash_path ]]; then 
-    F_
+    IFS=":" read -ra find_path <<<"${bash_path}"
   fi
   : '_verify_path ENDS  '  "$((--funclvl))" "${fence}"
 }
@@ -1089,16 +1077,16 @@ for dir in "${bash_path[@]}"; do
     [[ -n "${ext_first}" ]] \
       && unset 'ext_array[0]'
 
-    X_
-    :_
-    D_ ext_array
+    set -x
+    :;: "<>"
+    declare -p  ext_array
 
     ext_last="${ext_array[*]: -1:1}" # [@] or [*] ? SC-2124=w
 
-    X_
-    :_
-    D_ ext_last
-    L_
+    set -x
+    :;: "<>"
+    declare -p  ext_last
+    exit "${LINENO}"
 
     [[ -n "${ext_last}" ]] \
       && unset "ext_array[${#ext_array[@]}]"
@@ -1479,7 +1467,7 @@ if [[ "${abbrev_rel_search_dirs}" == all ]]; then
 
   : 'set a value for a_relevant_search_dirs and..'
   mapfile -d '' -t a_relevant_search_dirs < <(
-    S_ find "${find_sym_opt_L}" "${find_path[@]}" -mindepth 1 -maxdepth 1 -type d \! -empty \
+    sudo  find "${find_sym_opt_L}" "${find_path[@]}" -mindepth 1 -maxdepth 1 -type d \! -empty \
       "${find_exclude_optargs[@]}" -print0 2>/dev/null
   )
 
@@ -1493,7 +1481,7 @@ fi
 
 : 'Find all files within the search area. Even the empty ones.'
 mapfile -d '' -t a_all_files < <(
-  S_ find "${a_relevant_search_dirs[@]}" -mindepth 1 -type f \
+  sudo  find "${a_relevant_search_dirs[@]}" -mindepth 1 -type f \
     -print0 2>/dev/null
 )
 
@@ -1549,9 +1537,9 @@ for all_files_index in "${!a_all_files_sorted[@]}"; do
 
   : '-file- magic'
   printf '+ %-8d: ' "${all_files_index}" \
-    | S_ tee -a -- "${curr_time_ssubd}file_out" >/dev/null
+    | sudo  tee -a -- "${curr_time_ssubd}file_out" >/dev/null
 
-  file_o="$(S_ file -pk -- "${each_sorted_f}" 2>&1)" # Bug: needs erx
+  file_o="$(sudo  file -pk -- "${each_sorted_f}" 2>&1)" # Bug: needs erx
   file_o="${file_o%%64-bit LSB *}"
   a_bin_file_output+=([all_files_index]="${file_o}")
 
@@ -1560,11 +1548,11 @@ for all_files_index in "${!a_all_files_sorted[@]}"; do
   # Bug: [[ -n sb right after exec file
 
   if [[ -n "${file_o}" ]]; then
-    S_ tee -a -- "${curr_time_ssubd}file_out" <<<"${file_o}" \
+    sudo  tee -a -- "${curr_time_ssubd}file_out" <<<"${file_o}" \
       >/dev/null
   else
     err_msg="WARNING: -file- produced 0 output:  <${each_sorted_f}>"
-    S_ tee -a -- "${curr_time_ssubd}file_out" <<<"${err_msg}" \
+    sudo  tee -a -- "${curr_time_ssubd}file_out" <<<"${err_msg}" \
       >/dev/null
   fi
 
@@ -1577,12 +1565,12 @@ for all_files_index in "${!a_all_files_sorted[@]}"; do
 
   : 'two bytes each'
 
-  #X_; :_
+  #set -x; :;: "<>"
 
   # fix?: mapfile -d '' -t -O "${all_files_index}" a_od_output
 
   od_o="$(
-    S_ od -j 0 -N 2 -t x1z -v -- "${each_sorted_f}" \
+    sudo  od -j 0 -N 2 -t x1z -v -- "${each_sorted_f}" \
       | tr -s ' ' \
       | gawk --lint '{ print $2, $3, $4 }' \
       | tr -d '\n' \
@@ -1654,7 +1642,7 @@ for all_files_index in "${!a_all_files_sorted[@]}"; do
       fi
     fi
 
-    #X_; :_
+    #set -x; :;: "<>"
 
     # scan non-shell scripts for shell escapes ie sys-bin calls
     # https://www.sans.org/blog/escaping-restricted-linux-shells/
@@ -1695,20 +1683,20 @@ export "${a_arrays[@]}"
 
 W_ "${a_arrays[@]}"
 B_ "${curr_time_ssubd}/file_out"
-#L_;
+#exit "${LINENO}";
 
 : 'create the original list_crunchbangs'
-S_ touch -- "${a_write_path_nms[@]}"
+sudo  touch -- "${a_write_path_nms[@]}"
 
 : 'write a file header'
 {
   printf '# crunchbangs -- %s\n' "${timecode%-*}"
   printf '# %s\n' "$(declare -p a_relevant_search_dirs)"
-} | S_ T_ -- "${a_write_path_nms[@]}" >/dev/null
+} | sudo  tee --output-error=exit  -- "${a_write_path_nms[@]}" >/dev/null
 
 : 'printing contents of a_shell_scripts array, with backup'
 printf '%s\n' "${a_shell_scripts[@]}" \
-  | S_ T_ -a -- "${a_write_path_nms[@]}" >/dev/null
+  | sudo  tee --output-error=exit  -a -- "${a_write_path_nms[@]}" >/dev/null
 B_ "${a_write_path_nms[@]}"
 
 _full_xtrace
@@ -1717,10 +1705,10 @@ exit 101
 # <> ?
 W_ a_write_path_nms
 
-#X_; :_;
+#set -x; :;: "<>";
 
-S_ head -- "/tmp/${list_crunchbangs##*/}"
-#L_;
+sudo  head -- "/tmp/${list_crunchbangs##*/}"
+#exit "${LINENO}";
 
 : 'Verify interpreters'
 
@@ -1745,8 +1733,8 @@ _full_xtrace
 exit 101
 
 # <>
-:_
-#L_
+:;: "<>"
+#exit "${LINENO}"
 
 # Duplicate with post-getopts section ?
 
@@ -1788,7 +1776,7 @@ done
 # Canonicalize interpreters paths, sort and list each unique binary.
 #   Note: new indices starting from 0
 mapfile -t a_interps_rps < <(
-  S_ realpath -e -- "${a_interpreters[@]}" \
+  sudo  realpath -e -- "${a_interpreters[@]}" \
     | sort -u
 )
 
@@ -1796,7 +1784,7 @@ _full_xtrace
 exit 101
 
 # <>
-L_
+exit "${LINENO}"
 
 # for each interpreter, print it in the 1st 32 bits of a line.
 
@@ -1828,7 +1816,7 @@ L_
     # filter for rpm name by CPU type in its filename
     # sort rpms and print each unique
     dnf_po="$(
-      S_ dnf provides -- "${a_interps_rps[b]}" \
+      sudo  dnf provides -- "${a_interps_rps[b]}" \
         | gawk --lint '/x86_64|i686/ { print $1 }' \
         | sort -u
     )"
@@ -1853,13 +1841,13 @@ L_
     unset dnf_po m n
 
   done
-} | S_ T_ -a -- "${curr_time_ssubd}a_interpreters" >/dev/null
+} | sudo  tee --output-error=exit  -a -- "${curr_time_ssubd}a_interpreters" >/dev/null
 unset b
 
 # <>
-#X_; :_;
+#set -x; :;: "<>";
 W_ a_write_path_nms a_interpreters a_interps_rps a_interps_disk_repo
-L_
+exit "${LINENO}"
 
 _full_xtrace
 exit 101
@@ -1873,27 +1861,27 @@ exit 101
 
 {
   printf '# SC-scrpts-list -- %s\n' "${timecode%-*}"
-  printf '# %s\n' "$(D_ a_relevant_search_dirs)"
-} | S_ T_ -- "${list_crunchbangs}_SC-scrpts-list" >/dev/null
+  printf '# %s\n' "$(declare -p  a_relevant_search_dirs)"
+} | sudo  tee --output-error=exit  -- "${list_crunchbangs}_SC-scrpts-list" >/dev/null
 
 # filter out interpreters not compatible with shellcheck.
 # file $list_crunchbangs is located in $time_dir.
-S_ grep -E -- '/bin/'"${SC_shells}"'.*%=%=%=%' "${list_crunchbangs}" \
-  | S_ tee -a -- "${list_crunchbangs}_SC-scrpts-list" \
+sudo  grep -E -- '/bin/'"${SC_shells}"'.*%=%=%=%' "${list_crunchbangs}" \
+  | sudo  tee -a -- "${list_crunchbangs}_SC-scrpts-list" \
   || E_ "${LINENO}"
 
 # Copy list to /tmp
-S_ rsync -ca -- "${list_crunchbangs}_SC-scrpts-list" /tmp \
+sudo  rsync -ca -- "${list_crunchbangs}_SC-scrpts-list" /tmp \
   || E_ "${LINENO}"
 
 # Backup both lists
 B_ "${list_crunchbangs}_SC-scrpts-list" /tmp/*_SC-scrpts-list
 
 # <>
-X_
-:_
+set -x
+:;: "<>"
 W_ timecode list_crunchbangs SC_shells
-L_
+exit "${LINENO}"
 
 _full_xtrace
 exit 101
@@ -1910,7 +1898,7 @@ exit 101
 #   filenames when reading from a file?  awk? files _can_ contain \n-s
 
 # for every line beginning with a crashbang...
-grep_o="$(S_ grep ^'#!' -- "${list_crunchbangs}_SC-scrpts-list")"
+grep_o="$(sudo  grep ^'#!' -- "${list_crunchbangs}_SC-scrpts-list")"
 
 # get the filename
 cut_o="$(cut -d '%' -f5- <<<"${grep_o}")"
@@ -1930,7 +1918,7 @@ a_each_abspath_scriptnm=("${a_each_abspath_scriptnm[@]##* }")
 #   factors?
 
 # count number of newlines in each script
-wc_o="$(S_ wc -l -- "${a_each_abspath_scriptnm[@]}")"
+wc_o="$(sudo  wc -l -- "${a_each_abspath_scriptnm[@]}")"
 
 # remove 'totals' line
 wc_o="${wc_o%$'\n*'}"
@@ -1998,7 +1986,7 @@ i=0
   unset i
 
   # append each text group to a findings file
-} | S_ tee -a -- "${found_scrpts_f}" >/dev/null
+} | sudo  tee -a -- "${found_scrpts_f}" >/dev/null
 
 : 'Write semi-permanent archives'
 
@@ -2007,7 +1995,7 @@ B_ "${found_scrpts_f}"
 
 # make copies of the findings file and backup those copies
 for d in /tmp "${main_d}"; do
-  S_ rsync -ca -- "${found_scrpts_f}" "${d}" \
+  sudo  rsync -ca -- "${found_scrpts_f}" "${d}" \
     || E_ "${LINENO}"
   B_ "${d}/${found_scrpts_f##*/}"
 done
