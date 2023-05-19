@@ -188,7 +188,7 @@ else
   exit 1
 fi; unset c yn
 #exit 101
-#set -x
+#_full_xtrace
 
 : 'Trap'
 
@@ -253,7 +253,7 @@ done
 
 # FeatReq: ^--- delete_locks sb a cli option
 
-set -x
+_full_xtrace
 exit 101
 
 : 'Process Lock: Define the lockdir'
@@ -276,7 +276,7 @@ if ! mkdir -m 0000 "${process_lock_d}" 2>/dev/null; then
   exit "${LINENO}"
 fi
 
-set -x
+_full_xtrace
 exit 101
 
 : 'Variables'
@@ -349,7 +349,7 @@ methods_symlinks_l=logical
 verify=(all)
 
 # <>
-set -x
+_full_xtrace
 exit 101
 
 : 'Functions'
@@ -569,7 +569,7 @@ fi
 #set -x; :;: "<>"; sudo namei -xl  -- "${curr_time_ssubd}"
 
 # <>
-set -x
+_full_xtrace
 exit 101
 
 # Section B
@@ -1047,13 +1047,13 @@ for dir in "${bash_path[@]}"; do
     [[ -n "${ext_first}" ]] \
       && unset 'ext_array[0]'
 
-    set -x
+    _full_xtrace
     :;: "<>"
     declare -p  ext_array
 
     ext_last="${ext_array[*]: -1:1}" # [@] or [*] ? SC-2124=w
 
-    set -x
+    _full_xtrace
     :;: "<>"
     declare -p  ext_last
     exit "${LINENO}"
@@ -1848,7 +1848,7 @@ sudo  rsync -ca -- "${list_crunchbangs}_SC-scrpts-list" /tmp \
 fn_bak "${list_crunchbangs}_SC-scrpts-list" /tmp/*_SC-scrpts-list
 
 # <>
-set -x
+_full_xtrace
 :;: "<>"
 fn_write_arrays timecode list_crunchbangs SC_shells
 exit "${LINENO}"
