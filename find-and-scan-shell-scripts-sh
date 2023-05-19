@@ -4,14 +4,6 @@
 
 # Note: Keep your goal in mind.
 
-# TODO: 
-#   - grep output of `rpm -qi` for URL's, ie, github. which can I 
-#       repair without adding a new login?
-#   - grep scripts for 'todo's
-#   - grep for 'shellcheck disable'
-#   - grep for 'bash -c' and 'sh -c'
-#   - grep for '(source|\.) .?.?/'
-
 # SECTION A
 
 : 'Regular users only, -sudo- required and no sourcing allowed'
@@ -2116,7 +2108,7 @@ for d in /tmp "${main_d}"; do
 done
 unset d
 
-# <> Print some variables   for interactive use
+# <> Print some variables for interactive use
 z=0
 for d in "${curr_time_ssubd}" "${main_d}" /tmp; do
   printf '\n\t data_d_%d=%s\n' $((z++)) "${d}"
@@ -2125,3 +2117,12 @@ unset d z
 
 trap - EXIT
 exit 00
+
+# TODO: 
+#   - grep output of `rpm -qi` for URL's, ie, github. which can I 
+#       repair without adding a new login?
+#   - grep scripts for 'todo's
+#   - grep for 'shellcheck disable'
+#   - grep for 'bash -c' and 'sh -c'
+#   - grep for '(source|\.) .?.?/'
+
