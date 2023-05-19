@@ -17,7 +17,7 @@ elif ! sudo -v; then
   exit "${LINENO}"
 fi
 
-:;: 'Required commands' ;:; 
+: 'Required commands' 
 
 # Bug: innaccurate list for this script, 17 May
 
@@ -25,15 +25,18 @@ reqd_cmds=( 'awk' 'chmod' 'cp' 'cut' 'dirname' 'file'
   'find' 'getconf' 'grep' 'ln' 'ls' 'mkdir' 'od' 'rm' 'rmdir' 
   'stat' 'strings' 'sudo' 'tee' )
 yn=n
+# Requires a minimum of bash version 5
 if [[ "${BASH_VERSION:0:1}" -lt 5 ]]; then
   echo Please install Bash version 5, thanks.
 fi
+# force a PATH search for each command name
 for c in "${reqd_cmds[@]}"; do  
   hash -r; 
   if ! type -P "${c}" > /dev/null; then 
     yn+=" ${c}"
   fi; 
 done; 
+# Print results as appropriate 
 if [[ "${yn}" == 'n' ]]; then 
   : 'No additional commands are required'
 else 
@@ -69,6 +72,7 @@ trap '
 
 : 'Process Lock'
 
+: 'Process Lock: Vars'
 a_poss_proces_lock_dirs=([0]="${XDG_RUNTIME_DIR}" [1]="${HOME}"
   [2]="${TMPDIR:-/tmp}" [3]=/tmp [4]=/var/tmp)
 random_n="${RANDOM}"
@@ -80,6 +84,7 @@ for pld in "${a_poss_proces_lock_dirs[@]}"; do
   process_lock_dirs+=("${pld}/${proc_lk_f_nm}")
 done; unset pld
 
+: 'Process Lock: Search for existing lockdirs'
 for d in "${a_poss_proces_lock_dirs[@]}"; do
   if [[ -d "${d}" ]]; then
     mapfile -d '' -t lkds < <(
@@ -103,25 +108,26 @@ done
 [[ -v delete_locks ]] \
   && L_
 
+# FeatReq: ^--- delete_locks sb a cli option
+
 _full_xtrace
 exit 101
 
-# from among the possible dirnames
+: 'Process Lock: Define the lockdir'
 for poss_lk_d in "${a_poss_proces_lock_dirs[@]}"; do
   # use the first one that fulfills certain requirements
   if [[ -d "${poss_lk_d}" ]] \
     && [[ ! -L "${poss_lk_d}" ]] \
     && [[ -w "${poss_lk_d}" ]]; then
-    # define the lock directory
     process_lock_d="${poss_lk_d}/${proc_lk_f_nm}"
     break
   fi
 done
 
+: 'Process Lock: Create a lockdir and handle any error'
 if ! mkdir -m 0000 "${process_lock_d}" 2>/dev/null; then
   {
     printf '\n\tCannot acquire process lock: <%s>.\n' "${process_lock_d}"
-    #printf '\tID: %s\n' "${USER}" # why?
     printf 'Exiting.\n\n'
   } 1>&2
   L_
@@ -130,8 +136,9 @@ fi
 _full_xtrace
 exit 101
 
-: 'Environment variables'
+: 'Variables'
 
+: 'Vars: Environment'
 unset LC_ALL Halt
 declare -rx Halt
 FUNCNEST=8
@@ -145,11 +152,11 @@ PATH="${getconf_o}:/usr/bin:/usr/sbin:${PATH}"
 PS4='+${BASH_SOURCE[0]}:${LINENO}:${FUNCNAME[0]}: '
 export FUNCNEST GREP_COLORS LC_COLLATE LC_CTYPE LC_NUMERIC PATH PS4
 
-: 'Implementation-dependent arguments for options parsable by ShellCheck'
+: 'Vars: Implementation-dependent arguments for options parsable by ShellCheck'
 sc_severity=error
 SC_shells='(sh|bash|dash|ksh)'
 
-: 'Variables more likely to be manually changed'
+: 'Vars more likely to be manually changed'
 protected_git_dir_1="${HOME}/MYPROJECTS"
 protected_git_dir_2="${HOME}/OTHERSPROJECTS"
 repo_nm=scf
@@ -159,12 +166,10 @@ script_nm=find-and-scan-shell-scripts-sh
 script_proper_nm='Script Finder'
 script_version=1.0
 
-: 'Other user variables and arrays'
+: 'Vars re getopts'
 if [[ $# -gt 0 ]]; then
   cli_input=("${@}")
 fi
-
-: 'Variables re getopts'
 unsaf_ascii=(
   [0]="|" [1]="&" [2]=";" [3]="(" [4]=")" [5]="<"
   [6]=">" [8]=$'\t' [9]=$'\n' [10]="||" [11]="&&"
@@ -208,10 +213,8 @@ exit 101
 
 fn_bak() {
   : 'fn_bak BEGINS' "$((++funclvl))" "${fence}"
-
   # for each of multiple input files
   for loc_filename_a in "${@}"; do
-
     # test verifying existence of input
     if S_ test -f "${loc_filename_a}"; then
 
@@ -222,18 +225,15 @@ fn_bak() {
       # if the destination (.bak) file already exists,
       # then age it first.
       if [[ -f "${loc_filename_a}.bak" ]]; then
-
         if [[ -s "${loc_filename_a}.bak" ]]; then
           return
         else
           S_ R_ -f -- "${loc_filename_a}.bak"
         fi
       fi
-
       # write a new .bak file
       S_ rsync -acq -- "${loc_filename_a}"{,.bak} \
         || E_ "${LINENO}"
-
     # if input file DNE, then print an error and exit
     else
       {
@@ -248,7 +248,6 @@ fn_bak() {
 fn_erx() {
   local loc_exit_code="${?}" # this assignment must be the first command
   : 'fn_erx BEGINS' "$((++funclvl))" "${fence}"
-
   # print an error message and exit with the correct exit code
   echo -e Error: "${@}"
   exit "${loc_exit_code}"
@@ -258,13 +257,10 @@ fn_erx() {
 #fn_num() {
 #  : 'fn_num BEGINS' "$((++funclvl))" "${fence}"
 #  # Usage: N_ [raw arrays names]
-#
 #  # for each of multiple input array names
 #  for loc_unquotd_array_nm_a in "${@}"; do
-#
 #    # set a local name reference variable
 #    local -n loc_nameref_a="${loc_unquotd_array_nm_a}"
-#
 #    # and use the nameref to print the number of indices in the
 #    # input array
 #    echo ${#loc_nameref_a[@]}
@@ -320,17 +316,13 @@ fn_write_arrays() {
   : 'fn_write_arrays BEGINS' "$((++funclvl))" "${fence}"
   # Write each array to a file on disk.
   # Usage: W_ [arrays]
-
   loc_write_d_b="${curr_time_ssubd}arrays"
-
   if [[ ! -d "${loc_write_d_b}" ]]; then
     S_ mkdir -p -- "${loc_write_d_b}" \
       || E_ "${LINENO}"
   fi
-
   # for each of multiple input array names
   for loc_unquotd_array_nm_b in "${@}"; do
-
     # create local variables, for use as both array and string
     local -n loc_nameref_b="${loc_unquotd_array_nm_b}"
     loc_array_nm="${loc_unquotd_array_nm_b}"
@@ -345,11 +337,9 @@ fn_write_arrays() {
     if [[ ! -v loc_nameref_b[@] ]]; then
       loc_nameref_b=([0]='fn_write_arrays: Empty array')
     fi
-
     # then write a data file to disk
     declare -p "${loc_array_nm}" \
       | S_ T_ -- "${loc_write_f_b}" >/dev/null
-
     # write a backup of the new data file
     B_ "${loc_write_f_b}"
   done
@@ -359,33 +349,28 @@ fn_write_arrays() {
 #fn_write_vars() {
 #  : 'fn_write_vars BEGINS' "$((++funclvl))" "${fence}"
 #  # Usage: V_ [loc_script_section_nm] [raw variable names]
-#
 #  # first pos-parm is string used for differentiating filename
 #  loc_script_section_nm="${1}"
 #  loc_write_f_a="${curr_time_ssubd}/${loc_script_section_nm}_vars"
 #  shift
-#
 #  # if the destination file already exists, then return from FN
 #  [[ -e "${loc_write_f_a}" ]] \
 #    && return
-#
 #  # write a new data file
 #  declare -p "${@}" 2>/dev/null \
 #    | S_ T_ -- "${loc_write_f_a}" >/dev/null
-#
 #  # and write a .bak file
-#
 #  B_ "${loc_write_f_a}"
 #  : 'fn_write_vars ENDS  ' "$((--funclvl))" "${fence}"
 #}
 
-: 'Data dirs' 
+: 'Data dirs' # This section seems Buggy.
 
 # take each found dir and convert abs path [of sym, okay] to a string
 # usable for directory names
 unset index element calc
 
-# for each dirname /  directory in search path
+# for each dirname / directory in search path
 for index in "${!A_rsd[@]}"; do
   element="${A_rsd["$index"]}"
   calc="$(realpath -e "$element")"
@@ -399,12 +384,61 @@ for index in "${!A_rsd[@]}"; do
   fi
 done
 
+# Bugs: Hardcoded $mountpoint -- use lock dir as main_d
+
+: 'Assign varnames and paths for the data directories'
+mountpoint=/run/media/root/29_Mar_2023
+main_d="${mountpoint}/${script_dirnm}"
+data_subd="${main_d}/latest_data"
+curr_time_ssubd="${data_subd}/t_${timecode}/"
+list_crunchbangs="${curr_time_ssubd}/crunchbangs"
+
+: 'data files'
+a_write_path_nms=("${list_crunchbangs:=crunchbangs}"
+  "/tmp/${list_crunchbangs##*/}"
+)
+
+: 'make sure -data_subd- is a directory OR create the -data_subd- dir '
+: 'if necessary'
+[[ -d "${data_subd}" ]] \
+  || mkdir "${data_subd}" # as liveuser
+
+#X_; :_; M_ -- "${data_subd}"
+
+: 'Label the current data as -latest.-'
+mapfile -d '' -t a_previous_time_dirs < <(
+  find "${data_subd}" -mindepth 1 -maxdepth 1 -type d -a \! -type l \
+    -name 't_*' -print0
+)
+
+: 'if -prev_time_ssubd- is empty, delete it, otherwise -mv- it out'
+: 'of the -latest- dir'
+
+for prev_time_ssubd in "${a_previous_time_dirs[@]}"; do
+  rmdir --ignore-fail-on-non-empty -- "${prev_time_ssubd}"
+
+  : 'of previous prev_time_ssubd'
+  if [[ -d "${prev_time_ssubd}" ]] \
+    && [[ ! -L "${prev_time_ssubd}" ]]; then
+    S_ mv -- "${a_previous_time_dirs[@]}" "${main_d}"
+  else
+    continue
+  fi
+done
+
+: 'of curr_time_ssubd'
+if [[ ! -d "${curr_time_ssubd}" ]]; then
+  S_ mkdir -p -- "${curr_time_ssubd}" \
+    || E_ "${LINENO}"
+fi
+
+#X_; :_; M_ -- "${curr_time_ssubd}"
+
 # <>
 _full_xtrace
 exit 101
 
-
-: '<> Debugging'
+: '<> Debugging' # "<>" means, "This is a debugging section."
 
 : '<> Debug Functions' # Abreviations of arrays of previous section
 function B_() {
@@ -433,10 +467,7 @@ function W_() {
   : 'W_ ENDS  ' "$((--funclvl))" "${fence}"
 }
 
-#exit 101
-#_full_xtrace
-
-: '<> Debug: Variables' # "<>" means, "This is a debugging section."
+: '<> Debug: Variables'
 abbrev_rel_search_dirs=/
 # "${Halt:?}"
 
@@ -591,6 +622,8 @@ _full_xtrace() {
 
 #exit 101
 #_full_xtrace
+
+# Section B
 
 : 'Option parsing'
 
@@ -918,7 +951,6 @@ shopt -u nocasematch
 #_full_xtrace
 #exit 101
 
-
 : 'Verify PATH'
 
 _verify_path(){
@@ -990,24 +1022,142 @@ _verify_path(){
 _verify_path PATH
 _verify_path bash_path
 
+: 'DACs'
 
+# Bug: var path_2 is now loc_path_2 
 
+namei_o="$(
+  for d in "${bash_path[@]}"; do
+    namei -xl "$(
+      realpath -e "$d" 2>/dev/null
+    )"
+  done \
+    | grep -v ^'f:' \
+    | gawk --lint '$2 !~ /root/ || $3 !~ /root/ { print }'
+)"
+if [[ -n "${namei_o}" ]]; then
+  echo 'A directory in PATH is not fully owned by root (DAC).'
+  echo "${namei_o}"
+  exit "${LINENO}"
+fi
 
+: 'ACLs'
 
-: 'methods_recurse_n'
+# Variables, this section
+unset end_dirname full_dir_list ext_array dir sub_dir num_sub_dirs N n \
+  extglob_pattern ext_first ext_last getfacl_o grep_o
+end_dirname=/
+declare -A full_dir_list
+ext_array=()
 
-declare -p methods_recurse_n # SC-2034
+# for each actual directory in bash_path
+for dir in "${bash_path[@]}"; do
 
-: 'methods_symlinks_l'
+  # limit the number of loops to the number of constituent directory
+  # inodes. safely split each directory into its constituent directory
+  # names, ie, by using NULL's in place of '/'s
+  unset sub_dir
+  num_sub_dirs="$(tr '/' '\0' <<< "$dir" \
+    | gawk --lint -F'\0' '{ print NF }')"
+  N=$((num_sub_dirs - 1))
 
-declare -p methods_symlinks_l # SC-2034
+  # read the ACLs of each dir and sub_dir
+  for ((n = N; n >= 0; --n)); do
 
+    # Assign a value to $sub_dir as necessary
+    : "${sub_dir:="${dir}"}"
+
+    # <> quote ${extglob_pattern or not? - SC-2053=w
+    [[ "${sub_dir}" = "${extglob_pattern}" ]]
+    echo $?
+    #[[ "${sub_dir}" = ${extglob_pattern} ]] ; echo $?
+    "${Halt:?}"
+
+    # If the sub_dir is already listed in the extglob_pattern, then
+    # move on to the next small loop
+    if [[ "${sub_dir}" = "${extglob_pattern}" ]]; then
+      sub_dir="$(dirname "${sub_dir:="${dir}"}")"
+
+      # If the sub_dir is '/', then move on to the next big loop
+      if [[ "${sub_dir}" = "${end_dirname}" ]]; then
+        break
+      fi
+      continue
+    fi
+
+    # Use an Associative array to filter out duplicate entries.
+    # (With associative arrays, duplicate assignments are indempotent.)
+    full_dir_list["${sub_dir}"]+="${n},"
+
+    # create a list of directories and subdirectories that have been
+    # tested so far. This section concatenates directories as strings
+    # into a variable that the shell will later interpret as an
+    # extglob.
+    ext_array=("${!full_dir_list[@]}")
+    ext_first="${ext_array[0]}"
+    [[ -n "${ext_first}" ]] \
+      && unset 'ext_array[0]'
+
+    X_
+    :_
+    D_ ext_array
+
+    ext_last="${ext_array[*]: -1:1}" # [@] or [*] ? SC-2124=w
+
+    X_
+    :_
+    D_ ext_last
+    L_
+
+    [[ -n "${ext_last}" ]] \
+      && unset "ext_array[${#ext_array[@]}]"
+    # index math can be a little weird
+
+    # create the exglob_pattern
+    if [[ -n "${ext_first}" ]]; then
+      extglob_pattern="$(printf '@(%s' "${ext_first}")"
+      [[ "${#ext_array[@]}" -gt 0 ]] \
+        && extglob_pattern+="$(printf '|%s' "${ext_array[@]}")"
+      if [[ -n "${ext_last}" ]]; then
+        extglob_pattern+="$(printf '|%s)' "${ext_last}")"
+      else
+        extglob_pattern+="$(printf ')')"
+      fi
+    fi
+
+    # look for any ACL's on the directory
+    getfacl_o="$(getfacl -enp -- "${sub_dir}" 2>/dev/null)"
+    grep_o="$(grep -ve '^#' -e ^'user::' -e ^'group::' -e ^'other::' \
+      <<<"${getfacl_o}")"
+
+    # If found, exit the script and inform the user
+    if [[ -n "${grep_o}" ]]; then
+      printf '\n%s: ACL defined for this directory:\n\t%s\n\n' \
+        "${script_nm}" "${sub_dir}"
+      echo "${getfacl_o}"
+      printf '\n\tThis command will remove all ACL\x27s from the '
+      printf 'specified directory:\n\n\t\tsetfacl -b %s\n\n' "${sub_dir}"
+      exit 1
+
+    # otherwise, move on to the next big loop
+    else
+      if [[ "${sub_dir}" = "${end_dirname}" ]]; then
+        break
+      fi
+    fi
+
+    sub_dir="$(dirname "${sub_dir:="${dir}"}")"
+  done
+done
+unset end_dirname full_dir_list ext_array dir sub_dir num_sub_dirs \
+  N n extglob_pattern ext_first ext_last getfacl_o grep_o
+
+# <>
 _full_xtrace
-#exit 101
+exit 101
 
 
-
-
+# SECTION C
 
 : 'Command/script search: only two options, -bash- or via -find-' 
 
@@ -1137,9 +1287,6 @@ done; unset tt_o
 
 exit 101
 _full_xtrace
-
-
-
 
 
 : 'Get all the commands: bash'
@@ -1330,207 +1477,6 @@ exit 101
 
 
 
-: 'DACs'
-
-# Bug: var path_2 is now loc_path_2 
-
-namei_o="$(
-  for d in "${bash_path[@]}"; do
-    namei -xl "$(
-      realpath -e "$d" 2>/dev/null
-    )"
-  done \
-    | grep -v ^'f:' \
-    | gawk --lint '$2 !~ /root/ || $3 !~ /root/ { print }'
-)"
-if [[ -n "${namei_o}" ]]; then
-  echo 'A directory in PATH is not fully owned by root (DAC).'
-  echo "${namei_o}"
-  exit "${LINENO}"
-fi
-
-: 'ACLs'
-
-# Variables, this section
-unset end_dirname full_dir_list ext_array dir sub_dir num_sub_dirs N n \
-  extglob_pattern ext_first ext_last getfacl_o grep_o
-end_dirname=/
-declare -A full_dir_list
-ext_array=()
-
-# for each actual directory in bash_path
-for dir in "${bash_path[@]}"; do
-
-  # limit the number of loops to the number of constituent directory
-  # inodes. safely split each directory into its constituent directory
-  # names, ie, by using NULL's in place of '/'s
-  unset sub_dir
-  num_sub_dirs="$(tr '/' '\0' <<< "$dir" \
-    | gawk --lint -F'\0' '{ print NF }')"
-  N=$((num_sub_dirs - 1))
-
-  # read the ACLs of each dir and sub_dir
-  for ((n = N; n >= 0; --n)); do
-
-    # Assign a value to $sub_dir as necessary
-    : "${sub_dir:="${dir}"}"
-
-    # <> quote ${extglob_pattern or not? - SC-2053=w
-    [[ "${sub_dir}" = "${extglob_pattern}" ]]
-    echo $?
-    #[[ "${sub_dir}" = ${extglob_pattern} ]] ; echo $?
-    "${Halt:?}"
-
-    # If the sub_dir is already listed in the extglob_pattern, then
-    # move on to the next small loop
-    if [[ "${sub_dir}" = "${extglob_pattern}" ]]; then
-      sub_dir="$(dirname "${sub_dir:="${dir}"}")"
-
-      # If the sub_dir is '/', then move on to the next big loop
-      if [[ "${sub_dir}" = "${end_dirname}" ]]; then
-        break
-      fi
-      continue
-    fi
-
-    # Use an Associative array to filter out duplicate entries.
-    # (With associative arrays, duplicate assignments are indempotent.)
-    full_dir_list["${sub_dir}"]+="${n},"
-
-    # create a list of directories and subdirectories that have been
-    # tested so far. This section concatenates directories as strings
-    # into a variable that the shell will later interpret as an
-    # extglob.
-    ext_array=("${!full_dir_list[@]}")
-    ext_first="${ext_array[0]}"
-    [[ -n "${ext_first}" ]] \
-      && unset 'ext_array[0]'
-
-    X_
-    :_
-    D_ ext_array
-
-    ext_last="${ext_array[*]: -1:1}" # [@] or [*] ? SC-2124=w
-
-    X_
-    :_
-    D_ ext_last
-    L_
-
-    [[ -n "${ext_last}" ]] \
-      && unset "ext_array[${#ext_array[@]}]"
-    # index math can be a little weird
-
-    # create the exglob_pattern
-    if [[ -n "${ext_first}" ]]; then
-      extglob_pattern="$(printf '@(%s' "${ext_first}")"
-      [[ "${#ext_array[@]}" -gt 0 ]] \
-        && extglob_pattern+="$(printf '|%s' "${ext_array[@]}")"
-      if [[ -n "${ext_last}" ]]; then
-        extglob_pattern+="$(printf '|%s)' "${ext_last}")"
-      else
-        extglob_pattern+="$(printf ')')"
-      fi
-    fi
-
-    # look for any ACL's on the directory
-    getfacl_o="$(getfacl -enp -- "${sub_dir}" 2>/dev/null)"
-    grep_o="$(grep -ve '^#' -e ^'user::' -e ^'group::' -e ^'other::' \
-      <<<"${getfacl_o}")"
-
-    # If found, exit the script and inform the user
-    if [[ -n "${grep_o}" ]]; then
-      printf '\n%s: ACL defined for this directory:\n\t%s\n\n' \
-        "${script_nm}" "${sub_dir}"
-      echo "${getfacl_o}"
-      printf '\n\tThis command will remove all ACL\x27s from the '
-      printf 'specified directory:\n\n\t\tsetfacl -b %s\n\n' "${sub_dir}"
-      exit 1
-
-    # otherwise, move on to the next big loop
-    else
-      if [[ "${sub_dir}" = "${end_dirname}" ]]; then
-        break
-      fi
-    fi
-
-    sub_dir="$(dirname "${sub_dir:="${dir}"}")"
-  done
-done
-unset end_dirname full_dir_list ext_array dir sub_dir num_sub_dirs \
-  N n extglob_pattern ext_first ext_last getfacl_o grep_o
-
-# <>
-_full_xtrace
-exit 101
-
-# SECTION B
-
-#:_
-#X_
-
-# Bugs: Hardcoded $mountpoint
-
-: 'Assign varnames and paths for the data directories'
-mountpoint=/run/media/root/29_Mar_2023
-main_d="${mountpoint}/${script_dirnm}"
-data_subd="${main_d}/latest_data"
-curr_time_ssubd="${data_subd}/t_${timecode}/"
-list_crunchbangs="${curr_time_ssubd}/crunchbangs"
-
-: 'data files'
-a_write_path_nms=("${list_crunchbangs:=crunchbangs}"
-  "/tmp/${list_crunchbangs##*/}"
-)
-
-#   - This section seems Buggy.
-
-_full_xtrace
-exit 101
-
-: 'make sure -data_subd- is a directory OR create the -data_subd- dir '
-: 'if necessary'
-[[ -d "${data_subd}" ]] \
-  || mkdir "${data_subd}" # as liveuser
-
-#:_
-#M_ -- "${data_subd}"
-
-: Label the current data as -latest.-
-mapfile -d '' -t a_previous_time_dirs < <(
-  find "${data_subd}" -mindepth 1 -maxdepth 1 -type d -a \! -type l \
-    -name 't_*' -print0
-)
-
-: 'if -prev_time_ssubd- is empty, delete it, otherwise -mv- it out'
-: 'of the -latest- dir'
-
-for prev_time_ssubd in "${a_previous_time_dirs[@]}"; do
-  rmdir --ignore-fail-on-non-empty -- "${prev_time_ssubd}"
-
-  : of previous prev_time_ssubd
-  if [[ -d "${prev_time_ssubd}" ]] \
-    && [[ ! -L "${prev_time_ssubd}" ]]; then
-    S_ mv -- "${a_previous_time_dirs[@]}" "${main_d}"
-  else
-    continue
-  fi
-done
-
-: of curr_time_ssubd
-if [[ ! -d "${curr_time_ssubd}" ]]; then
-  S_ mkdir -p -- "${curr_time_ssubd}" \
-    || E_ "${LINENO}"
-fi
-
-#:_
-#M_ -- "${curr_time_ssubd}"
-
-_full_xtrace
-exit 101
-
-# SECTION C
-
 : 'Gather filenames from local attached disk storage'
 
 if [[ "${abbrev_rel_search_dirs}" == all ]]; then
@@ -1550,6 +1496,9 @@ if [[ "${abbrev_rel_search_dirs}" == all ]]; then
 
 fi
 
+
+
+
 : 'Find all files within the search area. Even the empty ones.'
 mapfile -d '' -t a_all_files < <(
   S_ find "${a_relevant_search_dirs[@]}" -mindepth 1 -type f \
@@ -1564,6 +1513,9 @@ mapfile -d '' -t a_all_files_sorted < <(
 
 _full_xtrace
 exit 101
+
+
+
 
 # SECTION D
 
