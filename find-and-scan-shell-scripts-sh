@@ -9,7 +9,7 @@
 : '<> Debugging' # "<>" means, "This is a debugging section."
 
 : '<> Debug: Variables'
-abbrev_rel_search_dirs=/
+ABBREV_REL_SEARCH_DIRS=/
 # "${Halt:?}"
 
 : '<> Debug: Delete any left over xtrace files in /tmp'
@@ -167,7 +167,7 @@ fi
 reqd_cmds=( 'awk' 'chmod' 'cp' 'cut' 'dirname' 'file' 
   'find' 'getconf' 'grep' 'ln' 'ls' 'mkdir' 'od' 'rm' 'rmdir' 
   'stat' 'strings' 'sudo' 'tee' )
-yn=n
+yn='n'
 # Requires a minimum of bash version 5
 if [[ "${BASH_VERSION:0:1}" -lt 5 ]]; then
   echo Please install Bash version 5, thanks.
@@ -190,26 +190,35 @@ fi; unset c yn
 #exit 101
 #_full_xtrace
 
+: 'Variables for Trap and Process Locks'
+a_poss_proces_lock_dirs=([0]="${XDG_RUNTIME_DIR}" [1]="${HOME}"
+  [2]="${TMPDIR}" [3]=/tmp [4]=/var/tmp)
+random_n="${RANDOM}"
+unique_string="${repo_nm}.${$}.${random_n}"
+proc_lk_f_nm="${unique_string}.lock"
+mktemp_sfx=".${unique_string}.txt"
+timecode="$(builtin printf '%(%IFS=":" read -ra find_path <<<"${bash_path}"%H%M%S)T')"
+for pld in "${a_poss_proces_lock_dirs[@]}"; do
+  if [[ -d "${pld}" ]]; then
+    a_process_lock_dirs+=("${pld}/${proc_lk_f_nm}")
+  fi
+done; unset pld
+if [[ "$@" =~ delete_locks ]]; then 
+  delete_locks='y'
+fi
+
 : 'Trap'
 
-: 'Trap: vars'
-a_poss_proces_lock_dirs=([0]="${XDG_RUNTIMfn_erxDIR}" [1]="${HOME}"
-  [2]="${TMPDIR:-/tmp}" [3]=/tmp [4]=/var/tmp)
-for pld in "${a_poss_proces_lock_dirs[@]}"; do
-  process_lock_dirs+=("${pld}/${proc_lk_f_nm}")
-done; unset pld
-
-: 'Trap on EXIT, INT & TERM'
 trap '
   : "EXIT trap BEGINS ++++++++++++++++++++++++++++++++++++++++++++++"
   trap - DEBUG
 
   # Delete all possible existing process _lock_directories_. 
-  for pld in "${process_lock_dirs[@]}"; do 
+  for pld in "${a_process_lock_dirs[@]}"; do 
 
     # test and delete lock directories.
     if [[ -d "${pld}" ]] && [[ ! -L "${pld}" ]]; then 
-      sudo  rm --one-file-system --preserve-root=all  -rf -- "${pld}" \
+      sudo rm --one-file-system --preserve-root=all  -rf -- "${pld}" \
         || exit "${LINENO}"
     fi
   done; unset pld
@@ -224,37 +233,29 @@ trap '
 : 'Process Lock'
 
 : 'Process Lock: Vars'
-random_n="${RANDOM}"
-unique_string="${repo_nm}.${$}.${random_n}"
-mktemp_sfx=".${unique_string}.txt"
-proc_lk_f_nm="${unique_string}.lock"
-timecode="$(builtin printf '%(%IFS=":" read -ra find_path <<<"${bash_path}"%H%M%S)T')"
-
 : 'Process Lock: Search for existing lockdirs'
-for d in "${a_poss_proces_lock_dirs[@]}"; do
-  if [[ -d "${d}" ]]; then
-    mapfile -d '' -t lkds < <(
-      sudo  find "${d}" -type d -empty -name \
-        ".${repo_nm}.[0-9a-zA-Z_-]*.lock" -print0 2>/dev/null
-    )
-    : 'lkds, count:' "${#lkds[@]}"
-    for l in "${lkds[@]}"; do
-      if [[ -d "${l}" ]]; then
-        if [[ -v delete_locks ]]; then
-          rmdir -v -- "${l}"
-        else
-          printf '\n\t A process lock exists for this script. Exiting '
-          printf 'now.\n\n'
-          exit "${LINENO}"
-        fi
+for d in "${a_process_lock_dirs[@]}"; do
+  mapfile -d '' -t lkdrs < <(
+    sudo  find "${d}" -type d -empty -name \
+      ".${repo_nm}.[0-9a-zA-Z_-]*.lock" -print0 2>/dev/null
+  )
+  : 'lkdrs, count:' "${#lkdrs[@]}"
+  for l in "${lkdrs[@]}"; do
+    if [[ -d "${l}" ]]; then
+      if [[ -v delete_locks ]]; then
+        rmdir -v -- "${l}"
+      else
+        printf '\n\t A process lock exists for this script. Exiting '
+        printf 'now.\n\n'
+        exit "${LINENO}"
       fi
-    done
-  fi
+    fi
+  done
 done
+# Note: delete_locks is an undocumented CLI option
 [[ -v delete_locks ]] \
   && exit "${LINENO}"
 
-# FeatReq: ^--- delete_locks sb a cli option
 
 _full_xtrace
 exit 101
@@ -473,7 +474,7 @@ fn_write_arrays() {
     local -n loc_nameref_b="${loc_unquotd_array_nm_b}"
     loc_array_nm="${loc_unquotd_array_nm_b}"
     loc_write_f_b="${loc_write_d_b}/_${sc_sev_abrv}"
-    loc_write_f_b+="_${abbrev_rel_search_dirs}_${loc_array_nm}"
+    loc_write_f_b+="_${ABBREV_REL_SEARCH_DIRS}_${loc_array_nm}"
 
     # Bug? When array correctly is empty: 'declare -p ... > /dev/null ||' ?
     # requires use of fn_write_arrays or fn_write_arrays to debug this. 
@@ -1436,7 +1437,7 @@ exit 101
 
 : 'Gather filenames from local attached disk storage'
 
-if [[ "${abbrev_rel_search_dirs}" == all ]]; then
+if [[ "${ABBREV_REL_SEARCH_DIRS}" == all ]]; then
 
   : 'set a value for a_relevant_search_dirs and..'
   mapfile -d '' -t a_relevant_search_dirs < <(
@@ -1908,7 +1909,7 @@ mapfile -t a_each_script_list_sorted_by_linect \
 
 # define file name, including severity and path symbols (target file)
 found_scrpts_f="${list_crunchbangs}_found_scripts"
-found_scrpts_f+="_${sc_sev_abrv}_${abbrev_rel_search_dirs}"
+found_scrpts_f+="_${sc_sev_abrv}_${ABBREV_REL_SEARCH_DIRS}"
 i=0
 
 # Bug? 1st grep extra?
