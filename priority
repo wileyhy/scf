@@ -257,3 +257,8 @@
 # command hashing still occurs.
 
 # https://stackoverflow.com/questions/2683279/how-to-detect-if-a-script-is-being-sourced
+
+#   Note: Aliases can be used for abbreviating command(s) in 
+# string form, however, functions are required for abbreviating 
+# functions.
+

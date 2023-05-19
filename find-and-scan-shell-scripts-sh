@@ -6,6 +6,8 @@
 
 # SECTION A
 
+: '<> Debugging' # "<>" means, "This is a debugging section."
+
 : '<> Debug: Variables'
 abbrev_rel_search_dirs=/
 # "${Halt:?}"
@@ -214,7 +216,7 @@ trap '
 : 'Process Lock'
 
 : 'Process Lock: Vars'
-a_poss_proces_lock_dirs=([0]="${XDG_RUNTIME_DIR}" [1]="${HOME}"
+a_poss_proces_lock_dirs=([0]="${XDG_RUNTIMfn_erxDIR}" [1]="${HOME}"
   [2]="${TMPDIR:-/tmp}" [3]=/tmp [4]=/var/tmp)
 random_n="${RANDOM}"
 unique_string="${repo_nm}.${$}.${random_n}"
@@ -318,7 +320,7 @@ unsaf_ascii=(
   [18]="}" [19]="[" [20]="]" [21]="[[" [22]="]]" [23]="\$"
   [24]="="
 )
-unsaf_ascii_PE_string="$(printf '%s' "${unsaf_ascii[@]}")"
+unsaf_ascii_Pfn_erxstring="$(printf '%s' "${unsaf_ascii[@]}")"
 bash_path_orig="${PATH}"
 bash_path="${bash_path_orig}"
 easter_egg="$(
@@ -360,7 +362,7 @@ fn_bak() {
     if sudo  test -f "${loc_filename_a}"; then
 
       # Bug: Why does this ^ test req sudo when this test \/ doesnt?
-      # Requires use of fn_bak or B_ to debug this.
+      # Requires use of fn_bak or fn_bak to debug this.
       # (~line 2000, 15 May)
 
       # if the destination (.bak) file already exists,
@@ -374,7 +376,7 @@ fn_bak() {
       fi
       # write a new .bak file
       sudo  rsync -acq -- "${loc_filename_a}"{,.bak} \
-        || E_ "${LINENO}"
+        || fn_erx "${LINENO}"
     # if input file DNE, then print an error and exit
     else
       {
@@ -397,7 +399,7 @@ fn_erx() {
 
 #fn_num() {
 #  : 'fn_num BEGINS' "$((++funclvl))" "${fence}"
-#  # Usage: N_ [raw arrays names]
+#  # Usage: fn_num [raw arrays names]
 #  # for each of multiple input array names
 #  for loc_unquotd_array_nm_a in "${@}"; do
 #    # set a local name reference variable
@@ -456,11 +458,11 @@ EOF
 fn_write_arrays() {
   : 'fn_write_arrays BEGINS' "$((++funclvl))" "${fence}"
   # Write each array to a file on disk.
-  # Usage: W_ [arrays]
+  # Usage: fn_write_arrays [arrays]
   loc_write_d_b="${curr_time_ssubd}arrays"
   if [[ ! -d "${loc_write_d_b}" ]]; then
     sudo  mkdir -p -- "${loc_write_d_b}" \
-      || E_ "${LINENO}"
+      || fn_erx "${LINENO}"
   fi
   # for each of multiple input array names
   for loc_unquotd_array_nm_b in "${@}"; do
@@ -471,7 +473,7 @@ fn_write_arrays() {
     loc_write_f_b+="_${abbrev_rel_search_dirs}_${loc_array_nm}"
 
     # Bug? When array correctly is empty: 'declare -p ... > /dev/null ||' ?
-    # requires use of fn_write_arrays or W_ to debug this. 
+    # requires use of fn_write_arrays or fn_write_arrays to debug this. 
     # (~line 2000, 15 May)
 
     # if the input array holds no data, then populate it
@@ -482,14 +484,14 @@ fn_write_arrays() {
     declare -p "${loc_array_nm}" \
       | sudo  tee --output-error=exit  -- "${loc_write_f_b}" >/dev/null
     # write a backup of the new data file
-    B_ "${loc_write_f_b}"
+    fn_bak "${loc_write_f_b}"
   done
   : 'fn_write_arrays ENDS  ' "$((--funclvl))" "${fence}"
 }
 
 #fn_write_vars() {
 #  : 'fn_write_vars BEGINS' "$((++funclvl))" "${fence}"
-#  # Usage: V_ [loc_script_section_nm] [raw variable names]
+#  # Usage: fn_write_vars [loc_script_section_nm] [raw variable names]
 #  # first pos-parm is string used for differentiating filename
 #  loc_script_section_nm="${1}"
 #  loc_write_f_a="${curr_time_ssubd}/${loc_script_section_nm}_vars"
@@ -501,7 +503,7 @@ fn_write_arrays() {
 #  declare -p "${@}" 2>/dev/null \
 #    | sudo  tee --output-error=exit  -- "${loc_write_f_a}" >/dev/null
 #  # and write a .bak file
-#  B_ "${loc_write_f_a}"
+#  fn_bak "${loc_write_f_a}"
 #  : 'fn_write_vars ENDS  ' "$((--funclvl))" "${fence}"
 #}
 
@@ -562,45 +564,13 @@ done
 : 'of curr_time_ssubd'
 if [[ ! -d "${curr_time_ssubd}" ]]; then
   sudo  mkdir -p -- "${curr_time_ssubd}" \
-    || E_ "${LINENO}"
+    || fn_erx "${LINENO}"
 fi
 #set -x; :;: "<>"; sudo namei -xl  -- "${curr_time_ssubd}"
 
 # <>
 set -x
 exit 101
-
-: '<> Debugging' # "<>" means, "This is a debugging section."
-
-: '<> Debug Functions' # Abreviations of arrays of previous section
-function B_() {
-  : 'B_ BEGINS' "$((++funclvl))" "${fence}"
-  fn_bak "$@"
-  : 'B_ ENDS  ' "$((--funclvl))" "${fence}"
-}
-function E_() {
-  : 'E_ BEGINS' "$((++funclvl))" "${fence}"
-  fn_erx "$@"
-  : 'E_ ENDS  ' "$((--funclvl))" "${fence}"
-}
-#function N_() {
-#  : 'N_ BEGINS' "$((++funclvl))" "${fence}"
-#  fn_num "$@";
-#  : 'N_ ENDS  ' "$((--funclvl))" "${fence}"
-#};
-#function V_() {
-#  : 'V_ BEGINS' "$((++funclvl))" "${fence}"
-#  fn_write_vars "$@";
-#  : 'V_ ENDS  ' "$((--funclvl))" "${fence}"
-#};
-function W_() {
-  : 'W_ BEGINS' "$((++funclvl))" "${fence}"
-  fn_write_arrays "$@"
-  : 'W_ ENDS  ' "$((--funclvl))" "${fence}"
-}
-
-#exit 101
-#_full_xtrace
 
 # Section B
 
@@ -618,7 +588,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
       OPTARG="$(strings -n1 <<<"${OPTARG}")"
 
       # Remove unsafe characters
-      new_optarg="${OPTARG//["${unsaf_ascii_PE_string[@]}"]/}"
+      new_optarg="${OPTARG//["${unsaf_ascii_Pfn_erxstring[@]}"]/}"
 
       # If any ASCII characters were removed, print an error and exit
       if [[ "${new_optarg}" != "${OPTARG}" ]]; then
@@ -968,7 +938,7 @@ _verify_path(){
 
   # if the loc_path_1 is now empty, then exit
   if [[ "${#loc_path_1[@]}" -eq 0 ]]; then
-    E_ _verify_path "${loc_nameref}"
+    fn_erx _verify_path "${loc_nameref}"
   fi
 
   # remove any duplicates while preserving order of dirs
@@ -1297,7 +1267,7 @@ then
   # scripts from the CWD
   tempd="$(mktemp -d --suffix="${mktemp_sfx/%.txt/.d}")"
   cd "${tempd}" \
-    || E_ cd
+    || fn_erx cd
   
   # create a dictionary list of each possible initial character, and
   # include commands with odd yet permitted-by-Linux initial
@@ -1442,7 +1412,7 @@ then
     _full_xtrace
  
   cd - \
-    || E_ cd
+    || fn_erx cd
   rmdir "${tempd}"; unset tempd
 
 elif [[ "${methods_prog_cv}" = *bin_find ]]; then
@@ -1574,11 +1544,11 @@ for all_files_index in "${!a_all_files_sorted[@]}"; do
       | tr -s ' ' \
       | gawk --lint '{ print $2, $3, $4 }' \
       | tr -d '\n' \
-      || E_ "P:${PIPESTATUS[*]} I:${all_files_index} ${each_sorted_f}"
+      || fn_erx "P:${PIPESTATUS[*]} I:${all_files_index} ${each_sorted_f}"
   )"
 
   [[ -n "${od_o}" ]] \
-    || E_ "I:${all_files_index} ${each_sorted_f}"
+    || fn_erx "I:${all_files_index} ${each_sorted_f}"
 
   a_bin_od_output+=([all_files_index]="${od_o}")
 
@@ -1588,7 +1558,7 @@ for all_files_index in "${!a_all_files_sorted[@]}"; do
 
   : '-od_o- non-zero'
   if [[ -z "${byte_0}" ]]; then
-    E_ "I:${all_files_index} <${each_sorted_f}>" \
+    fn_erx "I:${all_files_index} <${each_sorted_f}>" \
       '*unreachable code*'
   elif [[ "${byte_0}" == @(23|21) ]]; then
     : 'compare hexadecimals'
@@ -1607,11 +1577,11 @@ for all_files_index in "${!a_all_files_sorted[@]}"; do
       strings_o="$(strings -n1 <"${each_sorted_f}" \
         | head -n1 \
         | cut -b -$((2 ** 14)) \
-        || E_ "P:${PIPESTATUS[*]} I:${all_files_index} \
+        || fn_erx "P:${PIPESTATUS[*]} I:${all_files_index} \
           ${each_sorted_f}")"
 
       IFS= read -r first_line_printable <<<"${strings_o}" \
-        || E_ "I:${all_files_index} ${each_sorted_f}"
+        || fn_erx "I:${all_files_index} ${each_sorted_f}"
 
       : '-#!comment-'
       if [[ "${first_line_printable}" =~ ^'#!comment' ]]; then
@@ -1681,8 +1651,8 @@ a_arrays=(a_all_files a_all_files_sorted a_file_DNE a_empty_files
   a_write_path_nms)
 export "${a_arrays[@]}"
 
-W_ "${a_arrays[@]}"
-B_ "${curr_time_ssubd}/file_out"
+fn_write_arrays "${a_arrays[@]}"
+fn_bak "${curr_time_ssubd}/file_out"
 #exit "${LINENO}";
 
 : 'create the original list_crunchbangs'
@@ -1697,13 +1667,13 @@ sudo  touch -- "${a_write_path_nms[@]}"
 : 'printing contents of a_shell_scripts array, with backup'
 printf '%s\n' "${a_shell_scripts[@]}" \
   | sudo  tee --output-error=exit  -a -- "${a_write_path_nms[@]}" >/dev/null
-B_ "${a_write_path_nms[@]}"
+fn_bak "${a_write_path_nms[@]}"
 
 _full_xtrace
 exit 101
 
 # <> ?
-W_ a_write_path_nms
+fn_write_arrays a_write_path_nms
 
 #set -x; :;: "<>";
 
@@ -1726,7 +1696,7 @@ mapfile -t a_interpreters < <(
     | sed 's, *,,g' \
     | sort -u \
     | cut -b3- \
-    || E_ "P:${PIPESTATUS[*]}"
+    || fn_erx "P:${PIPESTATUS[*]}"
 )
 
 _full_xtrace
@@ -1846,7 +1816,7 @@ unset b
 
 # <>
 #set -x; :;: "<>";
-W_ a_write_path_nms a_interpreters a_interps_rps a_interps_disk_repo
+fn_write_arrays a_write_path_nms a_interpreters a_interps_rps a_interps_disk_repo
 exit "${LINENO}"
 
 _full_xtrace
@@ -1868,19 +1838,19 @@ exit 101
 # file $list_crunchbangs is located in $time_dir.
 sudo  grep -E -- '/bin/'"${SC_shells}"'.*%=%=%=%' "${list_crunchbangs}" \
   | sudo  tee -a -- "${list_crunchbangs}_SC-scrpts-list" \
-  || E_ "${LINENO}"
+  || fn_erx "${LINENO}"
 
 # Copy list to /tmp
 sudo  rsync -ca -- "${list_crunchbangs}_SC-scrpts-list" /tmp \
-  || E_ "${LINENO}"
+  || fn_erx "${LINENO}"
 
 # Backup both lists
-B_ "${list_crunchbangs}_SC-scrpts-list" /tmp/*_SC-scrpts-list
+fn_bak "${list_crunchbangs}_SC-scrpts-list" /tmp/*_SC-scrpts-list
 
 # <>
 set -x
 :;: "<>"
-W_ timecode list_crunchbangs SC_shells
+fn_write_arrays timecode list_crunchbangs SC_shells
 exit "${LINENO}"
 
 _full_xtrace
@@ -1965,7 +1935,7 @@ i=0
         | sort -g \
         | uniq -c \
         | sort -k3 \
-        || E_ "P:${PIPESTATUS[*]} I: S:" # index and script name
+        || fn_erx "P:${PIPESTATUS[*]} I: S:" # index and script name
       # end of pipe intended
       printf '\0'
     )
@@ -1991,13 +1961,13 @@ i=0
 : 'Write semi-permanent archives'
 
 # backup the findings file
-B_ "${found_scrpts_f}"
+fn_bak "${found_scrpts_f}"
 
 # make copies of the findings file and backup those copies
 for d in /tmp "${main_d}"; do
   sudo  rsync -ca -- "${found_scrpts_f}" "${d}" \
-    || E_ "${LINENO}"
-  B_ "${d}/${found_scrpts_f##*/}"
+    || fn_erx "${LINENO}"
+  fn_bak "${d}/${found_scrpts_f##*/}"
 done
 unset d
 
