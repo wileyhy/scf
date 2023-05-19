@@ -23,12 +23,6 @@ elif ! sudo -v; then
   printf '\n\tValidation failed of user\x27s \x60sudo\x60 timestamp; '
   printf 'exiting.\n\n'
   exit "${LINENO}"
-else
-  ec=0
-  until [[ "${ec}" != 0 ]]; do
-    return 2> /dev/null
-    ec=$?
-  done; unset ec
 fi
 
 :;: 'Required commands' ;:; 
@@ -188,47 +182,6 @@ trap '
   trap - EXIT INT TERM
   kill -s INT "$$"
 ' EXIT INT TERM
-
-: '<> Table of traps' # Learning about how `bash` uses signals
-
-# trap 'set -x; echo SIGEXIT;   trap SIGEXIT;   kill -s INT $$' EXIT # 0
-trap 'set -x; echo SIGHUP;    trap SIGHUP;    kill -s 2   $$' HUP # 1
-# trap 'set -x; echo SIGINT;    trap 2;         kill -s 2   $$' 2 # INT
-#   ^--- ^C
-trap 'set -x; echo SIGQUIT;   trap SIGQUIT;   kill -s 2   $$' QUIT # 3
-trap 'set -x; echo SIGILL;    trap SIGILL;    kill -s 2   $$' ILL  # 4
-trap 'set -x; echo SIGTRAP;   trap SIGTRAP;   kill -s 2   $$' TRAP # 5
-trap 'set -x; echo SIGABRT;   trap SIGABRT;   kill -s 2   $$' ABRT # 6
-trap 'set -x; echo SIGBUS;    trap SIGBUS;    kill -s 2   $$' BUS  # 7
-trap 'set -x; echo SIGFPE;    trap SIGFPE;    kill -s 2   $$' FPE  # 8
-# trap 'set -x; echo SIGKILL;   trap SIGKILL;   kill -s 2   $$' KILL # 9
-#   ^--- cannot be caught, per `shellcheck`
-trap 'set -x; echo SIGUSR1;   trap SIGUSR1;   kill -s 2   $$' USR1 # 10
-trap 'set -x; echo SIGSEGV;   trap SIGSEGV;   kill -s 2   $$' SEGV # 11
-trap 'set -x; echo SIGUSR2;   trap SIGUSR2;   kill -s 2   $$' USR2 # 12
-trap 'set -x; echo SIGPIPE;   trap SIGPIPE;   kill -s 2   $$' PIPE # 13
-trap 'set -x; echo SIGALRM;   trap SIGALRM;   kill -s 2   $$' ALRM # 14
-# trap 'set -x; echo SIGTERM;   trap SIGTERM;   kill -s 2   $$' TERM # 15
-trap 'set -x; echo SIGSTKFLT; trap SIGSTKFLT; kill -s 2 $$' STKFLT # 16
-# trap 'set -x; echo SIGCHLD;   trap SIGCHLD;   kill -s 2   $$' CHLD # 17
-#   ^--- triggered by returning command substitution
-trap 'set -x; echo SIGCONT;   trap SIGCONT;   kill -s 2   $$' CONT # 18
-# trap 'set -x; echo SIGSTOP;   trap SIGSTOP;   kill -s 2   $$' STOP # 19
-#   ^--- cannot be caught, per `shellcheck`
-trap 'set -x; echo SIGTSTP;   trap SIGTSTP;   kill -s 2   $$' TSTP # 20
-trap 'set -x; echo SIGTTIN;   trap SIGTTIN;   kill -s 2   $$' TTIN # 21
-trap 'set -x; echo SIGTTOU;   trap SIGTTOU;   kill -s 2   $$' TTOU # 22
-trap 'set -x; echo SIGURG;    trap SIGURG;    kill -s 2   $$' URG  # 23
-trap 'set -x; echo SIGXCPU;   trap SIGXCPU;   kill -s 2   $$' XCPU # 24
-trap 'set -x; echo SIGXFSZ;   trap SIGXFSZ;   kill -s 2   $$' XFSZ # 25
-trap 'set -x; echo SIGVTALRM; trap SIGVTALRM; kill -s 2 $$' VTALRM # 26
-trap 'set -x; echo SIGPROF;   trap SIGPROF;   kill -s 2   $$' PROF # 27
-#trap 'set -x; echo SIGWINCH;  trap SIGWINCH;  kill -s 2  $$' WINCH # 28
-#   ^--- triggered by resizing a terminal window
-trap 'set -x; echo SIGIO;     trap SIGIO;     kill -s 2   $$' IO   # 29
-trap 'set -x; echo SIGPWR;    trap SIGPWR;    kill -s 2   $$' PWR  # 30
-trap 'set -x; echo SIGSYS;    trap SIGSYS;    kill -s 2   $$' SYS  # 31
-trap 'set -x; echo SIGRTMIN;  trap SIGRTMIN;  kill -s 2  $$' RTMIN # 32
 
 : '<> XTrace variables and functions'
 
