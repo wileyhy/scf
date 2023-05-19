@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
   #!/usr/bin/env -iS bash -x
 # Written in bash version 5.1 on Fedora 37 & 38
 
@@ -110,7 +110,7 @@ done
 
 # FeatReq: ^--- delete_locks sb a cli option
 
-_full_xtrace
+set -x
 exit 101
 
 : 'Process Lock: Define the lockdir'
@@ -133,7 +133,7 @@ if ! mkdir -m 0000 "${process_lock_d}" 2>/dev/null; then
   L_
 fi
 
-_full_xtrace
+set -x
 exit 101
 
 : 'Variables'
@@ -206,7 +206,7 @@ methods_symlinks_l=logical
 verify=(all)
 
 # <>
-_full_xtrace
+set -x
 exit 101
 
 : 'Functions'
@@ -369,7 +369,6 @@ fn_write_arrays() {
 # take each found dir and convert abs path [of sym, okay] to a string
 # usable for directory names
 unset index element calc
-
 # for each dirname / directory in search path
 for index in "${!A_rsd[@]}"; do
   element="${A_rsd["$index"]}"
@@ -392,31 +391,24 @@ main_d="${mountpoint}/${script_dirnm}"
 data_subd="${main_d}/latest_data"
 curr_time_ssubd="${data_subd}/t_${timecode}/"
 list_crunchbangs="${curr_time_ssubd}/crunchbangs"
-
 : 'data files'
 a_write_path_nms=("${list_crunchbangs:=crunchbangs}"
   "/tmp/${list_crunchbangs##*/}"
 )
-
 : 'make sure -data_subd- is a directory OR create the -data_subd- dir '
 : 'if necessary'
 [[ -d "${data_subd}" ]] \
   || mkdir "${data_subd}" # as liveuser
-
 #X_; :_; M_ -- "${data_subd}"
-
 : 'Label the current data as -latest.-'
 mapfile -d '' -t a_previous_time_dirs < <(
   find "${data_subd}" -mindepth 1 -maxdepth 1 -type d -a \! -type l \
     -name 't_*' -print0
 )
-
 : 'if -prev_time_ssubd- is empty, delete it, otherwise -mv- it out'
 : 'of the -latest- dir'
-
 for prev_time_ssubd in "${a_previous_time_dirs[@]}"; do
   rmdir --ignore-fail-on-non-empty -- "${prev_time_ssubd}"
-
   : 'of previous prev_time_ssubd'
   if [[ -d "${prev_time_ssubd}" ]] \
     && [[ ! -L "${prev_time_ssubd}" ]]; then
@@ -425,17 +417,15 @@ for prev_time_ssubd in "${a_previous_time_dirs[@]}"; do
     continue
   fi
 done
-
 : 'of curr_time_ssubd'
 if [[ ! -d "${curr_time_ssubd}" ]]; then
   S_ mkdir -p -- "${curr_time_ssubd}" \
     || E_ "${LINENO}"
 fi
-
 #X_; :_; M_ -- "${curr_time_ssubd}"
 
 # <>
-_full_xtrace
+set -x
 exit 101
 
 : '<> Debugging' # "<>" means, "This is a debugging section."
