@@ -1814,14 +1814,6 @@ printf '%s\n' "${a_shell_scripts[@]}" \
   | S_ T_ -a -- "${a_write_path_nms[@]}" >/dev/null
 B_ "${a_write_path_nms[@]}"
 
-# the time_dir needs a copy of the crunchbangs file, also.  copy it in
-# from the hopefully correct backup in /tmp
-if [[ ! -f "${list_crunchbangs}" ]]; then
-  S_ rsync -ca -- "/tmp/${list_crunchbangs##*/}" \
-    "${list_crunchbangs}" \
-    || E_ "${LINENO}"
-fi
-
 _full_xtrace
 exit 101
 
