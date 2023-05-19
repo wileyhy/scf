@@ -1478,9 +1478,8 @@ if [[ "${abbrev_rel_search_dirs}" == all ]]; then
 
   : 'set a value for a_relevant_search_dirs and..'
   mapfile -d '' -t a_relevant_search_dirs < <(
-    S_ find / -mindepth 1 -maxdepth 1 -type d \! -empty \
-      \( \! -name proc -a \! -name sys -a \! \
-      -iname "${script_dirnm}*" \) -print0 2>/dev/null
+    S_ find "${find_sym_opt_L}" "${find_path[@]}" -mindepth 1 -maxdepth 1 -type d \! -empty \
+      "${find_exclude_optargs[@]}" -print0 2>/dev/null
   )
 
   for sd in "${a_relevant_search_dirs[@]}"; do
