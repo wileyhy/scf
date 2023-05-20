@@ -248,33 +248,33 @@ fi
 
 : 'Process Lock'
 
-set -x
+_full_xtrace
+#set -x
 
-#: 'Process Lock: Search for existing lockdirs'
-## search the 
-#mapfile -d '' -t lkdrs < <(
-  #sudo find "${a_poss_proces_lock_dirs[@]}" -maxdepth 1 \( -type d -o -type l \) \( -name '*lock*' -a -name '*scf*' \)
-#)
-  ##sudo find "${a_process_lock_dirs[@]%/*}" -maxdepth 1 -type d -name \
-    ##".${repo_nm}.[0-9a-zA-Z_-]*.lock" -print0 2>/dev/null
-#: 'lkdrs, count:' "${#lkdrs[@]}"
-#for l in "${lkdrs[@]}"; do
-  #if [[ -d "${l}" ]]; then
-    #if [[ -v delete_locks ]]; then
-      #rmdir -v -- "${l}"
-    #else
-      #printf '\n\t A process lock exists for this script. Exiting '
-      #printf 'now.\n\n'
-      #exit "${LINENO}"
-    #fi
-  #fi
-#done
-## Note: delete_locks is an undocumented CLI option
-#[[ -v delete_locks ]] \
-  #&& exit "${LINENO}"
+: 'Process Lock: Search for existing lockdirs'
+# search the 
+mapfile -d '' -t lkdrs < <(
+  sudo find "${a_poss_proces_lock_dirs[@]}" -maxdepth 1 \( -type d -o -type l \) \( -name '*lock*' -a -name '*scf*' \)
+)
+  #sudo find "${a_process_lock_dirs[@]%/*}" -maxdepth 1 -type d -name \
+    #".${repo_nm}.[0-9a-zA-Z_-]*.lock" -print0 2>/dev/null
+: 'lkdrs, count:' "${#lkdrs[@]}"
+for l in "${lkdrs[@]}"; do
+  if [[ -d "${l}" ]]; then
+    if [[ -v delete_locks ]]; then
+      rmdir -v -- "${l}"
+    else
+      printf '\n\t A process lock exists for this script. Exiting '
+      printf 'now.\n\n'
+      exit "${LINENO}"
+    fi
+  fi
+done
+# Note: delete_locks is an undocumented CLI option
+[[ -v delete_locks ]] \
+  && exit "${LINENO}"
 
 #exit 101
-_full_xtrace
 
 # Bug: race condition btw defining and `mkdir`
 declare -p a_process_lock_dirs
