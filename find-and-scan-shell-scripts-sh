@@ -247,29 +247,32 @@ fi
 #' EXIT INT TERM
 
 : 'Process Lock'
+declare -p a_process_lock_dirs
 
 _full_xtrace
 #set -x
 
 : 'Process Lock: Search for existing lockdirs'
-# search the 
+# Note: for `find`, types 'd' and 'l' are separate; for `bash`, `[[ -d` can return 0 for a symlink
 mapfile -d '' -t lkdrs < <(
-  sudo find "${a_poss_proces_lock_dirs[@]}" -maxdepth 1 \( -type d -o -type l \) \( -name '*lock*' -a -name '*scf*' \)
+  sudo find "${a_poss_proces_lock_dirs[@]}" -maxdepth 1 \( -type d -o -type l \) \( -name '*lock*' -a -name '*scf*' \) -print0
 )
   #sudo find "${a_process_lock_dirs[@]%/*}" -maxdepth 1 -type d -name \
     #".${repo_nm}.[0-9a-zA-Z_-]*.lock" -print0 2>/dev/null
-: 'lkdrs, count:' "${#lkdrs[@]}"
+lkdrs_count="${#lkdrs[@]}"
 for l in "${lkdrs[@]}"; do
-  if [[ -d "${l}" ]]; then
+  if [[ -d "${l}" ]] \
+    || [[ -L "${l}" ]]
+  then
     if [[ -v delete_locks ]]; then
-      rmdir -v -- "${l}"
+      sudo rmdir -v -- "${l}"
     else
       printf '\n\t A process lock exists for this script. Exiting '
       printf 'now.\n\n'
       exit "${LINENO}"
     fi
   fi
-done
+done; unset l lkdrs_count lkdrs
 # Note: delete_locks is an undocumented CLI option
 [[ -v delete_locks ]] \
   && exit "${LINENO}"
@@ -277,7 +280,6 @@ done
 #exit 101
 
 # Bug: race condition btw defining and `mkdir`
-declare -p a_process_lock_dirs
 
 : 'Process Lock: Define & create the lockdir'
 
