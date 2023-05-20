@@ -11,8 +11,7 @@ repo_nm=scf
 
 : '<> Debug: Delete any left over xtrace files from -mktemp -p /tmp-'
 mapfile -d "" -t xtrace_files < <(
-  find /tmp -maxdepth 1 -type f \
-    -name "tmp.[a-zA-Z0-9]*.${repo_nm}.[0-9]*.[0-9]*.txt" -print0 
+  find /tmp -maxdepth 1 -type f -name "tmp.[a-zA-Z0-9]*.${repo_nm}.[0-9]*.[0-9]*.xtr" -print0 
 )
 # ...if they're (inodes are for) files & not symlinks, & owned by the 
 # same EUID.
@@ -121,11 +120,11 @@ _mk_setenv_delta() {
 
 _mk_deltas() {
   : '_mk_deltas BEGINS' "$((++funclvl))" "${fence}"
-  _xtrace_duck
+  #_xtrace_duck
   _mk_setenv_prev
   _mk_setenv_now
   _mk_setenv_delta
-  _xtrace_duck
+  #_xtrace_duck
   : '_mk_deltas ENDS  ' "$((--funclvl))" "${fence}"
 }
 
@@ -196,7 +195,7 @@ a_poss_proces_lock_dirs=([0]="${XDG_RUNTIME_DIR}" [1]="${HOME}"
 random_n="${RANDOM}"
 unique_string="${repo_nm}.${$}.${random_n}"
 proc_lk_f_nm="${unique_string}.lock"
-mktemp_sfx=."${unique_string}.txt"
+mktemp_sfx=."${unique_string}.xtr"
 timecode="$(builtin printf '%(%F_%H%M%S)T')"
 
 # An associative array, in case TMPDIR duplicates another array value
@@ -223,32 +222,33 @@ fi
 
 : 'Trap'
 
-trap '
-  : "EXIT trap BEGINS ++++++++++++++++++++++++++++++++++++++++++++++"
-  trap - DEBUG
-
-  # Delete all possible existing process _lock_directories_. 
-  for pld in "${a_process_lock_dirs[@]}"; do 
-
-    # test and delete lock directories.
-    if [[ -d "${pld}" ]] && [[ ! -L "${pld}" ]]; then 
-      sudo rm --one-file-system --preserve-root=all  -rf -- "${pld}" \
-        || exit "${LINENO}"
-    fi
-  done; unset pld
-
-    # <>
-    #: "${Halt?}"
-
-  trap - EXIT INT TERM
-  kill -s INT "$$"
-' EXIT INT TERM
+#trap '
+  #: "EXIT trap BEGINS ++++++++++++++++++++++++++++++++++++++++++++++"
+  #trap - DEBUG
+#
+  ## Delete all possible existing process _lock_directories_. 
+  #for pld in "${a_process_lock_dirs[@]%/*}"; do 
+#
+    ## test and delete lock directories.
+    #if [[ -d "${pld}" ]] && [[ ! -L "${pld}" ]]; then 
+      #echo sudo rm --one-file-system --preserve-root=all  -rf -- "${pld}" \
+        #|| exit "${LINENO}"
+    #fi
+  #done; unset pld
+#
+    ## <>
+    ##: "${Halt?}"
+#
+  #trap - EXIT INT TERM
+  #kill -s INT "$$"
+#' EXIT INT TERM
 
 : 'Process Lock'
 
+set -x
 : 'Process Lock: Search for existing lockdirs'
 mapfile -d '' -t lkdrs < <(
-  sudo find "${a_process_lock_dirs[@]}" -maxdepth 1 -type d -name \
+  sudo find "${a_process_lock_dirs[@]%/*}" -maxdepth 1 -type d -name \
     ".${repo_nm}.[0-9a-zA-Z_-]*.lock" -print0 2>/dev/null
 )
 : 'lkdrs, count:' "${#lkdrs[@]}"
@@ -291,6 +291,7 @@ for poss_lk_d in "${a_process_lock_dirs[@]}"; do
 done; set -
 
   # Bug: for some reason, the lockdir gets deleted while the symlinks stay put.
+  shopt -o functrace
   ${Halt:?}
 
 for poss_lk_d in "${a_process_lock_dirs[@]}"; do
@@ -589,7 +590,7 @@ mapfile -d '' -t a_previous_time_dirs < <(
 : 'if -prev_time_ssubd- is empty, delete it, otherwise -mv- it out'
 : 'of the -latest- dir'
 for prev_time_ssubd in "${a_previous_time_dirs[@]}"; do
-  rmdir --ignore-fail-on-non-empty -- "${prev_time_ssubd}"
+  rmdir -v --ignore-fail-on-non-empty -- "${prev_time_ssubd}"
   : 'of previous prev_time_ssubd'
   if [[ -d "${prev_time_ssubd}" ]] \
     && [[ ! -L "${prev_time_ssubd}" ]]; then
@@ -1302,7 +1303,7 @@ then
 
   # Workaround: `compgen -c "*"` was picking up executable shell
   # scripts from the CWD
-  tempd="$(mktemp -d --suffix="${mktemp_sfx/%.txt/.d}")"
+  tempd="$(mktemp -d --suffix="${mktemp_sfx/%.xtr/.d}")"
   cd "${tempd}" \
     || fn_erx cd
   
@@ -1450,7 +1451,7 @@ then
  
   cd - \
     || fn_erx cd
-  rmdir "${tempd}"; unset tempd
+  rmdir -v "${tempd}"; unset tempd
 
 elif [[ "${methods_prog_cv}" = *bin_find ]]; then
   hash find 2>/dev/null \
