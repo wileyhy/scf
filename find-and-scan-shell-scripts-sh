@@ -248,9 +248,11 @@ fi
 set -x
 : 'Process Lock: Search for existing lockdirs'
 mapfile -d '' -t lkdrs < <(
-  sudo find "${a_process_lock_dirs[@]%/*}" -maxdepth 1 -type d -name \
-    ".${repo_nm}.[0-9a-zA-Z_-]*.lock" -print0 2>/dev/null
+  sudo find /run/user/1000 /home/liveuser /tmp /var/tmp -maxdepth 1 \( -type d -o -type l \) \( -name '*lock*' -a -name '*scf*' \)
 )
+
+  #sudo find "${a_process_lock_dirs[@]%/*}" -maxdepth 1 -type d -name \
+    #".${repo_nm}.[0-9a-zA-Z_-]*.lock" -print0 2>/dev/null
 : 'lkdrs, count:' "${#lkdrs[@]}"
 for l in "${lkdrs[@]}"; do
   if [[ -d "${l}" ]]; then
