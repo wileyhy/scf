@@ -190,28 +190,33 @@ fi; unset c yn reqd_cmds
 #_full_xtrace
 
 : 'Variables for Trap and Process Locks'
-for v in "${XDG_RUNTIME_DIR}" "${HOME}" "${TMPDIR}" /tmp /var/tmp; do
-  if [[ -d "${v}" ]]; then
-    a_poss_proces_lock_dirs+=("${v}")
-  fi
-done
+
 random_n="${RANDOM}"
 unique_string="${repo_nm}.${$}.${random_n}"
 proc_lk_f_nm="${unique_string}.lock"
 mktemp_sfx=."${unique_string}.xtr"
 timecode="$(builtin printf '%(%F_%H%M%S)T')"
 
+# The purpose of listing so many possible lock locations is that who knows which of these directory locations will exist on disk whenever down the road. The issue with including world-writeable dirs such as /tmp is that /tmp is a consistent part of the Linux file structure, and that probably isn't going to change any time soon. The notion behind creating lockdirs, whose names include random number strings according to a template, is to foil the predictability, and hence the risk of DOS, that placing a lock mechanism in a world-writeable directory creates. The idea being, if the template is unique enough that accurately predicting it will be impractical. So, 
+  : "${repo_nm}.${$}.${random_n}.lock"
+#   Still, the issue occurs of the race condition. Since the filename changes, the advantage of the atomicity of using `mkdir` is lost.... or is it?  
+#   So what if you just create a lockdir first, according to the template, then look for other lockdirs, and based on the info in the found lockdirs' xattrs, determine whether a duplicate process is running?
+#   It seems like that could possibly work, although the entire script down to plausible filenames could be reconstructed, but for practicality. 
+
+for v in "${XDG_RUNTIME_DIR}" "${HOME}" "${TMPDIR}" /tmp /var/tmp; do
+  if [[ -d "${v}" ]]; then
+    a_poss_proces_lock_dirs+=("${v}")
+  fi
+done
 # An associative array, in case TMPDIR duplicates another array value
 declare -A A_process_lock_dirs
 i=0 
-
 for pld in "${a_poss_proces_lock_dirs[@]}"; do
   if [[ -d "${pld}" ]]; then
     pld="$(realpath -e "${pld}")"
     A_process_lock_dirs+=( ["${pld}/${proc_lk_f_nm}"]=$((i++)) )
   fi
 done; unset pld
-
 for i in "${!A_process_lock_dirs[@]}"; do 
   a_process_lock_dirs+=( ["${A_process_lock_dirs[$i]}"]="$i" ); 
 done; unset A_process_lock_dirs i
@@ -323,6 +328,60 @@ for poss_lk_d in "${a_process_lock_dirs[@]}"; do
     exit "${LINENO}"
   fi
 done
+
+
+
+# DOS vs atomicity
+
+: 'Rewrite of Process Lock section'
+
+: 'Define one consistent lockdir name'
+
+: 'Exec -mkdir- '
+
+  # attacker has created a false lockdir
+  : 'if fail, then'
+    
+    # attacker doesn't know some info
+    #   verify that the lockdir is attached to some actual process vs is a dead lock
+    #   use PID... for sure ...and PPID
+    #     ...and what else? memory addresses?  hashes of ...some info?
+    #     UID and PWD and script name
+    #   info from `ps`
+    #     ...PGID... SID..
+    #   info from `lsof` 
+    #     [liveuser@localhost-live scf]$ time lsof 2> /dev/null |& awk '$2 == "1315609" { print $9 }'
+    #     /home/liveuser/MYPROJECTS/scf
+    #     /
+    #     /usr/bin/bash
+    #     /usr/lib/locale/locale-archive
+    #     /usr/lib64/libc.so.6
+    #     /usr/lib64/libtinfo.so.6.4
+    #     /usr/lib64/gconv/gconv-modules.cache
+    #     /usr/lib64/ld-linux-x86-64.so.2
+    #     /dev/pts/4
+    #     /dev/pts/4
+    #     /dev/pts/4
+    #     /home/liveuser/MYPROJECTS/scf/find-and-scan-shell-scripts-sh~
+    #     
+    #     real	0m6.177s
+    #     user	0m2.615s
+    #     sys	0m3.366s
+    #   
+    #   Stop trying to re-invent the wheel?
+    #   
+    : 'Test for check-digit random string in xattr' 
+
+      : 'If fail, then print alert and exit'
+
+    : 'print error and exit'
+: ''
+: ''
+: ''
+: ''
+: ''
+: ''
+
 
 exit 101
 _full_xtrace
