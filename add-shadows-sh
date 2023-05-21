@@ -71,7 +71,7 @@ for dnm in "${find_path[@]}"; do
   if [[ -f "${nm}" ]] \
     || [[ -L "${nm}" ]]
   then
-    sudo rm -f i--one-file-system --preserve-root=all -- "${nm}" \
+    sudo rm -f --one-file-system --preserve-root=all -- "${nm}" \
       || fn_erx
   fi; unset nm; :
 done; unset dnm; :
