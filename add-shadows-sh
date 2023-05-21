@@ -18,7 +18,7 @@ fi
 
 
 :;: 'Target string:' :;:
-x='export'
+x="${1:='export'}"
 readonly x
 
 
