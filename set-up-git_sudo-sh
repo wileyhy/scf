@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 # set-up-git_sudo-sh
 
 ## Notes
@@ -129,7 +129,7 @@ unset d
 
 ### Note: in order to clone into any repo, and keep 
 ### multiple repos separate, `cd` is required
-cd "${dev_d1}" \
+pushd "${dev_d1}" \
   || exit "${LINENO}"
 
 # TODO:
@@ -245,8 +245,12 @@ GPG_TTY="$(tty)"
 export GPG_TTY
 
 # Remind user of commands for the interactive shell
-printf '\n\t Now run this command: \n'
-printf '\n\t cd %s/%s; git status \n\n' "${dev_d1}" "${repo_nm}"
+set -x
+popd
+if [[ "${PWD}" != "${dev_d1}/${repo_nm}" ]]; then 
+  printf '\n\t Now run this command: \n'
+  printf '\n\t cd %s/%s; git status \n\n' "${dev_d1}" "${repo_nm}"
+fi
 
 # Clean up
 rm -fr "${tmpd}"
