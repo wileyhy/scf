@@ -101,9 +101,7 @@ unset -n "${x}"
 for f in "${xff[@]}"; do
   d="$(dirname "${f}")"
   if [[ -d "${d}" ]]; then
-    lo="$(sudo find "${d}" -mindepth 1 -printf '%p' \
-      | cut -b -32
-    )"
+    lo="$(sudo find "${d}" -mindepth 1 -printf '%p')"
   fi
   if [[ -z "${lo:0:32}" ]]; then
     if [[ -d "${d}" ]] \
