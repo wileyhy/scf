@@ -1,7 +1,6 @@
 #!/bin/bash
   #!/usr/bin/env -iS bash -x
 # Written in bash version 5.1 on Fedora 37 & 38
-repo_nm=scf
 
 # Note: Keep your goal in mind.
 
@@ -9,9 +8,31 @@ repo_nm=scf
 
 : '<> Debugging' # "<>" means, "This is a debugging section."
 
+repo_nm=scf
+random_n="${RANDOM}"
+unique_string="${repo_nm}.${$}.${random_n}"
+proc_lk_f_nm="${unique_string}.lock"
+mktemp_sfx=."${unique_string}.xtr"
+xtr_t_file="/tmp/tmp.mtime_file.${mktemp_sfx}"
+trap - INT
+unset Halt
+readonly Halt
+ctrl_C_trap(){
+  for f in "${xtr_t_file}" "${setenv_prev}" "${setenv_now}" "${setenv_delta}"; do
+    if [[ -f "$f" ]]; then
+      rm --one-file-system --preserve-root=all  "$f" ||
+        {
+          echo rm failed -- "$f" -- line "${LINENO}"
+          "${Halt:?}"
+        }
+    fi
+  done
+}
+
 : '<> Debug: Delete any left over xtrace files from -mktemp -p /tmp-'
+touch -d '12 hours ago' "${xtr_t_file}"
 mapfile -d "" -t xtrace_files < <(
-  find /tmp -maxdepth 1 -type f -name "tmp.[a-zA-Z0-9]*.${repo_nm}.[0-9]*.[0-9]*.xtr" -print0 
+  find /tmp -maxdepth 1 -type f -name "tmp.[a-zA-Z0-9]*.${repo_nm}.[0-9]*.[0-9]*.xtr" \! -newer "${xtr_t_file}" -print0 
 )
 # ...if they're (inodes are for) files & not symlinks, & owned by the 
 # same EUID.
@@ -45,6 +66,7 @@ _xtrace_duck() {
   # but if xtrace is off...
   else
     # ...then if xtrace was previously on...
+    : 'if prev'
     if [[ -n "${xtrace_prev}" ]]; then
       # ...then restore xtrace and unset the record of its state
       set -x
@@ -60,9 +82,9 @@ _xtrace_duck() {
 # trap is enabled.
 _mk_setenv_prev() {
   : '_mk_setenv_prev BEGINS' "$((++funclvl))" "${fence}"
-  : 'if'
+  : 'if now'
   if [[ -n "${setenv_now}" ]]; then
-    : 'if'
+    : 'if prev'
     if [[ -n "${setenv_prev}" ]]; then
       rm --one-file-system --preserve-root=all  -f -- "${setenv_prev}"
     fi
@@ -84,28 +106,51 @@ _mk_setenv_now() {
 
 _mk_setenv_delta() {
   : '_mk_setenv_delta BEGINS' "$((++funclvl))" "${fence}"
-  if [[ -n "${setenv_now}" ]] && [[ -n "${setenv_prev}" ]]; then
+  : 'if now and prev'
+  if [[ -n "${setenv_now}" ]] \
+    && [[ -n "${setenv_prev}" ]]; 
+  then
+    : 'if delta'
     if [[ -n "${setenv_delta}" ]]; then
       rm --one-file-system --preserve-root=all  -f -- "${setenv_delta}"
       wait -f
     fi
+
+		# syntax caused a weird bug?
+		# 	with alsa-info.sh line ~465-466
+		#	and then again 
+        ## create a new delta file, each time
+    #setenv_delta="$(mktemp -p /tmp --suffix="${mktemp_sfx}")" #
+    #{
+      #diff -y --suppress-{common-lines,blank-empty} --color=never \
+        #"${setenv_prev}" "${setenv_now}" \
+        #|& grep -v setenv \
+        #| grep --color=always -E '.*'
+    #} \
+      #|& tee -- "${setenv_delta}"
+    #{
+      #diff --suppress-{common-lines,blank-empty} --color=always \
+        #--palette='ad=1;3;38;5;190:de=1;3;38;5;129' \
+        #"${setenv_prev}" "${setenv_now}" \
+        #| grep -ve BASH_LINENO -e BASH_COMMAND -e BASH_SOURCE \
+          #-e setenv_ -Fe '---'
+    #} \
+      #|& tee -a "${setenv_delta}"
+
     # create a new delta file, each time
-    setenv_delta="$(mktemp -p /tmp --suffix="${mktemp_sfx}")" #
-    {
-      diff -y --suppress-{common-lines,blank-empty} --color=never \
-        "${setenv_prev}" "${setenv_now}" \
+    setenv_delta="$(mktemp -p /tmp --suffix="${mktemp_sfx}.A")" 
+      diff -y -W 500 --suppress-{common-lines,blank-empty} \
+		--color=never "${setenv_prev}" "${setenv_now}" \
         |& grep -v setenv \
-        | grep --color=always -E '.*'
-    } \
-      |& tee -- "${setenv_delta}"
-    {
+        | grep --color=always -E '.*' \
+        |& tee -- "${setenv_delta}"
+      wait -f
       diff --suppress-{common-lines,blank-empty} --color=always \
         --palette='ad=1;3;38;5;190:de=1;3;38;5;129' \
         "${setenv_prev}" "${setenv_now}" \
         | grep -ve BASH_LINENO -e BASH_COMMAND -e BASH_SOURCE \
-          -e setenv_ -Fe '---'
-    } \
-      |& tee -a "${setenv_delta}"
+          -e setenv_ -Fe '---' \
+        |& tee -a "${setenv_delta}"
     # set colors for `wc` output
     GREP_COLORS='mt=01;104'
     export GREP_COLORS
@@ -191,10 +236,6 @@ fi; unset c yn reqd_cmds
 
 : 'Variables for Trap and Process Locks'
 
-random_n="${RANDOM}"
-unique_string="${repo_nm}.${$}.${random_n}"
-proc_lk_f_nm="${unique_string}.lock"
-mktemp_sfx=."${unique_string}.xtr"
 timecode="$(builtin printf '%(%F_%H%M%S)T')"
 
 # The purpose of listing so many possible lock locations is that who knows which of these directory locations will exist on disk whenever down the road. The issue with including world-writeable dirs such as /tmp is that /tmp is a consistent part of the Linux file structure, and that probably isn't going to change any time soon. The notion behind creating lockdirs, whose names include random number strings according to a template, is to foil the predictability, and hence the risk of DOS, that placing a (statically named) lock mechanism in a world-writeable directory creates. The idea being, if the template is unique enough that accurately predicting it will be impractical.... So, 
