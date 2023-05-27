@@ -253,6 +253,11 @@ _full_xtrace
 
 : 'Variables for Trap and Process Locks'
 
+declare -A A_process_lock_dirs
+a_poss_proces_lock_dirs+=("${XDG_RUNTIME_DIR}" "${TMPDIR}" /var/lock \
+  "${HOME}" /tmp /var/tmp)
+i=0 
+pld="" # SC2155
 timecode="$(builtin printf '%(%F_%H%M%S)T')"
 
 #   The purpose of listing so many possible lock locations is that who 
@@ -266,7 +271,7 @@ timecode="$(builtin printf '%(%F_%H%M%S)T')"
 # a world-writeable directory creates. The idea being, if the template 
 # is unique enough that accurately predicting it will be impractical.... 
 # So, 
-  : "/tmp/${repo_nm}.${$}.${random_n}.lock"
+  : "/tmp/.${repo_nm}.${$}.${random_n}.lock.d"
 #   Still, the issue occurs of the race condition. Since the filename 
 # changes, the advantage of the atomicity of using `mkdir` is lost.... 
 # or is it?  
@@ -279,53 +284,48 @@ timecode="$(builtin printf '%(%F_%H%M%S)T')"
 # practicality. 
 
 # An associative array, in case TMPDIR duplicates another array value
-declare -A A_process_lock_dirs
-i=0 
 
-for v in "${XDG_RUNTIME_DIR}" "${TMPDIR}" /var/lock "${HOME}" /tmp \
-  /var/tmp 
-do
+for v in "${a_poss_proces_lock_dirs[@]}"; do
   if [[ -d "${v}" ]]; then
     v="$(realpath -e "${v}")"
-    a_poss_proces_lock_dirs+=("${v}")
     A_process_lock_dirs+=( ["${v}/${proc_lk_d_nm}"]=$((i++)) )
   fi
-done; unset i
+done; unset i v
 
 for i in "${!A_process_lock_dirs[@]}"; do 
   a_process_lock_dirs+=( ["${A_process_lock_dirs[$i]}"]="$i" ); 
 done; unset A_process_lock_dirs i
 
+_full_xtrace
+exit 101
+
 if [[ "$*" =~ delete_locks ]]; then 
   delete_locks='y'
 fi
 
-_full_xtrace
-exit 101
-
 : 'Trap'
 
-#trap '
-  #: "EXIT trap BEGINS ++++++++++++++++++++++++++++++++++++++++++++++"
-  #trap - DEBUG
-#
-  ## Delete all possible existing process _lock_directories_. 
-  #for pld in "${a_process_lock_dirs[@]%/*}"; do 
-#
-    ## test and delete lock directories.
-    #if [[ -d "${pld}" ]] && [[ ! -L "${pld}" ]]; then 
-      #echo sudo rm --one-file-system --preserve-root=all  -rf -- \
-        #"${pld}" \
-        #|| exit "${LINENO}"
-    #fi
-  #done; unset pld
-#
-    ## <>
-    ##: "${Halt?}"
-#
-  #trap - EXIT INT TERM
-  #kill -s INT "$$"
-#' EXIT INT TERM
+trap '
+  : "EXIT trap BEGINS ++++++++++++++++++++++++++++++++++++++++++++++"
+  trap - DEBUG
+
+  # Delete all possible existing process _lock_directories_. 
+  for pld in "${a_process_lock_dirs[@]%/*}"; do 
+
+    # test and delete lock directories.
+    if [[ -d "${pld}" ]] && [[ ! -L "${pld}" ]]; then 
+      echo sudo rm --one-file-system --preserve-root=all  -rf -- \
+        "${pld}" \
+        || exit "${LINENO}"
+    fi
+  done; unset pld
+
+    # <>
+    #: "${Halt?}"
+
+  trap - EXIT TERM
+  kill -s INT "$$"
+' EXIT TERM
 
 : 'Process Lock'
 declare -p a_process_lock_dirs
@@ -342,7 +342,7 @@ mapfile -d '' -t lkdrs < <(
 )
   #sudo find "${a_process_lock_dirs[@]%/*}" -maxdepth 1 -type d -name \
     #".${repo_nm}.[0-9a-zA-Z_-]*.lock" -print0 2>/dev/null
-lkdrs_count="${#lkdrs[@]}"
+#lkdrs_count="${#lkdrs[@]}"
 for l in "${lkdrs[@]}"; do
   if [[ -d "${l}" ]] \
     || [[ -L "${l}" ]]
@@ -355,7 +355,7 @@ for l in "${lkdrs[@]}"; do
       exit "${LINENO}"
     fi
   fi
-done; unset l lkdrs_count lkdrs
+done; unset l lkdrs #lkdrs_count 
 # Note: delete_locks is an undocumented CLI option
 [[ -v delete_locks ]] \
   && exit "${LINENO}"
