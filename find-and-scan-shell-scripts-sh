@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
   #!/usr/bin/env -iS bash -x
 # Written in bash version 5.1 on Fedora 37 & 38
 
@@ -12,11 +12,12 @@ repo_nm=scf
 random_n="${RANDOM}"
 unique_string="${repo_nm}.${$}.${random_n}"
 proc_lk_f_nm="${unique_string}.lock"
-mktemp_sfx=."${unique_string}.xtr"
+mktemp_sfx="${unique_string}.xtr"
 xtr_t_file="/tmp/tmp.mtime_file.${mktemp_sfx}"
 trap - INT
 unset Halt
 readonly Halt
+
 ctrl_C_trap(){
   for f in "${xtr_t_file}" "${setenv_prev}" "${setenv_now}" "${setenv_delta}"; do
     if [[ -f "$f" ]]; then
@@ -30,10 +31,12 @@ ctrl_C_trap(){
 }
 
 : '<> Debug: Delete any left over xtrace files from -mktemp -p /tmp-'
+# Note:   Using '/tmp' at this early stage because it's just easier
 touch -d '12 hours ago' "${xtr_t_file}"
 mapfile -d "" -t xtrace_files < <(
   find /tmp -maxdepth 1 -type f -name "tmp.[a-zA-Z0-9]*.${repo_nm}.[0-9]*.[0-9]*.xtr" \! -newer "${xtr_t_file}" -print0 
 )
+
 # ...if they're (inodes are for) files & not symlinks, & owned by the 
 # same EUID.
 for f in "${xtrace_files[@]}"; do
@@ -190,7 +193,7 @@ _full_xtrace() {
   : '_full_xtrace ENDS  ' "$((--funclvl))" "${fence}"
 }
 
-#_full_xtrace
+_full_xtrace
 
 : 'ID and sudo'
 
@@ -211,10 +214,12 @@ reqd_cmds=( 'awk' 'chmod' 'cp' 'cut' 'dirname' 'file'
   'find' 'getconf' 'grep' 'ln' 'ls' 'mkdir' 'mktemp' 'od' 'rm' 'rmdir' 
   'stat' 'strings' 'sudo' 'tee' )
 yn='n'
+
 # Requires a minimum of bash version 5
 if [[ "${BASH_VERSION:0:1}" -lt 5 ]]; then
   echo Please install Bash version 5, thanks.
 fi
+
 # force PATH searches for these command names
 hash -r
 for c in "${reqd_cmds[@]}"; do  
@@ -222,6 +227,7 @@ for c in "${reqd_cmds[@]}"; do
     yn+=" ${c}"
   fi; 
 done; 
+
 # Print results as appropriate 
 if [[ "${yn}" == 'n' ]]; then 
   : 'No additional commands are required'
@@ -231,8 +237,9 @@ else
   exit 1
 fi; unset c yn reqd_cmds
 
-#exit 101
-#_full_xtrace
+hash
+exit 101
+_full_xtrace
 
 : 'Variables for Trap and Process Locks'
 
@@ -266,8 +273,8 @@ if [[ "$*" =~ delete_locks ]]; then
   delete_locks='y'
 fi
 
-#_full_xtrace
-#exit 101
+_full_xtrace
+exit 101
 
 : 'Trap'
 
@@ -296,7 +303,7 @@ fi
 declare -p a_process_lock_dirs
 
 _full_xtrace
-#set -x
+set -x
 
 : 'Process Lock: Search for existing lockdirs'
 # Note: for `find`, types 'd' and 'l' are separate; for `bash`, `[[ -d` can return 0 for a symlink
@@ -323,7 +330,7 @@ done; unset l lkdrs_count lkdrs
 [[ -v delete_locks ]] \
   && exit "${LINENO}"
 
-#exit 101
+exit 101
 
 # Bug: race condition btw defining and `mkdir`
 
@@ -698,6 +705,9 @@ do
   fi
 done
 
+exit 101
+_full_xtrace
+
 # Bugs: Hardcoded $mountpoint -- use lock dir as main_d
 
 : 'Assign varnames and paths for the data directories'
@@ -1068,8 +1078,8 @@ shopt -u nocasematch
 #declare -p  methods_symlinks_l methods_recurse_n methods_prog_cv methods_scan_excluded_by find_sym_opt_L find_exclude_optargs bash_path find_path PATH methods_path
 
 # <>
-#_full_xtrace
-#exit 101
+_full_xtrace
+exit 101
 
 : 'Verify PATH'
 
@@ -1141,6 +1151,9 @@ _verify_path(){
 
 _verify_path PATH
 _verify_path bash_path
+
+exit 101
+_full_xtrace
 
 : 'Verify DACs'
 
@@ -1453,8 +1466,8 @@ then
   unset i
   
     # <>
-    #_full_xtrace
-    #set -x
+    _full_xtrace
+    set -x
 
   # for each possible ascii character or value
   for i in "${!allchr[@]}"; do
