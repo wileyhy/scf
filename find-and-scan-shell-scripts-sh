@@ -8,8 +8,10 @@
 
 : '<> Debugging' # "<>" means, "This is a debugging section."
 
+# FeatReq: for $random_n, use the most recent git commit hash ID
+
 repo_nm=scf
-random_n="${RANDOM}"
+random_n="${RANDOM}" 
 unique_string="${repo_nm}.${$}.${random_n}"
 proc_lk_d_nm=."${unique_string}.lock.d"
 mktemp_sfx=."${unique_string}.xtr"
@@ -124,6 +126,7 @@ _mk_setenv_delta() {
   then
     : 'if delta'
     if [[ -n "${setenv_delta}" ]]; then
+      tee -a "${setenv_delta}_sum" < "${setenv_delta}"
       rm --one-file-system --preserve-root=all  -f -- "${setenv_delta}"
       wait -f
     fi
