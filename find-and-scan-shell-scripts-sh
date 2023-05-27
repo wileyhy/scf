@@ -296,7 +296,7 @@ for i in "${!A_process_lock_dirs[@]}"; do
   a_process_lock_dirs+=( ["${A_process_lock_dirs[$i]}"]="$i" ); 
 done; unset A_process_lock_dirs i
 
-#_full_xtrace
+_full_xtrace
 #exit 101
 
 if [[ "$*" =~ delete_locks ]]; then 
