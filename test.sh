@@ -4,7 +4,6 @@
 # add-shadows.bsh
 
 
-
 :;: 'Regular users only, and -sudo- required' :;:
 if [[ "${UID}" == 0 ]]; then
   printf '\n\t Must be a regular user and use sudo. \n\n'
@@ -15,34 +14,36 @@ elif ! sudo -v; then
   exit "${LINENO}"
 fi
 
-
-
 :;: 'Target string:' :;:
+set -vx
 x="${1:='export'}"
 readonly x
+declare -p x
+enable -n "$x"
+exit 101
 
+:;: 'Required programs' ;:;
+[[ "${BASH_VERSION:0:1}" -lt 5 ]] \
+  || echo Please install Bash version 5, thanks.
 
-
-:;: 'Required commands' ;:;
-reqd_cmds=( awk chmod cp cut dirname find grep ln ls mkdir rm rmdir 
-  stat sudo tee )
+reqd_cmds=( awk chmod cp cut dirname find grep ln ls 
+  mkdir rm rmdir stat sudo tee )
 yn=n
-if [[ "${BASH_VERSION:0:1}" -lt 5 ]]; then
-  echo Please install Bash version 5, thanks.
-fi
+
 for c in "${reqd_cmds[@]}"; do 
   hash -r; 
   if ! type -P "${c}" > /dev/null; then 
     yn+=" ${c}"
   fi; 
-done; 
+done; unset c reqd_cmds
+
 if [[ "${yn}" == 'n' ]]; then 
   : 'No additional commands are required'
 else 
   printf '\n\t Please install the following commands: \n\t   %s \n\n' \
     "${yn#n }"
   exit 1
-fi; unset c yn
+fi; unset yn
 #exit 101
 #set -x
 
@@ -54,6 +55,7 @@ function fn_erx(){
   echo ERROR: "${@}"
   exit "${ec}"
 }
+
 unset PATH 
 PATH="/home/liveuser/.local/bin_symlink"  # < 0
 PATH+=":/home/liveuser/bin_hardlink"      # < 1
@@ -63,9 +65,11 @@ PATH+=":/bin"
 PATH+=":/usr/local/sbin_dangling_symlink" # < 5
 PATH+=":/usr/sbin"
 #declare -p PATH
+
 : 'Set up testing of PATH dirs' :
 IFS=':' read -ra find_path <<< "${PATH}"
 #declare -p find_path
+
 for dnm in "${find_path[@]}"; do
   nm="${dnm}/${x}"
   if [[ -f "${nm}" ]] \
@@ -75,6 +79,7 @@ for dnm in "${find_path[@]}"; do
       || fn_erx
   fi; unset nm; :
 done; unset dnm; :
+
 : 'Set up testing of files' :
 xfa="/usr/bin/${x}"
 xfb="${find_path[0]}/${x}" # symlink
@@ -84,8 +89,7 @@ xfe="${find_path[5]}/${x}" # dangling symlink
 xff=("${xfa}" "${xfb}" "${xfc}" "${xfd}" "${xfe}")
 umask 022
 #exit 101
-#set -x
-
+set -x
 
 
 :;: 'Tests: Remove certain values' :;:
@@ -101,7 +105,9 @@ unset -n "${x}"
 for f in "${xff[@]}"; do
   d="$(dirname "${f}")"
   if [[ -d "${d}" ]]; then
-    lo="$(sudo find "${d}" -mindepth 1 -printf '%p')"
+    lo="$(sudo find "${d}" -mindepth 1 -printf '%p' \
+      | head -c 32
+    )"
   fi
   if [[ -z "${lo:0:32}" ]]; then
     if [[ -d "${d}" ]] \
@@ -121,7 +127,7 @@ unset -f "${x}"
 
 :;: 'Remove: Alias' :;:
 unalias -a 
-#exit 101
+exit 101
 #set -x
 
 

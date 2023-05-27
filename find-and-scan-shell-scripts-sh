@@ -1735,6 +1735,8 @@ for all_files_index in "${!a_all_files_sorted[@]}"; do
     : 'compare hexadecimals'
 
     : 'endianness'
+    # https://unix.stackexchange.com/questions/55770/\
+    #   does-hexdump-respect-the-endianness-of-its-system
     if [[ "${byte_0}${byte_1}" == 2123 ]]; then
       a_incorrect_endianness+=([all_files_index]="${each_sorted_f}")
 
