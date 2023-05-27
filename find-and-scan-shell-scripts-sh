@@ -249,7 +249,7 @@ else
 fi; unset c yn reqd_cmds
 
 #exit 101
-_full_xtrace
+#_full_xtrace
 
 : 'Variables for Trap and Process Locks'
 
@@ -296,8 +296,8 @@ for i in "${!A_process_lock_dirs[@]}"; do
   a_process_lock_dirs+=( ["${A_process_lock_dirs[$i]}"]="$i" ); 
 done; unset A_process_lock_dirs i
 
-_full_xtrace
-exit 101
+#_full_xtrace
+#exit 101
 
 if [[ "$*" =~ delete_locks ]]; then 
   delete_locks='y'
@@ -331,22 +331,26 @@ trap '
 declare -p a_process_lock_dirs
 
 _full_xtrace
-set -x
 
 : 'Process Lock: Search for existing lockdirs'
 # Note: for `find`, types 'd' and 'l' are separate; for `bash`, 
 # `[[ -d` can return 0 for a symlink
+
 mapfile -d '' -t lkdrs < <(
   sudo find "${a_poss_proces_lock_dirs[@]}" -maxdepth 1 \( \
     -type d -o -type l \) \( -name '*lock*' -a -name '*scf*' \) -print0
 )
+
   #sudo find "${a_process_lock_dirs[@]%/*}" -maxdepth 1 -type d -name \
     #".${repo_nm}.[0-9a-zA-Z_-]*.lock" -print0 2>/dev/null
 #lkdrs_count="${#lkdrs[@]}"
+
 for l in "${lkdrs[@]}"; do
+  
   if [[ -d "${l}" ]] \
     || [[ -L "${l}" ]]
   then
+    
     if [[ -v delete_locks ]]; then
       sudo rmdir -v -- "${l}"
     else
@@ -356,6 +360,7 @@ for l in "${lkdrs[@]}"; do
     fi
   fi
 done; unset l lkdrs #lkdrs_count 
+
 # Note: delete_locks is an undocumented CLI option
 [[ -v delete_locks ]] \
   && exit "${LINENO}"
@@ -369,6 +374,7 @@ exit 101
 target_fso=d
 
 for poss_lk_d in "${a_process_lock_dirs[@]}"; do 
+  
   case "${target_fso}" in
     d)
       if sudo find "${poss_lk_d%/*}" -maxdepth 0 '(' \
@@ -379,8 +385,9 @@ for poss_lk_d in "${a_process_lock_dirs[@]}"; do
         target_fso=L
       fi
       ;;
+    
+    # ln cannot make hardlinks to dirs; chattr -i not supported
     L)
-      # ln cannot make hardlinks to dirs; chattr -i not supported
       sudo find "${poss_lk_d%/*}" -maxdepth 0 '(' \
         -type d -a '!' -type l ')' -writable -readable -executable \
         -true -exec sudo ln -vs "${process_lock_d}" "${poss_lk_d}" ';' 
