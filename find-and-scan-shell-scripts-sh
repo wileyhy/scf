@@ -17,7 +17,6 @@ proc_lk_d_nm=."${unique_string}.lock.d"
 mktemp_sfx=."${unique_string}.xtr"
 age_of_tmp_files='5 minutes ago'
 xtr_t_file="/tmp/tmp.mtime_file.${mktemp_sfx}"
-trap - INT
 unset Halt
 readonly Halt
 
@@ -34,7 +33,7 @@ ctrl_C_trap(){
         }
     fi
   done
-  kill -s INT $$
+  kill -s INT "$$"
 }
 trap ctrl_C_trap INT
 
@@ -126,7 +125,8 @@ _mk_setenv_delta() {
   then
     : 'if delta'
     if [[ -n "${setenv_delta}" ]]; then
-      tee -a "${setenv_delta}_sum" < "${setenv_delta}"
+      tee -a /tmp/tmp.3WeJF5Zcem.scf.651322.1230.xtr.A_sum
+      "${setenv_delta}_sum" < "${setenv_delta}"
       rm --one-file-system --preserve-root=all  -f -- "${setenv_delta}"
       wait -f
     fi
@@ -289,7 +289,6 @@ timecode="$(builtin printf '%(%F_%H%M%S)T')"
 # practicality. 
 
 # An associative array, in case TMPDIR duplicates another array value
-
 for v in "${a_poss_proces_lock_dirs[@]}"; do
   if [[ -d "${v}" ]]; then
     v="$(realpath -e "${v}")"
@@ -310,9 +309,9 @@ fi
 
 : 'Trap'
 
-trap '
+exit_trap() {
   : "EXIT trap BEGINS ++++++++++++++++++++++++++++++++++++++++++++++"
-  trap - DEBUG EXIT TERM
+  trap - DEBUG EXIT
 
   # Delete all possible existing process _lock_directories_. 
   for pld in "${a_process_lock_dirs[@]}"; do 
@@ -329,7 +328,8 @@ trap '
     #: "${Halt?}"
 
   kill -s INT "$$"
-' EXIT TERM
+}
+trap exit_trap EXIT TERM
 
 : 'Process Lock'
 declare -p a_process_lock_dirs
