@@ -226,16 +226,13 @@ if [[ "${BASH_VERSION:0:1}" -lt 5 ]]; then
 fi
 
 # force PATH searches for these command names
-hash
 hash -r
-hash
 for c in "${reqd_cmds[@]}"; do  
   type_P_o="$(type -P "${c}" 2>&1)"
   hash -p "${type_P_o}" "${c}"
   if [[ -z "${type_P_o}" ]]; then 
     yn+=" ${c}"
   fi; 
-  hash
 done; 
 
 # Print results as appropriate 
@@ -247,7 +244,6 @@ else
   exit 1
 fi; unset c yn reqd_cmds
 
-hash
 exit 101
 _full_xtrace
 
@@ -747,7 +743,7 @@ for prev_time_ssubd in "${a_previous_time_dirs[@]}"; do
   : 'of previous prev_time_ssubd'
   if [[ -d "${prev_time_ssubd}" ]] \
     && [[ ! -L "${prev_time_ssubd}" ]]; then
-    sudo  mv -- "${a_previous_time_dirs[@]}" "${main_d}"
+    sudo mv -- "${a_previous_time_dirs[@]}" "${main_d}"
   else
     continue
   fi
