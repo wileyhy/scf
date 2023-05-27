@@ -12,7 +12,7 @@ repo_nm=scf
 random_n="${RANDOM}"
 unique_string="${repo_nm}.${$}.${random_n}"
 proc_lk_d_nm=."${unique_string}.lock.d"
-mktemp_sfx="${unique_string}.xtr"
+mktemp_sfx=."${unique_string}.xtr"
 age_of_tmp_files='5 minutes ago'
 xtr_t_file="/tmp/tmp.mtime_file.${mktemp_sfx}"
 trap - INT
@@ -220,9 +220,9 @@ fi
 # Bug: innaccurate list for this script, 17 May
 
 reqd_cmds=( 'awk' 'chmod' 'cp' 'cut' 'dirname' 'file' 
-  'find' 'getconf' 'grep' 'ln' 'ls' 'mkdir' 'mktemp' 'od' 'rm' 'rmdir' 
-  'stat' 'strings' 'sudo' 'tee' )
-yn='n'
+  'find' 'getconf' 'grep' 'ln' 'ls' 'mkdir' 'mktemp' 
+  'od' 'rm' 'rmdir' 'stat' 'strings' 'sudo' 'tee' )
+yn=(n)
 
 # Requires a minimum of bash version 5
 if [[ "${BASH_VERSION:0:1}" -lt 5 ]]; then
@@ -232,19 +232,21 @@ fi
 # force PATH searches for these command names
 hash -r
 for c in "${reqd_cmds[@]}"; do  
-  type_P_o="$(type -P "${c}" 2>&1)"
-  hash -p "${type_P_o}" "${c}"
-  if [[ -z "${type_P_o}" ]]; then 
-    yn+=" ${c}"
-  fi; 
+  if type_P_o="$(type -P "${c}" 2>&1)"; then
+    hash -p "${type_P_o}" "${c}"
+  else
+    yn+=("${c}")
+  fi
 done; 
 
 # Print results as appropriate 
-if [[ "${yn}" == 'n' ]]; then 
+if [[ "${yn[*]}" == 'n' ]]; then 
   : 'No additional commands are required'
 else 
-  printf '\n\t Please install the following commands: \n\t   %s \n\n' \
-    "${yn#n }"
+  unset 'yn[0]'
+  printf '\n\t Please install the following commands: \n'
+  printf '\t   %s \n' "${yn[@]}"
+  printf '\n'
   exit 1
 fi; unset c yn reqd_cmds
 
@@ -290,13 +292,13 @@ for v in "${a_poss_proces_lock_dirs[@]}"; do
     v="$(realpath -e "${v}")"
     A_process_lock_dirs+=( ["${v}/${proc_lk_d_nm}"]=$((i++)) )
   fi
-done; unset i v
+done; unset i v 
 
 for i in "${!A_process_lock_dirs[@]}"; do 
   a_process_lock_dirs+=( ["${A_process_lock_dirs[$i]}"]="$i" ); 
 done; unset A_process_lock_dirs i
 
-_full_xtrace
+#_full_xtrace
 #exit 101
 
 if [[ "$*" =~ delete_locks ]]; then 
@@ -307,10 +309,10 @@ fi
 
 trap '
   : "EXIT trap BEGINS ++++++++++++++++++++++++++++++++++++++++++++++"
-  trap - DEBUG
+  trap - DEBUG EXIT TERM
 
   # Delete all possible existing process _lock_directories_. 
-  for pld in "${a_process_lock_dirs[@]%/*}"; do 
+  for pld in "${a_process_lock_dirs[@]}"; do 
 
     # test and delete lock directories.
     if [[ -d "${pld}" ]] && [[ ! -L "${pld}" ]]; then 
@@ -323,7 +325,6 @@ trap '
     # <>
     #: "${Halt?}"
 
-  trap - EXIT TERM
   kill -s INT "$$"
 ' EXIT TERM
 
@@ -338,7 +339,8 @@ _full_xtrace
 
 mapfile -d '' -t lkdrs < <(
   sudo find "${a_poss_proces_lock_dirs[@]}" -maxdepth 1 \( \
-    -type d -o -type l \) \( -name '*lock*' -a -name '*scf*' \) -print0
+    -type d -o -type l \) \( -name '*lock*' -a -name '*scf*' \) \
+    -print0 2> /dev/null
 )
 
   #sudo find "${a_process_lock_dirs[@]%/*}" -maxdepth 1 -type d -name \
@@ -359,7 +361,7 @@ for l in "${lkdrs[@]}"; do
       exit "${LINENO}"
     fi
   fi
-done; unset l lkdrs #lkdrs_count 
+done; unset l lkdrs a_poss_proces_lock_dirs #lkdrs_count 
 
 # Note: delete_locks is an undocumented CLI option
 [[ -v delete_locks ]] \
