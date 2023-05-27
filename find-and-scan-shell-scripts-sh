@@ -13,6 +13,7 @@ random_n="${RANDOM}"
 unique_string="${repo_nm}.${$}.${random_n}"
 proc_lk_f_nm="${unique_string}.lock"
 mktemp_sfx="${unique_string}.xtr"
+age_of_tmp_files='5 minutes ago'
 xtr_t_file="/tmp/tmp.mtime_file.${mktemp_sfx}"
 trap - INT
 unset Halt
@@ -35,9 +36,10 @@ trap ctrl_C_trap INT
 
 : '<> Debug: Delete any left over xtrace files from -mktemp -p /tmp-'
 # Note:   Using '/tmp' at this early stage because it's just easier
-touch -d '12 hours ago' "${xtr_t_file}"
+touch -d "${age_of_tmp_files}" "${xtr_t_file}"
+
 mapfile -d '' -t xtrace_files < <(
-  find /tmp -maxdepth 1 -type f -name "tmp.[a-zA-Z0-9]*.${repo_nm}.[0-9]*.[0-9]*.xtr" '!' -newer "${xtr_t_file}" '!' -name "${xtr_t_file##*/}" -print0 
+  find /tmp -maxdepth 1 -type f -name "tmp.[a-zA-Z0-9]*.${repo_nm}.[0-9]*.[0-9]*.xtr*" '!' -newer "${xtr_t_file}" '!' -name "${xtr_t_file##*/}" -print0 
 )
 
 # ...if they're (inodes are for) files & not symlinks, & owned by the 
@@ -171,11 +173,11 @@ _mk_setenv_delta() {
 
 _mk_deltas() {
   : '_mk_deltas BEGINS' "$((++funclvl))" "${fence}"
-  #_xtrace_duck
+  _xtrace_duck
   _mk_setenv_prev
   _mk_setenv_now
   _mk_setenv_delta
-  #_xtrace_duck
+  _xtrace_duck
   : '_mk_deltas ENDS  ' "$((--funclvl))" "${fence}"
 }
 
@@ -224,11 +226,16 @@ if [[ "${BASH_VERSION:0:1}" -lt 5 ]]; then
 fi
 
 # force PATH searches for these command names
+hash
 hash -r
+hash
 for c in "${reqd_cmds[@]}"; do  
-  if ! type -P "${c}" > /dev/null; then 
+  type_P_o="$(type -P "${c}" 2>&1)"
+  hash -p "${type_P_o}" "${c}"
+  if [[ -z "${type_P_o}" ]]; then 
     yn+=" ${c}"
   fi; 
+  hash
 done; 
 
 # Print results as appropriate 
