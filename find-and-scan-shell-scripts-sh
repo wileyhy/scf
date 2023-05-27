@@ -19,6 +19,7 @@ unset Halt
 readonly Halt
 
 ctrl_C_trap(){
+  trap - INT
   for f in "${xtr_t_file}" "${setenv_prev}" "${setenv_now}" "${setenv_delta}"; do
     if [[ -f "$f" ]]; then
       rm --one-file-system --preserve-root=all  "$f" ||
@@ -28,13 +29,15 @@ ctrl_C_trap(){
         }
     fi
   done
+  kill -s INT $$
 }
+trap ctrl_C_trap INT
 
 : '<> Debug: Delete any left over xtrace files from -mktemp -p /tmp-'
 # Note:   Using '/tmp' at this early stage because it's just easier
 touch -d '12 hours ago' "${xtr_t_file}"
-mapfile -d "" -t xtrace_files < <(
-  find /tmp -maxdepth 1 -type f -name "tmp.[a-zA-Z0-9]*.${repo_nm}.[0-9]*.[0-9]*.xtr" \! -newer "${xtr_t_file}" -print0 
+mapfile -d '' -t xtrace_files < <(
+  find /tmp -maxdepth 1 -type f -name "tmp.[a-zA-Z0-9]*.${repo_nm}.[0-9]*.[0-9]*.xtr" '!' -newer "${xtr_t_file}" '!' -name "${xtr_t_file##*/}" -print0 
 )
 
 # ...if they're (inodes are for) files & not symlinks, & owned by the 
