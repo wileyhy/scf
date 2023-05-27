@@ -11,7 +11,7 @@
 repo_nm=scf
 random_n="${RANDOM}"
 unique_string="${repo_nm}.${$}.${random_n}"
-proc_lk_f_nm="${unique_string}.lock"
+proc_lk_d_nm=."${unique_string}.lock.d"
 mktemp_sfx="${unique_string}.xtr"
 age_of_tmp_files='5 minutes ago'
 xtr_t_file="/tmp/tmp.mtime_file.${mktemp_sfx}"
@@ -21,7 +21,9 @@ readonly Halt
 
 ctrl_C_trap(){
   trap - INT
-  for f in "${xtr_t_file}" "${setenv_prev}" "${setenv_now}" "${setenv_delta}"; do
+  for f in "${xtr_t_file}" "${setenv_prev}" "${setenv_now}" \
+    "${setenv_delta}"
+  do
     if [[ -f "$f" ]]; then
       rm --one-file-system --preserve-root=all  "$f" ||
         {
@@ -39,7 +41,9 @@ trap ctrl_C_trap INT
 touch -d "${age_of_tmp_files}" "${xtr_t_file}"
 
 mapfile -d '' -t xtrace_files < <(
-  find /tmp -maxdepth 1 -type f -name "tmp.[a-zA-Z0-9]*.${repo_nm}.[0-9]*.[0-9]*.xtr*" '!' -newer "${xtr_t_file}" '!' -name "${xtr_t_file##*/}" -print0 
+  find /tmp -maxdepth 1 -type f \
+    -name "tmp.[a-zA-Z0-9]*.${repo_nm}.[0-9]*.[0-9]*.xtr*" \
+    '!' -newer "${xtr_t_file}" '!' -name "${xtr_t_file##*/}" -print0 
 )
 
 # ...if they're (inodes are for) files & not symlinks, & owned by the 
@@ -184,7 +188,7 @@ _mk_deltas() {
 _debug_prompt() {
   : '_debug_prompt BEGINS' "$((++funclvl))" "${fence}"
   _mk_deltas
-  : '~~~~~~~PROMPT~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
+  : '~~~~~~~PROMPT~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
   read -rp " +[${BASH_SOURCE[0]}:${LINENO}] ${BASH_COMMAND[0]}?" _
   :
   : '_debug_prompt ENDS  ' "$((--funclvl))" "${fence}"
@@ -198,7 +202,7 @@ _full_xtrace() {
   : '_full_xtrace ENDS  ' "$((--funclvl))" "${fence}"
 }
 
-_full_xtrace
+#_full_xtrace
 
 : 'ID and sudo'
 
@@ -244,33 +248,50 @@ else
   exit 1
 fi; unset c yn reqd_cmds
 
-exit 101
+#exit 101
 _full_xtrace
 
 : 'Variables for Trap and Process Locks'
 
 timecode="$(builtin printf '%(%F_%H%M%S)T')"
 
-# The purpose of listing so many possible lock locations is that who knows which of these directory locations will exist on disk whenever down the road. The issue with including world-writeable dirs such as /tmp is that /tmp is a consistent part of the Linux file structure, and that probably isn't going to change any time soon. The notion behind creating lockdirs, whose names include random number strings according to a template, is to foil the predictability, and hence the risk of DOS, that placing a (statically named) lock mechanism in a world-writeable directory creates. The idea being, if the template is unique enough that accurately predicting it will be impractical.... So, 
+#   The purpose of listing so many possible lock locations is that who 
+# knows which of these directory locations will exist on disk whenever 
+# down the road. The issue with including world-writeable dirs such as 
+# /tmp is that /tmp is a consistent part of the Linux file structure, 
+# and that probably isn't going to change any time soon. The notion 
+# behind creating lockdirs, whose names include random number strings 
+# according to a template, is to foil the predictability, and hence 
+# the risk of DOS, that placing a (statically named) lock mechanism in 
+# a world-writeable directory creates. The idea being, if the template 
+# is unique enough that accurately predicting it will be impractical.... 
+# So, 
   : "/tmp/${repo_nm}.${$}.${random_n}.lock"
-#   Still, the issue occurs of the race condition. Since the filename changes, the advantage of the atomicity of using `mkdir` is lost.... or is it?  
-#   So what if you just create a lockdir first, according to the template, then look for other lockdirs, and based on the info in the found lockdirs' xattrs, determine whether a duplicate process is running?
-#   It seems like that could possibly work, although the entire script down to plausible filenames could be reconstructed, but for practicality. 
+#   Still, the issue occurs of the race condition. Since the filename 
+# changes, the advantage of the atomicity of using `mkdir` is lost.... 
+# or is it?  
+#   So what if you just create a lockdir first, according to the 
+# template, then look for other lockdirs, and based on the info in the 
+# found lockdirs' xattrs, determine whether a duplicate process is 
+# running?
+#   It seems like that could possibly work, although the entire script 
+# down to plausible filenames could be reconstructed, but for 
+# practicality. 
 
-for v in "${XDG_RUNTIME_DIR}" "${TMPDIR}" /var/lock "${HOME}" /tmp /var/tmp; do
-  if [[ -d "${v}" ]]; then
-    a_poss_proces_lock_dirs+=("${v}")
-  fi
-done
 # An associative array, in case TMPDIR duplicates another array value
 declare -A A_process_lock_dirs
 i=0 
-for pld in "${a_poss_proces_lock_dirs[@]}"; do
-  if [[ -d "${pld}" ]]; then
-    pld="$(realpath -e "${pld}")"
-    A_process_lock_dirs+=( ["${pld}/${proc_lk_f_nm}"]=$((i++)) )
+
+for v in "${XDG_RUNTIME_DIR}" "${TMPDIR}" /var/lock "${HOME}" /tmp \
+  /var/tmp 
+do
+  if [[ -d "${v}" ]]; then
+    v="$(realpath -e "${v}")"
+    a_poss_proces_lock_dirs+=("${v}")
+    A_process_lock_dirs+=( ["${v}/${proc_lk_d_nm}"]=$((i++)) )
   fi
-done; unset pld
+done; unset i
+
 for i in "${!A_process_lock_dirs[@]}"; do 
   a_process_lock_dirs+=( ["${A_process_lock_dirs[$i]}"]="$i" ); 
 done; unset A_process_lock_dirs i
@@ -293,7 +314,8 @@ exit 101
 #
     ## test and delete lock directories.
     #if [[ -d "${pld}" ]] && [[ ! -L "${pld}" ]]; then 
-      #echo sudo rm --one-file-system --preserve-root=all  -rf -- "${pld}" \
+      #echo sudo rm --one-file-system --preserve-root=all  -rf -- \
+        #"${pld}" \
         #|| exit "${LINENO}"
     #fi
   #done; unset pld
@@ -312,9 +334,11 @@ _full_xtrace
 set -x
 
 : 'Process Lock: Search for existing lockdirs'
-# Note: for `find`, types 'd' and 'l' are separate; for `bash`, `[[ -d` can return 0 for a symlink
+# Note: for `find`, types 'd' and 'l' are separate; for `bash`, 
+# `[[ -d` can return 0 for a symlink
 mapfile -d '' -t lkdrs < <(
-  sudo find "${a_poss_proces_lock_dirs[@]}" -maxdepth 1 \( -type d -o -type l \) \( -name '*lock*' -a -name '*scf*' \) -print0
+  sudo find "${a_poss_proces_lock_dirs[@]}" -maxdepth 1 \( \
+    -type d -o -type l \) \( -name '*lock*' -a -name '*scf*' \) -print0
 )
   #sudo find "${a_process_lock_dirs[@]%/*}" -maxdepth 1 -type d -name \
     #".${repo_nm}.[0-9a-zA-Z_-]*.lock" -print0 2>/dev/null
@@ -347,24 +371,35 @@ target_fso=d
 for poss_lk_d in "${a_process_lock_dirs[@]}"; do 
   case "${target_fso}" in
     d)
-      if sudo find "${poss_lk_d%/*}" -maxdepth 0 '(' -type d -a '!' -type l ')' -writable -readable -executable -true -exec sudo mkdir -vm 0700 "${poss_lk_d}" ';'; then
+      if sudo find "${poss_lk_d%/*}" -maxdepth 0 '(' \
+        -type d -a '!' -type l ')' -writable -readable -executable \
+        -true -exec sudo mkdir -vm 0700 "${poss_lk_d}" ';'; 
+      then
         process_lock_d="${poss_lk_d}" 
         target_fso=L
       fi
       ;;
     L)
-      sudo find "${poss_lk_d%/*}" -maxdepth 0 '(' -type d -a '!' -type l ')' -writable -readable -executable -true -exec sudo ln -vs "${process_lock_d}" "${poss_lk_d}" ';' 
-      ;; # ln cannot make hardlinks to dirs; chattr -i not supported
+      # ln cannot make hardlinks to dirs; chattr -i not supported
+      sudo find "${poss_lk_d%/*}" -maxdepth 0 '(' \
+        -type d -a '!' -type l ')' -writable -readable -executable \
+        -true -exec sudo ln -vs "${process_lock_d}" "${poss_lk_d}" ';' 
+      ;; 
   esac
 done; set -
 
-  # Bug: for some reason, the lockdir gets deleted while the symlinks stay put.
+  # Bug: for some reason, the lockdir gets deleted while the 
+  # symlinks stay put.
+  
   shopt -o functrace
   ${Halt:?}
 
 for poss_lk_d in "${a_process_lock_dirs[@]}"; do
   # use the first one that fulfills certain requirements
-  find_out="$( find "${poss_lk_d}" -maxdepth 0 '(' -type d -a '!' -type l ')' -writable -readable -executable -exec mkdir -m 0700 '()' ';')"
+  find_out="$( find "${poss_lk_d}" -maxdepth 0 '(' \
+    -type d -a '!' -type l ')' -writable -readable -executable \
+    -exec mkdir -m 0700 '()' ';'
+  )"
   
   if [[ -n "${find_out}" ]]; then
 
@@ -395,7 +430,8 @@ filesystem/repo_nm/lockdir
 
 : 'Exec -mkdir- '
 
-  # mkdir exits 0 -- with a template that includes some randomization, this mkdir call should nearly always exit 0
+  # mkdir exits 0 -- with a template that includes some randomization, 
+  # this mkdir call should nearly always exit 0
   : 'if success'
 
     : 'look for files matching template in all poss dirs'
@@ -421,14 +457,16 @@ filesystem/repo_nm/lockdir
   : 'if fail, then'
     
     # attacker doesn't know some info
-    #   verify that the lockdir is attached to some actual process vs is a dead lock
+    #   verify that the lockdir is attached to some actual process vs 
+    # is a dead lock
     #   use PID... for sure ...and PPID
     #     ...and what else? memory addresses?  hashes of ...some info?
     #     UID and PWD and script name
     #   info from `ps`
     #     ...PGID... SID..
     #   info from `lsof` 
-    #     [liveuser@localhost-live scf]$ time lsof 2> /dev/null |& awk '$2 == "1315609" { print $9 }'
+    #     [liveuser@localhost-live scf]$ time lsof 2> /dev/null \
+    #       |& awk '$2 == "1315609" { print $9 }'
     #     /home/liveuser/MYPROJECTS/scf
     #     /
     #     /usr/bin/bash
@@ -555,7 +593,8 @@ fn_bak() {
         if [[ -s "${loc_filename_a}.bak" ]]; then
           return
         else
-          sudo  rm --one-file-system --preserve-root=all  -f -- "${loc_filename_a}.bak"
+          sudo  rm --one-file-system --preserve-root=all -f -- \
+            "${loc_filename_a}.bak"
         fi
       fi
       # write a new .bak file
@@ -1081,7 +1120,9 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
 done
 shopt -u nocasematch
 
-#declare -p  methods_symlinks_l methods_recurse_n methods_prog_cv methods_scan_excluded_by find_sym_opt_L find_exclude_optargs bash_path find_path PATH methods_path
+#declare -p  methods_symlinks_l methods_recurse_n methods_prog_cv \
+  #methods_scan_excluded_by find_sym_opt_L find_exclude_optargs \
+  #bash_path find_path PATH methods_path
 
 # <>
 _full_xtrace
@@ -1338,7 +1379,8 @@ while true; do
     file)
       mapfile -d '' -t type_a_files < <(
         type -a "${STRING}" \
-          | awk -F"${STRING} is " "/^${STRING} is \//"' { printf "%s\0", $2 }' 
+          | awk -F"${STRING} is " \
+            "/^${STRING} is \//"' { printf "%s\0", $2 }' 
       )
       declare -p type_a_files
 
@@ -1410,9 +1452,12 @@ done; unset tt_o
 #   
 #   Remove variables and parameters. 
 #   
-#   with bash, use `type -t` and case to ID how the shell would call a command name, and take appropriarte action from there by removing anything that isn't a file, ie, an alias, function, etc.  
+#   with bash, use `type -t` and case to ID how the shell would call 
+# a command name, and take appropriarte action from there by removing 
+# anything that isn't a file, ie, an alias, function, etc.  
 #
-#   Then use `type -a` and parse the output of that also, removing non-files (ie, syms) as necc.
+#   Then use `type -a` and parse the output of that also, removing 
+# non-files (ie, syms) as necc.
 #     - `type -a` ignores dangling symlinks
 #   
 #   Then use `hash -r; type -P` to get the list of matches within PATH
@@ -1504,8 +1549,9 @@ then
       # Search for commands based on the 
         
       # For anywhere in PATH: bash_type_a
-      # use `type` to get the shell's definition(s) of `compgen`s completion 
-      # string, then use `grep` to filter out full function definitions.
+      # use `type` to get the shell's definition(s) of `compgen`s 
+      # completion string, then use `grep` to filter out full 
+      # function definitions.
       mapfile -t shell_builtin_o < <(
         builtin type -a "${per_idx_commands[n]}" \
           |& grep -F "${per_idx_commands[n]}"' is '"${re}"
@@ -1536,8 +1582,9 @@ then
             command_fullpath="${shell_builtin_o[line]##* }" 
           
               # <>
-              #declare -p all_commands per_idx_commands shell_builtin_o line \
-                #command_basename prev_per_idx_cmds
+              #declare -p all_commands per_idx_commands \
+                #shell_builtin_o line command_basename \
+                #prev_per_idx_cmds
 
           # ...and if that file is not already included in either the 
           # larger all_commands list or the per-ascii-character
@@ -1572,15 +1619,15 @@ then
       if [[ -z "${unset_per_idx_commands_n}" ]]; then
         realpath_e_o1="$(realpath -e "${per_idx_commands[n]}" 2>/dev/null)"
         realpath_e_o2="$(realpath -e "${command_basename}" 2>/dev/null)"
-        realpath_e_o3="$(realpath -e "${command_fullpath}" 2>/dev/null)" # <<<
+        realpath_e_o3="$(realpath -e "${command_fullpath}" 2>/dev/null)" #<
       
         if [[ -d "${realpath_e_o1}" ]] \
           || [[ -d "${realpath_e_o2}" ]] \
           || [[ -d "${realpath_e_o3}" ]];
         then 
           unset_per_idx_commands_n=yes
-        fi; unset line shell_builtin_o realpath_e_o{1..3} command_basename \
-          command_fullpath
+        fi; unset line shell_builtin_o realpath_e_o{1..3} \
+          command_basename command_fullpath
       fi
       
       if [[ "${unset_per_idx_commands_n}" == yes ]]; then 
@@ -1627,7 +1674,8 @@ if [[ "${ABBREV_REL_SEARCH_DIRS}" == all ]]; then
 
   : 'set a value for a_relevant_search_dirs and..'
   mapfile -d '' -t a_relevant_search_dirs < <(
-    sudo  find "${find_sym_opt_L}" "${find_path[@]}" -mindepth 1 -maxdepth 1 -type d \! -empty \
+    sudo  find "${find_sym_opt_L}" "${find_path[@]}" -mindepth 1 \
+      -maxdepth 1 -type d \! -empty \
       "${find_exclude_optargs[@]}" -print0 2>/dev/null
   )
 
@@ -1858,7 +1906,8 @@ sudo  touch -- "${a_write_path_nms[@]}"
 
 : 'printing contents of a_shell_scripts array, with backup'
 printf '%s\n' "${a_shell_scripts[@]}" \
-  | sudo  tee --output-error=exit  -a -- "${a_write_path_nms[@]}" >/dev/null
+  | sudo  tee --output-error=exit  -a -- \
+    "${a_write_path_nms[@]}" >/dev/null
 fn_bak "${a_write_path_nms[@]}"
 
 _full_xtrace
@@ -2003,12 +2052,14 @@ exit "${LINENO}"
     unset dnf_po m n
 
   done
-} | sudo  tee --output-error=exit  -a -- "${curr_time_ssubd}a_interpreters" >/dev/null
+} | sudo  tee --output-error=exit  -a -- \
+    "${curr_time_ssubd}a_interpreters" >/dev/null
 unset b
 
 # <>
 #set -x; :;: "<>";
-fn_write_arrays a_write_path_nms a_interpreters a_interps_rps a_interps_disk_repo
+fn_write_arrays a_write_path_nms a_interpreters a_interps_rps \
+  a_interps_disk_repo
 exit "${LINENO}"
 
 _full_xtrace
@@ -2024,7 +2075,8 @@ exit 101
 {
   printf '# SC-scrpts-list -- %s\n' "${timecode%-*}"
   printf '# %s\n' "$(declare -p  a_relevant_search_dirs)"
-} | sudo  tee --output-error=exit  -- "${list_crunchbangs}_SC-scrpts-list" >/dev/null
+} | sudo  tee --output-error=exit  -- \
+    "${list_crunchbangs}_SC-scrpts-list" >/dev/null
 
 # filter out interpreters not compatible with shellcheck.
 # file $list_crunchbangs is located in $time_dir.
