@@ -57,7 +57,7 @@ for f in "${xtrace_files[@]}"; do
   then
     rm --one-file-system --preserve-root=all  "$f"
   fi
-done; unset f
+done && unset f
 
 : '<> Debug: XTrace variables and functions'
 funclvl=0
@@ -240,7 +240,7 @@ for c in "${reqd_cmds[@]}"; do
   else
     yn+=("${c}")
   fi
-done; 
+done
 
 # Print results as appropriate 
 if [[ "${yn[*]}" == 'n' ]]; then 
@@ -294,11 +294,11 @@ for v in "${a_poss_proces_lock_dirs[@]}"; do
     v="$(realpath -e "${v}")"
     A_process_lock_dirs+=( ["${v}/${proc_lk_d_nm}"]=$((i++)) )
   fi
-done; unset i v 
+done && unset i v 
 
 for i in "${!A_process_lock_dirs[@]}"; do 
   a_process_lock_dirs+=( ["${A_process_lock_dirs[$i]}"]="$i" ); 
-done; unset A_process_lock_dirs i
+done && unset A_process_lock_dirs i
 
 #_full_xtrace
 #exit 101
@@ -343,7 +343,7 @@ _exit_trap() {
         "${pld}" \
         || exit "${LINENO}"
     fi
-  done; unset pld
+  done && unset pld
 
     # <>
     #: "${Halt?}"
@@ -382,7 +382,7 @@ for l in "${lkdrs[@]}"; do
       exit "${LINENO}"
     fi
   fi
-done; unset l # lkdrs # a_poss_proces_lock_dirs # lkdrs_count 
+done && unset l # lkdrs # a_poss_proces_lock_dirs # lkdrs_count 
 
 # Note: delete_locks is an undocumented CLI option
 [[ -v delete_locks ]] \
@@ -1135,7 +1135,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
 
             # and then re-assign find_path
             IFS=":" read -ra find_path <<<"${bash_path}"
-          done; unset x
+          done && unset x
           ;;
         *) 
           "${arg_wrong__s:?}" 
@@ -1192,7 +1192,7 @@ _verify_path(){
     if [[ -z "${loc_path_1[p]}" ]]; then
       unset 'loc_path_1[p]'
     fi
-  done; unset p
+  done && unset p
 
   # if the loc_path_1 is now empty, then exit
   if [[ "${#loc_path_1[@]}" -eq 0 ]]; then
@@ -1206,7 +1206,7 @@ _verify_path(){
     else
       loc_path_2+=("${loc_path_1[p]}")
     fi
-  done; unset p
+  done && unset p
 
   # reset indices of loc_path_2
   loc_path_2=("${loc_path_2[@]}")
@@ -1435,7 +1435,7 @@ while true; do
             continue 1
           fi
         fi; 
-      done; unset f rpm_Vf_o
+      done && unset f rpm_Vf_o
       unset type_a_files
     
       # And... what if it's "owned" by a package from some other package 
@@ -1466,7 +1466,7 @@ while true; do
       # function time { } ! [[ ]] coproc
       ;;
   esac
-done; unset tt_o
+done && unset tt_o
 
 # remove hash table
 # lookup file and force a PATH search with type -P
@@ -1663,15 +1663,15 @@ then
       if [[ "${unset_per_idx_commands_n}" == yes ]]; then 
         unset 'per_idx_commands[n]'
       fi; unset unset_per_idx_commands_n 
-    done; unset n prev_per_idx_cmds
+    done && unset n prev_per_idx_cmds
     
     # add the (sub-)list to the full list, being careful of index numbers
     mapfile -O $((i * 1000)) -t all_commands < <(
       for x in "${per_idx_commands[@]}"; do
         printf '%s\n' "${x}"
-      done; unset x per_idx_commands
+      done && unset x per_idx_commands
     )
-  done; unset i
+  done && unset i
   
     # <>
     echo 'all_commands, count:' "${#all_commands[@]}"
