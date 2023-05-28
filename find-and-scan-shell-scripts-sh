@@ -16,11 +16,12 @@ unique_string="${repo_nm}.${$}.${random_n}"
 proc_lk_d_nm=."${unique_string}.lock.d"
 mktemp_sfx=."${unique_string}.xtr"
 age_of_tmp_files='5 minutes ago'
-xtr_t_file="/tmp/tmp.mtime_file.${mktemp_sfx}"
+xtr_t_file="/tmp/tmp.mtime_file${mktemp_sfx}"
+delta_sum_file="$(mktemp -p /tmp --suffix="${mktemp_sfx}.E")"
 unset Halt
 readonly Halt
 
-ctrl_C_trap(){
+_ctrl_C_trap(){
   trap - INT
   for f in "${xtr_t_file}" "${setenv_prev}" "${setenv_now}" \
     "${setenv_delta}"
@@ -35,7 +36,7 @@ ctrl_C_trap(){
   done
   kill -s INT "$$"
 }
-trap ctrl_C_trap INT
+trap _ctrl_C_trap INT
 
 : '<> Debug: Delete any left over xtrace files from -mktemp -p /tmp-'
 # Note:   Using '/tmp' at this early stage because it's just easier
@@ -125,8 +126,7 @@ _mk_setenv_delta() {
   then
     : 'if delta'
     if [[ -n "${setenv_delta}" ]]; then
-      tee -a /tmp/tmp.3WeJF5Zcem.scf.651322.1230.xtr.A_sum
-      "${setenv_delta}_sum" < "${setenv_delta}"
+      tee -a "${delta_sum_file}" < "${setenv_delta}"
       rm --one-file-system --preserve-root=all  -f -- "${setenv_delta}"
       wait -f
     fi
@@ -256,7 +256,7 @@ fi; unset c yn reqd_cmds
 #exit 101
 #_full_xtrace
 
-: 'Variables for Trap and Process Locks'
+: 'Variables for Traps and Process Locks'
 
 declare -A A_process_lock_dirs
 a_poss_proces_lock_dirs+=("${XDG_RUNTIME_DIR}" "${TMPDIR}" /var/lock \
@@ -307,14 +307,35 @@ if [[ "$*" =~ delete_locks ]]; then
   delete_locks='y'
 fi
 
-: 'Trap'
+: 'Traps'
 
-exit_trap() {
+_get_lockdirs(){
+  _full_xtrace
+  local -gax lkdrs
+
+  mapfile -d '' -t lkdrs < <(
+    sudo find "${a_poss_proces_lock_dirs[@]}" \
+      -mindepth 1 -maxdepth 1 \( \
+      -type d -o -type l \) \( \
+      -name '*lock*' -a -name '*scf*' \) \
+      -print0 2> /dev/null
+  )
+  export lkdrs
+}
+
+
+_exit_trap() {
   : "EXIT trap BEGINS ++++++++++++++++++++++++++++++++++++++++++++++"
   trap - DEBUG EXIT
 
+  # If no such array exists yet, then search for possible lockdirs
+  if ! declare -pa lkdrs 2> /dev/null 1>&2; then
+    _get_lockdirs
+    declare -p lkdrs
+  fi
+
   # Delete all possible existing process _lock_directories_. 
-  for pld in "${a_process_lock_dirs[@]}"; do 
+  for pld in "${lkdrs[@]}"; do 
 
     # test and delete lock directories.
     if [[ -d "${pld}" ]] && [[ ! -L "${pld}" ]]; then 
@@ -329,22 +350,19 @@ exit_trap() {
 
   kill -s INT "$$"
 }
-trap exit_trap EXIT TERM
+trap _exit_trap EXIT TERM
 
 : 'Process Lock'
-declare -p a_process_lock_dirs
 
 _full_xtrace
 
+declare -p a_process_lock_dirs
+
 : 'Process Lock: Search for existing lockdirs'
-# Note: for `find`, types 'd' and 'l' are separate; for `bash`, 
+#   Note: for `find`, types 'd' and 'l' are separate; for `bash`, 
 # `[[ -d` can return 0 for a symlink
 
-mapfile -d '' -t lkdrs < <(
-  sudo find "${a_poss_proces_lock_dirs[@]}" -maxdepth 1 \( \
-    -type d -o -type l \) \( -name '*lock*' -a -name '*scf*' \) \
-    -print0 2> /dev/null
-)
+_get_lockdirs
 
   #sudo find "${a_process_lock_dirs[@]%/*}" -maxdepth 1 -type d -name \
     #".${repo_nm}.[0-9a-zA-Z_-]*.lock" -print0 2>/dev/null
@@ -364,7 +382,7 @@ for l in "${lkdrs[@]}"; do
       exit "${LINENO}"
     fi
   fi
-done; unset l lkdrs a_poss_proces_lock_dirs #lkdrs_count 
+done; unset l # lkdrs # a_poss_proces_lock_dirs # lkdrs_count 
 
 # Note: delete_locks is an undocumented CLI option
 [[ -v delete_locks ]] \
@@ -372,7 +390,7 @@ done; unset l lkdrs a_poss_proces_lock_dirs #lkdrs_count
 
 exit 101
 
-# Bug: race condition btw defining and `mkdir`
+# Bug: race condition btw defining and `mkdir`?
 
 : 'Process Lock: Define & create the lockdir'
 
@@ -575,11 +593,11 @@ find_exclude_optargs=()
 IFS=':' read -ra find_path <<<"${bash_path}"
 find_sym_opt_L='-L'
 sc_sev_abrv="${sc_severity:0:1}"
-methods_recurse_n=no
+#methods_recurse_n=no
 methods_path=('as-is')
 methods_prog_cv=bash_type_a
-methods_scan_excluded_by=yes
-methods_symlinks_l=logical
+#methods_scan_excluded_by=yes
+#methods_symlinks_l=logical
 verify=(all)
 
 # <>
@@ -748,19 +766,19 @@ fn_write_arrays() {
 # usable for directory names
 unset index element calc
 # for each dirname / directory in search path
-for index in "${!A_rsd[@]}";                                            # <
-do
-  element="${A_rsd["$index"]}"
-  calc="$(realpath -e "$element")"
-  calc="${calc//\//_}"
-  calc="${calc#_}"
-  printf 'element: %-12s index: %-12s calc: %s \n' \
-    "$element" "$index" "$calc"
-  if [[ "$index" != "$calc" ]]; then
-    echo wrong
-    exit
-  fi
-done
+#for index in "${!A_rsd[@]}";                                            # <
+#do
+  #element="${A_rsd["$index"]}"
+  #calc="$(realpath -e "$element")"
+  #calc="${calc//\//_}"
+  #calc="${calc#_}"
+  #printf 'element: %-12s index: %-12s calc: %s \n' \
+    #"$element" "$index" "$calc"
+  #if [[ "$index" != "$calc" ]]; then
+    #echo wrong
+    #exit
+  #fi
+#done
 
 exit 101
 _full_xtrace
@@ -882,7 +900,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
         find_exclude_optargs=()
         methods_path=(actually_all) 
         methods_prog_cv=bin_find
-        methods_scan_excluded_by=yes
+        #methods_scan_excluded_by=yes
         ;;
       al* )
         bash_path='/'
@@ -890,7 +908,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
         find_exclude_optargs=("${find_exclude_optargs_default[@]}")
         methods_path=(all) 
         methods_prog_cv=bin_find
-        methods_scan_excluded_by=no
+        #methods_scan_excluded_by=no
         ;;
       as* | ai*)
         bash_path="${bash_path_orig}"
@@ -923,7 +941,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
         methods_path+=(add_proc) 
         methods_prog_cv=bin_find
         find_exclude_optargs=()
-        methods_scan_excluded_by=yes
+        #methods_scan_excluded_by=yes
         ;;
       sy* | sa*)
         bash_path+=':/sys'
@@ -931,7 +949,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
         methods_path+=(add_sys) 
         methods_prog_cv=bin_find
         find_exclude_optargs=()
-        methods_scan_excluded_by=yes
+        #methods_scan_excluded_by=yes
         ;;
       *) "${arg_wrong__d:?}" ;;
     esac ;;
@@ -955,19 +973,19 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
     l)
       case "${OPTARG:0:1}" in
         l* ) # follow symlinks
-          methods_symlinks_l=logical
+          #methods_symlinks_l=logical
           find_sym_opt_L='-L' 
 
           case "${methods_prog_cv}" in
             *find)
-              methods_recurse_n=yes 
+              #methods_recurse_n=yes 
               find_exclude_optargs=("${find_exclude_optargs_default[@]}")
-              methods_scan_excluded_by=no 
+              #methods_scan_excluded_by=no 
               ;;
             *bash*)
-              methods_recurse_n=no 
+              #methods_recurse_n=no 
               find_exclude_optargs=()
-              methods_scan_excluded_by=yes
+              #methods_scan_excluded_by=yes
               ;;
             *) "${arg_wrong__l:?}" 
               ;;
@@ -975,11 +993,11 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
           ;;
         p* ) # never follow symlinks
           methods_prog_cv=bin_find
-          methods_symlinks_l=physical 
+          #methods_symlinks_l=physical 
           find_sym_opt_L='-P' 
-          methods_recurse_n=yes 
+          #methods_recurse_n=yes 
           find_exclude_optargs=("${find_exclude_optargs_default[@]}")
-          methods_scan_excluded_by=no 
+          #methods_scan_excluded_by=no 
           ;;
         *) "${arg_wrong__l:?}" ;;
       esac ;;
@@ -996,16 +1014,16 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
     p) case "${OPTARG:0:2}" in
       [b]*)
         methods_prog_cv=bash_type_a
-        methods_recurse_n=no 
-        methods_symlinks_l=logical
+        #methods_recurse_n=no 
+        #methods_symlinks_l=logical
         find_exclude_optargs=()
-        methods_scan_excluded_by=yes
+        #methods_scan_excluded_by=yes
         ;;
       f*) 
         methods_prog_cv=bin_find 
-        methods_recurse_n=yes 
+        #methods_recurse_n=yes 
         find_exclude_optargs=("${find_exclude_optargs_default[@]}")
-        methods_scan_excluded_by=no 
+        #methods_scan_excluded_by=no 
         ;;
       *) 
         "${arg_wrong__p:?}" 
@@ -1037,20 +1055,20 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
     r) case "${OPTARG:0:1}" in
       r | d | y) 
         methods_prog_cv=bin_find 
-        methods_recurse_n=yes 
+        #methods_recurse_n=yes 
         find_exclude_optargs=("${find_exclude_optargs_default[@]}")
-        methods_scan_excluded_by=no 
+        #methods_scan_excluded_by=no 
         ;;
       n) 
-        methods_recurse_n=no 
+        #methods_recurse_n=no 
         
         if [[ "${methods_prog_cv}" =~ find ]]; then
           methods_prog_cv=bash_type_a
         fi
             
         find_exclude_optargs=()
-        methods_scan_excluded_by=yes
-        methods_symlinks_l=logical                                      # <
+        #methods_scan_excluded_by=yes
+        #methods_symlinks_l=logical                                      # <
         find_sym_opt_L='-L' 
         ;;
       *) 
@@ -1070,14 +1088,14 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
     s) case "${OPTARG:0:1}" in
         s | y | b) 
           find_exclude_optargs=() 
-          methods_scan_excluded_by=yes 
+          #methods_scan_excluded_by=yes 
           ;;
 
         n) 
-          methods_recurse_n=yes                                         # <
+          #methods_recurse_n=yes                                         # <
           methods_prog_cv=bin_find
           find_exclude_optargs=("${find_exclude_optargs_default[@]}")
-          methods_scan_excluded_by=no                                   # <
+          #methods_scan_excluded_by=no                                   # <
          
           # if /proc or /sys have been added to the list of dirs to 
           # be searched, then remove each of them from each of the
