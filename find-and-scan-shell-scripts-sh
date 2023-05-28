@@ -6,7 +6,8 @@
 
 # SECTION A
 
-: '<> Debugging' # "<>" means, "This is a debugging section."
+: '<> Debugging' 
+# "<>" means, "This is a debugging section."
 
 # FeatReq: for $random_n, use the most recent git commit hash ID
 
@@ -106,7 +107,6 @@ _mk_setenv_prev() {
   fi
   : '_mk_setenv_prev ENDS  ' "$((--funclvl))" "${fence}"
 }
-
 _mk_setenv_now() {
   : '_mk_setenv_now BEGINS' "$((++funclvl))" "${fence}"
   setenv_now="$(mktemp -p /tmp --suffix="${mktemp_sfx}")"
@@ -117,7 +117,6 @@ _mk_setenv_now() {
       |& tee -a -- "${setenv_now}" >/dev/null
   : '_mk_setenv_now ENDS  ' "$((--funclvl))" "${fence}"
 }
-
 _mk_setenv_delta() {
   : '_mk_setenv_delta BEGINS' "$((++funclvl))" "${fence}"
   : 'if now and prev'
@@ -177,17 +176,15 @@ _mk_setenv_delta() {
   fi
   : '_mk_setenv_delta ENDS  ' "$((--funclvl))" "${fence}"
 }
-
 _mk_deltas() {
   : '_mk_deltas BEGINS' "$((++funclvl))" "${fence}"
-  #_xtrace_duck
+  _xtrace_duck
   _mk_setenv_prev
   _mk_setenv_now
   _mk_setenv_delta
-  #_xtrace_duck
+  _xtrace_duck
   : '_mk_deltas ENDS  ' "$((--funclvl))" "${fence}"
 }
-
 _debug_prompt() {
   : '_debug_prompt BEGINS' "$((++funclvl))" "${fence}"
   _mk_deltas
@@ -196,7 +193,6 @@ _debug_prompt() {
   :
   : '_debug_prompt ENDS  ' "$((--funclvl))" "${fence}"
 }
-
 _full_xtrace() {
   : '_full_xtrace BEGINS' "$((++funclvl))" "${fence}"
   #set -o functrace
@@ -204,8 +200,8 @@ _full_xtrace() {
   set -x
   : '_full_xtrace ENDS  ' "$((--funclvl))" "${fence}"
 }
-
 #_full_xtrace
+
 
 : 'ID and sudo'
 
@@ -217,6 +213,7 @@ elif ! sudo -v; then
   printf 'exiting.\n\n'
   exit "${LINENO}"
 fi
+
 
 : 'Required programs' 
 
@@ -255,6 +252,7 @@ fi; unset c yn reqd_cmds
 
 #exit 101
 #_full_xtrace
+
 
 : 'Variables for Traps and Process Locks'
 
@@ -307,6 +305,7 @@ if [[ "$*" =~ delete_locks ]]; then
   delete_locks='y'
 fi
 
+
 : 'Traps'
 
 _get_lockdirs(){
@@ -320,7 +319,7 @@ _get_lockdirs(){
       -name '*lock*' -a -name '*scf*' \) \
       -print0 2> /dev/null
   )
-  export lkdrs
+  #export lkdrs
 }
 
 
@@ -330,8 +329,11 @@ _exit_trap() {
 
   # If no such array exists yet, then search for possible lockdirs
   if ! declare -pa lkdrs 2> /dev/null 1>&2; then
+    : 'lkdrs DNE'
     _get_lockdirs
     declare -p lkdrs
+  else
+    : 'lkdrs exists'
   fi
 
   # Delete all possible existing process _lock_directories_. 
@@ -352,21 +354,21 @@ _exit_trap() {
 }
 trap _exit_trap EXIT TERM
 
+
 : 'Process Lock'
 
-_full_xtrace
-
-declare -p a_process_lock_dirs
-
 : 'Process Lock: Search for existing lockdirs'
-#   Note: for `find`, types 'd' and 'l' are separate; for `bash`, 
-# `[[ -d` can return 0 for a symlink
 
+  #   Note: for `find`, types 'd' and 'l' are separate; for `bash`, 
+  # `[[ -d` can return 0 for a symlink
+
+#_full_xtrace
+declare -p a_process_lock_dirs
 _get_lockdirs
 
   #sudo find "${a_process_lock_dirs[@]%/*}" -maxdepth 1 -type d -name \
-    #".${repo_nm}.[0-9a-zA-Z_-]*.lock" -print0 2>/dev/null
-#lkdrs_count="${#lkdrs[@]}"
+  #".${repo_nm}.[0-9a-zA-Z_-]*.lock" -print0 2>/dev/null
+  #lkdrs_count="${#lkdrs[@]}"
 
 for l in "${lkdrs[@]}"; do
   
@@ -385,12 +387,17 @@ for l in "${lkdrs[@]}"; do
 done && unset l # lkdrs # a_poss_proces_lock_dirs # lkdrs_count 
 
 # Note: delete_locks is an undocumented CLI option
-[[ -v delete_locks ]] \
-  && exit "${LINENO}"
+if [[ -v delete_locks ]] \
+  && [[ -n ${lkdrs[*]:0:16} ]]; 
+then
+  exit "${LINENO}"
+fi
 
-exit 101
+#exit 101
+_full_xtrace
 
 # Bug: race condition btw defining and `mkdir`?
+
 
 : 'Process Lock: Define & create the lockdir'
 
@@ -416,7 +423,7 @@ for poss_lk_d in "${a_process_lock_dirs[@]}"; do
         -true -exec sudo ln -vs "${process_lock_d}" "${poss_lk_d}" ';' 
       ;; 
   esac
-done; set -
+done
 
   # Bug: for some reason, the lockdir gets deleted while the 
   # symlinks stay put.
@@ -438,8 +445,9 @@ for poss_lk_d in "${a_process_lock_dirs[@]}"; do
     else
       continue
     fi
-  else
+  
   : 'Process Lock: Create a lockdir and handle any error'
+  else
     {
       printf '\n\tCannot acquire process lock: <%s>.\n' "${process_lock_d}"
       printf 'Exiting.\n\n'
