@@ -14,11 +14,11 @@
 repo_nm=scf
 random_n="${RANDOM}" 
 unique_string="${repo_nm}.${$}.${random_n}"
-proc_lk_d_nm=."${unique_string}.lock.d"
-mktemp_sfx=."${unique_string}.xtr"
+proc_lk_d_nm="${unique_string}.lock.d"
+mktemp_sfx="${unique_string}.xtr"
 age_of_tmp_files='5 minutes ago'
-xtr_t_file="/tmp/tmp.mtime_file${mktemp_sfx}"
-delta_sum_file="$(mktemp -p /tmp --suffix="${mktemp_sfx}.E")"
+xtr_t_file="/tmp/tmp.mtime_file.${mktemp_sfx}"
+delta_sum_file="$(mktemp -p /tmp --suffix=."${mktemp_sfx}.E")"
 unset Halt               # For signal-less exiting
 declare -rx Halt         #  "   "           "
 
@@ -71,12 +71,10 @@ fence=' ++++++++++++++++++++++++++++++++++++++++++++ '
 # was previously off, then leave it off.
 _xtrace_duck() {
   : '_xtrace_duck BEGINS' "$((++funclvl))" "${fence}"
-  local hyphen="$-"
   # If xtrace is on...
-  if [[ "${hyphen}" =~ x ]]; then
+  if [[ "$-" =~ x ]]; then
     # ...then record its state
-    local -g xtrace_prev
-    export xtrace_prev
+    local -gx xtrace_prev
     # and turn xtrace off
     set -
   # but if xtrace is off...
@@ -110,7 +108,7 @@ _mk_setenv_prev() {
 }
 _mk_setenv_now() {
   : '_mk_setenv_now BEGINS' "$((++funclvl))" "${fence}"
-  setenv_now="$(mktemp -p /tmp --suffix="${mktemp_sfx}")"
+  setenv_now="$(mktemp -p /tmp --suffix=."${mktemp_sfx}")"
     # `{ set; env;} | tee`: env & set dont print in simple xtrace 
     set \
       |& tee -- "${setenv_now}" >/dev/null 
@@ -135,7 +133,7 @@ _mk_setenv_delta() {
 		# 	with alsa-info.sh line ~465-466
 		#	and then again 
         ## create a new delta file, each time
-    #setenv_delta="$(mktemp -p /tmp --suffix="${mktemp_sfx}")" #
+    #setenv_delta="$(mktemp -p /tmp --suffix=."${mktemp_sfx}")" #
     #{
       #diff -y --suppress-{common-lines,blank-empty} --color=never \
         #"${setenv_prev}" "${setenv_now}" \
@@ -153,7 +151,7 @@ _mk_setenv_delta() {
       #|& tee -a "${setenv_delta}"
 
     # create a new delta file, each time
-    setenv_delta="$(mktemp -p /tmp --suffix="${mktemp_sfx}.A")" 
+    setenv_delta="$(mktemp -p /tmp --suffix=."${mktemp_sfx}.A")" 
       diff -y -W 500 --suppress-{common-lines,blank-empty} \
 		--color=never "${setenv_prev}" "${setenv_now}" \
         |& grep -v setenv \
@@ -163,17 +161,15 @@ _mk_setenv_delta() {
       diff --suppress-{common-lines,blank-empty} --color=always \
         --palette='ad=1;3;38;5;190:de=1;3;38;5;129' \
         "${setenv_prev}" "${setenv_now}" \
-        | grep -ve BASH_LINENO -e BASH_COMMAND -e BASH_SOURCE \
-          -e setenv_ -Fe '---' \
         |& tee -a "${setenv_delta}"
+        #| grep -ve BASH_LINENO -e BASH_COMMAND -e BASH_SOURCE \
+          #-e setenv_ -Fe '---' \
     # set colors for `wc` output
-    GREP_COLORS='mt=01;104'
-    export GREP_COLORS
+    export GREP_COLORS='mt=01;104'
     wc "${setenv_delta}" \
       | grep --color=always -E '.*'
     # reset colors for `grep` output
-    GREP_COLORS='mt=01;43'
-    export GREP_COLORS
+    export GREP_COLORS='mt=01;43'
   fi
   : '_mk_setenv_delta ENDS  ' "$((--funclvl))" "${fence}"
 }
@@ -1324,7 +1320,8 @@ done
 
 
 
-# DOS vs atomicity
+# DOS vs atomicity ...really is a more complicated problem than I 
+# wish to solve in this script.
 
 : 'Rewrite of Process Lock section'
 
@@ -1569,7 +1566,7 @@ then
 
   # Workaround: `compgen -c "*"` was picking up executable shell
   # scripts from the CWD
-  tempd="$(mktemp -d --suffix="${mktemp_sfx/%.xtr/.d}")"
+  tempd="$(mktemp -d --suffix=."${mktemp_sfx/%.xtr/.d}")"
   cd "${tempd}" \
     || fn_erx cd
   
@@ -1871,8 +1868,8 @@ for all_files_index in "${!a_all_files_sorted[@]}"; do
     : 'compare hexadecimals'
 
     : 'endianness'
-    # https://unix.stackexchange.com/questions/55770/\
-    #   does-hexdump-respect-the-endianness-of-its-system
+    # https://unix.stackexchange.com/questions/55770/does-hexdump-respect-the-endianness-of-its-system
+    # Also:  `lscpu | awk '/Endian/ { print $3 }`
     if [[ "${byte_0}${byte_1}" == 2123 ]]; then
       a_incorrect_endianness+=([all_files_index]="${each_sorted_f}")
 
