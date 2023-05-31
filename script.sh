@@ -21,6 +21,8 @@ xtr_t_file="/tmp/tmp.mtime_file.${mktemp_sfx}"
 delta_sum_file="$(mktemp -p /tmp --suffix=."${mktemp_sfx}.E")"
 unset Halt               # For signal-less exiting
 declare -rx Halt         #  "   "           "
+unset LD_LIBRARY_PATH       # For luck ;-p
+declare -rx LD_LIBRARY_PATH #  "   "    "
 
 _ctrl_C_trap(){
   set -x
@@ -108,6 +110,15 @@ _mk_setenv_prev() {
 }
 _mk_setenv_now() {
   : '_mk_setenv_now BEGINS' "$((++funclvl))" "${fence}"
+  for i in "${!n[@]}"; do 
+    caller $i
+  done
+  set -- "${!n[@]}"
+  for i; do 
+    : $'\t\t\t\t'${i}$'\t'${BASH_LINENO[$i]}$'\t'${FUNCNAME[$i]}$'\t'${BASH_SOURCE[$i+1]} $ln
+  done
+  ${Halt:?}
+
   setenv_now="$(mktemp -p /tmp --suffix=."${mktemp_sfx}")"
     # `{ set; env;} | tee`: env & set dont print in simple xtrace 
     set \
@@ -152,12 +163,12 @@ _mk_setenv_delta() {
 
     # create a new delta file, each time
     setenv_delta="$(mktemp -p /tmp --suffix=."${mktemp_sfx}.A")" 
-      diff -y -W 500 --suppress-{common-lines,blank-empty} \
-		--color=never "${setenv_prev}" "${setenv_now}" \
-        |& grep -v setenv \
-        | grep --color=always -E '.*' \
-        |& tee -- "${setenv_delta}"
-      wait -f
+      #diff -y -W 500 --suppress-{common-lines,blank-empty} \
+		    #--color=never "${setenv_prev}" "${setenv_now}" \
+        #|& grep -v setenv \
+        #| grep --color=always -E '.*' \
+        #|& tee -- "${setenv_delta}"
+      #wait -f
       diff --suppress-{common-lines,blank-empty} --color=always \
         --palette='ad=1;3;38;5;190:de=1;3;38;5;129' \
         "${setenv_prev}" "${setenv_now}" \
@@ -247,7 +258,7 @@ else
   exit 1
 fi; unset c yn reqd_cmds
 
-#exit 101
+exit "${LINENO}"
 #_full_xtrace
 
 
@@ -257,8 +268,9 @@ fi; unset c yn reqd_cmds
 : 'Variables for Traps (and Process Locks)'
 
 #declare -A A_process_lock_dirs
-a_poss_proces_lock_dirs+=("${XDG_RUNTIME_DIR}" "${TMPDIR}" /var/lock \
-  "${HOME}" /tmp /var/tmp)
+a_poss_proces_lock_dirs+=("/dev/shm/${repo_nm}" /var/lock \
+  "${XDG_RUNTIME_DIR}" "${TMPDIR}" /var/lock "${HOME}" /tmp \
+  /var/tmp)
 #i=0 
 pld="" # SC2155
 timecode="$(builtin printf '%(%F_%H%M%S)T')"
@@ -309,15 +321,53 @@ _exit_trap() {
 
   kill -s INT "$$"
 }
+
+test(){
+shopt -s expand_aliases
+declare -n n=BASH_SOURCE
+declare -n e=LINENO
+declare -a l
+alias L_='declare -a "l[8-${#n[@]}]=$e"' 
+function M_ { m=("${l[@]}");}
+L_; echo $?
+M_; echo $?
+declare -p l m
+alias M_='m=("${l[@]}")';}
+history -a
+
+
+x+=([32-3]=d)
+y=("${x[@]}")
+declare -p y
+#declare -a y=([0]="d" [1]="c" [2]="b" [3]="a")
+
+
+
+foo(){ echo bar "$@";}
+L_; foo $e
+declare -p l
+
 trap _exit_trap EXIT TERM
 #_full_xtrace
+
+declare -a "l[8-${#n[@]}]=$LINENO"; exit "${l[8-${#n[@]}]}"
+
+: count, BASH_LINENO: ${#BASH_LINENO[@]}
+declare -p BASH_LINENO
+: count, BASH_SOURCE: ${#BASH_SOURCE[@]}
+declare -p BASH_SOURCE
+: count, FUNCNAME: ${#FUNCNAME[@]} 
+declare -p FUNCNAME
+${Halt:?}
+
 
 
 : 'Variables'
 
 : 'Vars: Environment'
 unset LC_ALL 
-FUNCNEST=8
+#FUNCNEST=8
+set -o functrace
 GREP_COLORS='mt=01;43'
 LC_COLLATE="C.UTF-8"     # for predictable sorting
 LC_CTYPE="C.UTF-8"       #  "   "           "
@@ -382,7 +432,7 @@ verify=(all)
 
 # <>
 _full_xtrace
-exit 101
+exit "${LINENO}"
 
 : 'Functions'
 
@@ -564,7 +614,7 @@ unset index element calc
   #fi
 #done
 
-exit 101
+exit "${LINENO}"
 _full_xtrace
 
 # Bugs: Hardcoded $mountpoint -- use lock dir as main_d
@@ -610,7 +660,7 @@ fi
 
 # <>
 _full_xtrace
-exit 101
+exit "${LINENO}"
 
 
 
@@ -942,7 +992,7 @@ shopt -u nocasematch
 
 # <>
 _full_xtrace
-exit 101
+exit "${LINENO}"
 
 
 
@@ -1017,7 +1067,7 @@ _verify_path(){
 _verify_path PATH
 _verify_path bash_path
 
-exit 101
+exit "${LINENO}"
 _full_xtrace
 
 
@@ -1156,7 +1206,7 @@ unset end_dirname full_dir_list ext_array dir sub_dir num_sub_dirs \
 
 # <>
 _full_xtrace
-exit 101
+exit "${LINENO}"
 
 
 
@@ -1189,7 +1239,8 @@ i=0
 # a world-writeable directory creates. The idea being, if the template 
 # is unique enough that accurately predicting it will be impractical.... 
 # So, 
-  : "/tmp/.${repo_nm}.${$}.${random_n}.lock.d"
+  : 'Form of filenames for process lock dirs:' 
+  : $'\t' "/tmp/.${repo_nm}.${$}.${random_n}.lock.d"
 #   Still, the issue occurs of the race condition. Since the filename 
 # changes, the advantage of the atomicity of using `mkdir` is lost.... 
 # or is it?  
@@ -1214,12 +1265,84 @@ for i in "${!A_process_lock_dirs[@]}"; do
 done && unset A_process_lock_dirs i
 
 #_full_xtrace
-#exit 101
+#exit "${LINENO}"
 
 if [[ "$*" =~ delete_locks ]]; then 
   delete_locks='y'
 fi
 
+
+# Bug: race condition btw defining and `mkdir`?
+
+: 'Process Lock: Define & create the lockdir'
+
+#target_fso=d
+
+for poss_lk_d in "${a_process_lock_dirs[@]}"; do 
+  
+  #case "${target_fso}" in
+    #d)
+      if 
+        #sudo find "${poss_lk_d%/*}" -maxdepth 0 '(' \
+        #-type d -a '!' -type l ')' -writable -readable -executable \
+        #-true -exec 
+                
+        sudo mkdir -vm 0700 "${poss_lk_d}" ';'; 
+      then
+        process_lock_d="${poss_lk_d}" 
+        break
+        #target_fso=L
+      else
+		printf '\t\nA filesystem object already exists at %s\n\n' "${poss_lk_d}"
+		file "${poss_lk_d}"
+		stat "${poss_lk_d}"
+		fuser "${poss_lk_d}"
+		ls -alhFiR "${poss_lk_d}"
+		continue
+      fi
+      #;;
+    
+    # ln cannot make hardlinks to dirs; chattr -i not supported
+    #L)
+      #sudo find "${poss_lk_d%/*}" -maxdepth 0 '(' \
+        #-type d -a '!' -type l ')' -writable -readable -executable \
+        #-true -exec sudo ln -vs "${process_lock_d}" "${poss_lk_d}" ';' 
+      #;; 
+  #esac
+done
+
+  # Bug: for some reason, the lockdir gets deleted while the 
+  # symlinks stay put.
+  
+  #shopt -o functrace
+  ${Halt:?}
+
+for poss_lk_d in "${a_process_lock_dirs[@]}"; do
+  # use the first one that fulfills certain requirements
+  find_out="$( find "${poss_lk_d}" -maxdepth 0 '(' \
+    -type d -a '!' -type l ')' -writable -readable -executable \
+    -exec mkdir -m 0700 '()' ';'
+  )"
+  
+  : 'Process Lock: Create a lockdir and handle any error'
+  if [[ -n "${find_out}" ]]; then
+
+	# Bug: $find_out will expand to mult filenames
+
+    if mkdir -m 0700 "${process_lock_d:="${find_out}"}" 2>/dev/null; then
+      break
+    else
+      continue
+    fi
+  
+  else
+    {
+      printf '\n\tCannot acquire process lock: <%s>.\n' "${process_lock_d}"
+      printf 'Exiting.\n\n'
+    } 1>&2
+    exit "${LINENO}"
+  fi
+done
 
 
 : 'Process Lock: Search for existing lockdirs'
@@ -1255,68 +1378,9 @@ then
   exit "${LINENO}"
 fi
 
-#exit 101
+#exit "${LINENO}"
 _full_xtrace
 
-# Bug: race condition btw defining and `mkdir`?
-
-
-: 'Process Lock: Define & create the lockdir'
-
-target_fso=d
-
-for poss_lk_d in "${a_process_lock_dirs[@]}"; do 
-  
-  case "${target_fso}" in
-    d)
-      if sudo find "${poss_lk_d%/*}" -maxdepth 0 '(' \
-        -type d -a '!' -type l ')' -writable -readable -executable \
-        -true -exec sudo mkdir -vm 0700 "${poss_lk_d}" ';'; 
-      then
-        process_lock_d="${poss_lk_d}" 
-        target_fso=L
-      fi
-      ;;
-    
-    # ln cannot make hardlinks to dirs; chattr -i not supported
-    L)
-      sudo find "${poss_lk_d%/*}" -maxdepth 0 '(' \
-        -type d -a '!' -type l ')' -writable -readable -executable \
-        -true -exec sudo ln -vs "${process_lock_d}" "${poss_lk_d}" ';' 
-      ;; 
-  esac
-done
-
-  # Bug: for some reason, the lockdir gets deleted while the 
-  # symlinks stay put.
-  
-  shopt -o functrace
-  ${Halt:?}
-
-for poss_lk_d in "${a_process_lock_dirs[@]}"; do
-  # use the first one that fulfills certain requirements
-  find_out="$( find "${poss_lk_d}" -maxdepth 0 '(' \
-    -type d -a '!' -type l ')' -writable -readable -executable \
-    -exec mkdir -m 0700 '()' ';'
-  )"
-  
-  if [[ -n "${find_out}" ]]; then
-
-    if mkdir -m 0700 "${process_lock_d:="${find_out}"}" 2>/dev/null; then
-      break
-    else
-      continue
-    fi
-  
-  : 'Process Lock: Create a lockdir and handle any error'
-  else
-    {
-      printf '\n\tCannot acquire process lock: <%s>.\n' "${process_lock_d}"
-      printf 'Exiting.\n\n'
-    } 1>&2
-    exit "${LINENO}"
-  fi
-done
 
 
 
@@ -1400,7 +1464,7 @@ filesystem/repo_nm/lockdir
 : ''
 
 
-exit 101
+exit "${LINENO}"
 _full_xtrace
 
 
@@ -1536,7 +1600,7 @@ done && unset tt_o
 #     offer option to remove the file. 
 #
 
-exit 101
+exit "${LINENO}"
 _full_xtrace
 
 
@@ -1728,7 +1792,7 @@ fi
 
 # <>
 _full_xtrace
-exit 101
+exit "${LINENO}"
 
 
 
@@ -1766,7 +1830,7 @@ mapfile -d '' -t a_all_files_sorted < <(
 )
 
 _full_xtrace
-exit 101
+exit "${LINENO}"
 
 
 
@@ -1977,7 +2041,7 @@ printf '%s\n' "${a_shell_scripts[@]}" \
 fn_bak "${a_write_path_nms[@]}"
 
 _full_xtrace
-exit 101
+exit "${LINENO}"
 
 # <> ?
 fn_write_arrays a_write_path_nms
@@ -2007,7 +2071,7 @@ mapfile -t a_interpreters < <(
 )
 
 _full_xtrace
-exit 101
+exit "${LINENO}"
 
 # <>
 :;: "<>"
@@ -2058,7 +2122,7 @@ mapfile -t a_interps_rps < <(
 )
 
 _full_xtrace
-exit 101
+exit "${LINENO}"
 
 # <>
 exit "${LINENO}"
@@ -2129,7 +2193,7 @@ fn_write_arrays a_write_path_nms a_interpreters a_interps_rps \
 exit "${LINENO}"
 
 _full_xtrace
-exit 101
+exit "${LINENO}"
 
 # SECTION E
 
@@ -2164,7 +2228,7 @@ fn_write_arrays timecode list_crunchbangs SC_shells
 exit "${LINENO}"
 
 _full_xtrace
-exit 101
+exit "${LINENO}"
 
 : 'CENTRAL TASK, 2 of 2: with ShellCheck scan each script for errors'
 
