@@ -402,7 +402,7 @@ unsaf_ascii=(
   [18]="}" [19]="[" [20]="]" [21]="[[" [22]="]]" [23]="\$"
   [24]="="
 )
-unsaf_ascii_Pfn_erxstring="$(printf '%s' "${unsaf_ascii[@]}")"
+unsaf_ascii_Pfn_erexstring="$(printf '%s' "${unsaf_ascii[@]}")"
 bash_path_orig="${PATH}"
 bash_path="${bash_path_orig}"
 easter_egg="$(
@@ -680,7 +680,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
       OPTARG="$(strings -n1 <<<"${OPTARG}")"
 
       # Remove unsafe characters
-      new_optarg="${OPTARG//["${unsaf_ascii_Pfn_erxstring[@]}"]/}"
+      new_optarg="${OPTARG//["${unsaf_ascii_Pfn_erexstring[@]}"]/}"
 
       # If any ASCII characters were removed, print an error and exit
       if [[ "${new_optarg}" != "${OPTARG}" ]]; then
