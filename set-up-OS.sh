@@ -78,7 +78,13 @@ sudo chown "${UID}:${UID}" "/home/${USER}/.vimrc"
 chmod 0400 "/home/${USER}/.vimrc"
 
 # Dnf
-sudo dnf -y install info ShellCheck git gh kcov shfmt patch angband lynx libreoffice-calc chromium ltrace strace binutils memstomp bpftrace
+sudo dnf -y install git-fame \
+  angband \
+  git gh \
+  ShellCheck kcov shfmt patch strace ltrace \
+  info binutils \
+  lynx libreoffice-calc chromium
+  #memstomp bpftrace gdb valgrind
 sudo dnf -y --security upgrade
 #set -x
 sleep 10
