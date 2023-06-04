@@ -312,7 +312,8 @@ if mkdir -m 0700 -- "/dev/shm/${repo_nm}" 2> /dev/null; then
           if [[ -e "$f" ]]; then 
             basename "$f"; 
           else 
-            if touch "${f/\*/${i:=$((n))}}"; then 
+	    # trying `: >` vs `touch`
+            if : > "${f/\*/${i:=$((n))}}"; then 
               export creation_t="${EPOCHSECONDS}"
               printf 'Process file created.\n' 1>&2 
             else
