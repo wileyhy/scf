@@ -280,8 +280,8 @@ fn_erx() {
 : 'Locks'
 
 unset i f
-#rm -f "/dev/shm/${repo_nm}"/[0-9]*;
-#rm -fr "/dev/shm/${repo_nm}";
+#rm -fv -- "/dev/shm/${repo_nm}"/[0-9]*;
+#rm -frv -- "/dev/shm/${repo_nm}";
 wait -f
 #set -x; unset f i; declare -p f i; ls -a "/dev/shm/${repo_nm}/"; 
 if [[ ! -e /dev/shm ]]; then 
@@ -294,8 +294,11 @@ function _mv_file {
   mv -v "/dev/shm/${repo_nm}/$i" "/dev/shm/${repo_nm}/$((++i))" 2> /dev/null; 
 }; 
 # Almost certainly atomic operation on Linux ext4 ...but on tmpfs ?? 
+set -x
 if mkdir -m 0700 -- "/dev/shm/${repo_nm}" 2> /dev/null; then
   printf 'Creation of lockdir succeeded.\n'
+  pushd "/dev/shm/${repo_nm}" ||
+    "${Halt:?}"
   for f in "/dev/shm/${repo_nm}"/[0-9]*; do
     if [[ -e "$f" ]]; then 
       printf 'Racing process exists; exiting.\n'
@@ -303,6 +306,7 @@ if mkdir -m 0700 -- "/dev/shm/${repo_nm}" 2> /dev/null; then
       exit "${LINENO}"
     fi
   done 
+    sleep 60
   unset i f
   i="$( for f in "/dev/shm/${repo_nm}"/*; do 
           if [[ -e "$f" ]]; then 
@@ -351,11 +355,17 @@ elif [[ -e "/dev/shm/${repo_nm}" ]]; then
     )" _mv_file;
     shopt -s nullglob
     prior_process_files=("/dev/shm/${repo_nm}"/[0-9]*)
+    
+    # wrong
     if [[ "${#prior_process_files[@]}" -eq 0 ]]; then
-      rm -fr "/dev/shm/${repo_nm}"
+      
+      
+      rm -frv -- "/dev/shm/${repo_nm}"
       printf 'A prior process failed to clean up properly; exiting.\n'
       exit "${LINENO}"
     fi
+
+
     for f in "${prior_process_files[@]}"; do
       if [[ -e "$f" ]]; then  
         present_lock_count="$(basename "$f")";
@@ -402,7 +412,7 @@ elif [[ -e "/dev/shm/${repo_nm}" ]]; then
           ;;
       esac
       printf 'Removing lockdir and exiting.\n'
-      rm -frv "/dev/shm/${repo_nm}"
+      rm -frv -- "/dev/shm/${repo_nm}"
       exit "${LINENO}"
     done
     shopt -u nullglob
@@ -465,7 +475,7 @@ _exit_trap() {
 
     # test and delete lock directories.
     if [[ -d "${pld}" ]] && [[ ! -L "${pld}" ]]; then 
-      echo sudo rm --one-file-system --preserve-root=all  -rf -- \
+      echo sudo rm --one-file-system --preserve-root=all -rfv -- \
         "${pld}" \
         || exit "${LINENO}"
     fi
