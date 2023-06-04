@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
   #!/usr/bin/env -iS bash -x
 # Written in bash version 5.1 on Fedora 37 & 38
 
@@ -11,6 +11,7 @@
 
 # FeatReq: for $random_n, use the most recent git commit hash ID
 
+script_nm=script.sh
 repo_nm=scf
 random_n="${RANDOM}" 
 unique_string="${repo_nm}.${$}.${random_n}"
@@ -111,11 +112,11 @@ _mk_setenv_prev() {
 _mk_setenv_now() {
   : '_mk_setenv_now BEGINS' "$((++funclvl))" "${fence}"
   for i in "${!n[@]}"; do 
-    caller $i
+    caller "$i"
   done
   set -- "${!n[@]}"
   for i; do 
-    : $'\t\t\t\t'${i}$'\t'${BASH_LINENO[$i]}$'\t'${FUNCNAME[$i]}$'\t'${BASH_SOURCE[$i+1]} $ln
+    : $'\t\t\t\t'"${i}"$'\t'"${BASH_LINENO[$i]}"$'\t'"${FUNCNAME[$i]}"$'\t'"${BASH_SOURCE[$i+1]} lineno-array-index"
   done
   ${Halt:?}
 
@@ -258,12 +259,162 @@ else
   exit 1
 fi; unset c yn reqd_cmds
 
-exit "${LINENO}"
+#exit "${LINENO}"
 #_full_xtrace
-
+#set -x
 
 
 : 'Traps'
+
+fn_erx() {
+  local loc_exit_code="${?}" # this assignment must be the first command
+  : 'fn_erx BEGINS' "$((++funclvl))" "${fence}"
+  # print an error message and exit with the correct exit code
+  echo -e Error: "${@}"
+  exit "${loc_exit_code}"
+  : 'fn_erx ENDS  ' "$((--funclvl))" "${fence}"
+}
+
+
+
+: 'Locks'
+
+unset i f
+#rm -f "/dev/shm/${repo_nm}"/[0-9]*;
+#rm -fr "/dev/shm/${repo_nm}";
+wait -f
+#set -x; unset f i; declare -p f i; ls -a "/dev/shm/${repo_nm}/"; 
+if [[ ! -e /dev/shm ]]; then 
+  mkdir -m 1777 /dev/shm ||
+   exit "${LINENO}"
+fi 
+wait -f
+function _mv_file { 
+  # Probably atomic operation ??
+  mv -v "/dev/shm/${repo_nm}/$i" "/dev/shm/${repo_nm}/$((++i))" 2> /dev/null; 
+}; 
+# Almost certainly atomic operation on Linux ext4 ...but on tmpfs ?? 
+if mkdir -m 0700 -- "/dev/shm/${repo_nm}" 2> /dev/null; then
+  printf 'Creation of lockdir succeeded.\n'
+  for f in "/dev/shm/${repo_nm}"/[0-9]*; do
+    if [[ -e "$f" ]]; then 
+      printf 'Racing process exists; exiting.\n'
+      head "/dev/shm/${repo_nm}"/*
+      exit "${LINENO}"
+    fi
+  done 
+  unset i f
+  i="$( for f in "/dev/shm/${repo_nm}"/*; do 
+          if [[ -e "$f" ]]; then 
+            basename "$f"; 
+          else 
+            if touch "${f/\*/${i:=$((n))}}"; then 
+              export creation_t="${EPOCHSECONDS}"
+              printf 'Process file created.\n' 1>&2 
+            else
+              : 'touch failed'
+            fi
+          fi; 
+        done
+  )" _mv_file;
+  veri_lockfile="${f/\*/$((i))}"
+  present_lock_count="$(basename "$veri_lockfile")";
+  for f in "/dev/shm/${repo_nm}"/[0-9]*; do
+    if [[ -e "$f" ]]; then 
+      if [[ $present_lock_count -ne 0 ]]; then
+        printf 'Racing process exists; exiting.\n'
+        exit "${LINENO}"
+      fi
+    else
+      fn_erx "${LINENO}"
+    fi; 
+  done
+  [[ -z "$veri_lockfile" ]] \
+    && veri_lockfile="/dev/shm/${repo_nm}/0"
+  echo "$EPOCHSECONDS,$BASHPID,$PPID" > "/dev/shm/${repo_nm}/pidfile" \
+    || fn_erx "${LINENO}"
+  if mv -f "/dev/shm/${repo_nm}/pidfile" "$veri_lockfile"; then 
+    printf 'Writing data to process file.\n'
+  else
+    printf 'Racing process exists; exiting.\n'
+    exit "${LINENO}"
+  fi
+elif [[ -e "/dev/shm/${repo_nm}" ]]; then
+  if [[ -d "/dev/shm/${repo_nm}" ]]; then
+    printf 'Creation of lockdir already occurred.\n'
+    unset i f
+    i="$( for f in "/dev/shm/${repo_nm}"/*; do 
+            if [[ -e "$f" ]]; then 
+              basename "$f"; 
+            fi; 
+          done
+    )" _mv_file;
+    shopt -s nullglob
+    prior_process_files=("/dev/shm/${repo_nm}"/[0-9]*)
+    if [[ "${#prior_process_files[@]}" -eq 0 ]]; then
+      rm -fr "/dev/shm/${repo_nm}"
+      printf 'A prior process failed to clean up properly; exiting.\n'
+      exit "${LINENO}"
+    fi
+    for f in "${prior_process_files[@]}"; do
+      if [[ -e "$f" ]]; then  
+        present_lock_count="$(basename "$f")";
+      fi;
+      if [[ -s "$f" ]]; then
+          #cat $f
+        IFS=',' read -r epochseconds bashpid ppid < "$f"
+          #declare -p epochseconds bashpid ppid
+      fi;
+      zero="${0#./}"
+      #set -
+      ps_o="$(ps aux \
+        |& grep -e "${bashpid:='bash'}" -e "${ppid:="${repo_nm}"}" -e "${zero:='.sh'}" \
+        |& grep -ve grep -e "${BASHPID}" -e "${PPID}" -e "${script_nm}")"
+      
+      #set -x
+      case "$present_lock_count" in
+        0)  if [[ -z "${ps_o}" ]]; then 
+              if [[ -z "${creation_t}" ]]; then
+                fn_erx "${LINENO}"
+              fi
+              printf 'Lockdir left over from previous process.\n' 
+            else
+              printf 'Possible previous process.\n'
+              set -
+              printf '\t%s\n' "$ps_o"
+              #set -x
+              
+            fi
+            exit "${LINENO}"
+          ;;
+        *)  printf 'Likely previous process.\n'
+            if [[ -n "${ps_o:0:32}" ]]; then
+              set -
+              printf '\t%s\n' "$ps_o"
+              #set -x
+            else
+              printf 'No processes other than this one found.\n'
+            fi
+          ;;
+      esac
+      printf 'Removing lockdir and exiting.\n'
+      rm -frv "/dev/shm/${repo_nm}"
+      exit "${LINENO}"
+    done
+    shopt -u nullglob
+  else
+    fn_erx "Possible DOS; probable error. line: ${LINENO}"
+  fi
+else
+  fn_erx "${LINENO}"
+fi;
+#declare -p f i; ls -a "/dev/shm/${repo_nm}/"; set -;
+echo
+stat "/dev/shm/${repo_nm}"/[0-9]*;
+head "/dev/shm/${repo_nm}"/[0-9]*;
+unset f i ps_o
+exit 101
+
 
 : 'Variables for Traps (and Process Locks)'
 
@@ -322,17 +473,21 @@ _exit_trap() {
   kill -s INT "$$"
 }
 
+
 test(){
-shopt -s expand_aliases
-declare -n n=BASH_SOURCE
-declare -n e=LINENO
-declare -a l
-alias L_='declare -a "l[8-${#n[@]}]=$e"' 
-function M_ { m=("${l[@]}");}
-L_; echo $?
-M_; echo $?
-declare -p l m
-alias M_='m=("${l[@]}")';}
+  shopt -s expand_aliases
+  declare -n n=BASH_SOURCE
+  declare -n e=LINENO
+  declare -a l
+  alias L_='declare -a "l[8-${#n[@]}]=$e"' 
+  function M_ { m=("${l[@]}");}
+  L_; 
+  echo $?
+  M_; 
+  echo $?
+  declare -p l m
+  alias M_='m=("${l[@]}")';
+}
 history -a
 
 
@@ -343,8 +498,11 @@ declare -p y
 
 
 
-foo(){ echo bar "$@";}
-L_; foo $e
+foo(){ 
+  echo bar "$@";
+}
+L_; 
+foo "$e"
 declare -p l
 
 trap _exit_trap EXIT TERM
@@ -352,13 +510,13 @@ trap _exit_trap EXIT TERM
 
 declare -a "l[8-${#n[@]}]=$LINENO"; exit "${l[8-${#n[@]}]}"
 
-: count, BASH_LINENO: ${#BASH_LINENO[@]}
+: "count, BASH_LINENO: ${#BASH_LINENO[@]}"
 declare -p BASH_LINENO
-: count, BASH_SOURCE: ${#BASH_SOURCE[@]}
+: "count, BASH_SOURCE: ${#BASH_SOURCE[@]}"
 declare -p BASH_SOURCE
-: count, FUNCNAME: ${#FUNCNAME[@]} 
+: "count, FUNCNAME: ${#FUNCNAME[@]}"
 declare -p FUNCNAME
-${Halt:?}
+"${Halt:?}"
 
 
 
@@ -387,7 +545,6 @@ protected_git_dir_1="${HOME}/MYPROJECTS"
 protected_git_dir_2="${HOME}/OTHERSPROJECTS"
 script_dirnm="${repo_nm}.d"
 script_lic='Apache 2 license'
-script_nm=find-and-scan-shell-scripts-sh
 script_proper_nm='Script Finder'
 script_version=1.0
 
@@ -441,7 +598,7 @@ fn_bak() {
   # for each of multiple input files
   for loc_filename_a in "${@}"; do
     # test verifying existence of input
-    if sudo  test -f "${loc_filename_a}"; then
+    if sudo /bin/test -f "${loc_filename_a}"; then
 
       # Bug: Why does this ^ test req sudo when this test \/ doesnt?
       # Requires use of fn_bak or fn_bak to debug this.
@@ -469,15 +626,6 @@ fn_bak() {
     fi
   done
   : 'fn_bak ENDS  ' "$((--funclvl))" "${fence}"
-}
-
-fn_erx() {
-  local loc_exit_code="${?}" # this assignment must be the first command
-  : 'fn_erx BEGINS' "$((++funclvl))" "${fence}"
-  # print an error message and exit with the correct exit code
-  echo -e Error: "${@}"
-  exit "${loc_exit_code}"
-  : 'fn_erx ENDS  ' "$((--funclvl))" "${fence}"
 }
 
 #fn_num() {
@@ -2106,7 +2254,7 @@ for program in "${a_interpreters[@]}"; do
 
     if [[ -f "${realpath_o}" ]]; then
       a_interps_rps+=("${realpath_o}")
-      m="exists on disk"
+      on_disk="exists on disk"
       break
     fi
   fi
@@ -2117,7 +2265,7 @@ done
 # Canonicalize interpreters paths, sort and list each unique binary.
 #   Note: new indices starting from 0
 mapfile -t a_interps_rps < <(
-  sudo  realpath -e -- "${a_interpreters[@]}" \
+  sudo realpath -e -- "${a_interpreters[@]}" \
     | sort -u
 )
 
@@ -2140,17 +2288,17 @@ exit "${LINENO}"
     # disk, and write to a variable the test's result
 
     if type -a "${a_interps_rps[b]}" >/dev/null; then
-      m="exists on disk"
+      on_disk="exists on disk"
     else
-      m="DNE on disk"
+      on_disk="DNE on disk"
     fi
 
     # create a new array of structured data: index, interpreter and
     # test result
-    a_interps_disk_repo+=([b]="${b} : ${a_interps_rps[b]} : ${m}")
+    a_interps_disk_repo+=([b]="${b} : ${a_interps_rps[b]} : ${on_disk}")
 
     # into the next 8 bits of a line, print the test result
-    printf '%-8s' "${m}"
+    printf '%-8s' "${on_disk}"
 
     # identify the originating rpm for each interpreter.
     # binary need not be installed.
@@ -2165,21 +2313,21 @@ exit "${LINENO}"
     # based on whether there was any output,
     # save a result message to variable
     if [[ -n "$dnf_po" ]]; then
-      n="exists in repos"
+      in_repos="exists in repos"
     else
-      n="DNE in repos"
+      in_repos="DNE in repos"
     fi
 
     # in the same array, in a different range of indices,
     # save the index, interpretet name and rpm test result
-    a_interps_disk_repo+=([b + 100]="${b} : ${a_interps_rps[b]} : ${n}")
+    a_interps_disk_repo+=([b + 100]="${b} : ${a_interps_rps[b]} : ${in_repos}")
 
     # print rpm test result to end of line; include a newline
-    printf '\t\t\t\t%s\n' "${n}"
+    printf '\t\t\t\t%s\n' "${in_repos}"
 
     # if any data exists, print the list of originating rpms
     printf '%s\n' "$dnf_po"
-    unset dnf_po m n
+    unset dnf_po on_disk in_repos
 
   done
 } | sudo  tee --output-error=exit  -a -- \
