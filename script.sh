@@ -367,9 +367,13 @@ elif [[ -e "/dev/shm/${repo_nm}" ]]; then
       fi;
       zero="${0#./}"
       #set -
+      # scan `ps` output for either (A) the previous BASHPID and PPID if 
+      # their data remains, or (B) any bash process or any shell script 
+      # or any string matching this script's repo's name... excluding...
+      # the PID or PPID of the executing script.
       ps_o="$(ps aux \
         |& grep -e "${bashpid:='bash'}" -e "${ppid:="${repo_nm}"}" -e "${zero:='.sh'}" \
-        |& grep -ve grep -e "${BASHPID}" -e "${PPID}" -e "${script_nm}")"
+        |& grep -ve grep -e "${BASHPID}" -e "${PPID}")"
       
       #set -x
       case "$present_lock_count" in
