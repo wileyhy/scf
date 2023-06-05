@@ -294,9 +294,11 @@ function _mv_file {
   mv -v "/dev/shm/${repo_nm}/$i" "/dev/shm/${repo_nm}/$((++i))" 2> /dev/null; 
 }; 
 # Almost certainly atomic operation on Linux ext4 ...but on tmpfs ?? 
-set -x
-if [[ -e "/dev/shm/${repo_nm}" ]]; then
-  printf 'Lock exists. Enter queue and wait for lock to be freed\n'
+set -xC
+POSIXLY_CORRECT=0
+# `pathchk` with `set -C` is atomic per POSIX 1003.1-2017
+if command -p pathchk -Pp "/dev/shm/${repo_nm}"; then
+  printf 'Lock exists. Wait for the lock to be freed\n'
   read -r ans
   case "$ans" in
     [Yy]) 
@@ -308,9 +310,9 @@ if [[ -e "/dev/shm/${repo_nm}" ]]; then
 	  break
 	fi;
 	done ;;
-	esac
-	
-	
+	esac;
+	fi;
+	# move above comment
 if mkdir -m 0700 -- "/dev/shm/${repo_nm}" 2> /dev/null; then
   printf 'Creation of lockdir succeeded.\n'
   pushd "/dev/shm/${repo_nm}" ||
