@@ -61,7 +61,6 @@ fi; unset yn list
 
 :;: 'Functions, variables and umask' :;:
 function fn_erx(){
-  # shellcheck disable=SC2319
   local ec="${?}"
   echo ERROR: "${@}"
   exit "${ec}"
@@ -75,21 +74,20 @@ PATH+=":/usr/bin"
 PATH+=":/bin"
 PATH+=":/usr/local/sbin_dangling_symlink" # < 5
 PATH+=":/usr/sbin"
-#declare -p PATH
+declare -p PATH
 
 : 'Set up testing of PATH dirs' :
 IFS=':' read -ra find_path <<< "${PATH}"
-#declare -p find_path
+declare -p find_path
 
-for dnm in "${find_path[@]}"; do
-  nm="${dnm}/${x}"
-  if [[ -f "${nm}" ]] \
-    || [[ -L "${nm}" ]]
+for dirnm in "${find_path[@]}"; do
+  fullnm="${dirnm}/${x}"
+  if [[ -f "${fullnm}" ]] || [[ -L "${fullnm}" ]]
   then
-    sudo rm -f --one-file-system --preserve-root=all -- "${nm}" \
-      || fn_erx
-  fi; unset nm; :
-done; unset dnm; :
+    sudo rm -f --one-file-system --preserve-root=all -- "${fullnm}" || 
+      fn_erx
+  fi; unset fullnm; :
+done; unset dirnm; :
 
 : 'Set up testing of files' :
 xfa="/usr/bin/${x}"
@@ -116,16 +114,13 @@ unset -n "${x}"
 for f in "${xff[@]}"; do
   d="$(dirname "${f}")"
   if [[ -d "${d}" ]]; then
-    lo="$(sudo find "${d}" -mindepth 1 -printf '%p' \
-      | head -c 32
-    )"
+    lo="$(sudo find "${d}" -mindepth 1 -printf '%p' | head -c 32)"
   fi
   if [[ -z "${lo:0:32}" ]]; then
-    if [[ -d "${d}" ]] \
-      && [[ ! -L "${d}" ]]
+    if [[ -d "${d}" ]] && [[ ! -L "${d}" ]]
     then
-      sudo rmdir -- "${d}" \
-        || fn_erx "${LINENO}"
+      sudo rmdir -- "${d}" || 
+        fn_erx "${LINENO}"
     fi
   fi; unset d lo; :
 done; unset f; :
@@ -158,14 +153,10 @@ fi; unset dpo
 
 
 :;: 'Create Shadow nameref' :;:
-dao="$(declare -p "${x}" \
-  | awk '$2 ~ /n/'
-)"
+dao="$(declare -p "${x}" | awk '$2 ~ /n/')"
 if [[ -z "${dao:0:8}" ]]; then
   declare -n "${x}"=USER
-  dao="$(declare -p "${x}" \
-    | awk '$2 ~ /n/'
-  )"
+  dao="$(declare -p "${x}" | awk '$2 ~ /n/')"
   if [[ -z "${dao:0:8}" ]]; then
     fn_erx
   fi
@@ -179,8 +170,8 @@ fi; unset dao
 for f in "${xff[@]}"; do
   d="$(dirname "${f}")"
   if [[ ! -d "${d}" ]]; then
-    sudo mkdir -p "${d}" \
-      || fn_erx "${LINENO}"
+    sudo mkdir -p "${d}" || 
+      fn_erx "${LINENO}"
   fi; unset d; :
 done; unset f; :
 #exit "${LINENO}"
@@ -190,9 +181,9 @@ done; unset f; :
 
 :;: 'Create Shadow executable file' :;:
 if [[ ! -f "${xfa}" ]]; then
-  printf '\x23\x21/usr/bin/sh\n%s \x22\x24\x40\x22\n' "${x}"\
-    | sudo tee  "${xfa}" > /dev/null \
-    || fn_erx "${LINENO}"
+  printf '\x23\x21/usr/bin/sh\n%s \x22\x24\x40\x22\n' "${x}" | 
+    sudo tee  "${xfa}" > /dev/null || 
+      fn_erx "${LINENO}"
   if [[ ! -f "${xfa}" ]]; then
     fn_erx
   fi
@@ -207,8 +198,8 @@ fi
 
 :;: 'Symlink of shadow file' :;:
 if [[ ! -f "${xfb}" ]]; then
-  sudo ln -s "${xfa}" "${xfb}" \
-    || fn_erx "${LINENO}"
+  sudo ln -s "${xfa}" "${xfb}" || 
+    fn_erx "${LINENO}"
   if [[ ! -f "${xfb}" ]]; then
     fn_erx
   fi
@@ -223,8 +214,8 @@ fi
 
 :;: 'Hardlink of shadow file' :;:
 if [[ ! -f "${xfc}" ]]; then
-  sudo ln "${xfa}" "${xfc}" \
-    || fn_erx "${LINENO}"
+  sudo ln "${xfa}" "${xfc}" || 
+    fn_erx "${LINENO}"
   if [[ ! -f "${xfc}" ]]; then
     fn_erx
   fi
@@ -239,20 +230,20 @@ fi
 
 :;: 'Dangling symlink of shadow file' :;:
 if [[ ! -f "${xfd}" ]]; then
-  sudo cp -b "${xfa}" "${xfd}" \
-    || fn_erx "${LINENO}"
+  sudo cp -b "${xfa}" "${xfd}" || 
+    fn_erx "${LINENO}"
   if [[ ! -f "${xfd}" ]]; then
     fn_erx
   fi
 fi
 if [[ ! -f "${xfe}" ]]; then
-  sudo ln -s "${xfd}" "${xfe}" \
-    || fn_erx "${LINENO}"
+  sudo ln -s "${xfd}" "${xfe}" || 
+    fn_erx "${LINENO}"
   if [[ ! -f "${xfd}" ]]; then
     fn_erx
   fi
-  sudo rm -f i--one-file-system --preserve-root=all -- "${xfd}" \
-    || fn_erx "${LINENO}"
+  sudo rm -f i--one-file-system --preserve-root=all -- "${xfd}" || 
+    fn_erx "${LINENO}"
   if [[ -f "${xfd}" ]]; then
     fn_erx
   fi
@@ -274,10 +265,10 @@ for f in "${xff[@]}" ; do
   fi
   fa="$(sudo stat -c%a "${f}")"
   if [[ "${fa}" != 755 ]]; then
-    sudo chmod 755 "${f}" \
-      || fn_erx "${LINENO}"
-    so="$(sudo stat -c%a "${f}")" \
-      || fn_erx "${LINENO}"
+    sudo chmod 755 "${f}" || 
+      fn_erx "${LINENO}"
+    so="$(sudo stat -c%a "${f}")" || 
+      fn_erx "${LINENO}"
     if ! grep -q 755 <<< "${so}"; then
       fn_erx
     fi
@@ -289,14 +280,10 @@ done; :
 
 
 :;: 'Builtin' :;:
-eago="$(enable \
-  | grep "${x}"
-)"
+eago="$(enable | grep "${x}")"
 if [[ -z "${eago:0:8}" ]]; then
   enable "${x}"
-  eago="$(enable \
-    | grep "${x}"
-  )"
+  eago="$(enable | grep "${x}")"
   if [[ -z "${eago:0:8}" ]]; then
     fn_erx
   fi
