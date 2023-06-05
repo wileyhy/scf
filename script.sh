@@ -295,6 +295,22 @@ function _mv_file {
 }; 
 # Almost certainly atomic operation on Linux ext4 ...but on tmpfs ?? 
 set -x
+if [[ -e "/dev/shm/${repo_nm}" ]]; then
+  printf 'Lock exists. Enter queue and wait for lock to be freed\n'
+  read -r ans
+  case "$ans" in
+    [Yy]) 
+      while :; do 
+        sleep 60; 
+	if [[ -e "/dev/shm/${repo_nm}" ]]; then
+	  continue
+	else 
+	  break
+	fi;
+	done ;;
+	esac
+	
+	
 if mkdir -m 0700 -- "/dev/shm/${repo_nm}" 2> /dev/null; then
   printf 'Creation of lockdir succeeded.\n'
   pushd "/dev/shm/${repo_nm}" ||
