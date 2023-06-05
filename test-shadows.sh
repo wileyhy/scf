@@ -2,7 +2,7 @@
 #!/usr/bin/bash
 # shellcheck disable=SC2317 # unreachable commands
 # shellcheck disable=SC2096 # excessive crashbang
-# add-shadows.bsh
+# add-"shadow"s.bsh
 
 
 : 'Regular users only, and -sudo- required' 
@@ -18,7 +18,7 @@ fi
 : 'Target string:' 
 #set -vx
 if [[ "$#" -eq 0 ]]; then x='export'; else x="$1"; fi;
-readonly x
+[[ -n "$x" ]] && readonly x
 #declare -p x
 enable -n "$x"
 #enable -a | grep "$x"
@@ -78,7 +78,7 @@ PATH+=":/usr/sbin"
 IFS=':' read -ra find_path <<< "${PATH}"
 #declare -p find_path
 
-: 'remove any pre-existing shadow-files for name-string "$x"'
+: 'remove any pre-existing "shadow" files for name-string "$x"'
 for dirnm in "${find_path[@]}"; do
   fullnm="${dirnm}/${x}"
   if [[ -f "${fullnm}" ]] || [[ -L "${fullnm}" ]]
@@ -88,16 +88,15 @@ for dirnm in "${find_path[@]}"; do
   fi; unset fullnm
 done; unset dirnm
 
-: 'Set up testing of shadow-files' :
+: 'Set up testing of "shadow" files' :
 xfa="${find_path[0]}/${x}" # symlink              # < 0
 xfb="${find_path[1]}/${x}" # hardlink             # < 1
 xfc="${find_path[2]}/${x}" # copy of inode        # < 2
 xfd="/usr/bin/${x}"        # executable file      # < 3
 xfe="${find_path[5]}/${x}" # dangling symlink     # < 5
 xff=("${xfa}" "${xfb}" "${xfc}" "${xfd}" "${xfe}")
-umask 022
 #exit "${LINENO}"
-set -x
+#set -x
 
 
 : 'Tests: Remove certain values' 
@@ -119,63 +118,69 @@ for abspath in "${xff[@]}"; do
   if [[ -d "${dirnm}" ]]; then
 
     # find any FSO's wi it, but only the first 32 bytes thereof...
-    fsobj="$(sudo find "${dirnm}" -mindepth 1 -printf '%p' | head -c 32)"
+    fsobjs="$(sudo find "${dirnm}" -mindepth 1 -printf '%p' | head -c 32)"
   fi
 
   # 
-  if [[ -v fsobj ]]; then   
-    if [[ -z "${fsobj:0:32}" ]]; then
+  if [[ -v fsobjs ]]; then   
+    if [[ -z "${fsobjs}" ]]; then
       if [[ -d "${dirnm}" ]] && [[ ! -L "${dirnm}" ]]
       then
         sudo rmdir -- "${dirnm}" || 
           fn_erx "${LINENO}"
       fi
-    fi; unset dirnm fsobj
-  fi; unset dirnm fsobj
+    fi 
+  fi; unset dirnm fsobjs
 done; unset abspath
 
 : 'Remove: Builtin' 
-enable -n "${x}"
+enable_o="$(enable -a | grep "${x}")"
+if [[ "$enable_o" != *-n* ]]; then
+  enable -n "${x}"
+fi; unset enable_o
 
 : 'Remove: Function' 
 unset -f "${x}"
 
 : 'Remove: Alias' 
-unalias -a 
-exit "${LINENO}"
-#set -x
-
-
-
-: 'Create Shadow variable' 
-dpo="$(declare -p "${x}" 2> /dev/null)"
-if [[ -z "${dpo:0:8}" ]]; then
-  eval "${x}"=quux
-  dpo="$(declare -p "${x}")"
-  if [[ -z "${dpo:0:8}" ]]; then
-    fn_erx
-  fi
-fi; unset dpo
+unalias "${x}" 2> /dev/null
 #exit "${LINENO}"
 #set -x
 
 
 
-: 'Create Shadow nameref' 
-dao="$(declare -p "${x}" | awk '$2 ~ /n/')"
+: 'Create "shadow" variable' 
+declare_p_o="$(declare -p "${x}" 2> /dev/null)"
+if [[ -z "${declare_p_o:0:8}" ]]; then
+  eval "${x}"=quux
+  declare_p_o="$(declare -p "${x}" 2> /dev/null)"
+  if [[ -z "${declare_p_o}" ]]; then
+    fn_erx
+  fi
+fi; unset declare_p_o
+#exit "${LINENO}"
+set -x
+
+
+
+: 'Create "shadow" nameref' 
+# Note: at equal scope, a variable cannot be a nameref and not a nameref
+# at the same time.
+dao="$(declare -p "${x}" |& awk '$2 ~ /n/')"
 if [[ -z "${dao:0:8}" ]]; then
   declare -n "${x}"=USER
-  dao="$(declare -p "${x}" | awk '$2 ~ /n/')"
+  dao="$(declare -p "${x}" |& awk '$2 ~ /n/')"
   if [[ -z "${dao:0:8}" ]]; then
     fn_erx
   fi
 fi; unset dao
-#exit "${LINENO}"
-#set -x
+exit "${LINENO}"
+set -x
 
 
 
 : 'create PATH dirs as necc' 
+umask 022
 for f in "${xff[@]}"; do
   d="$(dirname "${f}")"
   if [[ ! -d "${d}" ]]; then
@@ -183,12 +188,12 @@ for f in "${xff[@]}"; do
       fn_erx "${LINENO}"
   fi; unset d
 done; unset f
-#exit "${LINENO}"
-#set -x
+exit "${LINENO}"
+set -x
 
 
 
-: 'Create Shadow executable file' 
+: 'Create "shadow" executable file' 
 if [[ ! -f "${xfa}" ]]; then
   printf '\x23\x21/usr/bin/sh\n%s \x22\x24\x40\x22\n' "${x}" | 
     sudo tee  "${xfa}" > /dev/null || 
@@ -200,12 +205,12 @@ fi
 if [[ "$(type -t "${x}")" != file ]]; then
   fn_erx "${LINENO}"
 fi
-#exit "${LINENO}"
-#set -x
+exit "${LINENO}"
+set -x
 
 
 
-: 'Symlink of shadow file' 
+: 'Symlink of "shadow" file' 
 if [[ ! -f "${xfb}" ]]; then
   sudo ln -s "${xfa}" "${xfb}" || 
     fn_erx "${LINENO}"
@@ -216,12 +221,12 @@ fi
 if [[ "$(type -t "${x}")" != file ]]; then
   fn_erx "${LINENO}"
 fi
-#exit "${LINENO}"
-#set -x
+exit "${LINENO}"
+set -x
 
 
 
-: 'Hardlink of shadow file' 
+: 'Hardlink of "shadow" file' 
 if [[ ! -f "${xfc}" ]]; then
   sudo ln "${xfa}" "${xfc}" || 
     fn_erx "${LINENO}"
@@ -232,12 +237,12 @@ fi
 if [[ "$(type -t "${x}")" != file ]]; then
   fn_erx "${LINENO}"
 fi
-#exit "${LINENO}"
-#set -x
+exit "${LINENO}"
+set -x
 
 
 
-: 'Dangling symlink of shadow file' 
+: 'Dangling symlink of "shadow" file' 
 if [[ ! -f "${xfd}" ]]; then
   sudo cp -b "${xfa}" "${xfd}" || 
     fn_erx "${LINENO}"
@@ -262,12 +267,12 @@ if [[ "$(type -t "${x}")" != file ]]; then
 fi
 : 'the actual file has been removed so the extra symlink may "dangle"' 
 unset 'xff[3]'
-#exit "${LINENO}"
-#set -x
+exit "${LINENO}"
+set -x
 
 
 
-: 'DAC permissions of shadow files' 
+: 'DAC permissions of "shadow" files' 
 for f in "${xff[@]}" ; do
   if [[ -L "${f}" ]]; then
     continue
@@ -283,8 +288,8 @@ for f in "${xff[@]}" ; do
     fi
   fi
 done
-#exit "${LINENO}"
-#set -x
+exit "${LINENO}"
+set -x
 
 
 
@@ -300,12 +305,12 @@ fi; unset eago
 if [[ "$(type -t "${x}")" != builtin ]]; then
   fn_erx "${LINENO}"
 fi
-#exit "${LINENO}"
-#set -x
+exit "${LINENO}"
+set -x
 
 
 
-: 'Create Shadow function' 
+: 'Create "shadow" function' 
 dpfo="$(declare -pf "${x}" 2> /dev/null)"
 if [[ -z "${dpfo:0:8}" ]]; then
   : 'define function'
@@ -318,12 +323,12 @@ fi; unset dpfo
 if [[ "$(type -t "${x}")" != function ]]; then
   fn_erx "${LINENO}"
 fi
-#exit "${LINENO}"
-#set -x
+exit "${LINENO}"
+set -x
 
 
 
-: 'Create Shadow alias' 
+: 'Create "shadow" alias' 
 shopt -s expand_aliases
 ao="$(alias "${x}" 2> /dev/null)"
 if [[ -z "${ao:0:8}" ]]; then
@@ -336,8 +341,8 @@ fi; unset ao
 if [[ "$(type -t "${x}")" != alias ]]; then
   fn_erx "${LINENO}"
 fi
-#exit "${LINENO}"
-#set -x
+exit "${LINENO}"
+set -x
 
 
 
@@ -348,8 +353,8 @@ type_P_o="$(type -P "${x}")"
 printf '\n\t ls -alhFi [FILE]; ls -alhFiL [FILE] \n\n' 
 ls -alhFi --quoting-style=shell-always --color=always "${type_P_o}"
 ls -alhFiL --quoting-style=shell-always --color=always "${type_P_o}"
-#exit "${LINENO}"
-#set -x
+exit "${LINENO}"
+set -x
 
 
 
