@@ -171,7 +171,7 @@ decl_awk_o="$(declare -p "${x}" |& awk '$2 ~ /n/')" # is $x a nameref?
 if [[ -z "${decl_awk_o:0:8}" ]]; then
   declare -n "${x}"=UID
   # Bug, awk cmd: w no flags from declare, var name could be in $2 and contain 'n'. specify awk regexp. 
-  decl_awk_o="$(declare -p "${x}" |& awk '$2 ~ /n/')" # is $x a nameref?
+  decl_awk_o="$(declare -p "${x}" |& awk '$2 ~ /\-[aAinrtx]{,2}/')" # is $x a nameref?
   if [[ -z "${decl_awk_o:0:8}" ]]; then
     fn_erx
   fi
