@@ -4,7 +4,6 @@
 # shellcheck disable=SC2096 # excessive crashbang
 # add-"shadow"s.bsh
 
-
 : 'Regular users only, and -sudo- required' 
 if [[ "${UID}" == 0 ]]; then
   printf '\n\t Must be a regular user and use sudo. \n\n'
@@ -145,19 +144,20 @@ unset -f "${x}"
 : 'Remove: Alias' 
 unalias "${x}" 2> /dev/null
 #exit "${LINENO}"
-#set -x
+set -x
 
 
 
 : 'Create "shadow" variable' 
 declare_p_o="$(declare -p "${x}" 2> /dev/null)"
 if [[ -z "${declare_p_o:0:8}" ]]; then
-  eval "${x}"=quux
+  declare "${x}"=quux
   declare_p_o="$(declare -p "${x}" 2> /dev/null)"
   if [[ -z "${declare_p_o}" ]]; then
     fn_erx
   fi
 fi; unset declare_p_o
+declare -p "${x}"
 #exit "${LINENO}"
 set -x
 
@@ -165,15 +165,22 @@ set -x
 
 : 'Create "shadow" nameref' 
 # Note: at equal scope, a variable cannot be a nameref and not a nameref
-# at the same time.
-dao="$(declare -p "${x}" |& awk '$2 ~ /n/')"
-if [[ -z "${dao:0:8}" ]]; then
-  declare -n "${x}"=USER
-  dao="$(declare -p "${x}" |& awk '$2 ~ /n/')"
-  if [[ -z "${dao:0:8}" ]]; then
+# at the same time. Setting a nameref overwrites any non-nameref variable.
+declare -p UID
+decl_awk_o="$(declare -p "${x}" |& awk '$2 ~ /n/')" # is $x a nameref?
+if [[ -z "${decl_awk_o:0:8}" ]]; then
+  declare -n "${x}"=UID
+  # Bug, awk cmd: w no flags from declare, var name could be in $2 and contain 'n'. specify awk regexp. 
+  # I still don't trust the shell. In context, the awk command is adequate, but as shell scripts evolve and change, context changes, so commands intended to discern, for example, "is $x a nameref?" should do so completely within themselves - as completely as possible. Assuming `declare -p "${x}"` could return any string (within the possiblities of those normally produced by `declare`), how could `awk '$2 ~ /n/'` go wrong? the variable could be not a nameref, and the variable name could contain the letter 'n', and there you'd have a false positive. 
+  # Or is it fame?
+  decl_awk_o="$(declare -p "${x}" |& awk '$2 ~ /n/')" # is $x a nameref?
+  if [[ -z "${decl_awk_o:0:8}" ]]; then
     fn_erx
   fi
-fi; unset dao
+fi; unset decl_awk_o
+echo 'UID' "$UID"
+echo 'export:' "$export"
+declare -p "${x}"
 exit "${LINENO}"
 set -x
 
