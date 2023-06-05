@@ -297,6 +297,7 @@ function _mv_file {
 set -xC
 POSIXLY_CORRECT=0
 # `pathchk` with `set -C` is atomic per POSIX 1003.1-2017
+# https://pubs.opengroup.org/onlinepubs/9699919799/utilities/pathchk.html
 if command -p pathchk -Pp "/dev/shm/${repo_nm}"; then
   printf 'Lock exists. Wait for the lock to be freed\n'
   read -r ans
@@ -312,9 +313,11 @@ if command -p pathchk -Pp "/dev/shm/${repo_nm}"; then
 	done ;;
 	esac;
 	fi;
+	unset POSIXLY_CORRECT
 	# move above comment
 if mkdir -m 0700 -- "/dev/shm/${repo_nm}" 2> /dev/null; then
   printf 'Creation of lockdir succeeded.\n'
+  # for use of `lsof`
   pushd "/dev/shm/${repo_nm}" ||
     "${Halt:?}"
   for f in "/dev/shm/${repo_nm}"/[0-9]*; do
@@ -326,6 +329,7 @@ if mkdir -m 0700 -- "/dev/shm/${repo_nm}" 2> /dev/null; then
   done 
     sleep 60
   unset i f
+  # benchmark this syntax
   i="$( for f in "/dev/shm/${repo_nm}"/*; do 
           if [[ -e "$f" ]]; then 
             basename "$f"; 
@@ -339,7 +343,27 @@ if mkdir -m 0700 -- "/dev/shm/${repo_nm}" 2> /dev/null; then
             fi
           fi; 
         done
-  )" _mv_file;
+	  )" _mv_file;
+
+  
+    # benchmark this syntax
+  for f in "/dev/shm/${repo_nm}"/*; do 
+          if [[ -e "$f" ]]; then 
+            i="$(basename "$f")";
+          else 
+	    # trying `: >` vs `touch`
+            if : > "${f/\*/${i:=$((n))}}"; then 
+              export creation_t="${EPOCHSECONDS}"
+              printf 'Process file created.\n' 1>&2 
+            else
+              : 'touch failed'
+            fi
+          fi; 
+        done
+ mv -v "/dev/shm/${repo_nm}/$i" "/dev/shm/${repo_nm}/$((++i))";
+
+  
+  
   veri_lockfile="${f/\*/$((i))}"
   present_lock_count="$(basename "$veri_lockfile")";
   for f in "/dev/shm/${repo_nm}"/[0-9]*; do
