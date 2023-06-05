@@ -110,29 +110,29 @@ unset -n "${x}"
 
 # This code block: for testing only
 : 'Remove: Unused dirs in PATH' 
-for f in "${xff[@]}"; do
+for abspath in "${xff[@]}"; do
   
   # get dirname
-  d="${f%/*}"
+  dirnm="${abspath%/*}"
   
   # if the dir exists...
-  if [[ -d "${d}" ]]; then
+  if [[ -d "${dirnm}" ]]; then
 
     # find any FSO's wi it, but only the first 32 bytes thereof...
-    lo="$(sudo find "${d}" -mindepth 1 -printf '%p' | head -c 32)"
+    fsobj="$(sudo find "${dirnm}" -mindepth 1 -printf '%p' | head -c 32)"
   fi
 
   # 
-  if [[ -v lo ]]; then   
-    if [[ -z "${lo:0:32}" ]]; then
-      if [[ -d "${d}" ]] && [[ ! -L "${d}" ]]
+  if [[ -v fsobj ]]; then   
+    if [[ -z "${fsobj:0:32}" ]]; then
+      if [[ -d "${dirnm}" ]] && [[ ! -L "${dirnm}" ]]
       then
-        sudo rmdir -- "${d}" || 
+        sudo rmdir -- "${dirnm}" || 
           fn_erx "${LINENO}"
       fi
-    fi; unset d lo
-  fi; unset d lo
-done; unset f
+    fi; unset dirnm fsobj
+  fi; unset dirnm fsobj
+done; unset abspath
 
 : 'Remove: Builtin' 
 enable -n "${x}"
