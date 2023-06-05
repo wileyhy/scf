@@ -85,6 +85,7 @@ sudo dnf -y install git-fame \
   info binutils \
   lynx libreoffice-calc chromium
   #memstomp bpftrace gdb valgrind
+sudo dnf -y upgrade bash
 sudo dnf -y --security upgrade
 #set -x
 sleep 10
