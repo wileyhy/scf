@@ -70,22 +70,12 @@ PATH="/home/liveuser/.local/bin_symlink"  # < 0
 PATH+=":/home/liveuser/bin_hardlink"      # < 1
 PATH+=":/usr/local/bin_copy-of-inode"     # < 2
 PATH+=":/usr/bin"                         # < 3
-PATH+=":/bin"
+PATH+=":/bin"                             # < 4
 PATH+=":/usr/local/sbin_dangling_symlink" # < 5
-PATH+=":/usr/sbin"
+PATH+=":/usr/sbin"                        # < 6
 #declare -p PATH
 IFS=':' read -ra find_path <<< "${PATH}"
 #declare -p find_path
-
-: 'remove any pre-existing "shadow" files for name-string "$x"'
-for dirnm in "${find_path[@]}"; do
-  fullnm="${dirnm}/${x}"
-  if [[ -f "${fullnm}" ]] || [[ -L "${fullnm}" ]]
-  then
-    sudo rm -f --one-file-system --preserve-root=all -- "${fullnm}" || 
-      fn_erx
-  fi; unset fullnm
-done; unset dirnm
 
 : 'Set up testing of "shadow" files' :
 xfa="${find_path[0]}/${x}" # symlink              # < 0
@@ -93,7 +83,8 @@ xfb="${find_path[1]}/${x}" # hardlink             # < 1
 xfc="${find_path[2]}/${x}" # copy of inode        # < 2
 xfd="/usr/bin/${x}"        # executable file      # < 3
 xfe="${find_path[5]}/${x}" # dangling symlink     # < 5
-xff=("${xfa}" "${xfb}" "${xfc}" "${xfd}" "${xfe}")
+xff="${find_path[6]}/${x}" # deleted executable   # < 6
+xfg=("${xfa}" "${xfb}" "${xfc}" "${xfd}" "${xfe}" "${xff}")
 #exit "${LINENO}"
 #set -x
 
@@ -105,20 +96,31 @@ unset -v "${x}"
 
 : 'Remove: Namerefs' 
 unset -n "${x}"
-#set -x
+set -x
+
+: 'Remove: any previous test files'
+declare -p xfg
+for f in "${xfg[@]}"; do
+  if [[ -f "${f}" ]] || [[ -L "${f}" ]]
+  then
+    sudo rm -f --one-file-system --preserve-root=all -- "${f}" || 
+      fn_erx
+  fi;
+done; unset f
+exit "${LINENO}"
 
 : 'Remove: Unused dirs in PATH' 
 # if the dir exists try to remove it, but if it isn't empty, then 
 # ignore the error 
-for dirnm in "${xff[@]%/*}"; do
-  if [[ -d "${dirnm}" ]]; then 
-    fsobjs="$(ls "$dirnm" 2> /dev/null | tr -d '\n' | head -c32)" 
-    if [[ -z "${fsobjs}" ]] && [[ ! -L "${dirnm}" ]]; then
-      sudo rmdir --ignore-fail-on-non-empty -- "${dirnm}" || 
+for d in "${xfg[@]%/*}"; do
+  if [[ -d "${d}" ]]; then 
+    fsobjs="$(find "$d" 2> /dev/null | tr -d '\n' | head -c32)" 
+    if [[ -z "${fsobjs}" ]] && [[ ! -L "${d}" ]]; then
+      sudo rmdir --ignore-fail-on-non-empty -- "${d}" || 
         fn_erx "${LINENO}"
     fi
   fi
-done; unset dirnm 
+done; unset d 
 #exit "${LINENO}"
 
 : 'Remove: Builtin' 
@@ -180,7 +182,7 @@ fi; unset decl_awk_o
 
 : 'create PATH dirs as necc' 
 umask 022
-for d in "${xff[@]%/*}"; do
+for d in "${xfg[@]%/*}"; do
   if [[ ! -d "${d}" ]]; then
     sudo mkdir -p "${d}" || 
       fn_erx "${LINENO}"
@@ -192,11 +194,11 @@ done; unset d
 
 
 : 'Create "shadow" executable file' 
-if [[ ! -f "${xfa}" ]]; then
+if [[ ! -f "${xfd}" ]]; then
   printf '\x23\x21/usr/bin/sh\n%s \x22\x24\x40\x22\n' "${x}" | 
-    sudo tee  "${xfa}" > /dev/null || 
+    sudo tee  "${xfd}" > /dev/null || 
       fn_erx "${LINENO}"
-  if [[ ! -f "${xfa}" ]]; then
+  if [[ ! -f "${xfd}" ]]; then
     fn_erx
   fi
 fi
@@ -209,8 +211,24 @@ fi
 
 
 : 'Symlink of "shadow" file' 
+if [[ ! -f "${xfa}" ]]; then
+  sudo ln -s "${xfd}" "${xfa}" || 
+    fn_erx "${LINENO}"
+  if [[ ! -f "${xfa}" ]]; then
+    fn_erx
+  fi
+fi
+if [[ "$(type -t "${x}")" != file ]]; then
+  fn_erx "${LINENO}"
+fi
+#exit "${LINENO}"
+#set -x
+
+
+
+: 'Hardlink of "shadow" file' 
 if [[ ! -f "${xfb}" ]]; then
-  sudo ln -s "${xfa}" "${xfb}" || 
+  sudo ln "${xfd}" "${xfb}" || 
     fn_erx "${LINENO}"
   if [[ ! -f "${xfb}" ]]; then
     fn_erx
@@ -224,41 +242,15 @@ fi
 
 
 
-: 'Hardlink of "shadow" file' 
-if [[ ! -f "${xfc}" ]]; then
-  sudo ln "${xfa}" "${xfc}" || 
-    fn_erx "${LINENO}"
-  if [[ ! -f "${xfc}" ]]; then
-    fn_erx
-  fi
-fi
-if [[ "$(type -t "${x}")" != file ]]; then
-  fn_erx "${LINENO}"
-fi
-#exit "${LINENO}"
-set -x
-sudo ls -alhFi "${xfa}" "${xfd}"
-
-
-
 : 'Dangling symlink of "shadow" file' 
-if [[ ! -f "${xfd}" ]]; then
-  sudo cp -bv "${xfa}" "${xfd}" || 
-    fn_erx "${LINENO}"
-  if [[ ! -f "${xfd}" ]]; then
-    fn_erx
-  fi
-fi
 if [[ ! -f "${xfe}" ]]; then
-  # Bug? operands are backwards? 
-  sudo ln -s "${xfd}" "${xfe}" || 
+  sudo cp -b "${xfd}" "${xff}" || 
     fn_erx "${LINENO}"
-  if [[ ! -f "${xfd}" ]]; then
-    fn_erx
-  fi
-  sudo rm -f i--one-file-system --preserve-root=all -- "${xfd}" || 
+  sudo ln -s "${xff}" "${xfe}" || 
     fn_erx "${LINENO}"
-  if [[ -f "${xfd}" ]]; then
+  sudo rm -f i--one-file-system --preserve-root=all -- "${xff}" || 
+    fn_erx "${LINENO}"
+  if [[ ! -L "${xfe}" ]]; then
     fn_erx
   fi
 fi
@@ -266,25 +258,41 @@ if [[ "$(type -t "${x}")" != file ]]; then
   fn_erx "${LINENO}"
 fi
 : 'the actual file has been removed so the extra symlink may "dangle"' 
-unset 'xff[3]'
+unset 'xfg[6]'
+#ls -alhFi "${xfe}" "${xff}"
+#exit "${LINENO}"
+set -x
+
+
+
+: 'Copy inode of "shadow" file'
+if [[ ! -f "${xfc}" ]]; then
+  stat_o="$(stat -c%i "${xfd}")"
+  LC_ALL=C sudo find "${xfd%/*}" -inum "${stat_o}" \
+    -exec rsync -ac '{}' "${xfc}" \; ||
+    fn_erx "${LINENO}"
+  if [[ ! -f "${xfc}" ]]; then
+    fn_erx "${LINENO}"
+  fi
+fi; unset stat_o
 exit "${LINENO}"
 set -x
 
 
 
 : 'DAC permissions of "shadow" files' 
-for f in "${xff[@]}" ; do
+for f in "${xfg[@]}" ; do
   if [[ -L "${f}" ]]; then
     continue
   fi
-  fa="$(sudo stat -c%a "${f}")"
-  if [[ "${fa}" != 755 ]]; then
+  stat_o1="$(sudo stat -c%a "${f}")"
+  if [[ "${stat_o1}" != 755 ]]; then
     sudo chmod 755 "${f}" || 
       fn_erx "${LINENO}"
-    so="$(sudo stat -c%a "${f}")" || 
+    stat_o2="$(sudo stat -c%a "${f}")" || 
       fn_erx "${LINENO}"
-    if ! grep -q 755 <<< "${so}"; then
-      fn_erx
+    if ! grep -q 755 <<< "${stat_o2}"; then
+      fn_erx "${LINENO}"
     fi
   fi
 done
