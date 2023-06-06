@@ -105,20 +105,21 @@ unset -v "${x}"
 
 : 'Remove: Namerefs' 
 unset -n "${x}"
-set -x
+#set -x
 
 : 'Remove: Unused dirs in PATH' 
+# if the dir exists try to remove it, but if it isn't empty, then 
+# ignore the error 
 for dirnm in "${xff[@]%/*}"; do
-  
-  # if the dir exists...
-  if [[ -d "${dirnm}" ]] && [[ ! -L "${dirnm}" ]]; then
-    
-    # ...try to remove it, but if it isn't empty, then ignore the error 
-    sudo rmdir --ignore-fail-on-non-empty -- "${dirnm}" || 
-      fn_erx "${LINENO}"
+  if [[ -d "${dirnm}" ]]; then 
+    fsobjs="$(ls "$dirnm" 2> /dev/null | tr -d '\n' | head -c32)" 
+    if [[ -z "${fsobjs}" ]] && [[ ! -L "${dirnm}" ]]; then
+      sudo rmdir --ignore-fail-on-non-empty -- "${dirnm}" || 
+        fn_erx "${LINENO}"
+    fi
   fi
 done; unset dirnm 
-exit "${LINENO}"
+#exit "${LINENO}"
 
 : 'Remove: Builtin' 
 enable_o="$(enable -a | grep "${x}")"
@@ -131,7 +132,7 @@ unset -f "${x}"
 
 : 'Remove: Alias' 
 unalias "${x}" 2> /dev/null
-exit "${LINENO}"
+#exit "${LINENO}"
 #set -x
 
 
@@ -173,7 +174,7 @@ if [[ -z "${decl_awk_o}" ]]; then
   fi
 fi; unset decl_awk_o
 #exit "${LINENO}"
-set -x
+#set -x
 
 
 
@@ -185,8 +186,8 @@ for d in "${xff[@]%/*}"; do
       fn_erx "${LINENO}"
   fi;
 done; unset d
-exit "${LINENO}"
-set -x
+#exit "${LINENO}"
+#set -x
 
 
 
@@ -202,8 +203,8 @@ fi
 if [[ "$(type -t "${x}")" != file ]]; then
   fn_erx "${LINENO}"
 fi
-exit "${LINENO}"
-set -x
+#exit "${LINENO}"
+#set -x
 
 
 
@@ -218,8 +219,8 @@ fi
 if [[ "$(type -t "${x}")" != file ]]; then
   fn_erx "${LINENO}"
 fi
-exit "${LINENO}"
-set -x
+#exit "${LINENO}"
+#set -x
 
 
 
@@ -234,14 +235,15 @@ fi
 if [[ "$(type -t "${x}")" != file ]]; then
   fn_erx "${LINENO}"
 fi
-exit "${LINENO}"
+#exit "${LINENO}"
 set -x
+sudo ls -alhFi "${xfa}" "${xfd}"
 
 
 
 : 'Dangling symlink of "shadow" file' 
 if [[ ! -f "${xfd}" ]]; then
-  sudo cp -b "${xfa}" "${xfd}" || 
+  sudo cp -bv "${xfa}" "${xfd}" || 
     fn_erx "${LINENO}"
   if [[ ! -f "${xfd}" ]]; then
     fn_erx
