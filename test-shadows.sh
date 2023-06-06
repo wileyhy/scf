@@ -144,20 +144,19 @@ unset -f "${x}"
 : 'Remove: Alias' 
 unalias "${x}" 2> /dev/null
 #exit "${LINENO}"
-set -x
+#set -x
 
 
 
 : 'Create "shadow" variable' 
 declare_p_o="$(declare -p "${x}" 2> /dev/null)"
-if [[ -z "${declare_p_o:0:8}" ]]; then
+if [[ -z "${declare_p_o}" ]]; then
   declare "${x}"=quux
   declare_p_o="$(declare -p "${x}" 2> /dev/null)"
   if [[ -z "${declare_p_o}" ]]; then
     fn_erx
   fi
 fi; unset declare_p_o
-declare -p "${x}"
 #exit "${LINENO}"
 set -x
 
@@ -166,13 +165,25 @@ set -x
 : 'Create "shadow" nameref' 
 # Note: at equal scope, a variable cannot be a nameref and not a nameref
 # at the same time. Setting a nameref overwrites any non-nameref variable.
-declare -p UID
-decl_awk_o="$(declare -p "${x}" |& awk '$2 ~ /n/')" # is $x a nameref?
-if [[ -z "${decl_awk_o:0:8}" ]]; then
-  declare -n "${x}"=UID
+#declare -p UID
+declare -p "${x}"
+# `awk` regex crafted with care
+#   a - no, overrides nameref
+#   A - no, overrides nameref
+#   i - no, a nameref can only point to a variable name which cannot be 
+#         an integer
+#   l - ok, but cancels out 'u'
+#   r - ok
+#   t - ok, but only meaningful if target string is a function name
+#   u - ok, but cancels out 'l'
+#   x - ok
+decl_awk_o="$(declare -p "${x}" |& awk '$2 ~ /^-[lrtux]*n[lrtux]*/')" # is $x a nameref?
+if [[ -z "${decl_awk_o}" ]]; then
+  declare -nlrtux "${x}"=UID
   # Bug, awk cmd: w no flags from declare, var name could be in $2 and contain 'n'. specify awk regexp. 
-  decl_awk_o="$(declare -p "${x}" |& awk '$2 ~ /\-[aAinrtx]{,2}/')" # is $x a nameref?
-  if [[ -z "${decl_awk_o:0:8}" ]]; then
+    declare -p "${x}"
+  decl_awk_o="$(declare -p "${x}" |& awk '$2 ~ /^-[lrtux]*n[lrtux]*/')" # is $x a nameref?
+  if [[ -z "${decl_awk_o}" ]]; then
     fn_erx
   fi
 fi; unset decl_awk_o
