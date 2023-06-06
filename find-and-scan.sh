@@ -314,7 +314,7 @@ if command -p pathchk -Pp "/dev/shm/${repo_nm}"; then
 	esac;
 	fi;
 	unset POSIXLY_CORRECT
-	# move above comment
+	# lhunath: "mkdir is not defined to be an atomic operation and as such that "side-effect" is an implementation detail of the file system"
 if mkdir -m 0700 -- "/dev/shm/${repo_nm}" 2> /dev/null; then
   printf 'Creation of lockdir succeeded.\n'
   # for use of `lsof`
