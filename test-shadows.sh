@@ -250,6 +250,7 @@ if [[ ! -f "${xfd}" ]]; then
   fi
 fi
 if [[ ! -f "${xfe}" ]]; then
+  # Bug? operands are backwards? 
   sudo ln -s "${xfd}" "${xfe}" || 
     fn_erx "${LINENO}"
   if [[ ! -f "${xfd}" ]]; then
