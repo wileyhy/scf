@@ -105,32 +105,20 @@ unset -v "${x}"
 
 : 'Remove: Namerefs' 
 unset -n "${x}"
+set -x
 
-# This code block: for testing only
 : 'Remove: Unused dirs in PATH' 
-for abspath in "${xff[@]}"; do
-  
-  # get dirname
-  dirnm="${abspath%/*}"
+for dirnm in "${xff[@]%/*}"; do
   
   # if the dir exists...
-  if [[ -d "${dirnm}" ]]; then
-
-    # find any FSO's wi it, but only the first 32 bytes thereof...
-    fsobjs="$(sudo find "${dirnm}" -mindepth 1 -printf '%p' | head -c 32)"
+  if [[ -d "${dirnm}" ]] && [[ ! -L "${dirnm}" ]]; then
+    
+    # ...try to remove it, but if it isn't empty, then ignore the error 
+    sudo rmdir --ignore-fail-on-non-empty -- "${dirnm}" || 
+      fn_erx "${LINENO}"
   fi
-
-  # 
-  if [[ -v fsobjs ]]; then   
-    if [[ -z "${fsobjs}" ]]; then
-      if [[ -d "${dirnm}" ]] && [[ ! -L "${dirnm}" ]]
-      then
-        sudo rmdir -- "${dirnm}" || 
-          fn_erx "${LINENO}"
-      fi
-    fi 
-  fi; unset dirnm fsobjs
-done; unset abspath
+done; unset dirnm 
+exit "${LINENO}"
 
 : 'Remove: Builtin' 
 enable_o="$(enable -a | grep "${x}")"
@@ -143,67 +131,60 @@ unset -f "${x}"
 
 : 'Remove: Alias' 
 unalias "${x}" 2> /dev/null
-#exit "${LINENO}"
+exit "${LINENO}"
 #set -x
 
 
 
 : 'Create "shadow" variable' 
-declare_p_o="$(declare -p "${x}" 2> /dev/null)"
-if [[ -z "${declare_p_o}" ]]; then
+decl_p_o="$(declare -p "${x}" 2> /dev/null)"
+if [[ -z "${decl_p_o}" ]]; then
   declare "${x}"=quux
-  declare_p_o="$(declare -p "${x}" 2> /dev/null)"
-  if [[ -z "${declare_p_o}" ]]; then
+  decl_p_o="$(declare -p "${x}" 2> /dev/null)"
+  if [[ -z "${decl_p_o}" ]]; then
     fn_erx
   fi
-fi; unset declare_p_o
+fi; unset decl_p_o
 #exit "${LINENO}"
-set -x
+#set -x
 
 
 
 : 'Create "shadow" nameref' 
 # Note: at equal scope, a variable cannot be a nameref and not a nameref
 # at the same time. Setting a nameref overwrites any non-nameref variable.
-#declare -p UID
-declare -p "${x}"
 # `awk` regex crafted with care
 #   a - no, overrides nameref
 #   A - no, overrides nameref
 #   i - no, a nameref can only point to a variable name which cannot be 
 #         an integer
 #   l - ok, but cancels out 'u'
+#   n - ok, overrides 'i'
 #   r - ok
 #   t - ok, but only meaningful if target string is a function name
 #   u - ok, but cancels out 'l'
 #   x - ok
-decl_awk_o="$(declare -p "${x}" |& awk '$2 ~ /^-[lrtux]*n[lrtux]*/')" # is $x a nameref?
+decl_awk_o="$(declare -p "${x}" |& awk '$2 ~ /^-[lrtux]*n[lrtux]*/')"
 if [[ -z "${decl_awk_o}" ]]; then
-  declare -nlrtux "${x}"=UID
-  # Bug, awk cmd: w no flags from declare, var name could be in $2 and contain 'n'. specify awk regexp. 
-    declare -p "${x}"
-  decl_awk_o="$(declare -p "${x}" |& awk '$2 ~ /^-[lrtux]*n[lrtux]*/')" # is $x a nameref?
+  declare -n "${x}"=UID
+  decl_awk_o="$(declare -p "${x}" |& awk '$2 ~ /^-[lrtux]*n[lrtux]*/')"
   if [[ -z "${decl_awk_o}" ]]; then
     fn_erx
   fi
 fi; unset decl_awk_o
-echo 'UID' "$UID"
-echo 'export:' "$export"
-declare -p "${x}"
-exit "${LINENO}"
+#exit "${LINENO}"
 set -x
 
 
 
 : 'create PATH dirs as necc' 
 umask 022
-for f in "${xff[@]}"; do
-  d="$(dirname "${f}")"
+for d in "${xff[@]%/*}"; do
   if [[ ! -d "${d}" ]]; then
     sudo mkdir -p "${d}" || 
       fn_erx "${LINENO}"
-  fi; unset d
-done; unset f
+  fi;
+done; unset d
 exit "${LINENO}"
 set -x
 
