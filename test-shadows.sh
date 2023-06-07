@@ -80,12 +80,12 @@ IFS=':' read -ra pathdirs <<< "${PATH}"
 #declare -p pathdirs
 
 : 'Set up testing of "shadow" files' :
-symlnk="${pathdirs[0]}/${x}" # symlink              # < 0
-hrdlnk="${pathdirs[1]}/${x}" # hardlink             # < 1
-cpinod="${pathdirs[2]}/${x}" # copy of inode        # < 2
-exectbl="/usr/bin/${x}"        # executable file      # < 3
-dnglsym="${pathdirs[5]}/${x}" # dangling symlink     # < 5
-deldexec="${pathdirs[6]}/${x}" # deleted executable   # < 6
+symlnk="${pathdirs[0]}/${x}"    # symlink              # < 0
+hrdlnk="${pathdirs[1]}/${x}"    # hardlink             # < 1
+cpinod="${pathdirs[2]}/${x}"    # copy of inode        # < 2
+exectbl="/usr/bin/${x}"         # executable file      # < 3
+dnglsym="${pathdirs[5]}/${x}"   # dangling symlink     # < 5
+deldexec="${pathdirs[6]}/${x}"  # deleted executable   # < 6
 files=("${symlnk}" "${hrdlnk}" "${cpinod}" "${exectbl}" "${dnglsym}" "${deldexec}")
 #exit "${LINENO}"
 #set -x
@@ -115,18 +115,16 @@ done; unset f
 # ignore the error 
 for d in "${files[@]%/*}"; do
   if [[ -d "${d}" ]]; then 
-    fsobjs="$(find "$d" 2> /dev/null | tr -d '\n' | head -c32)" 
-    if [[ -z "${fsobjs}" ]] && [[ ! -L "${d}" ]]; then
+    fsobj="$(find "$d" 2> /dev/null | tr -d '\n' | head -c32)" 
+    if [[ -z "${fsobj}" ]] && [[ ! -L "${d}" ]]; then
       sudo rmdir --ignore-fail-on-non-empty -- "${d}" || fn_erx "${LINENO}"
     fi
   fi
-done; unset d 
+done; unset d fsobj
 #exit "${LINENO}"
 
 : 'Remove: Builtin' 
-enable_o="$(enable -a | grep "${x}")"
-[[ "$enable_o" != *-n* ]] && enable -n "${x}"
-unset enable_o
+[[ "$(enable -a | grep "${x}")" != *-n* ]] && enable -n "${x}"
 
 : 'Remove: Function' 
 unset -f "${x}"
@@ -137,22 +135,18 @@ unalias "${x}" 2> /dev/null
 #set -x
 
 : 'Create "shadow" variable' 
-decl_p_o="$(declare -p "${x}" 2> /dev/null)"
-if [[ -z "${decl_p_o}" ]]; then
+if ! declare -p "${x}" 2> /dev/null | grep -q "${x}"; then
   declare "${x}"=quux
-  decl_p_o="$(declare -p "${x}" 2> /dev/null)"
-  [[ -z "${decl_p_o}" ]] && fn_erx "${LINENO}"
-fi; unset decl_p_o
+  declare -p "${x}" 2> /dev/null | grep -q "${x}" || fn_erx "${LINENO}"
+fi
 #exit "${LINENO}"
 #set -x
 
 : 'Create "shadow" nameref' 
-decl_awk_o="$(declare -p "${x}" |& awk '$2 ~ /^-[lrtux]*n[lrtux]*/')"
-if [[ -z "${decl_awk_o}" ]]; then
+if ! declare -p "${x}" |& awk '$2 ~ /^-[lrtux]*n[lrtux]*/'; then
   declare -n "${x}"=UID
-  decl_awk_o="$(declare -p "${x}" |& awk '$2 ~ /^-[lrtux]*n[lrtux]*/')"
-  [[ -z "${decl_awk_o}" ]] && fn_erx "${LINENO}"
-fi; unset decl_awk_o
+  declare -p "${x}" |& awk '$2 ~ /^-[lrtux]*n[lrtux]*/' || fn_erx "${LINENO}"
+fi
 #exit "${LINENO}"
 #set -x
 
@@ -210,11 +204,10 @@ unset 'files[6]'
 
 : 'Copy inode of "shadow" file'
 if [[ ! -f "${cpinod}" ]]; then
-  stat_o="$(stat -c%i "${exectbl}")"
-  sudo find "${exectbl%/*}" -inum "${stat_o}" \
+  sudo find "${exectbl%/*}" -inum "$(stat -c%i "${exectbl}")" \
     -exec rsync -ac '{}' "${cpinod}" \; || fn_erx "${LINENO}"
   [[ ! -f "${cpinod}" ]] && fn_erx "${LINENO}"
-fi; unset stat_o
+fi
 #exit "${LINENO}"
 set -x
 
@@ -224,9 +217,7 @@ for f in "${files[@]}" ; do
   if [[ -f "${f}" ]]; then 
     if ! sudo stat -c%a "${f}" | grep -q 755; then
       sudo chmod 755 "${f}" || fn_erx "${LINENO}"
-      if ! sudo stat -c%a "${f}" | grep -q 755; then
-        fn_erx "${LINENO}"
-      fi
+      sudo stat -c%a "${f}" | grep -q 755 || fn_erx "${LINENO}"
     fi
   fi
 done
@@ -234,43 +225,37 @@ exit "${LINENO}"
 set -x
 
 : 'Builtin' 
-eago="$(enable | grep "${x}")"
-if [[ -z "${eago:0:8}" ]]; then
+if ! enable | grep -q "${x}"; then
   enable "${x}"
-  eago="$(enable | grep "${x}")"
-  [[ -z "${eago:0:8}" ]] && fn_erx "${LINENO}"
-fi; unset eago
+  ! enable | grep -q "${x}" || fn_erx "${LINENO}"
+fi
 [[ "$(type -t "${x}")" != builtin ]] && fn_erx "${LINENO}"
 exit "${LINENO}"
 set -x
 
 : 'Create "shadow" function' 
-dpfo="$(declare -pf "${x}" 2> /dev/null)"
-if [[ -z "${dpfo:0:8}" ]]; then
+if ! declare -pf "${x}" 2> /dev/null | grep -q "${x}"; then
   : 'define function'
   eval function "${x}" '{ echo function bar;}'
-  dpfo="$(declare -pf "${x}")"
-  [[ -z "${dpfo:0:8}" ]] && fn_erx "${LINENO}"
-fi; unset dpfo
+  declare -pf "${x}" 2> /dev/null | grep -q "${x}" || fn_erx "${LINENO}"
+fi
 [[ "$(type -t "${x}")" != function ]] && fn_erx "${LINENO}"
 exit "${LINENO}"
 set -x
 
 : 'Create "shadow" alias' 
 shopt -s expand_aliases
-ao="$(alias "${x}" 2> /dev/null)"
-if [[ -z "${ao:0:8}" ]]; then
+if ! alias "${x}" 2> /dev/null | grep -q "${x}"; then
   eval alias "${x}='{ echo alias foo;}'"
-  ao="$(alias "${x}")"
-  [[ -z "${ao:0:8}" ]] && fn_erx "${LINENO}"
-fi; unset ao
+  alias "${x}" 2> /dev/null | grep -q "${x}" || fn_erx "${LINENO}"
+fi
 [[ "$(type -t "${x}")" != alias ]] && fn_erx "${LINENO}"
 exit "${LINENO}"
 set -x
 
 : 'Verification 1: type -P' 
 printf '\n\t hash -r; hash; type -P \n\n' 
-hash -r; hash; type -P "${x}" 
+hash -r; hash; type -P "${x}"
 type_P_o="$(type -P "${x}")"
 printf '\n\t ls -alhFi [FILE]; ls -alhFiL [FILE] \n\n' 
 ls -alhFi --quoting-style=shell-always --color=always "${type_P_o}"
