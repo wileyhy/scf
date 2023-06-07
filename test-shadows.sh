@@ -1,4 +1,4 @@
-#!/usr/bin/env -iS bash
+#!/usr/bin/env -iS bash -x
 #!/usr/bin/bash
 # shellcheck disable=SC2317 # unreachable commands
 # shellcheck disable=SC2096 # excessive crashbang
@@ -18,14 +18,15 @@ fi
 #set -vx
 if [[ "$#" -eq 0 ]]; then x='export'; else x="$1"; fi;
 [[ -n "$x" ]] && readonly x
-#declare -p x
-enable -n "$x"
 LC_ALL=C  
 umask 022
+verb='-v' # ${verb}
+#declare -p x
+#enable -n "$x"
 #enable -a | grep "$x"
 #exit "${LINENO}"
 
-: 'Required programs' ;:;
+: 'Required programs'
 if [[ "${BASH_VERSION:0:1}" -lt 5 ]]; then 
   echo Please install Bash version 5, thanks.
   exit "${LINENO}"
@@ -38,13 +39,14 @@ yn=n
 hash -r; 
 #hash
 for c in "${reqd_cmds[@]}"; do 
-  if type -P "${c}" > /dev/null 2>&1; then 
-    hash -p "$(type -P "${c}")" "${c}"
+  type_P_o="$(type -P "${c}")"
+  if [[ -n "${type_P_o}" ]]; then 
+    hash -p "${type_P_o}" "${c}"
   else
     yn=y
     list+=("${c}")
   fi; 
-done; unset c reqd_cmds
+done; unset c reqd_cmds type_P_o
 #hash
 
 if [[ "${yn}" == 'n' ]]; then 
@@ -104,7 +106,7 @@ unset -n "${x}"
 #declare -p files
 for f in "${files[@]}"; do
   if [[ -f "${f}" ]] || [[ -L "${f}" ]]; then
-    sudo rm -f --one-file-system --preserve-root=all -- "${f}" || 
+    sudo rm -f ${verb} --one-file-system --preserve-root=all -- "${f}" || 
       fn_erx "${LINENO}"
   fi;
 done; unset f
@@ -117,7 +119,8 @@ for d in "${files[@]%/*}"; do
   if [[ -d "${d}" ]]; then 
     fsobj="$(find "$d" 2> /dev/null | tr -d '\n' | head -c32)" 
     if [[ -z "${fsobj}" ]] && [[ ! -L "${d}" ]]; then
-      sudo rmdir --ignore-fail-on-non-empty -- "${d}" || fn_erx "${LINENO}"
+      sudo rmdir ${verb} --ignore-fail-on-non-empty -- "${d}" || 
+        fn_erx "${LINENO}"
     fi
   fi
 done; unset d fsobj
@@ -153,7 +156,7 @@ fi
 : 'create PATH dirs as necc' 
 for d in "${files[@]%/*}"; do
   if [[ ! -d "${d}" ]]; then
-    sudo mkdir -p "${d}" || fn_erx "${LINENO}"
+    sudo mkdir -p ${verb} "${d}" || fn_erx "${LINENO}"
   fi;
 done; unset d
 #exit "${LINENO}"
@@ -162,7 +165,7 @@ done; unset d
 : 'Create "shadow" executable file' 
 if [[ ! -f "${exectbl}" ]]; then
   printf '\x23\x21/usr/bin/sh\n%s \x22\x24\x40\x22\n' "${x}" | 
-    sudo tee  "${exectbl}" > /dev/null || fn_erx "${LINENO}"
+    sudo tee "${exectbl}" > /dev/null || fn_erx "${LINENO}"
   [[ ! -f "${exectbl}" ]] && fn_erx "${LINENO}"
 fi
 [[ "$(type -t "${x}")" != file ]] && fn_erx "${LINENO}"
@@ -171,7 +174,7 @@ fi
 
 : 'Symlink of "shadow" file' 
 if [[ ! -f "${symlnk}" ]]; then
-  sudo ln -s "${exectbl}" "${symlnk}" || fn_erx "${LINENO}"
+  sudo ln -s ${verb} "${exectbl}" "${symlnk}" || fn_erx "${LINENO}"
   [[ ! -f "${symlnk}" ]] && fn_erx "${LINENO}"
 fi
 [[ "$(type -t "${x}")" != file ]] && fn_erx "${LINENO}"
@@ -180,7 +183,7 @@ fi
 
 : 'Hardlink of "shadow" file' 
 if [[ ! -f "${hrdlnk}" ]]; then
-  sudo ln "${exectbl}" "${hrdlnk}" || fn_erx "${LINENO}"
+  sudo ln ${verb} "${exectbl}" "${hrdlnk}" || fn_erx "${LINENO}"
   [[ ! -f "${hrdlnk}" ]] && fn_erx "${LINENO}"
 fi
 [[ "$(type -t "${x}")" != file ]] && fn_erx "${LINENO}"
@@ -189,9 +192,10 @@ fi
 
 : 'Dangling symlink of "shadow" file' 
 if [[ ! -f "${dnglsym}" ]]; then
-  sudo cp -b "${exectbl}" "${deldexec}" || fn_erx "${LINENO}"
-  sudo ln -s "${deldexec}" "${dnglsym}" || fn_erx "${LINENO}"
-  sudo rm -f i--one-file-system --preserve-root=all -- "${deldexec}" || 
+  sudo cp -b ${verb} "${exectbl}" "${deldexec}" || fn_erx "${LINENO}"
+  sudo ln -s ${verb} "${deldexec}" "${dnglsym}" || fn_erx "${LINENO}"
+  sudo rm -f ${verb} --one-file-system --preserve-root=all \
+    -- "${deldexec}" || 
     fn_erx "${LINENO}"
   [[ ! -L "${dnglsym}" ]] && fn_erx "${LINENO}"
 fi
@@ -216,7 +220,7 @@ for f in "${files[@]}" ; do
   [[ -L "${f}" ]] && continue
   if [[ -f "${f}" ]]; then 
     if ! sudo stat -c%a "${f}" | grep -q 755; then
-      sudo chmod 755 "${f}" || fn_erx "${LINENO}"
+      sudo chmod ${verb} 755 "${f}" || fn_erx "${LINENO}"
       sudo stat -c%a "${f}" | grep -q 755 || fn_erx "${LINENO}"
     fi
   fi
