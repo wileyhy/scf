@@ -1,8 +1,7 @@
 #!/usr/bin/env -iS bash
-# test-shadows.sh
+# test-shadows.sh - Bash 5 required
 #   shellcheck disable=SC2317 # unreachable commands
 #   shellcheck disable=SC2096 # excessive crashbang
-# Bash 5 required
 
 : 'Regular users only, and -sudo- required' 
 if [[ "$UID" == 0 ]]; then
@@ -81,9 +80,6 @@ dnglsym="${pathdirs[5]}/$x"   # dangling symlink     # < 5
 deldexec="${pathdirs[6]}/$x"  # deleted executable   # < 6
 files=("$symlnk" "$hrdlnk" "$cpinod" "$exectbl" "$dnglsym" "$deldexec")
 
-
-: 'Remove:'
-
 : 'Remove: Regular variable' 
 unset -v "$x"
 
@@ -125,28 +121,21 @@ unset -f "$x"
 : 'Remove: Alias' 
 unalias "$x"
 
-: 'Create:'
-
 : 'Create: "shadow" variable' 
 if ! declare -p "$x" |& grep -q "$x"; then
   declare "${x}"=quux
   declare -p "$x" |& grep -q "$x" || fn_erx "$LINENO"
 fi
-  #set -x # <>
 
 : 'Create: "shadow" nameref' 
-  #declare -p $x # <>
 #if ! declare -p "$x" |& awk '$2 ~ /^-[lrtux]*n[lrtux]*/'; then
 if ! declare -p "$x" |& awk '{ print $2 }' | grep -qE '^-[lrtux]*n[lrtux]*'
 then
   declare -n "${x}"=UID
-    #declare -p $x # <>
   #declare -p "$x" |& awk '$2 ~ /^-[lrtux]*n[lrtux]*/' || fn_erx "$LINENO"
   declare -p "$x" |& awk '{ print $2 }' | grep -qE '^-[lrtux]*n[lrtux]*' ||
     fn_erx "$LINENO"
 fi
-  #exit $LINENO # <>
-  #set -x # <>
 
 : 'Create: PATH dirs as necc' 
 for d in "${files[@]%/*}"; do
@@ -196,7 +185,6 @@ if [[ ! -f "$cpinod" ]]; then
     -exec rsync -ac '{}' "$cpinod" \; || fn_erx "$LINENO"
   [[ ! -f "$cpinod" ]] && fn_erx "$LINENO"
 fi
-  #set -x # <>
 
 : 'Correct: DAC permissions of "shadow" files' 
 for f in "${files[@]}" ; do
@@ -208,33 +196,20 @@ for f in "${files[@]}" ; do
     fi
   fi
 done
-  #exit "$LINENO" # <>
-  #set -x # <>
 
 : 'Enable: builtin'
-  #enable -ap | grep $x # <>
 if ! enable | grep -q "$x"; then
   enable "$x"
-    #enable -ap | grep $x # <>
-    #: "${Halt:?}" # <>
   enable | grep -q "$x" || fn_erx "$LINENO"
 fi
 [[ "$(type -t "$x")" != builtin ]] && fn_erx "$LINENO"
-  #exit "$LINENO" # <>
-  #set -x # <>
 
 : 'Create: "shadow" function' 
-  #declare -pf $x # <>
 if ! declare -pf "$x" > /dev/null 2>&1; then
-    #echo exit, decl-grep pipeline $? # <>
-    #: 'define function' # <>
   eval function "$x" '{ echo function bar;}'
-    #declare -pF $x # <>
   declare -pf "$x" > /dev/null 2>&1 || fn_erx "$LINENO"
 fi
-  #type -a $x # <>
 [[ "$(type -t "$x")" != function ]] && fn_erx "$LINENO"
-  #exit "$LINENO" # <>
   set -x # <>
 
 : 'Create: "shadow" alias' 
