@@ -1,101 +1,40 @@
 #!/usr/bin/env -iS bash
 # test-shadows.sh - Bash 5 required
-#   shellcheck disable=SC2317 # unreachable commands
-#   shellcheck disable=SC2096 # excessive crashbang
+#   shellcheck disable=SC2317,SC2096 # unreachable commands & crashbang
 
 : 'Regular users only, and -sudo- required' 
-if [[ "$UID" == 0 ]]; then
-  printf '\n\t Must be a regular user and use sudo. \n\n'
-  exit "$LINENO"
-elif ! sudo -v; then
-  printf '\n\t Validation failed of user\x27s \x60sudo\x60 timestamp. '
-  printf 'Exiting.\n\n'
-  exit "$LINENO"
+if [[ "$UID" == 0 ]]; then echo May not be root.; exit 1
+elif ! sudo -v; then echo sudo failed.; exit 1
+elif [[ "${BASH_VERSION:0:1}" -lt 5 ]]; then Requires bash 5; exit 1
 fi
 
 : 'Target string:' 
-LC_ALL=C  
-shopt -s expand_aliases
 if [[ "$#" -eq 0 ]]; then x='export'; else x="$1"; fi;
-[[ -n "$x" ]] && declare -rx x
-unset Halt && declare -rx Halt
-verb='-v' 
-umask 022
-
-: 'Required programs'
-if [[ "${BASH_VERSION:0:1}" -lt 5 ]]; then 
-  echo Please install Bash version 5, thanks.
-  exit "$LINENO"
-fi
-
-reqd_cmds=( awk chmod cp cut dirname find grep ln ls mkdir rm rmdir 
-  stat sudo tee )
-yn=n
-
-hash -r; 
-for c in "${reqd_cmds[@]}"; do 
-  type_P_o="$(type -P "$c")"
-  if [[ -n "$type_P_o" ]]; then 
-    hash -p "$type_P_o" "$c"
-  else
-    yn=y
-    list+=("$c")
-  fi; 
-done; unset c reqd_cmds type_P_o
-
-if [[ "$yn" == 'n' ]]; then 
-  : 'No additional commands are required'
-else
-  printf '\n\t Please install the following commands:\n'
-  printf '\t\t%s\n' "${list[@]}" 
-  echo
-  exit "$LINENO"
-fi; unset yn list
-
 
 : 'Functions, variables and umask' 
-function fn_erx(){
-  local ec="$?"
-  echo ERROR: "$@"
-  exit "$ec"
-}
-
-: 'Set up testing of PATH dirs' :
+function fn_erx(){ local ec="$?"; echo ERROR: "$@"; exit "$ec"; }
+LC_ALL=C  
 unset PATH 
-PATH="/home/liveuser/.local/bin_symlink"  # < 0
-PATH+=":/home/liveuser/bin_hardlink"      # < 1
-PATH+=":/usr/local/bin_copy-of-inode"     # < 2
-PATH+=":/usr/bin"                         # < 3
-PATH+=":/bin"                             # < 4
-PATH+=":/usr/local/sbin_dangling_symlink" # < 5
-PATH+=":/usr/sbin"                        # < 6
+PATH='/home/liveuser/.local/bin_symlink:/home/liveuser/bin_hardlink:/usr/local/bin_copy-of-inode:/usr/bin:/bin:/usr/local/sbin_dangling_symlink:/usr/sbin'
 IFS=':' read -ra pathdirs <<< "$PATH"
-
-: 'Set up testing of "shadow" files' :
-symlnk="${pathdirs[0]}/$x"    # symlink              # < 0
-hrdlnk="${pathdirs[1]}/$x"    # hardlink             # < 1
-cpinod="${pathdirs[2]}/$x"    # copy of inode        # < 2
-exectbl="/usr/bin/$x"         # executable file      # < 3
-dnglsym="${pathdirs[5]}/$x"   # dangling symlink     # < 5
-deldexec="${pathdirs[6]}/$x"  # deleted executable   # < 6
+symlnk="${pathdirs[0]}/$x"
+hrdlnk="${pathdirs[1]}/$x"
+cpinod="${pathdirs[2]}/$x"
+exectbl="/usr/bin/$x"
+dnglsym="${pathdirs[5]}/$x"
+deldexec="${pathdirs[6]}/$x"
 files=("$symlnk" "$hrdlnk" "$cpinod" "$exectbl" "$dnglsym" "$deldexec")
+umask 022
+shopt -s expand_aliases
 
-: 'Remove: Regular variable' 
-unset -v "$x"
-
-: 'Remove: Namerefs' 
-unset -n "$x"
-
-: 'Remove: any previous test files'
+: 'Removals: files, dirs, etc' 
 for f in "${files[@]}"; do
   if [[ -f "$f" ]] || [[ -L "$f" ]]; then
     sudo rm -f ${verb} --one-file-system --preserve-root=all -- "$f" || 
       fn_erx "$LINENO"
   fi;
 done; unset f
-  #set -x # <>
 
-: 'Remove: Unused dirs in PATH' 
 for d in "${files[@]}"; do
   while :; do
     d="${d%/*}"
@@ -112,128 +51,69 @@ for d in "${files[@]}"; do
   done
 done; unset d fsobj
 
-: 'Remove: Builtin' 
-[[ "$(enable -a | grep "$x")" != *-n* ]] && enable -n "$x"
-
-: 'Remove: Function' 
+unset -v "$x"
+unset -n "$x"
 unset -f "$x"
+[[ "$(enable -a | grep "$x")" != *-n* ]] && enable -n "$x"
+unalias "$x" 2> /dev/null
 
-: 'Remove: Alias' 
-unalias "$x"
 
-: 'Create: "shadow" variable' 
-if ! declare -p "$x" |& grep -q "$x"; then
-  declare "${x}"=quux
-  declare -p "$x" |& grep -q "$x" || fn_erx "$LINENO"
-fi
-
-: 'Create: "shadow" nameref' 
-#if ! declare -p "$x" |& awk '$2 ~ /^-[lrtux]*n[lrtux]*/'; then
-if ! declare -p "$x" |& awk '{ print $2 }' | grep -qE '^-[lrtux]*n[lrtux]*'
-then
-  declare -n "${x}"=UID
-  #declare -p "$x" |& awk '$2 ~ /^-[lrtux]*n[lrtux]*/' || fn_erx "$LINENO"
-  declare -p "$x" |& awk '{ print $2 }' | grep -qE '^-[lrtux]*n[lrtux]*' ||
-    fn_erx "$LINENO"
-fi
-
-: 'Create: PATH dirs as necc' 
+: 'Additions: "shadow" dirs, etc'
 for d in "${files[@]%/*}"; do
   if [[ ! -d "$d" ]]; then
     sudo mkdir -p ${verb} "$d" || fn_erx "$LINENO"
   fi;
 done; unset d
 
-: 'Create: "shadow" executable file' 
+if ! declare -p "$x" |& grep -q "$x"; then declare "${x}"=quux; fi
+if ! declare -p "$x" |& grep -qE ' -[lrtux]*n[lrtux]*'; then
+  declare -n "${x}"=UID
+fi
+if ! enable | grep -q "$x"; then enable "$x"; fi
+if ! alias "$x" 2> /dev/null; then eval alias "$x='{ echo alias foo;}'"; fi
+if ! declare -pf "$x" > /dev/null 2>&1; then
+  eval function "$x" '{ echo function bar;}'
+fi
+
+: 'Additions: "shadow" files, DACs' 
 if [[ ! -f "$exectbl" ]]; then
   printf '\x23\x21/usr/bin/sh\n%s \x22\x24\x40\x22\n' "$x" | 
     sudo tee "$exectbl" > /dev/null || fn_erx "$LINENO"
-  [[ ! -f "$exectbl" ]] && fn_erx "$LINENO"
 fi
-[[ "$(type -t "$x")" != file ]] && fn_erx "$LINENO"
-
-: 'Create: symlink of "shadow" file' 
 if [[ ! -f "$symlnk" ]]; then
   sudo ln -s ${verb} "$exectbl" "$symlnk" || fn_erx "$LINENO"
-  [[ ! -f "$symlnk" ]] && fn_erx "$LINENO"
 fi
-[[ "$(type -t "$x")" != file ]] && fn_erx "$LINENO"
-
-: 'Create: hardlink of "shadow" file' 
 if [[ ! -f "$hrdlnk" ]]; then
   sudo ln ${verb} "$exectbl" "$hrdlnk" || fn_erx "$LINENO"
-  [[ ! -f "$hrdlnk" ]] && fn_erx "$LINENO"
 fi
-[[ "$(type -t "$x")" != file ]] && fn_erx "$LINENO"
-
-: 'Create: dangling symlink of "shadow" file' 
 if [[ ! -f "$dnglsym" ]]; then
   sudo cp -b ${verb} "$exectbl" "$deldexec" || fn_erx "$LINENO"
   sudo ln -s ${verb} "$deldexec" "$dnglsym" || fn_erx "$LINENO"
   sudo rm -f ${verb} --one-file-system --preserve-root=all \
     -- "$deldexec" || 
     fn_erx "$LINENO"
-  [[ ! -L "$dnglsym" ]] && fn_erx "$LINENO"
-fi
-[[ "$(type -t "$x")" != file ]] && fn_erx "$LINENO"
-: 'the actual file has been removed so the extra symlink may "dangle"' 
-unset 'files[6]'
-
-: 'Create: copy inode of "shadow" file'
+fi; unset 'files[6]'
 if [[ ! -f "$cpinod" ]]; then
   sudo find "${exectbl%/*}" -inum "$(stat -c%i "$exectbl")" \
     -exec rsync -ac '{}' "$cpinod" \; || fn_erx "$LINENO"
-  [[ ! -f "$cpinod" ]] && fn_erx "$LINENO"
 fi
 
-: 'Correct: DAC permissions of "shadow" files' 
 for f in "${files[@]}" ; do
   [[ -L "$f" ]] && continue
   if [[ -f "$f" ]]; then 
     if ! sudo stat -c%a "$f" | grep -q 755; then
       sudo chmod ${verb} 755 "$f" || fn_erx "$LINENO"
-      sudo stat -c%a "$f" | grep -q 755 || fn_erx "$LINENO"
     fi
   fi
 done
 
-: 'Enable: builtin'
-if ! enable | grep -q "$x"; then
-  enable "$x"
-  enable | grep -q "$x" || fn_erx "$LINENO"
-fi
-[[ "$(type -t "$x")" != builtin ]] && fn_erx "$LINENO"
-
-: 'Create: "shadow" function' 
-if ! declare -pf "$x" > /dev/null 2>&1; then
-  eval function "$x" '{ echo function bar;}'
-  declare -pf "$x" > /dev/null 2>&1 || fn_erx "$LINENO"
-fi
-[[ "$(type -t "$x")" != function ]] && fn_erx "$LINENO"
-  set -x # <>
-
-: 'Create: "shadow" alias' 
-if ! alias "$x" |& grep -q "$x"; then
-  eval alias "${x}='{ echo alias foo;}'"
-  alias "$x" |& grep -q "$x" || fn_erx "$LINENO"
-fi
-[[ "$(type -t "$x")" != alias ]] && fn_erx "$LINENO"
-  exit "$LINENO" # <>
-  set -x # <>
-
 : 'Verification'
-
-: 'Verification 1: type -P' 
 printf '\n\t hash -r; hash; type -P \n\n' 
 hash -r; hash; type -P "$x"
 type_P_o="$(type -P "$x")"
 printf '\n\t ls -alhFi [FILE]; ls -alhFiL [FILE] \n\n' 
 ls -alhFi --quoting-style=shell-always --color=always "$type_P_o"
 ls -alhFiL --quoting-style=shell-always --color=always "$type_P_o"
-  exit "$LINENO" # <>
-  set -x # <>
-
-: 'Verification 2: type -a' 
 printf '\n\t declare -p pathdirs # (Same as PATH.) \n\n' 
 declare -p pathdirs
 printf '\n\t command -pV; command -v \n\n' 
