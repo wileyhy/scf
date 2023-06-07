@@ -20,6 +20,8 @@ if [[ "$#" -eq 0 ]]; then x='export'; else x="$1"; fi;
 [[ -n "$x" ]] && readonly x
 #declare -p x
 enable -n "$x"
+LC_ALL=C  
+umask 022
 #enable -a | grep "$x"
 #exit "${LINENO}"
 
@@ -96,18 +98,17 @@ unset -v "${x}"
 
 : 'Remove: Namerefs' 
 unset -n "${x}"
-set -x
+#set -x
 
 : 'Remove: any previous test files'
-declare -p files
+#declare -p files
 for f in "${files[@]}"; do
-  if [[ -f "${f}" ]] || [[ -L "${f}" ]]
-  then
+  if [[ -f "${f}" ]] || [[ -L "${f}" ]]; then
     sudo rm -f --one-file-system --preserve-root=all -- "${f}" || 
-      fn_erx
+      fn_erx "${LINENO}"
   fi;
 done; unset f
-exit "${LINENO}"
+#exit "${LINENO}"
 
 : 'Remove: Unused dirs in PATH' 
 # if the dir exists try to remove it, but if it isn't empty, then 
@@ -116,8 +117,7 @@ for d in "${files[@]%/*}"; do
   if [[ -d "${d}" ]]; then 
     fsobjs="$(find "$d" 2> /dev/null | tr -d '\n' | head -c32)" 
     if [[ -z "${fsobjs}" ]] && [[ ! -L "${d}" ]]; then
-      sudo rmdir --ignore-fail-on-non-empty -- "${d}" || 
-        fn_erx "${LINENO}"
+      sudo rmdir --ignore-fail-on-non-empty -- "${d}" || fn_erx "${LINENO}"
     fi
   fi
 done; unset d 
@@ -125,9 +125,8 @@ done; unset d
 
 : 'Remove: Builtin' 
 enable_o="$(enable -a | grep "${x}")"
-if [[ "$enable_o" != *-n* ]]; then
-  enable -n "${x}"
-fi; unset enable_o
+[[ "$enable_o" != *-n* ]] && enable -n "${x}"
+unset enable_o
 
 : 'Remove: Function' 
 unset -f "${x}"
@@ -137,186 +136,113 @@ unalias "${x}" 2> /dev/null
 #exit "${LINENO}"
 #set -x
 
-
-
 : 'Create "shadow" variable' 
 decl_p_o="$(declare -p "${x}" 2> /dev/null)"
 if [[ -z "${decl_p_o}" ]]; then
   declare "${x}"=quux
   decl_p_o="$(declare -p "${x}" 2> /dev/null)"
-  if [[ -z "${decl_p_o}" ]]; then
-    fn_erx
-  fi
+  [[ -z "${decl_p_o}" ]] && fn_erx "${LINENO}"
 fi; unset decl_p_o
 #exit "${LINENO}"
 #set -x
 
-
-
 : 'Create "shadow" nameref' 
-# Note: at equal scope, a variable cannot be a nameref and not a nameref
-# at the same time. Setting a nameref overwrites any non-nameref variable.
-# `awk` regex crafted with care
-#   a - no, overrides nameref
-#   A - no, overrides nameref
-#   i - no, a nameref can only point to a variable name which cannot be 
-#         an integer
-#   l - ok, but cancels out 'u'
-#   n - ok, overrides 'i'
-#   r - ok
-#   t - ok, but only meaningful if target string is a function name
-#   u - ok, but cancels out 'l'
-#   x - ok
 decl_awk_o="$(declare -p "${x}" |& awk '$2 ~ /^-[lrtux]*n[lrtux]*/')"
 if [[ -z "${decl_awk_o}" ]]; then
   declare -n "${x}"=UID
   decl_awk_o="$(declare -p "${x}" |& awk '$2 ~ /^-[lrtux]*n[lrtux]*/')"
-  if [[ -z "${decl_awk_o}" ]]; then
-    fn_erx
-  fi
+  [[ -z "${decl_awk_o}" ]] && fn_erx "${LINENO}"
 fi; unset decl_awk_o
 #exit "${LINENO}"
 #set -x
 
-
-
 : 'create PATH dirs as necc' 
-umask 022
 for d in "${files[@]%/*}"; do
   if [[ ! -d "${d}" ]]; then
-    sudo mkdir -p "${d}" || 
-      fn_erx "${LINENO}"
+    sudo mkdir -p "${d}" || fn_erx "${LINENO}"
   fi;
 done; unset d
 #exit "${LINENO}"
 #set -x
 
-
-
 : 'Create "shadow" executable file' 
 if [[ ! -f "${exectbl}" ]]; then
   printf '\x23\x21/usr/bin/sh\n%s \x22\x24\x40\x22\n' "${x}" | 
-    sudo tee  "${exectbl}" > /dev/null || 
-      fn_erx "${LINENO}"
-  if [[ ! -f "${exectbl}" ]]; then
-    fn_erx
-  fi
+    sudo tee  "${exectbl}" > /dev/null || fn_erx "${LINENO}"
+  [[ ! -f "${exectbl}" ]] && fn_erx "${LINENO}"
 fi
-if [[ "$(type -t "${x}")" != file ]]; then
-  fn_erx "${LINENO}"
-fi
+[[ "$(type -t "${x}")" != file ]] && fn_erx "${LINENO}"
 #exit "${LINENO}"
 #set -x
-
-
 
 : 'Symlink of "shadow" file' 
 if [[ ! -f "${symlnk}" ]]; then
-  sudo ln -s "${exectbl}" "${symlnk}" || 
-    fn_erx "${LINENO}"
-  if [[ ! -f "${symlnk}" ]]; then
-    fn_erx
-  fi
+  sudo ln -s "${exectbl}" "${symlnk}" || fn_erx "${LINENO}"
+  [[ ! -f "${symlnk}" ]] && fn_erx "${LINENO}"
 fi
-if [[ "$(type -t "${x}")" != file ]]; then
-  fn_erx "${LINENO}"
-fi
+[[ "$(type -t "${x}")" != file ]] && fn_erx "${LINENO}"
 #exit "${LINENO}"
 #set -x
-
-
 
 : 'Hardlink of "shadow" file' 
 if [[ ! -f "${hrdlnk}" ]]; then
-  sudo ln "${exectbl}" "${hrdlnk}" || 
-    fn_erx "${LINENO}"
-  if [[ ! -f "${hrdlnk}" ]]; then
-    fn_erx
-  fi
+  sudo ln "${exectbl}" "${hrdlnk}" || fn_erx "${LINENO}"
+  [[ ! -f "${hrdlnk}" ]] && fn_erx "${LINENO}"
 fi
-if [[ "$(type -t "${x}")" != file ]]; then
-  fn_erx "${LINENO}"
-fi
+[[ "$(type -t "${x}")" != file ]] && fn_erx "${LINENO}"
 #exit "${LINENO}"
 #set -x
 
-
-
 : 'Dangling symlink of "shadow" file' 
 if [[ ! -f "${dnglsym}" ]]; then
-  sudo cp -b "${exectbl}" "${deldexec}" || 
-    fn_erx "${LINENO}"
-  sudo ln -s "${deldexec}" "${dnglsym}" || 
-    fn_erx "${LINENO}"
+  sudo cp -b "${exectbl}" "${deldexec}" || fn_erx "${LINENO}"
+  sudo ln -s "${deldexec}" "${dnglsym}" || fn_erx "${LINENO}"
   sudo rm -f i--one-file-system --preserve-root=all -- "${deldexec}" || 
     fn_erx "${LINENO}"
-  if [[ ! -L "${dnglsym}" ]]; then
-    fn_erx
-  fi
+  [[ ! -L "${dnglsym}" ]] && fn_erx "${LINENO}"
 fi
-if [[ "$(type -t "${x}")" != file ]]; then
-  fn_erx "${LINENO}"
-fi
+[[ "$(type -t "${x}")" != file ]] && fn_erx "${LINENO}"
 : 'the actual file has been removed so the extra symlink may "dangle"' 
 unset 'files[6]'
 #ls -alhFi "${dnglsym}" "${deldexec}"
 #exit "${LINENO}"
-set -x
-
-
+#set -x
 
 : 'Copy inode of "shadow" file'
 if [[ ! -f "${cpinod}" ]]; then
   stat_o="$(stat -c%i "${exectbl}")"
-  LC_ALL=C sudo find "${exectbl%/*}" -inum "${stat_o}" \
-    -exec rsync -ac '{}' "${cpinod}" \; ||
-    fn_erx "${LINENO}"
-  if [[ ! -f "${cpinod}" ]]; then
-    fn_erx "${LINENO}"
-  fi
+  sudo find "${exectbl%/*}" -inum "${stat_o}" \
+    -exec rsync -ac '{}' "${cpinod}" \; || fn_erx "${LINENO}"
+  [[ ! -f "${cpinod}" ]] && fn_erx "${LINENO}"
 fi; unset stat_o
-exit "${LINENO}"
+#exit "${LINENO}"
 set -x
-
-
 
 : 'DAC permissions of "shadow" files' 
 for f in "${files[@]}" ; do
-  if [[ -L "${f}" ]]; then
-    continue
-  fi
-  stat_o1="$(sudo stat -c%a "${f}")"
-  if [[ "${stat_o1}" != 755 ]]; then
-    sudo chmod 755 "${f}" || 
-      fn_erx "${LINENO}"
-    stat_o2="$(sudo stat -c%a "${f}")" || 
-      fn_erx "${LINENO}"
-    if ! grep -q 755 <<< "${stat_o2}"; then
-      fn_erx "${LINENO}"
+  [[ -L "${f}" ]] && continue
+  if [[ -f "${f}" ]]; then 
+    if ! sudo stat -c%a "${f}" | grep -q 755; then
+      sudo chmod 755 "${f}" || fn_erx "${LINENO}"
+      if ! sudo stat -c%a "${f}" | grep -q 755; then
+        fn_erx "${LINENO}"
+      fi
     fi
   fi
 done
 exit "${LINENO}"
 set -x
 
-
-
 : 'Builtin' 
 eago="$(enable | grep "${x}")"
 if [[ -z "${eago:0:8}" ]]; then
   enable "${x}"
   eago="$(enable | grep "${x}")"
-  if [[ -z "${eago:0:8}" ]]; then
-    fn_erx
-  fi
+  [[ -z "${eago:0:8}" ]] && fn_erx "${LINENO}"
 fi; unset eago
-if [[ "$(type -t "${x}")" != builtin ]]; then
-  fn_erx "${LINENO}"
-fi
+[[ "$(type -t "${x}")" != builtin ]] && fn_erx "${LINENO}"
 exit "${LINENO}"
 set -x
-
-
 
 : 'Create "shadow" function' 
 dpfo="$(declare -pf "${x}" 2> /dev/null)"
@@ -324,17 +250,11 @@ if [[ -z "${dpfo:0:8}" ]]; then
   : 'define function'
   eval function "${x}" '{ echo function bar;}'
   dpfo="$(declare -pf "${x}")"
-  if [[ -z "${dpfo:0:8}" ]]; then
-    fn_erx
-  fi
+  [[ -z "${dpfo:0:8}" ]] && fn_erx "${LINENO}"
 fi; unset dpfo
-if [[ "$(type -t "${x}")" != function ]]; then
-  fn_erx "${LINENO}"
-fi
+[[ "$(type -t "${x}")" != function ]] && fn_erx "${LINENO}"
 exit "${LINENO}"
 set -x
-
-
 
 : 'Create "shadow" alias' 
 shopt -s expand_aliases
@@ -342,17 +262,11 @@ ao="$(alias "${x}" 2> /dev/null)"
 if [[ -z "${ao:0:8}" ]]; then
   eval alias "${x}='{ echo alias foo;}'"
   ao="$(alias "${x}")"
-  if [[ -z "${ao:0:8}" ]]; then
-    fn_erx
-  fi
+  [[ -z "${ao:0:8}" ]] && fn_erx "${LINENO}"
 fi; unset ao
-if [[ "$(type -t "${x}")" != alias ]]; then
-  fn_erx "${LINENO}"
-fi
+[[ "$(type -t "${x}")" != alias ]] && fn_erx "${LINENO}"
 exit "${LINENO}"
 set -x
-
-
 
 : 'Verification 1: type -P' 
 printf '\n\t hash -r; hash; type -P \n\n' 
@@ -363,8 +277,6 @@ ls -alhFi --quoting-style=shell-always --color=always "${type_P_o}"
 ls -alhFiL --quoting-style=shell-always --color=always "${type_P_o}"
 exit "${LINENO}"
 set -x
-
-
 
 : 'Verification 2: type -a' 
 printf '\n\t declare -p pathdirs # (Same as PATH.) \n\n' 
