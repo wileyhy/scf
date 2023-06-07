@@ -5,6 +5,11 @@
 # WARNING: Misuse of this script may require reinstallation of some rpms
 # or other data loss. 
 
+disallowed_strings=( '[[' ']]' '|' '||' '|&' '&&' 'LINENO' 'alias' 'bash' 'break' 'command' 'continue' 'declare' 'do' 'done' 'echo' 'elif' 'else' 'enable' 'eval' 'exit' 'fi' 'for' 'function' 'grep' 'hash' 'if' 'local' 'printf' 'read' 'shopt' 'sudo' 'then' 'type' 'unalias' 'unset' 'verb' 'while' )
+for x in "$@"; do for y in "${disallowed_strings[@]}"; do
+  if [[ "$x" == "$y" ]]; then echo Disallowed string.; exit "$LINENO"; fi
+done; done; unset x y
+
 : 'Regular users only, and -sudo- required' 
 if [[ "$UID" == 0 ]]; then echo May not be root.; exit 1
   elif ! sudo -v; then echo sudo failed.; exit 2
@@ -12,10 +17,6 @@ if [[ "$UID" == 0 ]]; then echo May not be root.; exit 1
 fi
 
 : 'Target string:' # A truly flawed implementation of input validation:
-disallowed_strings=( '[[' ']]' '|' '||' '|&' '&&' 'LINENO' 'alias' 'bash' 'break' 'command' 'continue' 'declare' 'do' 'done' 'echo' 'elif' 'else' 'enable' 'eval' 'exit' 'fi' 'for' 'function' 'grep' 'hash' 'if' 'local' 'printf' 'read' 'shopt' 'sudo' 'then' 'type' 'unalias' 'unset' 'verb' 'while' )
-for x in "$@"; do for y in "${disallowed_strings[@]}"; do
-  if [[ "$x" == "$y" ]]; then echo Disallowed string.; exit 4; fi
-done; done; unset x y
 if [[ "$#" -eq 0 ]]; then x='export'; else x="$1"; fi;
 
 : 'Functions, variables and umask' 
