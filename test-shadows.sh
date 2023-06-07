@@ -74,17 +74,17 @@ PATH+=":/bin"                             # < 4
 PATH+=":/usr/local/sbin_dangling_symlink" # < 5
 PATH+=":/usr/sbin"                        # < 6
 #declare -p PATH
-IFS=':' read -ra find_path <<< "${PATH}"
-#declare -p find_path
+IFS=':' read -ra pathdirs <<< "${PATH}"
+#declare -p pathdirs
 
 : 'Set up testing of "shadow" files' :
-xfa="${find_path[0]}/${x}" # symlink              # < 0
-xfb="${find_path[1]}/${x}" # hardlink             # < 1
-xfc="${find_path[2]}/${x}" # copy of inode        # < 2
-xfd="/usr/bin/${x}"        # executable file      # < 3
-xfe="${find_path[5]}/${x}" # dangling symlink     # < 5
-xff="${find_path[6]}/${x}" # deleted executable   # < 6
-xfg=("${xfa}" "${xfb}" "${xfc}" "${xfd}" "${xfe}" "${xff}")
+symlnk="${pathdirs[0]}/${x}" # symlink              # < 0
+hrdlnk="${pathdirs[1]}/${x}" # hardlink             # < 1
+cpinod="${pathdirs[2]}/${x}" # copy of inode        # < 2
+exectbl="/usr/bin/${x}"        # executable file      # < 3
+dnglsym="${pathdirs[5]}/${x}" # dangling symlink     # < 5
+deldexec="${pathdirs[6]}/${x}" # deleted executable   # < 6
+files=("${symlnk}" "${hrdlnk}" "${cpinod}" "${exectbl}" "${dnglsym}" "${deldexec}")
 #exit "${LINENO}"
 #set -x
 
@@ -99,8 +99,8 @@ unset -n "${x}"
 set -x
 
 : 'Remove: any previous test files'
-declare -p xfg
-for f in "${xfg[@]}"; do
+declare -p files
+for f in "${files[@]}"; do
   if [[ -f "${f}" ]] || [[ -L "${f}" ]]
   then
     sudo rm -f --one-file-system --preserve-root=all -- "${f}" || 
@@ -112,7 +112,7 @@ exit "${LINENO}"
 : 'Remove: Unused dirs in PATH' 
 # if the dir exists try to remove it, but if it isn't empty, then 
 # ignore the error 
-for d in "${xfg[@]%/*}"; do
+for d in "${files[@]%/*}"; do
   if [[ -d "${d}" ]]; then 
     fsobjs="$(find "$d" 2> /dev/null | tr -d '\n' | head -c32)" 
     if [[ -z "${fsobjs}" ]] && [[ ! -L "${d}" ]]; then
@@ -182,7 +182,7 @@ fi; unset decl_awk_o
 
 : 'create PATH dirs as necc' 
 umask 022
-for d in "${xfg[@]%/*}"; do
+for d in "${files[@]%/*}"; do
   if [[ ! -d "${d}" ]]; then
     sudo mkdir -p "${d}" || 
       fn_erx "${LINENO}"
@@ -194,11 +194,11 @@ done; unset d
 
 
 : 'Create "shadow" executable file' 
-if [[ ! -f "${xfd}" ]]; then
+if [[ ! -f "${exectbl}" ]]; then
   printf '\x23\x21/usr/bin/sh\n%s \x22\x24\x40\x22\n' "${x}" | 
-    sudo tee  "${xfd}" > /dev/null || 
+    sudo tee  "${exectbl}" > /dev/null || 
       fn_erx "${LINENO}"
-  if [[ ! -f "${xfd}" ]]; then
+  if [[ ! -f "${exectbl}" ]]; then
     fn_erx
   fi
 fi
@@ -211,10 +211,10 @@ fi
 
 
 : 'Symlink of "shadow" file' 
-if [[ ! -f "${xfa}" ]]; then
-  sudo ln -s "${xfd}" "${xfa}" || 
+if [[ ! -f "${symlnk}" ]]; then
+  sudo ln -s "${exectbl}" "${symlnk}" || 
     fn_erx "${LINENO}"
-  if [[ ! -f "${xfa}" ]]; then
+  if [[ ! -f "${symlnk}" ]]; then
     fn_erx
   fi
 fi
@@ -227,10 +227,10 @@ fi
 
 
 : 'Hardlink of "shadow" file' 
-if [[ ! -f "${xfb}" ]]; then
-  sudo ln "${xfd}" "${xfb}" || 
+if [[ ! -f "${hrdlnk}" ]]; then
+  sudo ln "${exectbl}" "${hrdlnk}" || 
     fn_erx "${LINENO}"
-  if [[ ! -f "${xfb}" ]]; then
+  if [[ ! -f "${hrdlnk}" ]]; then
     fn_erx
   fi
 fi
@@ -243,14 +243,14 @@ fi
 
 
 : 'Dangling symlink of "shadow" file' 
-if [[ ! -f "${xfe}" ]]; then
-  sudo cp -b "${xfd}" "${xff}" || 
+if [[ ! -f "${dnglsym}" ]]; then
+  sudo cp -b "${exectbl}" "${deldexec}" || 
     fn_erx "${LINENO}"
-  sudo ln -s "${xff}" "${xfe}" || 
+  sudo ln -s "${deldexec}" "${dnglsym}" || 
     fn_erx "${LINENO}"
-  sudo rm -f i--one-file-system --preserve-root=all -- "${xff}" || 
+  sudo rm -f i--one-file-system --preserve-root=all -- "${deldexec}" || 
     fn_erx "${LINENO}"
-  if [[ ! -L "${xfe}" ]]; then
+  if [[ ! -L "${dnglsym}" ]]; then
     fn_erx
   fi
 fi
@@ -258,20 +258,20 @@ if [[ "$(type -t "${x}")" != file ]]; then
   fn_erx "${LINENO}"
 fi
 : 'the actual file has been removed so the extra symlink may "dangle"' 
-unset 'xfg[6]'
-#ls -alhFi "${xfe}" "${xff}"
+unset 'files[6]'
+#ls -alhFi "${dnglsym}" "${deldexec}"
 #exit "${LINENO}"
 set -x
 
 
 
 : 'Copy inode of "shadow" file'
-if [[ ! -f "${xfc}" ]]; then
-  stat_o="$(stat -c%i "${xfd}")"
-  LC_ALL=C sudo find "${xfd%/*}" -inum "${stat_o}" \
-    -exec rsync -ac '{}' "${xfc}" \; ||
+if [[ ! -f "${cpinod}" ]]; then
+  stat_o="$(stat -c%i "${exectbl}")"
+  LC_ALL=C sudo find "${exectbl%/*}" -inum "${stat_o}" \
+    -exec rsync -ac '{}' "${cpinod}" \; ||
     fn_erx "${LINENO}"
-  if [[ ! -f "${xfc}" ]]; then
+  if [[ ! -f "${cpinod}" ]]; then
     fn_erx "${LINENO}"
   fi
 fi; unset stat_o
@@ -281,7 +281,7 @@ set -x
 
 
 : 'DAC permissions of "shadow" files' 
-for f in "${xfg[@]}" ; do
+for f in "${files[@]}" ; do
   if [[ -L "${f}" ]]; then
     continue
   fi
@@ -367,8 +367,8 @@ set -x
 
 
 : 'Verification 2: type -a' 
-printf '\n\t declare -p find_path # (Same as PATH.) \n\n' 
-declare -p find_path
+printf '\n\t declare -p pathdirs # (Same as PATH.) \n\n' 
+declare -p pathdirs
 printf '\n\t command -pV; command -v \n\n' 
 command -pV "${x}"; command -v "${x}"
 printf '\n\t find \n\n' 
