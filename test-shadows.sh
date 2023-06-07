@@ -12,7 +12,7 @@ if [[ "$UID" == 0 ]]; then echo May not be root.; exit 1
 fi
 
 : 'Target string:' # A truly flawed implementation of input validation:
-disallowed_strings=( '[[' ']]' '|' '||' '|&' '&&' 'LINENO' 'alias' 'break' 'command' 'continue' 'declare' 'do' 'done' 'echo' 'elif' 'else' 'enable' 'eval' 'exit' 'fi' 'for' 'function' 'grep' 'hash' 'if' 'local' 'printf' 'read' 'shopt' 'sudo' 'then' 'type' 'unalias' 'unset' 'verb' 'while' )
+disallowed_strings=( '[[' ']]' '|' '||' '|&' '&&' 'LINENO' 'alias' 'bash' 'break' 'command' 'continue' 'declare' 'do' 'done' 'echo' 'elif' 'else' 'enable' 'eval' 'exit' 'fi' 'for' 'function' 'grep' 'hash' 'if' 'local' 'printf' 'read' 'shopt' 'sudo' 'then' 'type' 'unalias' 'unset' 'verb' 'while' )
 for x in "$@"; do for y in "${disallowed_strings[@]}"; do
   if [[ "$x" == "$y" ]]; then echo Disallowed string.; exit 4; fi
 done; done; unset x y
