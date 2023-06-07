@@ -1,14 +1,21 @@
 #!/usr/bin/env -iS bash
 # test-shadows.sh - Bash 5 required
-#   shellcheck disable=SC2317,SC2096 # unreachable commands & crashbang
+#   hellcheck disable=SC2317,SC2096,SC2154,SC2086
+
+# WARNING: Misuse of this script may require reinstallation of some rpms
+# or other data loss. 
 
 : 'Regular users only, and -sudo- required' 
 if [[ "$UID" == 0 ]]; then echo May not be root.; exit 1
-elif ! sudo -v; then echo sudo failed.; exit 1
-elif [[ "${BASH_VERSION:0:1}" -lt 5 ]]; then Requires bash 5; exit 1
+  elif ! sudo -v; then echo sudo failed.; exit 2
+  elif [[ "${BASH_VERSION:0:1}" -lt 5 ]]; then Requires bash 5; exit 3
 fi
 
-: 'Target string:' 
+: 'Target string:' # A truly flawed implementation of input validation:
+disallowed_strings=( '[[' ']]' '|' '||' '|&' '&&' 'LINENO' 'alias' 'break' 'command' 'continue' 'declare' 'do' 'done' 'echo' 'elif' 'else' 'enable' 'eval' 'exit' 'fi' 'for' 'function' 'grep' 'hash' 'if' 'local' 'printf' 'read' 'shopt' 'sudo' 'then' 'type' 'unalias' 'unset' 'verb' 'while' )
+for x in "$@"; do for y in "${disallowed_strings[@]}"; do
+  if [[ "$x" == "$y" ]]; then echo Disallowed string.; exit 4; fi
+done; done; unset x y
 if [[ "$#" -eq 0 ]]; then x='export'; else x="$1"; fi;
 
 : 'Functions, variables and umask' 
@@ -17,6 +24,7 @@ LC_ALL=C
 unset PATH 
 PATH='/home/liveuser/.local/bin_symlink:/home/liveuser/bin_hardlink:/usr/local/bin_copy-of-inode:/usr/bin:/bin:/usr/local/sbin_dangling_symlink:/usr/sbin'
 IFS=':' read -ra pathdirs <<< "$PATH"
+#verb='-v'
 symlnk="${pathdirs[0]}/$x"
 hrdlnk="${pathdirs[1]}/$x"
 cpinod="${pathdirs[2]}/$x"
@@ -77,7 +85,7 @@ fi
 
 : 'Additions: "shadow" files, DACs' 
 if [[ ! -f "$exectbl" ]]; then
-  printf '\x23\x21/usr/bin/sh\n%s \x22\x24\x40\x22\n' "$x" | 
+  printf '\x23\x21/usr/bin/sh\n/bin/echo %s \x22\x24\x40\x22\n' "$x" | 
     sudo tee "$exectbl" > /dev/null || fn_erx "$LINENO"
 fi
 if [[ ! -f "$symlnk" ]]; then
