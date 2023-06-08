@@ -224,6 +224,8 @@ elif ! sudo -v; then
 fi
 
 
+
+
 : 'Required programs'
 
 reqd_cmds=( awk chmod cp cut dirname find grep ln ls mkdir rm rmdir
@@ -249,44 +251,6 @@ else
   echo
   exit "$LINENO"
 fi; unset yn list
-
-
-
-: 'Required programs' 
-
-# Bug: innaccurate list for this script, 17 May
-
-reqd_cmds=( 'awk' 'chmod' 'cp' 'cut' 'dirname' 'file' 
-  'find' 'getconf' 'grep' 'ln' 'ls' 'mkdir' 'mktemp' 
-  'od' 'rm' 'rmdir' 'stat' 'strings' 'sudo' 'tee' )
-yn=(n)
-
-# Requires a minimum of bash version 5
-if [[ "${BASH_VERSION:0:1}" -lt 5 ]]; then
-  echo Please install Bash version 5, thanks.
-fi
-
-# force PATH searches for these command names
-hash -r
-for c in "${reqd_cmds[@]}"; do  
-  if type_P_o="$(type -P "${c}" 2>&1)"; then
-    hash -p "${type_P_o}" "${c}"
-  else
-    yn+=("${c}")
-  fi
-done
-
-# Print results as appropriate 
-if [[ "${yn[*]}" == 'n' ]]; then 
-  : 'No additional commands are required'
-else 
-  unset 'yn[0]'
-  printf '\n\t Please install the following commands: \n'
-  printf '\t   %s \n' "${yn[@]}"
-  printf '\n'
-  exit 1
-fi; unset c yn reqd_cmds
-
 #exit "${LINENO}"
 #_full_xtrace
 #set -x
