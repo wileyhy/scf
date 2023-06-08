@@ -28,37 +28,6 @@ files=("$symlnk" "$hrdlnk" "$cpinod" "$exectbl" "$dnglsym" "$deldexec")
 umask 022
 shopt -s expand_aliases
 
-: 'Removals: files, dirs, etc' 
-for f in "${files[@]}"; do
-  if [[ -f "$f" ]] || [[ -L "$f" ]]; then
-    sudo rm -f ${verb} --one-file-system --preserve-root=all -- "$f" || 
-      fn_erx "$LINENO"
-  fi;
-done; unset f
-
-for d in "${files[@]}"; do
-  while :; do
-    d="${d%/*}"
-    if [[ -d "$d" ]]; then 
-      fsobj="$(find "$d" -mindepth 1 -maxdepth 1 |& 
-        tr -d '\n' |& head -c32)" 
-      if [[ -z "$fsobj" ]] && [[ ! -L "$d" ]]; then
-        sudo rmdir ${verb} --ignore-fail-on-non-empty -- "$d" || 
-          fn_erx "$LINENO"
-      else
-        break
-      fi
-    fi
-  done
-done; unset d fsobj
-
-unset -v "$x"
-unset -n "$x"
-unset -f "$x"
-[[ "$(enable -a | grep "$x")" != *-n* ]] && enable -n "$x"
-unalias "$x" 2> /dev/null
-
-
 : 'Additions: "shadow" dirs, etc'
 for d in "${files[@]%/*}"; do
   if [[ ! -d "$d" ]]; then
@@ -125,6 +94,36 @@ sudo find / '(' '!' -path '*/1000/*' -a '!' -path '*/zsh/*' -a '!' \
   -name "$x" -o -name "${x}_*" ')' 2> /dev/null
 printf '\n\t type -a\n\n' 
 type -a "$x"
+
+: 'Removals: files, dirs, etc' 
+for f in "${files[@]}"; do
+  if [[ -f "$f" ]] || [[ -L "$f" ]]; then
+    sudo rm -f ${verb} --one-file-system --preserve-root=all -- "$f" || 
+      fn_erx "$LINENO"
+  fi;
+done; unset f
+
+for d in "${files[@]}"; do
+  while :; do
+    d="${d%/*}"
+    if [[ -d "$d" ]]; then 
+      fsobj="$(find "$d" -mindepth 1 -maxdepth 1 |& 
+        tr -d '\n' |& head -c32)" 
+      if [[ -z "$fsobj" ]] && [[ ! -L "$d" ]]; then
+        sudo rmdir ${verb} --ignore-fail-on-non-empty -- "$d" || 
+          fn_erx "$LINENO"
+      else
+        break
+      fi
+    fi
+  done
+done; unset d fsobj
+
+unset -v "$x"
+unset -n "$x"
+unset -f "$x"
+[[ "$(enable -a | grep "$x")" != *-n* ]] && enable -n "$x"
+unalias "$x" 2> /dev/null
 
 exit 00
 
