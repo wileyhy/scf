@@ -266,37 +266,120 @@ fn_erx() {
   exit "${loc_exit_code}"
   : 'fn_erx ENDS  ' "$((--funclvl))" "${fence}"
 }
+set -x
+
+
+: 'Operating System'
+arch uname distro
 
 
 
 : 'Locks'
+#flock mkdir ln pathchk mv link unlink nice lsof fuser stat chattr logger echo pgrep timeout nohup stdbuf ps rm parallel lockfile sync
+#
+#rpms: Installed by default, Fedora 38
+#ln                  coreutils-9.1-11.fc38.x86_64
+#mv                  coreutils-9.1-11.fc38.x86_64
+#rm                  coreutils-9.1-11.fc38.x86_64
+#echo                coreutils-9.1-11.fc38.x86_64
+#link                coreutils-9.1-11.fc38.x86_64
+#nice                coreutils-9.1-11.fc38.x86_64
+#stat                coreutils-9.1-11.fc38.x86_64
+#mkdir               coreutils-9.1-11.fc38.x86_64
+#nohup               coreutils-9.1-11.fc38.x86_64
+#stdbuf              coreutils-9.1-11.fc38.x86_64
+#unlink              coreutils-9.1-11.fc38.x86_64
+#pathchk             coreutils-9.1-11.fc38.x86_64
+#sync                coreutils-9.1-11.fc38.x86_64
+#timeout             coreutils-9.1-11.fc38.x86_64
+                                                          #debian          opensuse
+#chattr              e2fsprogs-1.46.5-4.fc38.x86_64        y
+#lsof                lsof-4.96.3-3.fc38.x86_64             y
+#ps                  procps-ng-3.3.17-9.fc38.x86_64        surely
+#pgrep               procps-ng-3.3.17-9.fc38.x86_64        perhaps not?
+#fuser               psmisc-23.6-2.fc38.x86_64             y
+#flock               util-linux-core-2.38.1-4.fc38.x86_64  n
+#logger              util-linux-core-2.38.1-4.fc38.x86_64  n
+#
+#rpms: available in repos
+#parallel            parallel-20230422-2.fc38.noarch
+#lockfile            procmail-3.24-1.fc38.x86_64
+#
+#rpms: available but obsolete
+#halockrun           hatools-2.14-22.fc38.x86_64 @fedora 
+#
+#bins: not available in Fedora
+#shlock lockf
+
+hash -r
+for b in chattr lsof ps pgrep fuser flock logger parallel lockfile; do 
+  full_path="$(type -P "$b" 2> /dev/null)"
+  if [[ -n "$full_path" ]]; then 
+    declare -x "${b}_ins=y"
+  fi
+done; unset b full_path
+
+#   Okay, so. The options are:
+#   - flock
+#   - mkdir
+#   - ln
+#   - pathchk with set -C under posix 2017(?)
+#   - mv
+#   - link & unlink
+#   - nice -n-20
+#   - parse lsof and/or fuser
+#   - stat vs saved state
+#   - chattr +i
+#   - logger
+#   - echo under posix 2001
+#   - pgrep 
+#   - MacOS: shloc
+#   - BSD: flock or lockf
+#   - sync
+
 
 unset i f
-#rm -fv -- "/dev/shm/${repo_nm}"/[0-9]*;
-#rm -frv -- "/dev/shm/${repo_nm}";
+rm -fv -- "/dev/shm/${repo_nm}"/[0-9]*;
+rm -frv -- "/dev/shm/${repo_nm}";
 wait -f
-#set -x; unset f i; declare -p f i; ls -a "/dev/shm/${repo_nm}/"; 
+set -x; unset f i; declare -p f i; ls -a "/dev/shm/${repo_nm}/"; 
 if [[ ! -e /dev/shm ]]; then 
   mkdir -m 1777 /dev/shm ||
    exit "${LINENO}"
 fi 
 wait -f
+
 function _mv_file { 
   # Probably atomic operation ??
   mv -v "/dev/shm/${repo_nm}/$i" "/dev/shm/${repo_nm}/$((++i))" 2> /dev/null; 
 }; 
+
 # Almost certainly atomic operation on Linux ext4 ...but on tmpfs ?? 
 set -xC
 POSIXLY_CORRECT=0
 # `pathchk` with `set -C` is atomic per POSIX 1003.1-2017
 # https://pubs.opengroup.org/onlinepubs/9699919799/utilities/pathchk.html
-if command -p pathchk -Pp "/dev/shm/${repo_nm}"; then
-  printf 'Lock exists. Wait for the lock to be freed\n'
-  read -r ans
-  case "$ans" in
-    [Yy]) 
-      while :; do 
-        sleep 60; 
+
+
+command -p pathchk -p "/dev/shm/${repo_nm}"
+pathchk -P "/dev/shm/${repo_nm}"
+
+
+if pathchk "/dev/shm/${repo_nm}"; then
+  if mkdir -m 0700 -- "/dev/shm/${repo_nm}" 2> /dev/null; then
+    printf 'Creation of lockdir succeeded.\n'
+  else
+    printf 'Lock exists.\n' 
+  fi
+fi
+exit $LINENO
+    
+    printf 'Wait for the lock to be freed? [Y/n]\n'
+    read -r ans
+    case "$ans" in
+      [Yy]) 
+        while :; do 
+          sleep 60; 
 	if [[ -e "/dev/shm/${repo_nm}" ]]; then
 	  continue
 	else 
@@ -306,9 +389,27 @@ if command -p pathchk -Pp "/dev/shm/${repo_nm}"; then
 	esac;
 	fi;
 	unset POSIXLY_CORRECT
-	# lhunath: "mkdir is not defined to be an atomic operation and as such that "side-effect" is an implementation detail of the file system"
+# lhunath: "mkdir is not defined to be an atomic operation and as 
+#+ such that "side-effect" is an implementation detail of the file 
+#+ system"
 if mkdir -m 0700 -- "/dev/shm/${repo_nm}" 2> /dev/null; then
   printf 'Creation of lockdir succeeded.\n'
+
+  i="$( for f in "/dev/shm/${repo_nm}"/*; do 
+          if [[ -e "$f" ]]; then 
+            basename "$f"; 
+          else 
+            if : > "${f/\*/${i:=$((n))}}"; then 
+              export creation_t="${EPOCHSECONDS}"
+              printf 'Process file created.\n' 1>&2 
+            else
+              : 'touch failed'
+            fi
+          fi; 
+        done
+	  )" _mv_file;
+
+
   # for use of `lsof`
   pushd "/dev/shm/${repo_nm}" ||
     "${Halt:?}"
@@ -319,6 +420,7 @@ if mkdir -m 0700 -- "/dev/shm/${repo_nm}" 2> /dev/null; then
       exit "${LINENO}"
     fi
   done 
+    exit 101
     sleep 60
   unset i f
   # benchmark this syntax
@@ -326,7 +428,6 @@ if mkdir -m 0700 -- "/dev/shm/${repo_nm}" 2> /dev/null; then
           if [[ -e "$f" ]]; then 
             basename "$f"; 
           else 
-	    # trying `: >` vs `touch`
             if : > "${f/\*/${i:=$((n))}}"; then 
               export creation_t="${EPOCHSECONDS}"
               printf 'Process file created.\n' 1>&2 

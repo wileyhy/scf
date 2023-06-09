@@ -82,8 +82,9 @@ sudo dnf -y install git-fame \
   angband \
   git gh \
   ShellCheck kcov shfmt patch strace ltrace \
-  info binutils \
-  lynx libreoffice-calc chromium
+  info binutils parallel procmail \
+  lynx libreoffice-calc chromium \
+  debian-keyring
   #memstomp bpftrace gdb valgrind
 sudo dnf -y upgrade bash
 sudo dnf -y --security upgrade
