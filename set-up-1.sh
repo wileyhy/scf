@@ -83,7 +83,7 @@ sudo dnf -y install git-fame \
   git gh \
   ShellCheck kcov shfmt patch strace ltrace \
   info binutils parallel procmail \
-  lynx libreoffice-calc chromium \
+  lynx libreoffice-calc chromium mozilla-noscript mozilla-privacy-badger mozilla-https-everywhere \
   debian-keyring
   #memstomp bpftrace gdb valgrind
 sudo dnf -y upgrade bash
