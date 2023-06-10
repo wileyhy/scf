@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
   #!/usr/bin/env -iS bash -x
 # Written in bash version 5.1 on Fedora 37 & 38
 
@@ -9,48 +9,47 @@
 : '<> Debugging' 
 # "<>" means, "This is a debugging section."
 
-# FeatReq: for $random_n, use the most recent git commit hash ID
+# FeatReq: for $random_i, use the most recent git commit hash ID
 
+max_age_of_tmp_files='5 minutes ago'
 script_nm=find-and-scan.sh
 repo_nm=scf
-random_n="${RANDOM}" 
-unique_string="${repo_nm}.${$}.${random_n}"
-proc_lk_d_nm="${unique_string}.lock.d"
-mktemp_sfx="${unique_string}.xtr"
-age_of_tmp_files='5 minutes ago'
-xtr_t_file="/tmp/tmp.mtime_file.${mktemp_sfx}"
-delta_sum_file="$(mktemp -p /tmp --suffix=."${mktemp_sfx}.E")"
+random_i="${RANDOM}" 
+unique_str="${repo_nm}.${$}.${random_i}"
+lock_nm="${unique_str}.lock.d"
+xtr_f_nm="${unique_str}.xtr"
+xtr_time_f="/tmp/tmp.mtime_file.${xtr_f_nm}"
+delta_sum_f="$(mktemp -p /tmp --suffix=."${xtr_f_nm}.E")"
 unset Halt               # For signal-less exiting
 declare -rx Halt         #  "   "           "
-unset LD_LIBRARY_PATH       # For luck ;-p
-declare -rx LD_LIBRARY_PATH #  "   "    "
 
-_ctrl_C_trap(){
+function _ctrl_C_trap
+{
   set -x
   trap - INT
-  for f in "${xtr_t_file}" "${setenv_prev}" "${setenv_now}" \
+  for f in "${xtr_time_f}" "${setenv_prev}" "${setenv_now}" \
     "${setenv_delta}"
   do
     if [[ -f "$f" ]]; then
       rm --one-file-system --preserve-root=all  "$f" ||
         {
           echo rm failed -- "$f" -- line "${LINENO}"
-          "${Halt:?}"
+          #"${Halt:?}"
         }
     fi
   done
   kill -s INT "$$"
 }
-trap _ctrl_C_trap INT
+trap '_ctrl_C_trap' INT
 
 : '<> Debug: Delete any left over xtrace files from -mktemp -p /tmp-'
 # Note:   Using '/tmp' at this early stage because it's just easier
-touch -d "${age_of_tmp_files}" "${xtr_t_file}"
+touch -d "${max_age_of_tmp_files}" "${xtr_time_f}"
 
 mapfile -d '' -t xtrace_files < <(
   find /tmp -maxdepth 1 -type f \
     -name "tmp.[a-zA-Z0-9]*.${repo_nm}.[0-9]*.[0-9]*.xtr*" \
-    '!' -newer "${xtr_t_file}" '!' -name "${xtr_t_file##*/}" -print0 
+    '!' -newer "${xtr_time_f}" '!' -name "${xtr_time_f##*/}" -print0 
 )
 
 # ...if they're (inodes are for) files & not symlinks, & owned by the 
@@ -120,7 +119,7 @@ _mk_setenv_now() {
   done
   ${Halt:?}
 
-  setenv_now="$(mktemp -p /tmp --suffix=."${mktemp_sfx}")"
+  setenv_now="$(mktemp -p /tmp --suffix=."${xtr_f_nm}")"
     # `{ set; env;} | tee`: env & set dont print in simple xtrace 
     set \
       |& tee -- "${setenv_now}" >/dev/null 
@@ -136,7 +135,7 @@ _mk_setenv_delta() {
   then
     : 'if delta'
     if [[ -n "${setenv_delta}" ]]; then
-      tee -a "${delta_sum_file}" < "${setenv_delta}"
+      tee -a "${delta_sum_f}" < "${setenv_delta}"
       rm --one-file-system --preserve-root=all  -f -- "${setenv_delta}"
       wait -f
     fi
@@ -145,7 +144,7 @@ _mk_setenv_delta() {
 		# 	with alsa-info.sh line ~465-466
 		#	and then again 
         ## create a new delta file, each time
-    #setenv_delta="$(mktemp -p /tmp --suffix=."${mktemp_sfx}")" #
+    #setenv_delta="$(mktemp -p /tmp --suffix=."${xtr_f_nm}")" #
     #{
       #diff -y --suppress-{common-lines,blank-empty} --color=never \
         #"${setenv_prev}" "${setenv_now}" \
@@ -163,7 +162,7 @@ _mk_setenv_delta() {
       #|& tee -a "${setenv_delta}"
 
     # create a new delta file, each time
-    setenv_delta="$(mktemp -p /tmp --suffix=."${mktemp_sfx}.A")" 
+    setenv_delta="$(mktemp -p /tmp --suffix=."${xtr_f_nm}.A")" 
       #diff -y -W 500 --suppress-{common-lines,blank-empty} \
 		    #--color=never "${setenv_prev}" "${setenv_now}" \
         #|& grep -v setenv \
@@ -270,7 +269,9 @@ set -x
 
 
 : 'Operating System'
-arch uname distro
+arch 
+uname 
+distro
 
 
 
@@ -1538,7 +1539,7 @@ i=0
 # is unique enough that accurately predicting it will be impractical.... 
 # So, 
   : 'Form of filenames for process lock dirs:' 
-  : $'\t' "/tmp/.${repo_nm}.${$}.${random_n}.lock.d"
+  : $'\t' "/tmp/.${repo_nm}.${$}.${random_i}.lock.d"
 #   Still, the issue occurs of the race condition. Since the filename 
 # changes, the advantage of the atomicity of using `mkdir` is lost.... 
 # or is it?  
@@ -1554,7 +1555,7 @@ i=0
 for v in "${a_poss_proces_lock_dirs[@]}"; do
   if [[ -d "${v}" ]]; then
     v="$(realpath -e "${v}")"
-    A_process_lock_dirs+=( ["${v}/${proc_lk_d_nm}"]=$((i++)) )
+    A_process_lock_dirs+=( ["${v}/${lock_nm}"]=$((i++)) )
   fi
 done && unset i v 
 
@@ -1928,7 +1929,7 @@ then
 
   # Workaround: `compgen -c "*"` was picking up executable shell
   # scripts from the CWD
-  tempd="$(mktemp -d --suffix=."${mktemp_sfx/%.xtr/.d}")"
+  tempd="$(mktemp -d --suffix=."${xtr_f_nm/%.xtr/.d}")"
   cd "${tempd}" \
     || fn_erx cd
   
