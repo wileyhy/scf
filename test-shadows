@@ -12,7 +12,7 @@ fi
 declare -rx x='export'
 
 : 'Functions, variables and umask' 
-function fn_erx(){ local ec="$?"; echo ERROR: "$@"; exit "$ec"; }
+function _erx(){ local ec="$?"; echo ERROR: "$@"; exit "$ec"; }
 LC_ALL=C  
 unset PATH 
 PATH='/home/liveuser/.local/bin_symlink:/home/liveuser/bin_hardlink:/usr/local/bin_copy-of-inode:/usr/bin:/bin:/usr/local/sbin_dangling_symlink:/usr/sbin'
@@ -31,7 +31,7 @@ shopt -s expand_aliases
 : 'Additions: "shadow" dirs, etc'
 for d in "${files[@]%/*}"; do
   if [[ ! -d "$d" ]]; then
-    sudo mkdir -p ${verb} "$d" || fn_erx "$LINENO"
+    sudo mkdir -p ${verb} "$d" || _erx "$LINENO"
   fi;
 done; unset d
 
@@ -48,31 +48,31 @@ fi
 : 'Additions: "shadow" files, DACs' 
 if [[ ! -f "$exectbl" ]]; then
   printf '\x23\x21/usr/bin/sh\n/bin/echo %s \x22\x24\x40\x22\n' "$x" | 
-    sudo tee "$exectbl" > /dev/null || fn_erx "$LINENO"
+    sudo tee "$exectbl" > /dev/null || _erx "$LINENO"
 fi
 if [[ ! -f "$symlnk" ]]; then
-  sudo ln -s ${verb} "$exectbl" "$symlnk" || fn_erx "$LINENO"
+  sudo ln -s ${verb} "$exectbl" "$symlnk" || _erx "$LINENO"
 fi
 if [[ ! -f "$hrdlnk" ]]; then
-  sudo ln ${verb} "$exectbl" "$hrdlnk" || fn_erx "$LINENO"
+  sudo ln ${verb} "$exectbl" "$hrdlnk" || _erx "$LINENO"
 fi
 if [[ ! -f "$dnglsym" ]]; then
-  sudo cp -b ${verb} "$exectbl" "$deldexec" || fn_erx "$LINENO"
-  sudo ln -s ${verb} "$deldexec" "$dnglsym" || fn_erx "$LINENO"
+  sudo cp -b ${verb} "$exectbl" "$deldexec" || _erx "$LINENO"
+  sudo ln -s ${verb} "$deldexec" "$dnglsym" || _erx "$LINENO"
   sudo rm -f ${verb} --one-file-system --preserve-root=all \
     -- "$deldexec" || 
-    fn_erx "$LINENO"
+    _erx "$LINENO"
 fi; unset 'files[6]'
 if [[ ! -f "$cpinod" ]]; then
   sudo find "${exectbl%/*}" -inum "$(stat -c%i "$exectbl")" \
-    -exec rsync -ac '{}' "$cpinod" \; || fn_erx "$LINENO"
+    -exec rsync -ac '{}' "$cpinod" \; || _erx "$LINENO"
 fi
 
 for f in "${files[@]}" ; do
   [[ -L "$f" ]] && continue
   if [[ -f "$f" ]]; then 
     if ! sudo stat -c%a "$f" | grep -q 755; then
-      sudo chmod ${verb} 755 "$f" || fn_erx "$LINENO"
+      sudo chmod ${verb} 755 "$f" || _erx "$LINENO"
     fi
   fi
 done
@@ -99,7 +99,7 @@ type -a "$x"
 for f in "${files[@]}"; do
   if [[ -f "$f" ]] || [[ -L "$f" ]]; then
     sudo rm -f ${verb} --one-file-system --preserve-root=all -- "$f" || 
-      fn_erx "$LINENO"
+      _erx "$LINENO"
   fi;
 done; unset f
 
@@ -111,7 +111,7 @@ for d in "${files[@]}"; do
         tr -d '\n' |& head -c32)" 
       if [[ -z "$fsobj" ]] && [[ ! -L "$d" ]]; then
         sudo rmdir ${verb} --ignore-fail-on-non-empty -- "$d" || 
-          fn_erx "$LINENO"
+          _erx "$LINENO"
       else
         break
       fi

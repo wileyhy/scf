@@ -1,7 +1,6 @@
 #!/bin/bash -x
-# findscan
 #!/usr/bin/env -iS bash -x
-#   bash 5.1 on Fedora 37 & 38
+#   findscan
 #   shellcheck disable=SC2317
 
 # Note: Keep your goal in mind.
@@ -18,6 +17,17 @@ rand_uniq_str="${repo_nm}.${$}.${rand_i}"
 rand_lock_nm="${rand_uniq_str}.lock.d"
 export rand_i rand_uniq_str rand_lock_nm
 
+fn_lvl=0; fn_bndry=' +++ +++ +++ '
+export fn_lvl fn_bndry
+
+_erx() {
+  local loc_exit_code="$?" 
+  : '_erx BEGINS' "$((++fn_lvl))" "${fn_bndry}"
+  echo -e Error: "$@"
+  exit "${loc_exit_code}"
+  : '_erx ENDS  ' "$((--fn_lvl))" "${fn_bndry}"
+}; declare -fxt _erx
+
 _trap_ctrl_C() {
   set -x
   trap - INT
@@ -25,348 +35,39 @@ _trap_ctrl_C() {
 }; declare -fxt '_trap_ctrl_C'
 trap '_trap_ctrl_C' INT
 
-  # <>
+  # <> Obligatory debugging block
   : "${BASH_SOURCE[0]}:${LINENO} ${BASH_SOURCE[1]}:${BASH_LINENO[0]}"
   #exit "${LINENO}"
   #set -x
 
 
 # Sub-scripts
-scr_nm_debug='./debugg.sh'
-scr_nm_sudo='./sudoreq.sh'
-scr_nm_cmds='./binsreq.sh'
+scr_nm_dbug='./._debugg.sh'
+scr_nm_sudo='./._sudoreq.sh'
+scr_nm_cmds='./._binsreq.sh'
+scr_nm_lock='./._locks.sh'
+export scr_nm_dbug scr_nm_sudo scr_nm_cmd scr_nm_lock
 
 _source_subscript(){
   if [[ -f "$1" ]] && [[ -x "$1" ]] && [[ -O "$f" ]]; then . "$1"
   else declare -p BASH_SOURCE BASH_LINENO; exit "${LINENO}"
   fi
-}
+}; declare -fxt _source_subscript
+: 'Enable debugging'  ; _source_subscript "${scr_nm_dbug}" # 0
+: 'ID and sudo'       ; _source_subscript "${scr_nm_sudo}" # 1
+: 'Required programs' ; _source_subscript "${scr_nm_cmds}" # 2
+: 'Locks'             ; _source_subscript "${scr_nm_lock}" # 3
 
-: 'Enable debugging'  ; _source_subscript "${scr_nm_debug}"
-: 'ID and sudo'       ; _source_subscript "${scr_nm_sudo}"
-: 'Required programs' ; _source_subscript "${scr_nm_cmds}"
 
-
-  # <>
+  # <> Obligatory debugging block
   #_full_xtrace
   : "${BASH_SOURCE[0]}:${LINENO} ${BASH_SOURCE[1]}:${BASH_LINENO[0]}"
   exit "${LINENO}"
   set -x
 
 
+
 : 'Traps'
-
-fn_erx() {
-  local loc_exit_code="${?}" # this assignment must be the first command
-  : 'fn_erx BEGINS' "$((++funclvl))" "${fence}"
-  # print an error message and exit with the correct exit code
-  echo -e Error: "${@}"
-  exit "${loc_exit_code}"
-  : 'fn_erx ENDS  ' "$((--funclvl))" "${fence}"
-}
-set -x
-
-
-: 'Operating System'
-arch 
-uname 
-distro
-
-
-
-: 'Locks'
-#flock mkdir ln pathchk mv link unlink nice lsof fuser stat chattr logger echo pgrep timeout nohup stdbuf ps rm parallel lockfile sync
-#
-#rpms: Installed by default, Fedora 38
-#ln                  coreutils-9.1-11.fc38.x86_64
-#mv                  coreutils-9.1-11.fc38.x86_64
-#rm                  coreutils-9.1-11.fc38.x86_64
-#echo                coreutils-9.1-11.fc38.x86_64
-#link                coreutils-9.1-11.fc38.x86_64
-#nice                coreutils-9.1-11.fc38.x86_64
-#stat                coreutils-9.1-11.fc38.x86_64
-#mkdir               coreutils-9.1-11.fc38.x86_64
-#nohup               coreutils-9.1-11.fc38.x86_64
-#stdbuf              coreutils-9.1-11.fc38.x86_64
-#unlink              coreutils-9.1-11.fc38.x86_64
-#pathchk             coreutils-9.1-11.fc38.x86_64
-#sync                coreutils-9.1-11.fc38.x86_64
-#timeout             coreutils-9.1-11.fc38.x86_64
-                                                          #debian          opensuse
-#chattr              e2fsprogs-1.46.5-4.fc38.x86_64        y
-#lsof                lsof-4.96.3-3.fc38.x86_64             y
-#ps                  procps-ng-3.3.17-9.fc38.x86_64        surely
-#pgrep               procps-ng-3.3.17-9.fc38.x86_64        perhaps not?
-#fuser               psmisc-23.6-2.fc38.x86_64             y
-#flock               util-linux-core-2.38.1-4.fc38.x86_64  n
-#logger              util-linux-core-2.38.1-4.fc38.x86_64  n
-#
-#rpms: available in repos
-#parallel            parallel-20230422-2.fc38.noarch
-#lockfile            procmail-3.24-1.fc38.x86_64
-#
-#rpms: available but obsolete
-#halockrun           hatools-2.14-22.fc38.x86_64 @fedora 
-#
-#bins: not available in Fedora
-#shlock lockf
-
-hash -r
-for b in chattr lsof ps pgrep fuser flock logger parallel lockfile; do 
-  full_path="$(type -P "$b" 2> /dev/null)"
-  if [[ -n "$full_path" ]]; then 
-    declare -x "${b}_ins=y"
-  fi
-done; unset b full_path
-
-#   Okay, so. The options are:
-#   - flock
-#   - mkdir
-#   - ln
-#   - pathchk with set -C under posix 2017(?)
-#   - mv
-#   - link & unlink
-#   - nice -n-20
-#   - parse lsof and/or fuser
-#   - stat vs saved state
-#   - chattr +i
-#   - logger
-#   - echo under posix 2001
-#   - pgrep 
-#   - MacOS: shloc
-#   - BSD: flock or lockf
-#   - sync
-
-
-unset i f
-rm -fv -- "/dev/shm/${repo_nm}"/[0-9]*;
-rm -frv -- "/dev/shm/${repo_nm}";
-wait -f
-set -x; unset f i; declare -p f i; ls -a "/dev/shm/${repo_nm}/"; 
-if [[ ! -e /dev/shm ]]; then 
-  mkdir -m 1777 /dev/shm ||
-   exit "${LINENO}"
-fi 
-wait -f
-
-function _mv_file { 
-  # Probably atomic operation ??
-  mv -v "/dev/shm/${repo_nm}/$i" "/dev/shm/${repo_nm}/$((++i))" 2> /dev/null; 
-}; 
-
-# Almost certainly atomic operation on Linux ext4 ...but on tmpfs ?? 
-set -xC
-POSIXLY_CORRECT=0
-# `pathchk` with `set -C` is atomic per POSIX 1003.1-2017
-# https://pubs.opengroup.org/onlinepubs/9699919799/utilities/pathchk.html
-
-
-command -p pathchk -p "/dev/shm/${repo_nm}"
-pathchk -P "/dev/shm/${repo_nm}"
-
-
-if pathchk "/dev/shm/${repo_nm}"; then
-  if mkdir -m 0700 -- "/dev/shm/${repo_nm}" 2> /dev/null; then
-    printf 'Creation of lockdir succeeded.\n'
-  else
-    printf 'Lock exists.\n' 
-  fi
-fi
-exit "${LINENO}"
-    
-printf 'Wait for the lock to be freed? [Y/n]\n'
-read -r ans
-case "$ans" in
-  [Yy]) 
-    while :; do 
-      sleep 60; 
-      if [[ -e "/dev/shm/${repo_nm}" ]]; then
-        continue
-      else 
-        break
-      fi;
-    done ;;
-esac;
-unset POSIXLY_CORRECT
-
-# lhunath: "mkdir is not defined to be an atomic operation and as 
-#+ such that "side-effect" is an implementation detail of the file 
-#+ system"
-if mkdir -m 0700 -- "/dev/shm/${repo_nm}" 2> /dev/null; then
-  printf 'Creation of lockdir succeeded.\n'
-
-  i="$( for f in "/dev/shm/${repo_nm}"/*; do 
-          if [[ -e "$f" ]]; then 
-            basename "$f"; 
-          else 
-            if : > "${f/\*/${i:=$((n))}}"; then 
-              export creation_t="${EPOCHSECONDS}"
-              printf 'Process file created.\n' 1>&2 
-            else
-              : 'touch failed'
-            fi
-          fi; 
-        done
-	  )" _mv_file;
-
-
-  # for use of `lsof`
-  pushd "/dev/shm/${repo_nm}" ||
-    "${Halt:?}"
-  for f in "/dev/shm/${repo_nm}"/[0-9]*; do
-    if [[ -e "$f" ]]; then 
-      printf 'Racing process exists; exiting.\n'
-      head "/dev/shm/${repo_nm}"/*
-      exit "${LINENO}"
-    fi
-  done 
-    exit 101
-    sleep 60
-  unset i f
-  # benchmark this syntax
-  i="$( for f in "/dev/shm/${repo_nm}"/*; do 
-          if [[ -e "$f" ]]; then 
-            basename "$f"; 
-          else 
-            # SC2030 (info): Modification of i is local (to subshell caused by $(..) expansion).
-            #+ SC2030 (info): Modification of creation_t is local (to subshell caused by $(..) expansion).
-            if : > "${f/\*/${i:=$((n))}}"; then 
-              export creation_t="${EPOCHSECONDS}"
-              printf 'Process file created.\n' 1>&2 
-            else
-              : 'touch failed'
-            fi
-          fi; 
-        done
-	  )" _mv_file;
-
-  
-    # benchmark this syntax
-  for f in "/dev/shm/${repo_nm}"/*; do 
-          if [[ -e "$f" ]]; then 
-            i="$(basename "$f")";
-          else 
-	    # trying `: >` vs `touch`
-            if : > "${f/\*/${i:=$((n))}}"; then 
-              export creation_t="${EPOCHSECONDS}"
-              printf 'Process file created.\n' 1>&2 
-            else
-              : 'touch failed'
-            fi
-          fi; 
-        done
- mv -v "/dev/shm/${repo_nm}/$i" "/dev/shm/${repo_nm}/$((++i))";
-
-  
-  
-  veri_lockfile="${f/\*/$((i))}"
-  present_lock_count="$(basename "$veri_lockfile")";
-  for f in "/dev/shm/${repo_nm}"/[0-9]*; do
-    if [[ -e "$f" ]]; then 
-      if [[ $present_lock_count -ne 0 ]]; then
-        printf 'Racing process exists; exiting.\n'
-        exit "${LINENO}"
-      fi
-    else
-      fn_erx "${LINENO}"
-    fi; 
-  done
-  [[ -z "$veri_lockfile" ]] \
-    && veri_lockfile="/dev/shm/${repo_nm}/0"
-  echo "$EPOCHSECONDS,$BASHPID,$PPID" > "/dev/shm/${repo_nm}/pidfile" \
-    || fn_erx "${LINENO}"
-  if mv -f "/dev/shm/${repo_nm}/pidfile" "$veri_lockfile"; then 
-    printf 'Writing data to process file.\n'
-  else
-    printf 'Racing process exists; exiting.\n'
-    exit "${LINENO}"
-  fi
-elif [[ -e "/dev/shm/${repo_nm}" ]]; then
-  if [[ -d "/dev/shm/${repo_nm}" ]]; then
-    printf 'Creation of lockdir already occurred.\n'
-    unset i f
-    i="$( for f in "/dev/shm/${repo_nm}"/*; do 
-            if [[ -e "$f" ]]; then 
-              basename "$f"; 
-            fi; 
-          done
-    )" _mv_file;
-    shopt -s nullglob
-    prior_process_files=("/dev/shm/${repo_nm}"/[0-9]*)
-    
-    # wrong
-    if [[ "${#prior_process_files[@]}" -eq 0 ]]; then
-      
-      
-      rm -frv -- "/dev/shm/${repo_nm}"
-      printf 'A prior process failed to clean up properly; exiting.\n'
-      exit "${LINENO}"
-    fi
-
-
-    for f in "${prior_process_files[@]}"; do
-      if [[ -e "$f" ]]; then  
-        present_lock_count="$(basename "$f")";
-      fi;
-      if [[ -s "$f" ]]; then
-          #cat $f
-        IFS=',' read -r epochseconds bashpid ppid < "$f"
-          #declare -p epochseconds bashpid ppid
-      fi;
-      zero="${0#./}"
-      #set -
-      # scan `ps` output for either (A) the previous BASHPID and PPID if 
-      # their data remains, or (B) any bash process or any shell script 
-      # or any string matching this script's repo's name... excluding...
-      # the PID or PPID of the executing script.
-      ps_o="$(ps aux \
-        |& grep -e "${bashpid:='bash'}" -e "${ppid:="${repo_nm}"}" -e "${zero:='.sh'}" \
-        |& grep -ve grep -e "${BASHPID}" -e "${PPID}")"
-      
-      #set -x
-      case "$present_lock_count" in
-        0)  if [[ -z "${ps_o}" ]]; then 
-              if [[ -z "${creation_t}" ]]; then
-                fn_erx "${LINENO}"
-              fi
-              printf 'Lockdir left over from previous process.\n' 
-            else
-              printf 'Possible previous process.\n'
-              set -
-              printf '\t%s\n' "$ps_o"
-              #set -x
-              
-            fi
-            exit "${LINENO}"
-          ;;
-        *)  printf 'Likely previous process.\n'
-            if [[ -n "${ps_o:0:32}" ]]; then
-              set -
-              printf '\t%s\n' "$ps_o"
-              #set -x
-            else
-              printf 'No processes other than this one found.\n'
-            fi
-          ;;
-      esac
-      printf 'Removing lockdir and exiting.\n'
-      rm -frv -- "/dev/shm/${repo_nm}"
-      exit "${LINENO}"
-    done
-    shopt -u nullglob
-  else
-    fn_erx "Possible DOS; probable error. line: ${LINENO}"
-  fi
-else
-  fn_erx "${LINENO}"
-fi;
-#declare -p f i; ls -a "/dev/shm/${repo_nm}/"; set -;
-echo
-stat "/dev/shm/${repo_nm}"/[0-9]*;
-head "/dev/shm/${repo_nm}"/[0-9]*;
-unset f i ps_o
-exit 101
-
 
 : 'Variables for Traps (and Process Locks)'
 
@@ -546,7 +247,7 @@ exit "${LINENO}"
 : 'Functions'
 
 fn_bak() {
-  : 'fn_bak BEGINS' "$((++funclvl))" "${fence}"
+  : 'fn_bak BEGINS' "$((++fn_lvl))" "${fn_bndry}"
   # for each of multiple input files
   for loc_filename_a in "${@}"; do
     # test verifying existence of input
@@ -568,7 +269,7 @@ fn_bak() {
       fi
       # write a new .bak file
       sudo  rsync -acq -- "${loc_filename_a}"{,.bak} \
-        || fn_erx "${LINENO}"
+        || _erx "${LINENO}"
     # if input file DNE, then print an error and exit
     else
       {
@@ -577,11 +278,11 @@ fn_bak() {
       }
     fi
   done
-  : 'fn_bak ENDS  ' "$((--funclvl))" "${fence}"
+  : 'fn_bak ENDS  ' "$((--fn_lvl))" "${fn_bndry}"
 }
 
 #fn_num() {
-#  : 'fn_num BEGINS' "$((++funclvl))" "${fence}"
+#  : 'fn_num BEGINS' "$((++fn_lvl))" "${fn_bndry}"
 #  # Usage: fn_num [raw arrays names]
 #  # for each of multiple input array names
 #  for loc_unquotd_array_nm_a in "${@}"; do
@@ -591,13 +292,13 @@ fn_bak() {
 #    # input array
 #    echo ${#loc_nameref_a[@]}
 #  done
-#  : 'fn_num ENDS  ' "$((--funclvl))" "${fence}"
+#  : 'fn_num ENDS  ' "$((--fn_lvl))" "${fn_bndry}"
 #}
 
 fn_usage() {
   # Print a usage message and exit with a pre-determined exit code
   # Usage:  fn_usage [exit-code]
-  : 'fn_usage BEGINS' "$((++funclvl))" "${fence}"
+  : 'fn_usage BEGINS' "$((++fn_lvl))" "${fn_bndry}"
   {
     cat <<-EOF
   ${repo_nm} - ${script_proper_nm}, version ${script_version}
@@ -634,18 +335,18 @@ fn_usage() {
        *[s|y|b] Yes   [n] No       
 EOF
   } | more -e
-  : 'fn_usage ENDS  ' "$((--funclvl))" "${fence}"
+  : 'fn_usage ENDS  ' "$((--fn_lvl))" "${fn_bndry}"
   exit "${1}"
 }
 
 fn_write_arrays() {
-  : 'fn_write_arrays BEGINS' "$((++funclvl))" "${fence}"
+  : 'fn_write_arrays BEGINS' "$((++fn_lvl))" "${fn_bndry}"
   # Write each array to a file on disk.
   # Usage: fn_write_arrays [arrays]
   loc_write_d_b="${curr_time_ssubd}arrays"
   if [[ ! -d "${loc_write_d_b}" ]]; then
     sudo  mkdir -p -- "${loc_write_d_b}" \
-      || fn_erx "${LINENO}"
+      || _erx "${LINENO}"
   fi
   # for each of multiple input array names
   for loc_unquotd_array_nm_b in "${@}"; do
@@ -669,11 +370,11 @@ fn_write_arrays() {
     # write a backup of the new data file
     fn_bak "${loc_write_f_b}"
   done
-  : 'fn_write_arrays ENDS  ' "$((--funclvl))" "${fence}"
+  : 'fn_write_arrays ENDS  ' "$((--fn_lvl))" "${fn_bndry}"
 }
 
 #fn_write_vars() {
-#  : 'fn_write_vars BEGINS' "$((++funclvl))" "${fence}"
+#  : 'fn_write_vars BEGINS' "$((++fn_lvl))" "${fn_bndry}"
 #  # Usage: fn_write_vars [loc_script_section_nm] [raw variable names]
 #  # first pos-parm is string used for differentiating filename
 #  loc_script_section_nm="${1}"
@@ -687,7 +388,7 @@ fn_write_arrays() {
 #    | sudo  tee --output-error=exit  -- "${loc_write_f_a}" >/dev/null
 #  # and write a .bak file
 #  fn_bak "${loc_write_f_a}"
-#  : 'fn_write_vars ENDS  ' "$((--funclvl))" "${fence}"
+#  : 'fn_write_vars ENDS  ' "$((--fn_lvl))" "${fn_bndry}"
 #}
 
 
@@ -754,7 +455,7 @@ done
 : 'of curr_time_ssubd'
 if [[ ! -d "${curr_time_ssubd}" ]]; then
   sudo  mkdir -p -- "${curr_time_ssubd}" \
-    || fn_erx "${LINENO}"
+    || _erx "${LINENO}"
 fi
 #set -x; :;: "<>"; sudo namei -xl  -- "${curr_time_ssubd}"
 
@@ -1099,7 +800,7 @@ exit "${LINENO}"
 : 'Verify PATH'
 
 _verify_path(){
-  : '_verify_path BEGINS'  "$((++funclvl))" "${fence}"
+  : '_verify_path BEGINS'  "$((++fn_lvl))" "${fn_bndry}"
   #_full_xtrace
   
   # ...before running `type` / `command` or they'll print dups
@@ -1134,7 +835,7 @@ _verify_path(){
 
   # if the loc_path_1 is now empty, then exit
   if [[ "${#loc_path_1[@]}" -eq 0 ]]; then
-    fn_erx _verify_path "${loc_nameref}"
+    _erx _verify_path "${loc_nameref}"
   fi
 
   # remove any duplicates while preserving order of dirs
@@ -1161,7 +862,7 @@ _verify_path(){
   if [[ "${loc_var_nm}" = bash_path ]]; then 
     IFS=":" read -ra find_path <<<"${bash_path}"
   fi
-  : '_verify_path ENDS  '  "$((--funclvl))" "${fence}"
+  : '_verify_path ENDS  '  "$((--fn_lvl))" "${fn_bndry}"
 }
 
 _verify_path PATH
@@ -1732,7 +1433,7 @@ then
   # scripts from the CWD
   tempd="$(mktemp -d --suffix=."${xtr_f_nm/%.xtr/.d}")"
   cd "${tempd}" \
-    || fn_erx cd
+    || _erx cd
   
   # create a dictionary list of each possible initial character, and
   # include commands with odd yet permitted-by-Linux initial
@@ -1879,7 +1580,7 @@ then
     _full_xtrace
  
   cd - \
-    || fn_erx cd
+    || _erx cd
   rmdir -v "${tempd}"; unset tempd
 
 elif [[ "${methods_prog_cv}" = *bin_find ]]; then
@@ -2012,11 +1713,11 @@ for all_files_index in "${!a_all_files_sorted[@]}"; do
       | tr -s ' ' \
       | gawk --lint '{ print $2, $3, $4 }' \
       | tr -d '\n' \
-      || fn_erx "P:${PIPESTATUS[*]} I:${all_files_index} ${each_sorted_f}"
+      || _erx "P:${PIPESTATUS[*]} I:${all_files_index} ${each_sorted_f}"
   )"
 
   [[ -n "${od_o}" ]] \
-    || fn_erx "I:${all_files_index} ${each_sorted_f}"
+    || _erx "I:${all_files_index} ${each_sorted_f}"
 
   a_bin_od_output+=([all_files_index]="${od_o}")
 
@@ -2026,7 +1727,7 @@ for all_files_index in "${!a_all_files_sorted[@]}"; do
 
   : '-od_o- non-zero'
   if [[ -z "${byte_0}" ]]; then
-    fn_erx "I:${all_files_index} <${each_sorted_f}>" \
+    _erx "I:${all_files_index} <${each_sorted_f}>" \
       '*unreachable code*'
   elif [[ "${byte_0}" == @(23|21) ]]; then
     : 'compare hexadecimals'
@@ -2047,11 +1748,11 @@ for all_files_index in "${!a_all_files_sorted[@]}"; do
       strings_o="$(strings -n1 <"${each_sorted_f}" \
         | head -n1 \
         | cut -b -$((2 ** 14)) \
-        || fn_erx "P:${PIPESTATUS[*]} I:${all_files_index} \
+        || _erx "P:${PIPESTATUS[*]} I:${all_files_index} \
           ${each_sorted_f}")"
 
       IFS= read -r first_line_printable <<<"${strings_o}" \
-        || fn_erx "I:${all_files_index} ${each_sorted_f}"
+        || _erx "I:${all_files_index} ${each_sorted_f}"
 
       : '-#!comment-'
       if [[ "${first_line_printable}" =~ ^'#!comment' ]]; then
@@ -2167,7 +1868,7 @@ mapfile -t a_interpreters < <(
     | sed 's, *,,g' \
     | sort -u \
     | cut -b3- \
-    || fn_erx "P:${PIPESTATUS[*]}"
+    || _erx "P:${PIPESTATUS[*]}"
 )
 
 _full_xtrace
@@ -2312,11 +2013,11 @@ exit "${LINENO}"
 # file $list_crunchbangs is located in $time_dir.
 sudo  grep -E -- '/bin/'"${SC_shells}"'.*%=%=%=%' "${list_crunchbangs}" \
   | sudo  tee -a -- "${list_crunchbangs}_SC-scrpts-list" \
-  || fn_erx "${LINENO}"
+  || _erx "${LINENO}"
 
 # Copy list to /tmp
 sudo  rsync -ca -- "${list_crunchbangs}_SC-scrpts-list" /tmp \
-  || fn_erx "${LINENO}"
+  || _erx "${LINENO}"
 
 # Backup both lists
 fn_bak "${list_crunchbangs}_SC-scrpts-list" /tmp/*_SC-scrpts-list
@@ -2409,7 +2110,7 @@ i=0
         | sort -g \
         | uniq -c \
         | sort -k3 \
-        || fn_erx "P:${PIPESTATUS[*]} I: S:" # index and script name
+        || _erx "P:${PIPESTATUS[*]} I: S:" # index and script name
       # end of pipe intended
       printf '\0'
     )
@@ -2440,7 +2141,7 @@ fn_bak "${found_scrpts_f}"
 # make copies of the findings file and backup those copies
 for d in /tmp "${main_d}"; do
   sudo  rsync -ca -- "${found_scrpts_f}" "${d}" \
-    || fn_erx "${LINENO}"
+    || _erx "${LINENO}"
   fn_bak "${d}/${found_scrpts_f##*/}"
 done
 unset d
