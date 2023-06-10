@@ -1,80 +1,57 @@
 #!/bin/bash -x
-  #!/usr/bin/env -iS bash -x
-# Written in bash version 5.1 on Fedora 37 & 38
-# shellcheck disable=SC2317
+# findscan
+#!/usr/bin/env -iS bash -x
+#   bash 5.1 on Fedora 37 & 38
+#   shellcheck disable=SC2317
 
 # Note: Keep your goal in mind.
 
 # SECTION A
 
-# ToDo: for $random_i, use the most recent git commit hash ID
-
 max_age_of_tmp_files='1 minutes ago'
-script_nm='./find-and-scan.sh'
 repo_nm=scf
-random_i="${RANDOM}" 
-unique_str="${repo_nm}.${$}.${random_i}"
-lock_nm="${unique_str}.lock.d"
+script_nm='./findscan'
+export max_age_of_tmp_files repo_nm script_nm
 
-unset Halt               # For signal-less exiting
-declare -rx Halt         #  "   "           "
+rand_i="${RANDOM}" 
+rand_uniq_str="${repo_nm}.${$}.${rand_i}"
+rand_lock_nm="${rand_uniq_str}.lock.d"
+export rand_i rand_uniq_str rand_lock_nm
+
+_trap_ctrl_C() {
+  set -x
+  trap - INT
+  kill -s INT "$$"
+}; declare -fxt '_trap_ctrl_C'
+trap '_trap_ctrl_C' INT
 
   # <>
-  #echo '0:' "$0"; declare -p BASH_ARGC BASH_ARGV BASH_ARGV0 BASH_LINENO BASH_SOURCE BASH_SUBSHELL; 
   : "${BASH_SOURCE[0]}:${LINENO} ${BASH_SOURCE[1]}:${BASH_LINENO[0]}"
   #exit "${LINENO}"
   #set -x
 
-: 'Enable debugging'
-. ./debug.sh
+
+# Sub-scripts
+scr_nm_debug='./debugg.sh'
+scr_nm_sudo='./sudoreq.sh'
+scr_nm_cmds='./binsreq.sh'
+
+_source_subscript(){
+  if [[ -f "$1" ]] && [[ -x "$1" ]] && [[ -O "$f" ]]; then . "$1"
+  else declare -p BASH_SOURCE BASH_LINENO; exit "${LINENO}"
+  fi
+}
+
+: 'Enable debugging'  ; _source_subscript "${scr_nm_debug}"
+: 'ID and sudo'       ; _source_subscript "${scr_nm_sudo}"
+: 'Required programs' ; _source_subscript "${scr_nm_cmds}"
+
 
   # <>
+  #_full_xtrace
   : "${BASH_SOURCE[0]}:${LINENO} ${BASH_SOURCE[1]}:${BASH_LINENO[0]}"
   exit "${LINENO}"
   set -x
-
-: 'ID and sudo'
-
-if [[ "${UID}" == 0 ]]; then
-  printf '\n\t Must be a regular user and use sudo. \n\n'
-  exit 1
-elif ! sudo -v; then
-  printf '\n\tValidation failed of user\x27s \x60sudo\x60 timestamp; '
-  printf 'exiting.\n\n'
-  exit "${LINENO}"
-fi
-
-
-
-
-: 'Required programs'
-
-reqd_cmds=( awk chmod cp cut dirname find grep ln ls mkdir rm rmdir
-  stat sudo tee )
-yn=n
-
-hash -r;
-for c in "${reqd_cmds[@]}"; do
-  type_P_o="$(type -P "$c")"
-  if [[ -n "$type_P_o" ]]; then
-    hash -p "$type_P_o" "$c"
-  else
-    yn=y
-    list+=("$c")
-  fi;
-done; unset c reqd_cmds type_P_o
-
-if [[ "$yn" == 'n' ]]; then 
-  : 'No additional commands are required'
-else
-  printf '\n\t Please install the following commands:\n'
-  printf '\t\t%s\n' "${list[@]}" 
-  echo
-  exit "$LINENO"
-fi; unset yn list
-#exit "${LINENO}"
-#_full_xtrace
-#set -x
 
 
 : 'Traps'
@@ -1363,7 +1340,7 @@ i=0
 # is unique enough that accurately predicting it will be impractical.... 
 # So, 
   : 'Form of filenames for process lock dirs:' 
-  : $'\t' "/tmp/.${repo_nm}.${$}.${random_i}.lock.d"
+  : $'\t' "/tmp/.${repo_nm}.${$}.${rand_i}.lock.d"
 #   Still, the issue occurs of the race condition. Since the filename 
 # changes, the advantage of the atomicity of using `mkdir` is lost.... 
 # or is it?  
@@ -1379,7 +1356,7 @@ i=0
 for v in "${a_poss_proces_lock_dirs[@]}"; do
   if [[ -d "${v}" ]]; then
     v="$(realpath -e "${v}")"
-    A_process_lock_dirs+=( ["${v}/${lock_nm}"]=$((i++)) )
+    A_process_lock_dirs+=( ["${v}/${rand_lock_nm}"]=$((i++)) )
   fi
 done && unset i v 
 
@@ -2485,4 +2462,8 @@ exit 00
 #   - grep for 'shellcheck disable'
 #   - grep for 'bash -c' and 'sh -c'
 #   - grep for '(source|\.) .?.?/'
+
+
+# ToDo: for $rand_i, use the most recent git commit hash ID
+# Q: LD_PRELOAD LD_LIBRARY_PATH ? https://www.ics.uci.edu/~goodrich/teach/cs201P/notes/02_Environment_Variables.pdf
 
