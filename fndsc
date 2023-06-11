@@ -68,7 +68,7 @@ _src(){
   then  if    [[ "$3" == xx ]]
         then  declare -a verb
               verb=(-v --)
-              : "${verb:=--}"
+              : "${verb[@]:=--}"
               export verb
               set -x
         fi
