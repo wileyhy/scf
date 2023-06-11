@@ -1,18 +1,23 @@
 # Debugging
 
-
+  #######################################
   # <> Obligatory debugging block
   #_full_xtrace
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   #exit "${nL}"
   #set -x
+  #######################################
 
+# A function so `:` always prints to xtrace
+function :(){ 
+  local hyphen="$-"; 
+  set -x; 
+  printf '%b\n' "$@" >&2; 
+  [[ "$hyphen" =~ x ]] || set -;
+}; declare -fxt :
 
-# work on printing function trace stack
-function :(){ set -x; printf '%b\n' "$@" >&2; set -;}; declare -fxt :
-shopt -s expand_aliases
-alias exit='set -; _fn_trc; set -x; exit'
-function _fn_trc(){ local ec="${LINENO}:$-"
+# Print a function trace stack, and capture the FN's LINENO on line 0
+function _fn_trc(){ local ec="${LINENO}:$-" 
   set -
   local hyphen="${ec#*:}"
   ec=${ec%:*}
@@ -20,11 +25,15 @@ function _fn_trc(){ local ec="${LINENO}:$-"
   local -a ir
   mapfile -t ir < <(rev <<< "${!nBS[@]}" | tr ' ' '\n')
   for i in "${ir[@]}"; do
-    printf '%s:%s:%s  ' "${nBS[$i+1]:-$0}" "${nBL[$i]/$'^0$'/}" "${nF[$i]}"
+    printf '%s:%s:%s  ' "${nBS[$i+1]:-$0}" "${nBL[$i]}" "${nF[$i]}"
   done;
   echo "${nBS[0]}:${ec}:_fn_trc:${nL}"
   [[ "$hyphen" =~ x ]] && set -x
 }; declare -fxt _fn_trc
+
+# shadow the `exit` builtin, for when debugging is turned off
+shopt -s expand_aliases
+alias exit='set -; _fn_trc; set -x; exit'
 
   _fn_trc
   #exit "${nL}"
@@ -44,9 +53,9 @@ _trap_ctrl_C() {
     fi
   done
   if [[ -n "${rm_list[*]:0:8}" ]]; then
-    if ! rm -fv --one-file-system --preserve-root=all "${rm_list[@]}";
+    if ! rm -f ${verb} --one-file-system --preserve-root=all -- "${rm_list[@]}";
     then
-        _erx "rm failed, line ${nL}"
+      _erx "rm failed, line ${nL}"
     fi
   fi
   _fn_trc
@@ -55,7 +64,7 @@ _trap_ctrl_C() {
 }; declare -fxt _trap_ctrl_C
 trap '_trap_ctrl_C' INT
   set -x
-  sleep 10 # <>
+  #sleep 10 # <>
 
 
 : '<> Debug: Delete any left over xtrace files from -mktemp -p /tmp-'
@@ -73,12 +82,11 @@ mapfile -d '' -t xtr_files < <(
     '!' -newer "${xtr_time_f}" '!' -name "${xtr_time_f##*/}" -print0
 )
 
-# ...if they're (inodes are for) files & not symlinks, & owned by the
-# same EUID.
+# ...if they're (if inodes are) for files & not symlinks, & owned by 
+# the same EUID.
 for f in "${xtr_files[@]}"; do
   if [[ -f "${f}" ]] && [[ ! -L "${f}" ]] && [[ -O "${f}" ]]; then
-    sudo
-    chmod 000 "$f"
+    chmod ${verb} 000 "$f"
     xtr_rm_list+=("${f}")
   fi
 done; unset f

@@ -10,7 +10,8 @@
 max_age_of_tmp_files='1 minutes ago'
 repo_nm=scf
 script_nm='./findscan'
-export max_age_of_tmp_files repo_nm script_nm
+verb='-v'
+export max_age_of_tmp_files repo_nm script_nm verb
 
 rand_i="${RANDOM}"
 rand_uniq_str="${repo_nm}.${$}.${rand_i}"
