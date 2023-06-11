@@ -9,10 +9,13 @@
 
 
 # work on printing function trace stack
+function :(){ set -x; printf '%b\n' "$@" >&2; set -;}; declare -fxt :
 shopt -s expand_aliases
 alias exit='set -; _fn_trc; set -x; exit'
-function _fn_trc(){ local ec="${LINENO}"
+function _fn_trc(){ local ec="${LINENO}:$-"
   set -
+  local hyphen="${ec#*:}"
+  ec=${ec%:*}
   local i
   local -a ir
   mapfile -t ir < <(rev <<< "${!nBS[@]}" | tr ' ' '\n')
@@ -20,6 +23,7 @@ function _fn_trc(){ local ec="${LINENO}"
     printf '%s:%s:%s  ' "${nBS[$i+1]:-$0}" "${nBL[$i]/$'^0$'/}" "${nF[$i]}"
   done;
   echo "${nBS[0]}:${ec}:_fn_trc:${nL}"
+  [[ "$hyphen" =~ x ]] && set -x
 }; declare -fxt _fn_trc
 
   _fn_trc
@@ -45,11 +49,12 @@ _trap_ctrl_C() {
         _erx "rm failed, line ${nL}"
     fi
   fi
-  : "${LINENO}:_trap_ctrl_C
+  _fn_trc
+  : "${BASH_SOURCE[0]}:${LINENO}:_trap_ctrl_C"
   kill -s INT "$$"
 }; declare -fxt _trap_ctrl_C
 trap '_trap_ctrl_C' INT
-  
+  set -x
   sleep 10 # <>
 
 
