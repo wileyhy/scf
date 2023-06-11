@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 #!/usr/bin/env -iS bash
 #   findscan
 #   shellcheck disable=SC2317
