@@ -66,8 +66,9 @@ _src(){
         [[ ! -x "$1" ]] &&
         [[ ! -L "$1" ]];
   then  if    [[ "$3" == xx ]]
-        then  verb='-v'
-              : "${verb:=$'\ '}"
+        then  declare -a verb
+              verb=(-v --)
+              : "${verb:=--}"
               export verb
               set -x
         fi
