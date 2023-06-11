@@ -20,10 +20,11 @@ export rand_i rand_uniq_str rand_lock_nm
 fn_lvl=0; fn_bndry=' +++ +++ +++ '
 export fn_lvl fn_bndry
 
-declare -nx nBL=BASH_LINENO
-declare -nx nBS=B-ASH_SOURCE
-declare -nx nF=FUNCNAME
-declare -nx nL=LINENO
+declare -n nBL=BASH_LINENO
+declare -n nBS=B-ASH_SOURCE
+declare -n nF=FUNCNAME
+declare -n nL=LINENO
+export nBL nBS nF nL
 
 _erx() {
   local loc_exit_code="$?" 
