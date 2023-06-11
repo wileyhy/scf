@@ -67,7 +67,7 @@ _src(){
         [[ ! -L "$1" ]];
   then  if    [[ "$3" == xx ]]
         then  verb='-v'
-              : "${verb:=\ }"
+              : "${verb:=$'\ '}"
               export verb
               set -x
         fi
