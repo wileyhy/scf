@@ -9,14 +9,18 @@
 
 
 shopt -s expand_aliases
-alias exit='set -x; exit '
-:(){ set -x; builtin : "$@"; set -; }
+alias exit='set -x; exit'
+function :(){ 
+  set -x; 
+  builtin : "$@"; 
+  set -; 
+}; declare -fxt :
 
 # work on printing function trace stack
 function _test2 { local ec="${LINENO}"
   set -
   mapfile -t ir < <(rev <<< "${!nBS[@]}" | tr ' ' '\n')
-  declare -p ir
+  #declare -p ir
   for i in "${ir[@]}"; do
     printf '%s:%s:%s  ' "${nBS[$i+1]:-$0}" "${nBL[$i]/$'^0$'/}" "${nF[$i]}"
   done
@@ -27,7 +31,7 @@ _test2
 
   printf ': "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"\n'
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
-_test2
+  : "$(_test2)"
   exit "${nL}"
   set -x
 
