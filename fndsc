@@ -10,9 +10,9 @@
 max_age_of_tmp_files='1 minutes ago'
 repo_nm=scf
 script_nm='./findscan'
-sc_severity=error
+sc_sevr=error
 SC_shells='(sh|bash|dash|ksh)'
-export max_age_of_tmp_files repo_nm script_nm sc_severity SC_shells
+export max_age_of_tmp_files repo_nm script_nm sc_sevr SC_shells
 
 unset LC_ALL
 getconf_o="$(/usr/bin/command -p getconf PATH)" || "${Halt:?}"
@@ -217,7 +217,7 @@ find_exclude_optargs_default=(
 find_exclude_optargs=()
 IFS=':' read -ra find_path <<<"${bash_path}"
 find_sym_opt_L='-L'
-sc_sev_abrv="${sc_severity:0:1}"
+sc_sev_abrv="${sc_sevr:0:1}"
 #methods_recurse_n=no
 methods_path=('as-is')
 methods_prog_cv=bash_type_a
@@ -499,10 +499,10 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
 
     # ShellCheck's '-S' setting, ie, severity level. Default is error.
     c) case "${OPTARG:0:1}" in
-      e*) sc_severity=error ;;
-      i*) sc_severity=info ;;
-      s*) sc_severity=style ;;
-      w*) sc_severity=warning ;;
+      e*) sc_sevr=error ;;
+      i*) sc_sevr=info ;;
+      s*) sc_sevr=style ;;
+      w*) sc_sevr=warning ;;
       *) "${arg_wrong__c:?}" ;;
     esac ;;
 
@@ -2087,7 +2087,7 @@ i=0
     # array, and exit the script when filters, etc completes, print
     # a NULL to start a new mapfile index
     mapfile -d '' -t a_each_script_SC_results < <(
-      shellcheck -S "${sc_severity}" \
+      shellcheck -S "${sc_sevr}" \
         "${a_each_script_list_sorted_by_linect[sorted_script]}" \
         | grep -Fv 'shellcheck.net' \
         | grep -Eo "SC[0-9]{4}.*" \
