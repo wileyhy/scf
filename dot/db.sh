@@ -22,6 +22,7 @@ function _fn_trc(){ local ec="${LINENO}"
   echo "${nBS[0]}:${ec}:_fn_trc:${nL}"
 }; declare -fxt _fn_trc
 
+  _fn_trc
   #exit "${nL}"
   #set -x
 
@@ -44,6 +45,7 @@ _trap_ctrl_C() {
         _erx "rm failed, line ${nL}"
     fi
   fi
+  : "${LINENO}:_trap_ctrl_C
   kill -s INT "$$"
 }; declare -fxt _trap_ctrl_C
 trap '_trap_ctrl_C' INT
@@ -78,7 +80,6 @@ done; unset f
 
 if [[ -n "${xtr_rm_list[*]}" ]]; then
   rm -fv --one-file-system --preserve-root=all "${xtr_rm_list[@]}"
-  break
 fi; unset xtr_rm_list xtr_files
 
 
