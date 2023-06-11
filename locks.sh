@@ -3,7 +3,7 @@
 
   # <> Obligatory debugging block
   #_full_xtrace
-  : "${BASH_SOURCE[0]}:${LINENO} ${BASH_SOURCE[1]}:${BASH_LINENO[0]}"
+  : "${BS[0]}:${LINENO} ${BS[1]}:${BASH_LINENO[0]}"
   #exit "${LINENO}"
   set -x
 
@@ -93,7 +93,7 @@ fi; unset f l
 
   # <> Obligatory debugging block
   #_full_xtrace
-  : "${BASH_SOURCE[0]}:${LINENO} ${BASH_SOURCE[1]}:${BASH_LINENO[0]}"
+  : "${BS[0]}:${LINENO} ${BS[1]}:${BASH_LINENO[0]}"
   exit "${LINENO}"
   set -x
 
@@ -325,7 +325,7 @@ exit 101
 
   # <> Obligatory debugging block
   #_full_xtrace
-  : "${BASH_SOURCE[0]}:${LINENO} ${BASH_SOURCE[1]}:${BASH_LINENO[0]}"
+  : "${BS[0]}:${LINENO} ${BS[1]}:${BASH_LINENO[0]}"
   #exit "${LINENO}"
   set -x
 

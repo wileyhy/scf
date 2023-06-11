@@ -3,7 +3,7 @@
 
   # <> Obligatory debugging block
   #_full_xtrace
-  : "${BASH_SOURCE[0]}:${LINENO} ${BASH_SOURCE[1]}:${BASH_LINENO[0]}"
+  : "${BS[0]}:${LINENO} ${BS[1]}:${BASH_LINENO[0]}"
   #exit "${LINENO}"
   #set -x
 
@@ -61,7 +61,7 @@ fi; unset xtr_rm_list xtr_files
 
   # <> Obligatory debugging block
   #_full_xtrace
-  : "${BASH_SOURCE[0]}:${LINENO} ${BASH_SOURCE[1]}:${BASH_LINENO[0]}"
+  : "${BS[0]}:${LINENO} ${BS[1]}:${BASH_LINENO[0]}"
   #exit "${LINENO}"
   #set -x
 
@@ -123,7 +123,7 @@ _mk_v_setenv_novv() {
   done
   set -- "${!n[@]}"
   for i; do 
-    : $'\t\t\t\t'"${i}"$'\t'"${BASH_LINENO[$i]}"$'\t'"${FUNCNAME[$i]}"$'\t'"${BASH_SOURCE[$i+1]} lineno-array-index"
+    : $'\t\t\t\t'"${i}"$'\t'"${BASH_LINENO[$i]}"$'\t'"${FUNCNAME[$i]}"$'\t'"${BS[$i+1]} lineno-array-index"
   done
   ${Halt:?}
 
@@ -165,7 +165,7 @@ _mk_v_setenv_delta() {
       #diff --suppress-{common-lines,blank-empty} --color=always \
         #--palette='ad=1;3;38;5;190:de=1;3;38;5;129' \
         #"${xtr_senv_prev}" "${xtr_senv_now}" \
-        #| grep -ve BASH_LINENO -e BASH_COMMAND -e BASH_SOURCE \
+        #| grep -ve BASH_LINENO -e BASH_COMMAND -e BS \
           #-e setenv_ -Fe '---'
     #} \
       #|& tee -a "${xtr_senv_delt}"
@@ -182,7 +182,7 @@ _mk_v_setenv_delta() {
         --palette='ad=1;3;38;5;190:de=1;3;38;5;129' \
         "${xtr_senv_prev}" "${xtr_senv_now}" \
         |& tee -a "${xtr_senv_delt}"
-        #| grep -ve BASH_LINENO -e BASH_COMMAND -e BASH_SOURCE \
+        #| grep -ve BASH_LINENO -e BASH_COMMAND -e BS \
           #-e setenv_ -Fe '---' \
     # set colors for `wc` output
     export GREP_COLORS='mt=01;104'
@@ -208,7 +208,7 @@ _debug_prompt() {
   : '_debug_prompt BEGINS' "$((++funclvl))" "${fence}"
   _mk_deltas
   : '~~~ ~~ ~ PROMPT ~ ~~ ~~~'
-  read -rp " +[${BASH_SOURCE[0]}:${LINENO}] ${BASH_COMMAND[0]}?" _
+  read -rp " +[${BS[0]}:${LINENO}] ${BASH_COMMAND[0]}?" _
   : '_debug_prompt ENDS  ' "$((--funclvl))" "${fence}"
 }; declare -ftx _debug_prompt
 
@@ -223,7 +223,7 @@ _full_xtrace() {
 
   # <> Obligatory debugging block
   #_full_xtrace
-  : "${BASH_SOURCE[0]}:${LINENO} ${BASH_SOURCE[1]}:${BASH_LINENO[0]}"
+  : "${BS[0]}:${LINENO} ${BS[1]}:${BASH_LINENO[0]}"
   #exit "${LINENO}"
   #set -x
 

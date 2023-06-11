@@ -20,10 +20,10 @@ export rand_i rand_uniq_str rand_lock_nm
 fn_lvl=0; fn_bndry=' +++ +++ +++ '
 export fn_lvl fn_bndry
 
-declare -nx BS=BASH_SOURCE
-declare -nx LN=LINENO
-declare -nx BL=BASH_LINENO
-declare -nx FN=FUNCNAME
+declare -nx BS=B-ASH_SOURCE
+declare -nx LN=L-INENO
+declare -nx BL=B-ASH_LINENO
+declare -nx FN=F-UNCNAME
 
 _erx() {
   local loc_exit_code="$?" 
@@ -42,7 +42,7 @@ trap '_trap_ctrl_C' INT
 
 
   # <> Obligatory debugging block
-  : "${BASH_SOURCE[0]}:${LINENO} ${BASH_SOURCE[1]}:${BASH_LINENO[0]}"
+  : "${BS[0]}:${LINENO} ${BS[1]}:${BASH_LINENO[0]}"
   #exit "${LINENO}"
   #set -x
 
@@ -60,7 +60,7 @@ _src_subscrpt(){
     . "$1"
     [[ "$4" == x ]] && exit "$2"
   else 
-    declare -p BASH_SOURCE BASH_LINENO; 
+    declare -p BS BASH_LINENO; 
     exit "$2"
   fi
 }; declare -fxt _src_subscrpt
@@ -72,7 +72,7 @@ _src_subscrpt(){
 
   # <> Obligatory debugging block
   #_full_xtrace
-  : "${BASH_SOURCE[0]}:${LINENO} ${BASH_SOURCE[1]}:${BASH_LINENO[0]}"
+  : "${BS[0]}:${LINENO} ${BS[1]}:${BASH_LINENO[0]}"
   exit "${LINENO}"
   set -x
 
@@ -140,7 +140,7 @@ _exit_trap() {
 
 test(){
   shopt -s expand_aliases
-  declare -n n=BASH_SOURCE
+  declare -n n=BS
   declare -n e=LINENO
   declare -a l
   alias L_='declare -a "l[8-${#n[@]}]=$e"' 
@@ -176,8 +176,8 @@ declare -a "l[8-${#n[@]}]=$LINENO"; exit "${l[8-${#n[@]}]}"
 
 : "count, BASH_LINENO: ${#BASH_LINENO[@]}"
 declare -p BASH_LINENO
-: "count, BASH_SOURCE: ${#BASH_SOURCE[@]}"
-declare -p BASH_SOURCE
+: "count, BS: ${#BS[@]}"
+declare -p BS
 : "count, FUNCNAME: ${#FUNCNAME[@]}"
 declare -p FUNCNAME
 "${Halt:?}"
@@ -197,7 +197,7 @@ LC_NUMERIC="en_US.UTF-8" # for commas in large numbers
 getconf_o="$(/usr/bin/command -p getconf PATH)" \
   || "${Halt:?}"
 PATH="${getconf_o}:/usr/bin:/usr/sbin:${PATH}"
-PS4='+${BASH_SOURCE[0]}:${LINENO}:${FUNCNAME[0]}: '
+PS4='+${BS[0]}:${LINENO}:${FUNCNAME[0]}: '
 export FUNCNEST GREP_COLORS LC_COLLATE LC_CTYPE LC_NUMERIC PATH PS4
 
 : 'Vars: Implementation-dependent args for options parsable by ShellCheck'
