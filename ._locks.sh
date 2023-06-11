@@ -8,56 +8,109 @@
   set -x
 
 
-# Vars
+# Vars & Functions
+POSIXLY_CORRECT=0
+LC_ALL=C
+unset IFS
+set -C
+
+
+# Non-critical 
+
+## <> Debugging: remove all previous lock files
+rm -frv -- '/dev/shm' ||
+  _erx "line: ${LINENO}, command rm failed."
+
+## Commands 
+### Required: if any of these are missing, print an error and exit
+hash -r
+reqd_commands=(pathchk mv link unlink echo set nice sync timeout stdbuf nohup sleep ps)
+for c in "${reqd_commands[@]}"; do
+  full_path="$(type -P "$c" 2> /dev/null)"
+  if [[ -z "$full_path" ]]; then
+    _erx "line: ${LINENO}, command ${c} is not available."
+  fi
+done
+
+### Optional: if any of these are missing, print an info message and continue
+optl_commands=(fuser)
+for c in "${optl_commands[@]}"; do
+  full_path="$(type -P "$c" 2> /dev/null)"
+  if [[ -z "$full_path" ]]; then
+    echo "INFO: line: ${LINENO}, command ${c} is not available." 2>&
+  else
+    declare -x "${c}=${c}"
+  fi
+done; unset c full_path
+
+## /dev/shm must exist
+if [[ ! -e /dev/shm ]]; then
+  mkdir -m 1777 /dev/shm ||
+   _erx "${LINENO}"
+fi
+
+## <?> retained for POSIX 2017 functionality
+pathchk -p /dev/shm || 
+  echo "INFO: line: ${LINENO}, command pathchk failed." 2>& # <>
+pathchk -P /dev/shm || 
+  echo "INFO: line: ${LINENO}, command pathchk failed." 2>& # <>
+
+
+# Trying
+f="/dev/shm/$$_${rand_i}.f"
+l="/dev/shm/${repo_nm}"
+set -- "${f}"
+printf "%b\n" "$*" || "${Halt:?}" # printf cmd per POSIX 2017
+set --
+
+if pathchk "${l}"; then
+  if link -- "${f}" "${l}" ; then
+    printf 'Creation of lockfile succeeded.\n'
+    unlink -- "${f}" || "${Halt:?}"
+  else
+    printf 'A lock already exists:\n'
+    ls -alhFi "${l}"
+    fuser_o="$(fuser "${l}")"
+    printf '%s\n' "${fuser_o}"
+    fuser_pid=
+    ps aux | grep "$(awk )"
+  fi
+fi
+exit "${LINENO}"
+
+
+
+
+
+# Critical
+
+
+
+
+# Exit
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 # flock mkdir ln pathchk mv link unlink nice lsof fuser stat chattr logger echo pgrep timeout nohup stdbuf ps rm parallel lockfile sync
 
 
-hash -r
-for b in chattr lsof ps pgrep fuser flock logger parallel lockfile; do
-  full_path="$(type -P "$b" 2> /dev/null)"
-  if [[ -n "$full_path" ]]; then
-    declare -x "${b}_ins=y"
-  fi
-done; unset b full_path
-
-
-unset i f
-rm -fv -- "/dev/shm/${repo_nm}"/[0-9]*;
-rm -frv -- "/dev/shm/${repo_nm}";
-wait -f
-set -x; unset f i; declare -p f i; ls -a "/dev/shm/${repo_nm}/";
-if [[ ! -e /dev/shm ]]; then
-  mkdir -m 1777 /dev/shm ||
-   exit "${LINENO}"
-fi
-wait -f
-
-function _mv_file { 
-  # Probably atomic operation ??
-  mv -v "/dev/shm/${repo_nm}/$i" "/dev/shm/${repo_nm}/$((++i))" 2> /dev/null;
-};
 
 # Almost certainly atomic operation on Linux ext4 ...but on tmpfs ?? 
-set -xC
-POSIXLY_CORRECT=0
 # `pathchk` with `set -C` is atomic per POSIX 1003.1-2017
 # https://pubs.opengroup.org/onlinepubs/9699919799/utilities/pathchk.html
 
-command -p pathchk -p "/dev/shm/${repo_nm}"
-pathchk -P "/dev/shm/${repo_nm}"
 
-
-if pathchk "/dev/shm/${repo_nm}"; then
-  if mkdir -m 0700 -- "/dev/shm/${repo_nm}" 2> /dev/null; then
-    printf 'Creation of lockdir succeeded.\n'
-  else
-    printf 'Lock exists.\n'
-  fi
-fi
-exit "${LINENO}"
 
 printf 'Wait for the lock to be freed? [Y/n]\n'
 read -r ans
