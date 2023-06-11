@@ -21,7 +21,7 @@ fn_lvl=0; fn_bndry=' +++ +++ +++ '
 export fn_lvl fn_bndry
 
 declare -n nBL=BASH_LINENO
-declare -n nBS=B-ASH_SOURCE
+declare -n nBS=BASH_SOURCE
 declare -n nF=FUNCNAME
 declare -n nL=LINENO
 export nBL nBS nF nL
