@@ -12,18 +12,18 @@
 shopt -s expand_aliases
 alias exit='set -; _fn_trc; set -x; exit'
 function _fn_trc(){ local ec="${LINENO}"
+  set -
   local i
   local -a ir
   mapfile -t ir < <(rev <<< "${!nBS[@]}" | tr ' ' '\n')
   for i in "${ir[@]}"; do
     printf '%s:%s:%s  ' "${nBS[$i+1]:-$0}" "${nBL[$i]/$'^0$'/}" "${nF[$i]}"
-  done; echo "${nBS[0]}:${ec}:_fn_trc:${nL}"
+  done;
+  echo "${nBS[0]}:${ec}:_fn_trc:${nL}"
 }; declare -fxt _fn_trc
 
-  exit "${nL}"
-  set -x
-
-
+  #exit "${nL}"
+  #set -x
 
 
 : '<>: Debug functions & traps'
@@ -34,16 +34,21 @@ _trap_ctrl_C() {
   for f in "${xtr_time_f}" "${xtr_senv_prev}" \
     "${xtr_senv_now}" "${xtr_senv_delt}";
   do
-    if [[ -f "$f" ]]; then
-      if ! rm --one-file-system --preserve-root=all "${f}"; then
-          _erx "rm failed -- ${f} -- line ${nL}"
-      fi
+    if [[ -f "$f" ]] && [[ ! -L "$f" ]] && [[ -O "$f" ]]; then
+      rm_list+=("$f")
     fi
   done
+  if [[ -n "${rm_list[*]:0:8}" ]]; then
+    if ! rm -fv --one-file-system --preserve-root=all "${rm_list[@]}";
+    then
+        _erx "rm failed, line ${nL}"
+    fi
+  fi
   kill -s INT "$$"
 }; declare -fxt _trap_ctrl_C
 trap '_trap_ctrl_C' INT
-  #sleep 10 # <>
+  
+  sleep 10 # <>
 
 
 : '<> Debug: Delete any left over xtrace files from -mktemp -p /tmp-'
