@@ -11,8 +11,8 @@ max_age_of_tmp_files='1 minutes ago'
 repo_nm=scf
 script_nm='./findscan'
 sc_sevr=error
-SC_shells='(sh|bash|dash|ksh)'
-export max_age_of_tmp_files repo_nm script_nm sc_sevr SC_shells
+sc_shells='(sh|bash|dash|ksh)'
+export max_age_of_tmp_files repo_nm script_nm sc_sevr sc_shells
 
 unset LC_ALL
 getconf_o="$(/usr/bin/command -p getconf PATH)" || "${Halt:?}"
@@ -1996,7 +1996,7 @@ exit "${nL}"
 
 # filter out interpreters not compatible with shellcheck.
 # file $list_crunchbangs is located in $time_dir.
-sudo  grep -E -- '/bin/'"${SC_shells}"'.*%=%=%=%' "${list_crunchbangs}" \
+sudo  grep -E -- '/bin/'"${sc_shells}"'.*%=%=%=%' "${list_crunchbangs}" \
   | sudo  tee -a -- "${list_crunchbangs}_SC-scrpts-list" \
   || _erx "${nL}"
 
@@ -2010,7 +2010,7 @@ fn_bak "${list_crunchbangs}_SC-scrpts-list" /tmp/*_SC-scrpts-list
 # <>
 _full_xtrace
 :;: "<>"
-fn_write_arrays timecode list_crunchbangs SC_shells
+fn_write_arrays timecode list_crunchbangs sc_shells
 exit "${nL}"
 
 _full_xtrace
