@@ -8,27 +8,35 @@
   set -x
 
 
-# Vars & Functions
+# Non-critical 
+
+## Vars & Functions
 POSIXLY_CORRECT=0
 LC_ALL=C
 unset IFS
 set -C
 
 
-# Non-critical 
+## <> Reset the FS during debugging
+### /dev/shm must exist
+if [[ ! -e /dev/shm ]]; then
+  sudo mkdir -m 1777 /dev/shm ||
+   _erx "${LINENO}"
+fi
 
-## <> Debugging: remove all previous lock files
+### remove all previous lock files
 rm -frv --one-file-system --preserve-root=all -- /dev/shm/* ||
-  _erx "line: ${LINENO}, command rm failed."
-sudo rmdir -v -- /dev/shm ||
-  _erx "line: ${LINENO}, command rmdir failed."
+  _erx "${LINENO}"
+
 
 ## Commands 
 ### Required: if any of these are missing, print an error and exit
 hash -r
 reqd_commands=(pathchk mv link unlink echo set nice sync timeout stdbuf nohup sleep ps)
+
 for c in "${reqd_commands[@]}"; do
   full_path="$(type -P "$c" 2> /dev/null)"
+  
   if [[ -z "$full_path" ]]; then
     _erx "line: ${LINENO}, command ${c} is not available."
   fi
@@ -36,8 +44,10 @@ done
 
 ### Optional: if any of these are missing, print an info message and continue
 optl_commands=(fuser pgrep)
+
 for c in "${optl_commands[@]}"; do
   full_path="$(type -P "$c" 2> /dev/null)"
+  
   if [[ -z "$full_path" ]]; then
     echo "INFO: line: ${LINENO}, command ${c} is not available." >&2
   else
@@ -45,43 +55,45 @@ for c in "${optl_commands[@]}"; do
   fi
 done; unset c full_path
 
-## /dev/shm must exist
-if [[ ! -e /dev/shm ]]; then
-  sudo mkdir -m 1777 /dev/shm ||
-   _erx "${LINENO}"
-fi
-
-## <?> retained for POSIX 2017 functionality
-pathchk -p /dev/shm || 
-  echo "INFO: line: ${LINENO}, command pathchk failed." >&2 # <>
-pathchk -P /dev/shm || 
-  echo "INFO: line: ${LINENO}, command pathchk failed." >&2 # <>
 
 
 # Trying
+
+## Verify file names -- using POSIX 2017 functionality
 f="/dev/shm/$$_${rand_i}.f"
 l="/dev/shm/${repo_nm}"
+
+for x in "${f}" "${l}"; do
+  pathchk -p /dev/shm || 
+    echo "INFO: line: ${LINENO}, command pathchk failed." >&2 # <>
+  pathchk -P /dev/shm || 
+    echo "INFO: line: ${LINENO}, command pathchk failed." >&2 # <>
+done
+
 set -- "${f}"
 printf "%b\n" "$*" || "${Halt:?}" # printf cmd per POSIX 2017
 set --
 
 if pathchk "${l}"; then
+  
   if link -- "${f}" "${l}" ; then
     printf 'Creation of lockfile succeeded.\n'
     unlink -- "${f}" || "${Halt:?}"
+  
   else
     printf 'A lock already exists:\n'
     ls -alhFi "${l}"
     fuser_o="$(fuser -v "${l}")"
     printf '%s\n' "${fuser_o}"
     fuser_pid="$(tail -n1 <<< "${fuser_o}" | awk '{ printf $2 }')"
+    
     if [[ "${pgrep}" ]]; then
       pgrep "${fuser_pid}"
     else
       ps aux | grep "${fuser_pid}"
     fi
   fi
-fi
+fi; unset f l 
 
 
   # <> Obligatory debugging block

@@ -23,7 +23,7 @@ export fn_lvl fn_bndry
 _erx() {
   local loc_exit_code="$?" 
   : '_erx BEGINS' "$((++fn_lvl))" "${fn_bndry}"
-  echo -e Error: "$@"
+  echo -e Error: "$@" >&2
   exit "${loc_exit_code}"
   : '_erx ENDS  ' "$((--fn_lvl))" "${fn_bndry}"
 }; declare -fxt _erx
