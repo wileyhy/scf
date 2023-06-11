@@ -288,8 +288,7 @@ _debug_prompt() {
 _full_xtrace() {
   : '_full_xtrace BEGINS' "${fn_bndry}" "$((++fn_lvl))"
 
-  trap '_debug_prompt "$_";' DEBUG
-  set -x
+  trap '_debug_prompt "$_";' DEBUG; set -x
 
   : '_full_xtrace ENDS  ' "${fn_bndry}" "$((--fn_lvl))"
 }; declare -ftx _full_xtrace
