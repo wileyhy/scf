@@ -62,7 +62,6 @@ _src(){
     [[ "$4" == xx ]] && exit "$2"
   else
     echo source file missing?
-    declare -p nBS nBL;
     exit "$2"
   fi
 }; declare -fxt _src
