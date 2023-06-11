@@ -17,7 +17,7 @@ function :(){
 }; declare -fxt :
 
 # Print a function trace stack, and capture the FN's LINENO on line 0
-function _fn_trc(){ local ec="${LINENO}:$-" 
+function _fn_trc(){ local ec="${nL:?}:$-" 
   set -
   local hyphen="${ec#*:}"
   ec=${ec%:*}
@@ -25,10 +25,10 @@ function _fn_trc(){ local ec="${LINENO}:$-"
   local -a ir
   mapfile -t ir < <(rev <<< "${!nBS[@]}" | tr ' ' '\n')
   for i in "${ir[@]}"; do
-    printf '%s:%s:%s  ' "${nBS[$i+1]:-$0}" "${nBL[$i]}" "${nF[$i]}"
+    printf '%s:%s:%s  ' "${nBS[$i+1]:-$0}" "${nBL[$i]:?}" "${nF[$i]:?}"
   done;
-  echo "${nBS[0]}:${ec}:_fn_trc:${nL}"
-  [[ "$hyphen" =~ x ]] && set -x
+  echo "${nBS[0]:?}:${ec:?}:_fn_trc:${nL}"
+  [[ "${hyphen:?}" =~ x ]] && set -x
 }; declare -fxt _fn_trc
 
 # shadow the `exit` builtin, for when debugging is turned off
@@ -45,54 +45,77 @@ alias exit='set -; _fn_trc; set -x; exit'
 _trap_ctrl_C() {
   set -x
   trap - INT
-  for f in "${xtr_time_f}" "${xtr_senv_prev}" \
-    "${xtr_senv_now}" "${xtr_senv_delt}";
+  
+  # remove all the current xtrace environment log files
+  for f in "${xtr_time_f:?}" "${xtr_senv_prev:?}" \
+    "${xtr_senv_now:?}" "${xtr_senv_delt:?}";
   do
-    if [[ -f "$f" ]] && [[ ! -L "$f" ]] && [[ -O "$f" ]]; then
-      rm_list+=("$f")
+    
+    # as possible, add each to an array $rm_list
+    if [[ -f "${f}" ]] && [[ ! -L "${f}" ]] && [[ -O "${f}" ]]; then
+      rm_list+=("${f}")
     fi
-  done
+  done; unset f xtr_time_f xtr_senv_prev xtr_senv_now xtr_senv_delt
+
+  # if there are any files in array $rm_list, then remove then all at 
+  # once
   if [[ -n "${rm_list[*]:0:8}" ]]; then
-    if ! rm -f ${verb} --one-file-system --preserve-root=all -- "${rm_list[@]}";
+    if ! rm -f ${verb} --one-file-system --preserve-root=all \
+      -- "${rm_list[@]}";
     then
-      _erx "rm failed, line ${nL}"
+      _erx "unlink failed, line ${nL}"
     fi
-  fi
+  fi; unset rm_list
+
+  # print a function trace (or two...)
   _fn_trc
-  : "${BASH_SOURCE[0]}:${LINENO}:_trap_ctrl_C"
+  : "${nBS[0]}:${nL}:_trap_ctrl_C"
+  
+  # kill the script with INT
   command -p kill -s INT "$$"
 }; declare -fxt _trap_ctrl_C
+
+# redefine the INT trap
 trap '_trap_ctrl_C' INT
+  
+  # <>
   set -x
-  #sleep 10 # <>
+  #sleep 10 
 
 
 : '<> Debug: Delete any left over xtrace files from -mktemp -p /tmp-'
 
-xtr_f_nm="${rand_uniq_str}.xtr"
+# Vars
+xtr_f_nm="${rand_uniq_str:?}.xtr"
 xtr_time_f="/tmp/tmp.mtime_file.${xtr_f_nm}"
 xtr_delta_sum_f="$(mktemp -p /tmp --suffix=."${xtr_f_nm}.E")"
 export xtr_f_nm xtr_time_f xtr_delta_sum_f
 unset f xtr_rm_list xtr_files
 
-touch -d "${max_age_of_tmp_files}" "${xtr_time_f}"
+# Create the xtrace time file
+touch -d "${max_age_of_tmp_files:?}" "${xtr_time_f}"
+
+# Remove any errant xtrace log files
+
+# Get the list of remaining xtrace log files (older than the time file)
 mapfile -d '' -t xtr_files < <(
   find -P /tmp -maxdepth 1 -type f \
-    -name "tmp.[a-zA-Z0-9]*.${repo_nm}.[0-9]*.[0-9]*.xtr*" \
+    -name "tmp.[a-zA-Z0-9]*.${repo_nm:?}.[0-9]*.[0-9]*.xtr*" \
     '!' -newer "${xtr_time_f}" '!' -name "${xtr_time_f##*/}" -print0
 )
 
 # ...if they're (if inodes are) for files & not symlinks, & owned by 
-# the same EUID.
+# the same EUID....
 for f in "${xtr_files[@]}"; do
   if [[ -f "${f}" ]] && [[ ! -L "${f}" ]] && [[ -O "${f}" ]]; then
+    
+    # then protect them and add then to an array $xtr_rm_list
     chmod ${verb} 000 "$f"
     xtr_rm_list+=("${f}")
   fi
 done; unset f
-
 if [[ -n "${xtr_rm_list[*]}" ]]; then
-  rm -fv --one-file-system --preserve-root=all "${xtr_rm_list[@]}"
+  rm -f ${verb} --one-file-system --preserve-root=all -- "${xtr_rm_list[@]}"
 fi; unset xtr_rm_list xtr_files
 
 
@@ -105,8 +128,7 @@ fi; unset xtr_rm_list xtr_files
 
 : '<> Debug: XTrace variables and functions'
 
-funclvl=0
-fence=' +++ +++ +++ '
+fn_lvl=0; fn_bndry=' +++ +++ +++ '
 
 #   _xtrace_duck: If xtrace was previously on, then on first execution
 # of this function, turn xrtrace off, and on second execution, turn
@@ -115,25 +137,33 @@ fence=' +++ +++ +++ '
 
 _xtrace_duck() {
   : '_xtrace_duck BEGINS' "$((++funclvl))" "${fence}"
+  
   # If xtrace is on...
   if [[ "$-" =~ x ]]; then
+    
     # ...then record its state
     local -gx xtrace_prev
+    
     # and turn xtrace off
     set -
+  
   # but if xtrace is off...
   else
+    
     # ...then if xtrace was previously on...
     : 'if prev'
     if [[ -n "${xtrace_prev}" ]]; then
+      
       # ...then restore xtrace and unset the record of its state
       set -x
       unset xtrace_prev
+    
     # but if xtrace is off and was previously off... (return).
     fi
   fi
   : '_xtrace_duck ENDS  ' "$((--funclvl))" "${fence}"
 }; declare -ftx _xtrace_duck
+
 
 # A set of functions for printing changes in shell variables and para-
 # meters between each execution of a command; for use when the DEBUG
@@ -141,12 +171,18 @@ _xtrace_duck() {
 
 _mk_v_setenv_pre() {
   : '_mk_v_setenv_pre BEGINS' "$((++funclvl))" "${fence}"
-  : 'if now'
+  
+  : 'if now file exists'
   if [[ -n "${xtr_senv_now}" ]]; then
-    : 'if prev'
+    
+    : 'if prev file exists'
     if [[ -n "${xtr_senv_prev}" ]]; then
-      rm --one-file-system --preserve-root=all  -f -- "${xtr_senv_prev}"
+
+      : 'remove prev file'
+      unlink -- "${xtr_senv_prev}"
     fi
+    
+    # turn the "now" file into the "prev" file
     xtr_senv_prev="${xtr_senv_now}"
   fi
   : '_mk_v_setenv_pre ENDS  ' "$((--funclvl))" "${fence}"
@@ -172,7 +208,7 @@ _mk_v_setenv_delta() {
     : 'if delta'
     if [[ -n "${xtr_senv_delt}" ]]; then
       tee -a "${xtr_delta_sum_f}" < "${xtr_senv_delt}"
-      rm --one-file-system --preserve-root=all  -f -- "${xtr_senv_delt}"
+      unlink -- "${xtr_senv_delt}"
       wait -f
     fi
 
