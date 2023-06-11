@@ -7,59 +7,27 @@
   #exit "${nL}"
   #set -x
 
+
 shopt -s expand_aliases
-function _test1
-{
-  #declare -n n=nBS
-  #declare -n e=nL
-  declare -p BASH_LINENO BASH_SOURCE FUNCNAME LINENO
-  return
-  #declare -a l
-  declare -a a1 a2
-  #alias L_='declare -a "a1[8-${#nBS[@]}]=$nL"'
-  function _A1 { declare -a "a1+=([8-${#nBS[@]}]=$nL)"; }
-  function _A2 { a2+=("${a1[@]}"); }
-  #L_;
-  declare -a "a1[8-${#nBS[@]}]=$nL"; : exit, declare $?
-  _A1; : exit, declare $?
-  #M_;
-  a2=("${a1[@]}"); : exit, assignment syntax $?
-  _A2; : exit, assignment syntax $?
-  declare -p a1 a2
-  #alias M_='m=("${l[@]}")';
-}; declare -fxt _test
-#history -a
+alias exit='set -x; exit '
+:(){ set -x; builtin : "$@"; set -; }
 
-_test1
-
-function _test2
-{
-  # work on printing function trace stack
+# work on printing function trace stack
+function _test2 { local ec="${LINENO}"
   set -
-  for i in "${!nBS[@]}"; do
-    caller "$i"
-  done
   mapfile -t ir < <(rev <<< "${!nBS[@]}" | tr ' ' '\n')
   declare -p ir
-  echo '${!ir[@]}:' "${!ir[@]}"
-  echo '${ir[@]}:' "${ir[@]}"
-  for i in "${ir[@]}"; do printf '%s:' "${nBS[i]}"; done
-  echo
-
-  set -- "${ir[@]}"
-  for i; do
-    printf '%s:%s:%s  ' "${nBL[$i]}" "${nF[$i]}" "${nBS[$i+1]:-$0}"
-    #: zero: $0
-    #: BASH_ARGV0: $BASH_ARGV0
+  for i in "${ir[@]}"; do
+    printf '%s:%s:%s  ' "${nBS[$i+1]:-$0}" "${nBL[$i]/$'^0$'/}" "${nF[$i]}"
   done
-  echo
-  ${Halt:?}
+  echo "${nBS[0]}:${ec}:${nL}"
 }; declare -fxt _test2
-
 _test2
+
 
   printf ': "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"\n'
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
+_test2
   exit "${nL}"
   set -x
 
@@ -67,6 +35,7 @@ x+=([32-3]=d)
 y=("${x[@]}")
 declare -p y
 #declare -a y=([0]="d" [1]="c" [2]="b" [3]="a")
+${Halt:?}
 
 
 foo(){
@@ -301,4 +270,24 @@ _full_xtrace() {
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   #exit "${nL}"
   #set -x
+
+
+exit 00
+
+###
+function _test1 {
+  declare -p BASH_LINENO BASH_SOURCE FUNCNAME LINENO
+  declare -a a1 a2
+  function _A1 { declare -a "a1+=([8-${#nBS[@]}]=$nL)"; }
+  function _A2 { a2+=("${a1[@]}"); }
+  declare -a "a1[8-${#nBS[@]}]=$nL"; : exit, declare $?
+  _A1; : exit, declare $?
+  a2=("${a1[@]}"); : exit, assignment syntax $?
+  _A2; : exit, assignment syntax $?
+  declare -p a1 a2
+}; declare -fxt _test
+_test1
+${Halt:?}
+
+
 
