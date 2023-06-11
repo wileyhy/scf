@@ -3,8 +3,8 @@
 
   # <> Obligatory debugging block
   #_full_xtrace
-  : "${BS[0]}:${LINENO} ${BS[1]}:${BASH_LINENO[0]}"
-  #exit "${LINENO}"
+  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
+  #exit "${nL}"
   set -x
 
 
@@ -31,13 +31,13 @@ else
   printf '\n\t Please install the following commands:\n'
   printf '\t\t%s\n' "${list[@]}"
   echo
-  exit "$LINENO"
+  exit "$nL"
 fi; unset yn list
 
 
   # <> Obligatory debugging block
   #_full_xtrace
-  : "${BS[0]}:${LINENO} ${BS[1]}:${BASH_LINENO[0]}"
-  #exit "${LINENO}"
+  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
+  #exit "${nL}"
   set -x
 

@@ -3,8 +3,8 @@
 
   # <> Obligatory debugging block
   #_full_xtrace
-  : "${BS[0]}:${LINENO} ${BS[1]}:${BASH_LINENO[0]}"
-  #exit "${LINENO}"
+  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
+  #exit "${nL}"
   set -x
 
 
@@ -14,13 +14,13 @@ if [[ "${UID}" == 0 ]]; then
 elif ! sudo -v; then
   printf '\n\tValidation failed of user\x27s \x60sudo\x60 timestamp; '
   printf 'exiting.\n\n'
-  exit "${LINENO}"
+  exit "${nL}"
 fi
 
 
   # <> Obligatory debugging block
   #_full_xtrace
-  : "${BS[0]}:${LINENO} ${BS[1]}:${BASH_LINENO[0]}"
-  #exit "${LINENO}"
+  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
+  #exit "${nL}"
   set -x
 

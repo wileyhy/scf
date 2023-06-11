@@ -13,16 +13,16 @@ repo_nm=scf
 # Regular users only
 if [[ "${UID}" == 0 ]]; then
   printf '\n\t Must be a regular user and use sudo. \n\n'
-  exit "${LINENO}"
+  exit "${nL}"
   else
   sudo -v \
-    || exit "${LINENO}"
+    || exit "${nL}"
 fi
 
 # Environment
 unset files bashrc_str f tmpf gitmesg gitignr ps_o
 PATH='/usr/bin:/usr/sbin' \
-  || exit "${LINENO}"
+  || exit "${nL}"
 
 # Network 
 if ! sudo ping -c 1 -W 15 8.8.8.8 > /dev/null; then
@@ -30,7 +30,7 @@ if ! sudo ping -c 1 -W 15 8.8.8.8 > /dev/null; then
   wait -f
   sleep 15
   sudo ping -c 1 -W 15 8.8.8.8 > /dev/null \
-    || exit "${LINENO}"
+    || exit "${nL}"
 fi
 
 # Git
@@ -75,7 +75,7 @@ if [[ ! -f "${gitmesg}" ]]; then
   [Ticket: X]
 EOF
   sudo tee -- "${gitmesg}" <<< "${tmpd}/msg" > /dev/null \
-    || exit "${LINENO}"
+    || exit "${nL}"
 fi
 
 ## (ignore)
@@ -88,7 +88,7 @@ then
   .DS_Store
 EOF
   sudo tee -- "${gitignr}" <<< "${tmpd}/ign" > /dev/null \
-    || exit "${LINENO}"
+    || exit "${nL}"
 fi
 
 sudo git config --system commit.template "${gitmesg}"
@@ -122,7 +122,7 @@ umask 077
 for d in "${dev_d1}" "${dev_d2}"; do
   if [[ ! -d "${d}" ]]; then
     mkdir -p "${d}" \
-      || exit "${LINENO}"
+      || exit "${nL}"
   fi
 done
 unset d
@@ -130,7 +130,7 @@ unset d
 ### Note: in order to clone into any repo, and keep 
 ### multiple repos separate, `cd` is required
 pushd "${dev_d1}" \
-  || exit "${LINENO}"
+  || exit "${nL}"
 
 # TODO:
 #   Parse output of `gh config list` ?
@@ -157,7 +157,7 @@ then
     --hostname 'github.com' \
     --scopes 'admin:public_key,read:gpg_key,admin:ssh_signing_key' \
     --web \
-    || exit "${LINENO}"
+    || exit "${nL}"
 fi
 
 # Clone repo
@@ -166,7 +166,7 @@ if [[ ! -d ./"${repo_nm}" ]] \
 then
   git clone -o 'github' \
     https://github.com/wileyhy/"${repo_nm}" \
-    || exit "${LINENO}"
+    || exit "${nL}"
 fi
 
 ## Get SSH & GPG keys
@@ -178,7 +178,7 @@ gh auth status --show-token
 
 # SSH
 sudo chown 1000:1000 ~/.ssh \
-|| "${LINENO}"
+|| "${nL}"
 sudo chmod -R 700 ~/.ssh
 
 if [[ -e ~/.ssh/config ]]; then
@@ -191,7 +191,7 @@ EOF
 fi
 
 [[ -e /etc/ssh_config ]] \
-  && exit "${LINENO}"
+  && exit "${nL}"
 
 ### Bug? not necc to restart ssh-agent if both of these 
 ### vars exist?
@@ -231,7 +231,7 @@ fi
 
 # GPG
 sudo chown 1000:1000 ~/.gnupg \
-  || exit "${LINENO}"
+  || exit "${nL}"
 sudo chmod -R 700 ~/.gnupg
 
 ### shellcheck disable=SC2009

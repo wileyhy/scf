@@ -3,8 +3,8 @@
 
   # <> Obligatory debugging block
   #_full_xtrace
-  : "${BS[0]}:${LINENO} ${BS[1]}:${BASH_LINENO[0]}"
-  #exit "${LINENO}"
+  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
+  #exit "${nL}"
   set -x
 
 
@@ -27,12 +27,12 @@ export lk_cmds_reqd lk_cmds_opt
 ### /dev/shm must exist & remove all previous lock files
 d=/dev/shm
 if [[ ! -e "$d" ]]; then 
-  sudo mkdir -m 1777 "$d" || _erx "${LINENO}"
+  sudo mkdir -m 1777 "$d" || _erx "${nL}"
 else 
-  [[ -d "$d" ]] ||  _erx "${LINENO}"
+  [[ -d "$d" ]] ||  _erx "${nL}"
 fi
 rm -frv --one-file-system --preserve-root=all -- "${d}"/* ||
-  _erx "${LINENO}"
+  _erx "${nL}"
 unset d
 
 
@@ -44,7 +44,7 @@ for c in "${lk_cmds_reqd[@]}"; do
   lk_cmd_abspth="$(type -P "$c" 2> /dev/null)"
   
   if [[ -z "${lk_cmd_abspth}" ]]; then
-    _erx "line: ${LINENO}, command "${c}" is not available."
+    _erx "line: ${nL}, command "${c}" is not available."
   fi
 done
 
@@ -53,7 +53,7 @@ for c in "${lk_cmds_opt[@]}"; do
   declare -x "lk_cmd_abspth=$(type -P "${c}" 2> /dev/null)"
   
   if [[ -z "$lk_cmd_abspth" ]]; then
-    echo "INFO: line: ${LINENO}, command "${c}" is not available." >&2
+    echo "INFO: line: ${nL}, command "${c}" is not available." >&2
   else
     declare -x "${c}"="${c}"
   fi
@@ -69,9 +69,9 @@ set -C
 
 for x in "${f}" "${l}"; do
   pathchk -p "${x}" || 
-    echo "INFO: line: ${LINENO}, command pathchk failed." >&2 # <>
+    echo "INFO: line: ${nL}, command pathchk failed." >&2 # <>
   pathchk -P "${x}" || 
-    echo "INFO: line: ${LINENO}, command pathchk failed." >&2 # <>
+    echo "INFO: line: ${nL}, command pathchk failed." >&2 # <>
 done; unset x
 
 set -- "${f}"
@@ -93,8 +93,8 @@ fi; unset f l
 
   # <> Obligatory debugging block
   #_full_xtrace
-  : "${BS[0]}:${LINENO} ${BS[1]}:${BASH_LINENO[0]}"
-  exit "${LINENO}"
+  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
+  exit "${nL}"
   set -x
 
 
@@ -174,7 +174,7 @@ if mkdir -m 0700 -- "/dev/shm/${repo_nm}" 2> /dev/null; then
     if [[ -e "$f" ]]; then
       printf 'Racing process exists; exiting.\n'
       head "/dev/shm/${repo_nm}"/*
-      exit "${LINENO}"
+      exit "${nL}"
     fi
   done
     exit 101
@@ -222,21 +222,21 @@ if mkdir -m 0700 -- "/dev/shm/${repo_nm}" 2> /dev/null; then
     if [[ -e "$f" ]]; then
       if [[ $present_lock_count -ne 0 ]]; then
         printf 'Racing process exists; exiting.\n'
-        exit "${LINENO}"
+        exit "${nL}"
       fi
     else
-      _erx "${LINENO}"
+      _erx "${nL}"
     fi;
       done
   [[ -z "$veri_lockfile" ]] \
     && veri_lockfile="/dev/shm/${repo_nm}/0"
   echo "$EPOCHSECONDS,$BASHPID,$PPID" > "/dev/shm/${repo_nm}/pidfile" \
-    || _erx "${LINENO}"
+    || _erx "${nL}"
   if mv -f "/dev/shm/${repo_nm}/pidfile" "$veri_lockfile"; then
     printf 'Writing data to process file.\n'
   else
     printf 'Racing process exists; exiting.\n'
-    exit "${LINENO}"
+    exit "${nL}"
   fi
 elif [[ -e "/dev/shm/${repo_nm}" ]]; then
   if [[ -d "/dev/shm/${repo_nm}" ]]; then
@@ -257,7 +257,7 @@ elif [[ -e "/dev/shm/${repo_nm}" ]]; then
 
       rm -frv -- "/dev/shm/${repo_nm}"
       printf 'A prior process failed to clean up properly; exiting.\n'
-      exit "${LINENO}"
+      exit "${nL}"
     fi
 
 
@@ -280,7 +280,7 @@ elif [[ -e "/dev/shm/${repo_nm}" ]]; then
       case "$present_lock_count" in
         0)  if [[ -z "${ps_o}" ]]; then
               if [[ -z "${creation_t}" ]]; then
-                _erx "${LINENO}"
+                _erx "${nL}"
               fi
               printf 'Lockdir left over from previous process.\n'
             else
@@ -290,7 +290,7 @@ elif [[ -e "/dev/shm/${repo_nm}" ]]; then
               #set -x
 
             fi
-            exit "${LINENO}"
+            exit "${nL}"
           ;;
         *)  printf 'Likely previous process.\n'
             if [[ -n "${ps_o:0:32}" ]]; then
@@ -304,14 +304,14 @@ elif [[ -e "/dev/shm/${repo_nm}" ]]; then
       esac
       printf 'Removing lockdir and exiting.\n'
       rm -frv -- "/dev/shm/${repo_nm}"
-      exit "${LINENO}"
+      exit "${nL}"
     done
     shopt -u nullglob
   else
-    _erx "Possible DOS; probable error. line: ${LINENO}"
+    _erx "Possible DOS; probable error. line: ${nL}"
   fi
 else
-  _erx "${LINENO}"
+  _erx "${nL}"
 fi;
 #declare -p f i; ls -a "/dev/shm/${repo_nm}/"; set -;
 echo
@@ -325,8 +325,8 @@ exit 101
 
   # <> Obligatory debugging block
   #_full_xtrace
-  : "${BS[0]}:${LINENO} ${BS[1]}:${BASH_LINENO[0]}"
-  #exit "${LINENO}"
+  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
+  #exit "${nL}"
   set -x
 
 

@@ -20,10 +20,10 @@ export rand_i rand_uniq_str rand_lock_nm
 fn_lvl=0; fn_bndry=' +++ +++ +++ '
 export fn_lvl fn_bndry
 
-declare -nx BS=B-ASH_SOURCE
-declare -nx LN=L-INENO
-declare -nx BL=B-ASH_LINENO
-declare -nx FN=F-UNCNAME
+declare -nx nBL=BASH_LINENO
+declare -nx nBS=B-ASH_SOURCE
+declare -nx nF=FUNCNAME
+declare -nx nL=LINENO
 
 _erx() {
   local loc_exit_code="$?" 
@@ -42,8 +42,8 @@ trap '_trap_ctrl_C' INT
 
 
   # <> Obligatory debugging block
-  : "${BS[0]}:${LINENO} ${BS[1]}:${BASH_LINENO[0]}"
-  #exit "${LINENO}"
+  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
+  #exit "${nL}"
   #set -x
 
 
@@ -60,20 +60,20 @@ _src_subscrpt(){
     . "$1"
     [[ "$4" == x ]] && exit "$2"
   else 
-    declare -p BS BASH_LINENO; 
+    declare -p nBS nBL; 
     exit "$2"
   fi
 }; declare -fxt _src_subscrpt
-: 'ID and sudo'       ; _src_subscrpt "${scr_nm_sudo}" "${LINENO}" x x # 0
-: 'Enable debugging'  ; _src_subscrpt "${scr_nm_dbug}" "${LINENO}" x x # 1
-: 'Required programs' ; _src_subscrpt "${scr_nm_cmds}" "${LINENO}" x x # 2
-: 'Locks'             ; _src_subscrpt "${scr_nm_lock}" "${LINENO}" x x # 3
+: 'ID and sudo'       ; _src_subscrpt "${scr_nm_sudo}" "${nL}" x x # 0
+: 'Enable debugging'  ; _src_subscrpt "${scr_nm_dbug}" "${nL}" x x # 1
+: 'Required programs' ; _src_subscrpt "${scr_nm_cmds}" "${nL}" x x # 2
+: 'Locks'             ; _src_subscrpt "${scr_nm_lock}" "${nL}" x x # 3
 
 
   # <> Obligatory debugging block
   #_full_xtrace
-  : "${BS[0]}:${LINENO} ${BS[1]}:${BASH_LINENO[0]}"
-  exit "${LINENO}"
+  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
+  exit "${nL}"
   set -x
 
 
@@ -127,7 +127,7 @@ _exit_trap() {
     if [[ -d "${pld}" ]] && [[ ! -L "${pld}" ]]; then 
       echo sudo rm --one-file-system --preserve-root=all -rfv -- \
         "${pld}" \
-        || exit "${LINENO}"
+        || exit "${nL}"
     fi
   done && unset pld
 
@@ -140,8 +140,8 @@ _exit_trap() {
 
 test(){
   shopt -s expand_aliases
-  declare -n n=BS
-  declare -n e=LINENO
+  declare -n n=nBS
+  declare -n e=nL
   declare -a l
   alias L_='declare -a "l[8-${#n[@]}]=$e"' 
   function M_ { m=("${l[@]}");}
@@ -172,14 +172,14 @@ declare -p l
 trap _exit_trap EXIT TERM
 #_full_xtrace
 
-declare -a "l[8-${#n[@]}]=$LINENO"; exit "${l[8-${#n[@]}]}"
+declare -a "l[8-${#n[@]}]=$nL"; exit "${l[8-${#n[@]}]}"
 
-: "count, BASH_LINENO: ${#BASH_LINENO[@]}"
-declare -p BASH_LINENO
-: "count, BS: ${#BS[@]}"
-declare -p BS
-: "count, FUNCNAME: ${#FUNCNAME[@]}"
-declare -p FUNCNAME
+: "count, nBL: ${#nBL[@]}"
+declare -p nBL
+: "count, nBS: ${#nBS[@]}"
+declare -p nBS
+: "count, nF: ${#nF[@]}"
+declare -p nF
 "${Halt:?}"
 
 
@@ -197,7 +197,7 @@ LC_NUMERIC="en_US.UTF-8" # for commas in large numbers
 getconf_o="$(/usr/bin/command -p getconf PATH)" \
   || "${Halt:?}"
 PATH="${getconf_o}:/usr/bin:/usr/sbin:${PATH}"
-PS4='+${BS[0]}:${LINENO}:${FUNCNAME[0]}: '
+PS4='+${nBS[0]}:${nL}:${nF[0]}: '
 export FUNCNEST GREP_COLORS LC_COLLATE LC_CTYPE LC_NUMERIC PATH PS4
 
 : 'Vars: Implementation-dependent args for options parsable by ShellCheck'
@@ -253,7 +253,7 @@ verify=(all)
 
 # <>
 _full_xtrace
-exit "${LINENO}"
+exit "${nL}"
 
 : 'Functions'
 
@@ -280,7 +280,7 @@ fn_bak() {
       fi
       # write a new .bak file
       sudo  rsync -acq -- "${loc_filename_a}"{,.bak} \
-        || _erx "${LINENO}"
+        || _erx "${nL}"
     # if input file DNE, then print an error and exit
     else
       {
@@ -357,7 +357,7 @@ fn_write_arrays() {
   loc_write_d_b="${curr_time_ssubd}arrays"
   if [[ ! -d "${loc_write_d_b}" ]]; then
     sudo  mkdir -p -- "${loc_write_d_b}" \
-      || _erx "${LINENO}"
+      || _erx "${nL}"
   fi
   # for each of multiple input array names
   for loc_unquotd_array_nm_b in "${@}"; do
@@ -426,7 +426,7 @@ unset index element calc
   #fi
 #done
 
-exit "${LINENO}"
+exit "${nL}"
 _full_xtrace
 
 # Bugs: Hardcoded $mountpoint -- use lock dir as main_d
@@ -466,13 +466,13 @@ done
 : 'of curr_time_ssubd'
 if [[ ! -d "${curr_time_ssubd}" ]]; then
   sudo  mkdir -p -- "${curr_time_ssubd}" \
-    || _erx "${LINENO}"
+    || _erx "${nL}"
 fi
 #set -x; :;: "<>"; sudo namei -xl  -- "${curr_time_ssubd}"
 
 # <>
 _full_xtrace
-exit "${LINENO}"
+exit "${nL}"
 
 
 
@@ -804,7 +804,7 @@ shopt -u nocasematch
 
 # <>
 _full_xtrace
-exit "${LINENO}"
+exit "${nL}"
 
 
 
@@ -879,7 +879,7 @@ _verify_path(){
 _verify_path PATH
 _verify_path bash_path
 
-exit "${LINENO}"
+exit "${nL}"
 _full_xtrace
 
 
@@ -900,7 +900,7 @@ namei_o="$(
 if [[ -n "${namei_o}" ]]; then
   echo 'A directory in PATH is not fully owned by root (DAC).'
   echo "${namei_o}"
-  exit "${LINENO}"
+  exit "${nL}"
 fi
 
 
@@ -971,7 +971,7 @@ for dir in "${bash_path[@]}"; do
     _full_xtrace
     :;: "<>"
     declare -p  ext_last
-    exit "${LINENO}"
+    exit "${nL}"
 
     [[ -n "${ext_last}" ]] \
       && unset "ext_array[${#ext_array[@]}]"
@@ -1018,7 +1018,7 @@ unset end_dirname full_dir_list ext_array dir sub_dir num_sub_dirs \
 
 # <>
 _full_xtrace
-exit "${LINENO}"
+exit "${nL}"
 
 
 
@@ -1077,7 +1077,7 @@ for i in "${!A_process_lock_dirs[@]}"; do
 done && unset A_process_lock_dirs i
 
 #_full_xtrace
-#exit "${LINENO}"
+#exit "${nL}"
 
 if [[ "$*" =~ delete_locks ]]; then 
   delete_locks='y'
@@ -1152,7 +1152,7 @@ for poss_lk_d in "${a_process_lock_dirs[@]}"; do
       printf '\n\tCannot acquire process lock: <%s>.\n' "${process_lock_d}"
       printf 'Exiting.\n\n'
     } 1>&2
-    exit "${LINENO}"
+    exit "${nL}"
   fi
 done
 
@@ -1178,7 +1178,7 @@ for l in "${lkdrs[@]}"; do
     else
       printf '\n\t A process lock exists for this script. Exiting '
       printf 'now.\n\n'
-      exit "${LINENO}"
+      exit "${nL}"
     fi
   fi
 done && unset l # lkdrs # a_poss_proces_lock_dirs # lkdrs_count 
@@ -1187,10 +1187,10 @@ done && unset l # lkdrs # a_poss_proces_lock_dirs # lkdrs_count
 if [[ -v delete_locks ]] \
   && [[ -n ${lkdrs[*]:0:16} ]]; 
 then
-  exit "${LINENO}"
+  exit "${nL}"
 fi
 
-#exit "${LINENO}"
+#exit "${nL}"
 _full_xtrace
 
 
@@ -1276,7 +1276,7 @@ filesystem/repo_nm/lockdir
 : ''
 
 
-exit "${LINENO}"
+exit "${nL}"
 _full_xtrace
 
 
@@ -1412,7 +1412,7 @@ done && unset tt_o
 #     offer option to remove the file. 
 #
 
-exit "${LINENO}"
+exit "${nL}"
 _full_xtrace
 
 
@@ -1587,7 +1587,7 @@ then
   
     # <>
     echo 'all_commands, count:' "${#all_commands[@]}"
-    exit "${LINENO}"
+    exit "${nL}"
     _full_xtrace
  
   cd - \
@@ -1596,7 +1596,7 @@ then
 
 elif [[ "${methods_prog_cv}" = *bin_find ]]; then
   hash find 2>/dev/null \
-    || exit "${LINENO}"
+    || exit "${nL}"
 
 else
   echo error
@@ -1604,7 +1604,7 @@ fi
 
 # <>
 _full_xtrace
-exit "${LINENO}"
+exit "${nL}"
 
 
 
@@ -1642,7 +1642,7 @@ mapfile -d '' -t a_all_files_sorted < <(
 )
 
 _full_xtrace
-exit "${LINENO}"
+exit "${nL}"
 
 
 
@@ -1835,7 +1835,7 @@ export "${a_arrays[@]}"
 
 fn_write_arrays "${a_arrays[@]}"
 fn_bak "${curr_time_ssubd}/file_out"
-#exit "${LINENO}";
+#exit "${nL}";
 
 : 'create the original list_crunchbangs'
 sudo  touch -- "${a_write_path_nms[@]}"
@@ -1853,7 +1853,7 @@ printf '%s\n' "${a_shell_scripts[@]}" \
 fn_bak "${a_write_path_nms[@]}"
 
 _full_xtrace
-exit "${LINENO}"
+exit "${nL}"
 
 # <> ?
 fn_write_arrays a_write_path_nms
@@ -1861,7 +1861,7 @@ fn_write_arrays a_write_path_nms
 #set -x; :;: "<>";
 
 sudo  head -- "/tmp/${list_crunchbangs##*/}"
-#exit "${LINENO}";
+#exit "${nL}";
 
 : 'Verify interpreters'
 
@@ -1883,11 +1883,11 @@ mapfile -t a_interpreters < <(
 )
 
 _full_xtrace
-exit "${LINENO}"
+exit "${nL}"
 
 # <>
 :;: "<>"
-#exit "${LINENO}"
+#exit "${nL}"
 
 # Duplicate with post-getopts section ?
 
@@ -1934,10 +1934,10 @@ mapfile -t a_interps_rps < <(
 )
 
 _full_xtrace
-exit "${LINENO}"
+exit "${nL}"
 
 # <>
-exit "${LINENO}"
+exit "${nL}"
 
 # for each interpreter, print it in the 1st 32 bits of a line.
 
@@ -2002,10 +2002,10 @@ unset b
 #set -x; :;: "<>";
 fn_write_arrays a_write_path_nms a_interpreters a_interps_rps \
   a_interps_disk_repo
-exit "${LINENO}"
+exit "${nL}"
 
 _full_xtrace
-exit "${LINENO}"
+exit "${nL}"
 
 # SECTION E
 
@@ -2024,11 +2024,11 @@ exit "${LINENO}"
 # file $list_crunchbangs is located in $time_dir.
 sudo  grep -E -- '/bin/'"${SC_shells}"'.*%=%=%=%' "${list_crunchbangs}" \
   | sudo  tee -a -- "${list_crunchbangs}_SC-scrpts-list" \
-  || _erx "${LINENO}"
+  || _erx "${nL}"
 
 # Copy list to /tmp
 sudo  rsync -ca -- "${list_crunchbangs}_SC-scrpts-list" /tmp \
-  || _erx "${LINENO}"
+  || _erx "${nL}"
 
 # Backup both lists
 fn_bak "${list_crunchbangs}_SC-scrpts-list" /tmp/*_SC-scrpts-list
@@ -2037,10 +2037,10 @@ fn_bak "${list_crunchbangs}_SC-scrpts-list" /tmp/*_SC-scrpts-list
 _full_xtrace
 :;: "<>"
 fn_write_arrays timecode list_crunchbangs SC_shells
-exit "${LINENO}"
+exit "${nL}"
 
 _full_xtrace
-exit "${LINENO}"
+exit "${nL}"
 
 : 'CENTRAL TASK, 2 of 2: with ShellCheck scan each script for errors'
 
@@ -2152,7 +2152,7 @@ fn_bak "${found_scrpts_f}"
 # make copies of the findings file and backup those copies
 for d in /tmp "${main_d}"; do
   sudo  rsync -ca -- "${found_scrpts_f}" "${d}" \
-    || _erx "${LINENO}"
+    || _erx "${nL}"
   fn_bak "${d}/${found_scrpts_f##*/}"
 done
 unset d
