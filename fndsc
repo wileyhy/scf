@@ -15,8 +15,10 @@ sc_shells='(sh|bash|dash|ksh)'
 export max_age_of_tmp_files repo_nm script_nm sc_sevr sc_shells
 
 unset LC_ALL
-getconf_o="$(/usr/bin/command -p getconf PATH)" || "${Halt:?}"
-PATH="${getconf_o}:/usr/bin:/usr/sbin:${PATH}"
+hash -r
+builtin type -P getconf
+PATH_getconf="$(command getconf PATH)" || "${Halt:?}"
+PATH="${PATH_getconf}:/usr/bin:/usr/sbin:${PATH}"
 LC_COLLATE="C.UTF-8"     # for predictable sorting
 LC_CTYPE="C.UTF-8"       #  "   "           "
 LC_NUMERIC="en_US.UTF-8" # for commas in large numbers
@@ -548,7 +550,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
         methods_path=(both_bin_sbin_only)
         ;;
       ge* | g)
-        bash_path="${getconf_o}"
+        bash_path="${PATH_getconf}"
         IFS=":" read -ra find_path <<<"${bash_path}"
         methods_path=(getconf_PATH_only)
         ;;
