@@ -25,7 +25,8 @@ function _fn_trc(){ local ec="${nL:?}:$-"
   local -a ir
   mapfile -t ir < <(rev <<< "${!nBS[@]}" | tr ' ' '\n')
   for i in "${ir[@]}"; do
-    printf '%s:%s:%s  ' "${nBS[$i+1]:-$0}" "${nBL[$i]:?}" "${nF[$i]:?}"
+    printf '%s:%s:%s:%s  ' "${i}" "${nBS[$i+1]:-$0}" "${nBL[$i]:?}" \
+      "${nF[$i]:?}"
   done;
   echo "${nBS[0]:?}:${ec:?}:_fn_trc:${nL}"
   [[ "${hyphen:?}" =~ x ]] && set -x
@@ -274,10 +275,10 @@ _debug_prompt() {
   _mk_deltas
 
   : '                                       ~~~ ~~ ~ PROMPT ~ ~~ ~~~'
+  _fn_trc
   set -
   declare -p BASH_SOURCE LINENO BASH_LINENO FUNCNAME BASH_COMMAND
   read -rp " +[${nBS[0]}:${nL}] ${BASH_COMMAND[0]}?" _
-  _fn_trc
   [[ "${hyphen}" =~ x ]] && set -x
 
   : '_debug_prompt ENDS  ' "${fn_bndry}" "$((--fn_lvl))"
