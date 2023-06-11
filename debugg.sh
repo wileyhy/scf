@@ -13,16 +13,17 @@ shopt -s expand_aliases
 _test(){
   #declare -n n=nBS
   #declare -n e=nL
+  declare -p BASH_LINENO BASH_SOURCE FUNCNAME LINENO
   #declare -a l
-  declare -a a1
+  declare -a a1 a2
   #alias L_='declare -a "a1[8-${#nBS[@]}]=$nL"'
   #function M_ { m=("${a1[@]}");}
   #L_;
   declare -a "a1[8-${#nBS[@]}]=$nL"
-  echo $?
+  : exit, declare $?
   #M_;
   a2=("${a1[@]}")
-  echo $?
+  : exit, assignment syntax $?
   declare -p a1 a2
   #alias M_='m=("${l[@]}")';
 }; declare -fxt _test
@@ -30,6 +31,7 @@ _test(){
 
 _test
 
+  printf ': "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"\n'
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   exit "${nL}"
   set -x
