@@ -35,12 +35,14 @@ _test1
 function _test2 
 {
   # work on printing function trace stack
-  for i in "${!n[@]}"; do
+  for i in "${!nBS[@]}"; do
     caller "$i"
   done
-  set -- "${!n[@]}"
+  set -- "${!nBS[@]}"
   for i; do
-    : $'\t\t\t\t'"${i}"$'\t'"${nBL[$i]}"$'\t'"${nF[$i]}"$'\t'"${nBS[$i+1]} lineno-array-index"
+    : "$(printf '\t%-10s\t%-10s\t%-10s\t%-10s\n' "${i}" "${nBL[$i]}" "${nF[$i]}" "${nBS[$i+1]:-$0}")"
+    #: zero: $0
+    #: BASH_ARGV0: $BASH_ARGV0
   done
   ${Halt:?}
 }; declare -fxt _test2
