@@ -56,8 +56,8 @@ _trap_ctrl_C() {
   trap - INT
 
   # remove all the current xtrace environment log files
-  for f in "${xtr_time_f:?}" "${xtr_senv_prev:?}" \
-    "${xtr_senv_now:?}" "${xtr_senv_delt:?}";
+  for f in "${xtr_time_f}" "${xtr_senv_prev}" \
+    "${xtr_senv_now}" "${xtr_senv_delt}";
   do
 
     # as possible, add each to an array $rm_list
