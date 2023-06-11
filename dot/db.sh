@@ -32,11 +32,16 @@ function _fn_trc(){ local ec="${nL:?}:$-"
 }; declare -fxt _fn_trc
 
 # shadow the `exit` builtin, for when debugging is turned off
-shopt -s expand_aliases
-alias exit='set -; _fn_trc; set -x; exit'
+function exit(){ 
+  set -; 
+  _fn_trc; 
+  set -x; 
+  builtin exit;
+}; declare -fxt exit
 
+  type -a exit
   #_fn_trc
-  #exit "${nL}"
+  exit "${nL}"
   #set -x
 
 

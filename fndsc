@@ -10,8 +10,7 @@
 max_age_of_tmp_files='1 minutes ago'
 repo_nm=scf
 script_nm='./findscan'
-verb='-v'
-export max_age_of_tmp_files repo_nm script_nm verb
+export max_age_of_tmp_files repo_nm script_nm 
 
 rand_i="${RANDOM}"
 rand_uniq_str="${repo_nm}.${$}.${rand_i}"
@@ -57,12 +56,21 @@ scr_nm_cmds='./dot/rq.sh'
 scr_nm_lock='./dot/lx.sh'
 export scr_nm_dbug scr_nm_sudo scr_nm_cmd scr_nm_lock
 
+        # shellcheck source='./dot/db.sh'
+        # shellcheck source='./dot/su.sh'
+        # shellcheck source='./dot/rq.sh'
+        # shellcheck source='./dot/lx.sh'
 _src(){
   if    [[ -f "$1" ]] &&
         [[ -O "$1" ]] &&
         [[ ! -x "$1" ]] &&
         [[ ! -L "$1" ]];
-  then  [[ "$3" == xx ]] && set -x
+  then  if    [[ "$3" == xx ]]
+        then  verb='-v'
+              : "${verb:=\ }"
+              export verb
+              set -x
+        fi
         source "$1"
         [[ "$4" == xx ]] && exit "$2"
   else  echo source file missing?
