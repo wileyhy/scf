@@ -49,15 +49,15 @@ scr_nm_cmds='./_.binsreq.sh'
 scr_nm_lock='./_.locks.sh'
 export scr_nm_dbug scr_nm_sudo scr_nm_cmd scr_nm_lock
 
-_source_subscript(){
+_src_subscrpt(){
   if [[ -f "$1" ]] && [[ ! -x "$1" ]] && [[ -O "$1" ]]; then . "$1"
   else declare -p BASH_SOURCE BASH_LINENO; exit "${LINENO}"
   fi
-}; declare -fxt _source_subscript
-: 'Enable debugging'  ; _source_subscript "${scr_nm_dbug}" "${LINENO}" # 0
-: 'ID and sudo'       ; _source_subscript "${scr_nm_sudo}" "${LINENO}" # 1
-: 'Required programs' ; _source_subscript "${scr_nm_cmds}" "${LINENO}" # 2
-: 'Locks'             ; _source_subscript "${scr_nm_lock}" "${LINENO}" # 3
+}; declare -fxt _src_subscrpt
+: 'Enable debugging'  ; _src_subscrpt "${scr_nm_dbug}" "${LINENO}" # 0
+: 'ID and sudo'       ; _src_subscrpt "${scr_nm_sudo}" "${LINENO}" # 1
+: 'Required programs' ; _src_subscrpt "${scr_nm_cmds}" "${LINENO}" # 2
+: 'Locks'             ; _src_subscrpt "${scr_nm_lock}" "${LINENO}" # 3
 
 
   # <> Obligatory debugging block
