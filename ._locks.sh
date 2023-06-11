@@ -70,13 +70,19 @@ if pathchk "${l}"; then
   else
     printf 'A lock already exists:\n'
     ls -alhFi "${l}"
-    fuser_o="$(fuser "${l}")"
+    fuser_o="$(fuser -v "${l}")"
     printf '%s\n' "${fuser_o}"
-    fuser_pid=
-    ps aux | grep "$(awk )"
+    fuser_pid="$(tail -n1 <<< "${fuser_o}" | awk '{ printf $2 }')"
+    ps aux | grep "${fuser_pid}"
   fi
 fi
-exit "${LINENO}"
+
+
+  # <> Obligatory debugging block
+  #_full_xtrace
+  : "${BASH_SOURCE[0]}:${LINENO} ${BASH_SOURCE[1]}:${BASH_LINENO[0]}"
+  exit "${LINENO}"
+  set -x
 
 
 
