@@ -1,7 +1,10 @@
-#!/bin/bash
+#!/bin/bash -x
 
-# Bugs: 1. output all xtrace to file
-#       2. needs a process lock on kill loop
+# output all xtrace to file
+# https://serverfault.com/questions/103501/how-can-i-fully-log-all-bash-scripts-actions
+exec 3>&1 4>&2
+trap 'exec 2>&4 1>&3' 0 1 2 3
+exec 1>log.out 2>&1
 
 ## Notes
 ###   Online Git Pro book:
@@ -20,12 +23,12 @@ fi
 declare -n nL=LINENO
 
 # Network & time
-if ! sudo ping -c 1 -W 15 8.8.8.8; then
+if ! sudo ping -c 1 -W 15 8.8.8.8 > /dev/null 2>&1; then
   printf '\n\tAttempting to connect...\n\n'
   sudo systemctl start NetworkManager.service
   wait -f
   sleep 15
-  if ! sudo ping -c 1 -W 15 8.8.8.8; then 
+  if ! sudo ping -c 1 -W 15 8.8.8.8 > /dev/null 2>&1; then 
     printf '\n\tGiving up; Exiting.\n\n'
     exit "${nL}"
   else
@@ -35,7 +38,7 @@ fi
 sudo timedatectl set-local-rtc 0
 sudo timedatectl set-timezone America/Vancouver
 sudo systemctl start chronyd.service
-sudo chronyc makestep
+sudo chronyc makestep > /dev/null 
 
 # Bash
 ## .bashrc
@@ -51,7 +54,7 @@ for f in "${files[@]}"; do
       | sudo tee -a -- "${f}" > /dev/null
   fi
 done
-unset files f
+unset files f bashrc_str
 
 # Vim
 umask 177
@@ -89,17 +92,17 @@ sudo dnf -y install \
     mozilla-https-everywhere \
   debian-keyring \
   procps-ng \
-  git-fame # 🙄 #memstomp bpftrace gdb valgrind
-sudo dnf -y upgrade bash
+  git-fame # 🙄     # perhaps later: memstomp bpftrace gdb valgrind
+sudo dnf -y upgrade bash bash-completion
 sudo dnf -y --security upgrade
 
   # <>
   set -x
 
 
-# Any processes that may need to be restarted
+# Restart any processes that may need to be restarted
 
-# let the previous DNF processes finish
+# Let the previous DNF processes finish
 pidwait dnf 
 
 # Get a list of any such PIDs
@@ -112,52 +115,63 @@ function _get_pids(){
   )
 }; declare -fxt _get_pids
 _get_pids
+declare -p a_pids
+#exit "${nL}"
+
+
+# a process lock on kill loop
 
 # if any PIDs were found...
 if [[ -n "${a_pids[*]:0:8}" ]]; then 
+          
+  # (for readability)
   n="${#a_pids[@]}"
   
   # ...if there are any PIDs other than PID 1...
-  if [[ "${a_pids[*]:0:8}" -ne 1 ]]; then
+  if [[ "${a_pids[*]:0:8}" != '1' ]]; then
     
     # Print some info & wait for it to be read
     printf '\n\t PID-s, count: %d\n\n' "${n}"
-    sleep 1
 
     #printf '\t Backgrounding and disowning -kill- loops.\n\n'
     #sleep 3
     #{
+
       # for each signal and for each PID...
       for s in HUP USR1 TERM; do
         for p in "${!a_pids[@]}"; do
           
+          [[ "${a_pids[p]}" -eq 1 ]] && continue
+          
+          sleep 3
+
           # (for readability)
           q="${a_pids[p]}"
-          sleep 1
 
-          printf '\t[script:] + sudo kill -s %s %d\n' "${s}" "${q}"
-          set -
-
-          if pgrep "$q"
+          # ...if the PID is still running...
+          if ps h -q "${p}" > /dev/null; then 
             
-            sudo kill -s "${s}" "${q}" > /dev/null 2>&1; then
-            printf '\t[script:] + kill succeeded; forgetting PID\n' 
-            unset 'a_pids[p]'
-          else
-            printf '\t[script:] + kill failed\n' 
+            # ...then `kill` it with the according per-loop SIGNAL...
+            
+            #   NOTE: the exit codes for `kill` only indicate whether 
+            #+ or not the target PIDs existed, rather than whether the
+            #+ `kill` operation succeeded, per `info kill`.
+            sudo env kill -s "${s}" "${q}" > /dev/null 2>&1 & wait -f
+
+            # ...and if the PID in question no longer exists, ie, if 
+            # the `kill` command succeeded, then unset the the current 
+            # array index number
+            if ps h -q "${p}" > /dev/null; then
+              unset 'a_pids[p]'
+            fi
           fi
         done;
       done;
-      printf '\n\n\tScript complete. [Press ENTER.]\n\n'
     #} #&
     #disown
-  elif [[ "${a_pids[*]}" -eq 1 ]]; then 
-    printf '\n\t The remaining "needs-restarting" process cannot be '
-    printf 'restarted \n\t without rebooting the machine.\n'
-    printf '\n\t %s \n\n' "${a_pids[@]}"
-    printf '\n\n\tScript complete.\n\n'
   fi
-fi;
+fi; unset n s p q a_pids
+declare -ax a_pids
 
 _get_pids
 
@@ -167,12 +181,18 @@ if [[ -n "${a_pids[*]:0:8}" ]]; then
     for p in "${a_pids[@]}"; do 
       echo "$p"; 
       set -x; 
-      kill -s "$s" "$p"; 
-      echo exit, kill: $?; 
+      if ps h -q "${p}" > /dev/null; then
+        command -v kill -s "$s" "$p";
+        wait -f
+      fi
+      ps h -q "${p}" > /dev/null 
+      echo -e did \\x60kill\\x60 terminate the process?: $?; 
       set -; 
       sleep 1; 
-    done
+    done; unset p
   
+    unset a_pids
+    declare -ax a_pids
     _get_pids
     
     if [[ -n "${a_pids[*]:0:8}" ]]; then
@@ -182,7 +202,21 @@ if [[ -n "${a_pids[*]:0:8}" ]]; then
     fi
       
   done
+fi; unset p s a_pids
+
+
+
+if [[ -n "${a_pids[*]:0:8}" ]]; then 
+  n="${#a_pids[@]}"
+  
+  # ...if there are any PIDs other than PID 1...
+  if [[ "${a_pids[*]}" -eq '1' ]]; then
+    printf '\n\t The remaining "needs-restarting" process (PID 1)cannot be '
+    printf 'restarted \n\t without rebooting the machine.\n'
+    printf '\n\t %s \n\n' "${a_pids[@]}"
+  fi
 fi
+
 
 if ! ping -4qc1 8.8.8.8 2> /dev/null >&2; then 
   sudo systemctl restart NetworkManager.service

@@ -38,7 +38,7 @@ _erx() {
 _trap_ctrl_C() {
   set -x
   trap - INT
-  kill -s INT "$$"
+  command -p kill -s INT "$$"
 }; declare -fxt '_trap_ctrl_C'
 trap '_trap_ctrl_C' INT
 
@@ -140,7 +140,7 @@ _exit_trap() {
     # <>
     #: "${Halt?}"
 
-  kill -s INT "$$"
+  command -p kill -s INT "$$"
 }
 
 

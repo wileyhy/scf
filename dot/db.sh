@@ -60,7 +60,7 @@ _trap_ctrl_C() {
   fi
   _fn_trc
   : "${BASH_SOURCE[0]}:${LINENO}:_trap_ctrl_C"
-  kill -s INT "$$"
+  command -p kill -s INT "$$"
 }; declare -fxt _trap_ctrl_C
 trap '_trap_ctrl_C' INT
   set -x

@@ -213,10 +213,10 @@ then
     1)  if [[ -v SSH_AGENT_PID ]]; then
           ssh-agent -k
         else
-          kill "${ssh_agent_pids[*]}"
+          command -p kill "${ssh_agent_pids[*]}"
         fi ;;
     *)  for p in "${ssh_agent_pids[@]}"; do
-          kill "${p}"
+          command -p kill "${p}"
         done ;;
   esac
   fi
