@@ -47,7 +47,8 @@ mapfile -d '' -t xtr_files < <(
 # same EUID.
 for f in "${xtr_files[@]}"; do
   if [[ -f "${f}" ]] && [[ ! -L "${f}" ]] && [[ -O "${f}" ]]; then 
-    chmod 000
+    sudo 
+    chmod 000 "$f"
     xtr_rm_list+=("${f}")
   fi
 done; unset f

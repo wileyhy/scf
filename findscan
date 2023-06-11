@@ -20,6 +20,11 @@ export rand_i rand_uniq_str rand_lock_nm
 fn_lvl=0; fn_bndry=' +++ +++ +++ '
 export fn_lvl fn_bndry
 
+declare -nx BS=BASH_SOURCE
+declare -nx LN=LINENO
+declare -nx BL=BASH_LINENO
+declare -nx FN=FUNCNAME
+
 _erx() {
   local loc_exit_code="$?" 
   : '_erx BEGINS' "$((++fn_lvl))" "${fn_bndry}"
