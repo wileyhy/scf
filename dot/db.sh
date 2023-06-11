@@ -39,6 +39,8 @@ function exit(){
   builtin exit;
 }; declare -fxt exit
 
+cp -a "${verb[@]}" ./README.md ./foo
+
   type -a exit
   #_fn_trc
   exit "${nL}"
