@@ -18,7 +18,7 @@
 
 # Print a function trace stack, and capture the FN's LINENO on line 0
 function _fn_trc(){ local ec="${nL:?}:$-"
-  set -
+  set -x
   local hyphen="${ec#*:}"
   ec=${ec%:*}
   local i
