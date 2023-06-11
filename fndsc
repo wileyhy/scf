@@ -55,11 +55,7 @@ scr_nm_sudo='./dot/su.sh'
 scr_nm_cmds='./dot/rq.sh'
 scr_nm_lock='./dot/lx.sh'
 export scr_nm_dbug scr_nm_sudo scr_nm_cmd scr_nm_lock
-
-        # shellcheck source='./dot/db.sh'
-        # shellcheck source='./dot/su.sh'
-        # shellcheck source='./dot/rq.sh'
-        # shellcheck source='./dot/lx.sh'
+# shellcheck source=./dot/db.sh,./dot/su.sh,./dot/rq.sh,./dot/lx.sh
 _src(){
   # if the file is... a file, owned by EUID, not executable and not a symlink
   if    [[ -f "$1" ]] &&
