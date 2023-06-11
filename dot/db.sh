@@ -146,7 +146,7 @@ fn_lvl=0; fn_bndry=' +++ +++ +++ '
 # was previously off, then leave it off.
 
 _xtrace_duck() {
-  : '_xtrace_duck BEGINS' "$((++fn_lvl))" "${fn_bndry}"
+  : '_xtrace_duck BEGINS' "${fn_bndry}" "$((++fn_lvl))"
 
   # If xtrace is on...
   if [[ "$-" =~ x ]]; then
@@ -171,7 +171,7 @@ _xtrace_duck() {
     # but if xtrace is off and was previously off... (return).
     fi
   fi
-  : '_xtrace_duck ENDS  ' "$((--fn_lvl))" "${fn_bndry}"
+  : '_xtrace_duck ENDS  ' "${fn_bndry}" "$((--fn_lvl))"
 }; declare -ftx _xtrace_duck
 
 
@@ -180,7 +180,7 @@ _xtrace_duck() {
 # for use when the DEBUG trap is enabled.
 
 _mk_v_setenv_pre() {
-  : '_mk_v_setenv_pre BEGINS' "$((++fn_lvl))" "${fn_bndry}"
+  : '_mk_v_setenv_pre BEGINS' "${fn_bndry}" "$((++fn_lvl))"
 
   : 'if now file exists'
   if [[ -n "${xtr_senv_now}" ]]; then
@@ -196,12 +196,12 @@ _mk_v_setenv_pre() {
     xtr_senv_prev="${xtr_senv_now}"
   fi
 
-  : '_mk_v_setenv_pre ENDS  ' "$((--fn_lvl))" "${fn_bndry}"
+  : '_mk_v_setenv_pre ENDS  ' "${fn_bndry}" "$((--fn_lvl))"
 }; declare -ftx _mk_v_setenv_pre
 
 
 _mk_v_setenv_novv() {
-  : '_mk_v_setenv_novv BEGINS' "$((++fn_lvl))" "${fn_bndry}"
+  : '_mk_v_setenv_novv BEGINS' "${fn_bndry}" "$((++fn_lvl))"
 
   # create 'now' file
   xtr_senv_now="$(mktemp -p /tmp --suffix=."${xtr_f_nm}")"
@@ -210,12 +210,12 @@ _mk_v_setenv_novv() {
   set |& tee -- "${xtr_senv_now}" >/dev/null
   env |& tee -a -- "${xtr_senv_now}" >/dev/null
 
-  : '_mk_v_setenv_novv ENDS  ' "$((--fn_lvl))" "${fn_bndry}"
+  : '_mk_v_setenv_novv ENDS  ' "${fn_bndry}" "$((--fn_lvl))"
 }; declare -ftx _mk_v_setenv_novv
 
 
 _mk_v_setenv_delta() {
-  : '_mk_v_setenv_delta BEGINS' "$((++fn_lvl))" "${fn_bndry}"
+  : '_mk_v_setenv_delta BEGINS' "${fn_bndry}" "$((++fn_lvl))"
 
   : 'if now and prev'
   if [[ -n "${xtr_senv_now}" ]] \
@@ -251,12 +251,12 @@ _mk_v_setenv_delta() {
     export GREP_COLORS='mt=01;43'
   fi
 
-  : '_mk_v_setenv_delta ENDS  ' "$((--fn_lvl))" "${fn_bndry}"
+  : '_mk_v_setenv_delta ENDS  ' "${fn_bndry}" "$((--fn_lvl))"
 }; declare -ftx _mk_v_setenv_delta
 
 
 _mk_deltas() {
-  : '_mk_deltas BEGINS' "$((++fn_lvl))" "${fn_bndry}"
+  : '_mk_deltas BEGINS' "${fn_bndry}" "$((++fn_lvl))"
 
   #_xtrace_duck
   _mk_v_setenv_pre
@@ -264,37 +264,49 @@ _mk_deltas() {
   _mk_v_setenv_delta
   #_xtrace_duck
 
-  : '_mk_deltas ENDS  ' "$((--fn_lvl))" "${fn_bndry}"
+  : '_mk_deltas ENDS  ' "${fn_bndry}" "$((--fn_lvl))"
 }; declare -ftx _mk_deltas
 
 
 _debug_prompt() {
-  : '_debug_prompt BEGINS' "$((++fn_lvl))" "${fn_bndry}"
-
+  : '_debug_prompt BEGINS' "${fn_bndry}" "$((++fn_lvl))"
+  local hyphen="$-"
   _mk_deltas
 
-  : '~~~ ~~ ~ PROMPT ~ ~~ ~~~'
+  : '                                       ~~~ ~~ ~ PROMPT ~ ~~ ~~~'
+  set -
+  declare -p BASH_SOURCE LINENO BASH_LINENO FUNCNAME BASH_COMMAND
   read -rp " +[${nBS[0]}:${nL}] ${BASH_COMMAND[0]}?" _
+  _fn_trc
+  [[ "${hyphen}" =~ x ]] && set -x
 
-  : '_debug_prompt ENDS  ' "$((--fn_lvl))" "${fn_bndry}"
+  : '_debug_prompt ENDS  ' "${fn_bndry}" "$((--fn_lvl))"
 }; declare -ftx _debug_prompt
 
 
 _full_xtrace() {
-  : '_full_xtrace BEGINS' "$((++fn_lvl))" "${fn_bndry}"
+  : '_full_xtrace BEGINS' "${fn_bndry}" "$((++fn_lvl))"
 
   trap '_debug_prompt "$_";' DEBUG
   set -x
 
-  : '_full_xtrace ENDS  ' "$((--fn_lvl))" "${fn_bndry}"
+  : '_full_xtrace ENDS  ' "${fn_bndry}" "$((--fn_lvl))"
 }; declare -ftx _full_xtrace
 
 
   # <> Obligatory debugging block
-  #_full_xtrace
+  _full_xtrace
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   #exit "${nL}"
   #set -x
 
+# Test of "full xtrace"
+cat << EOF > ./foo
+#!/bin/bash
+echo bar
+EOF
+chmod +x ./foo
+./foo
+rm -f ./foo
 
 exit 00
