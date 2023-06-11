@@ -50,7 +50,7 @@ scr_nm_lock='./._locks.sh'
 export scr_nm_dbug scr_nm_sudo scr_nm_cmd scr_nm_lock
 
 _source_subscript(){
-  if [[ -f "$1" ]] && [[ -x "$1" ]] && [[ -O "$f" ]]; then . "$1"
+  if [[ -f "$1" ]] && [[ ! -x "$1" ]] && [[ -O "$f" ]]; then . "$1"
   else declare -p BASH_SOURCE BASH_LINENO; exit "${LINENO}"
   fi
 }; declare -fxt _source_subscript
