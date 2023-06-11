@@ -1,7 +1,6 @@
-#!/bin/bash5.1 -x
+#!/bin/bash -x
 #!/usr/bin/env -iS bash -x
 #   findscan
-#   bash 5.1
 #   shellcheck disable=SC2317
 
 # Note: Keep your goal in mind.
@@ -55,10 +54,10 @@ _source_subscript(){
   else declare -p BASH_SOURCE BASH_LINENO; exit "${LINENO}"
   fi
 }; declare -fxt _source_subscript
-: 'Enable debugging'  ; _source_subscript "${scr_nm_dbug}" # 0
-: 'ID and sudo'       ; _source_subscript "${scr_nm_sudo}" # 1
-: 'Required programs' ; _source_subscript "${scr_nm_cmds}" # 2
-: 'Locks'             ; _source_subscript "${scr_nm_lock}" # 3
+: 'Enable debugging'  ; _source_subscript "${scr_nm_dbug}" "${LINENO}" # 0
+: 'ID and sudo'       ; _source_subscript "${scr_nm_sudo}" "${LINENO}" # 1
+: 'Required programs' ; _source_subscript "${scr_nm_cmds}" "${LINENO}" # 2
+: 'Locks'             ; _source_subscript "${scr_nm_lock}" "${LINENO}" # 3
 
 
   # <> Obligatory debugging block
