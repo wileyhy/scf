@@ -16,7 +16,8 @@ export max_age_of_tmp_files repo_nm script_nm verb
 rand_i="${RANDOM}"
 rand_uniq_str="${repo_nm}.${$}.${rand_i}"
 rand_lock_nm="${rand_uniq_str}.lock.d"
-export rand_i rand_uniq_str rand_lock_nm
+xtr_f_nm="${rand_uniq_str:?}.xtr"
+export rand_i rand_uniq_str rand_lock_nm xtr_f_nm
 
 fn_lvl=0; fn_bndry=' +++ +++ +++ '
 export fn_lvl fn_bndry
@@ -35,12 +36,12 @@ _erx() {
   : '_erx ENDS  ' "$((--fn_lvl))" "${fn_bndry}"
 }; declare -fxt _erx
 
-_trap_ctrl_C() {
-  set -x
-  trap - INT
-  command -p kill -s INT "$$"
-}; declare -fxt '_trap_ctrl_C'
-trap '_trap_ctrl_C' INT
+#_trap_ctrl_C() {
+  #set -x
+  #trap - INT
+  #command -p kill -s INT "$$"
+#}; declare -fxt '_trap_ctrl_C'
+#trap '_trap_ctrl_C' INT
 
 
   # <> Obligatory debugging block

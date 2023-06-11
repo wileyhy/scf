@@ -87,7 +87,6 @@ trap '_trap_ctrl_C' INT
 : '<> Delete any left over xtrace files from -mktemp -p /tmp-'
 
 # Vars
-xtr_f_nm="${rand_uniq_str:?}.xtr"
 xtr_time_f="/tmp/tmp.mtime_file.${xtr_f_nm}"
 xtr_delta_sum_f="$(mktemp -p /tmp --suffix=."${xtr_f_nm}.E")"
 export xtr_f_nm xtr_time_f xtr_delta_sum_f
@@ -291,46 +290,3 @@ _full_xtrace() {
 
 
 exit 00
-
-###
-function _test1 {
-  declare -p BASH_LINENO BASH_SOURCE FUNCNAME LINENO
-  declare -a a1 a2
-  function _A1 { declare -a "a1+=([8-${#nBS[@]}]=$nL)"; }
-  function _A2 { a2+=("${a1[@]}"); }
-  declare -a "a1[8-${#nBS[@]}]=$nL"; : exit, declare $?
-  _A1; : exit, declare $?
-  a2=("${a1[@]}"); : exit, assignment syntax $?
-  _A2; : exit, assignment syntax $?
-  declare -p a1 a2
-}; declare -fxt _test
-_test1
-${Halt:?}
-
-x+=([32-3]=d)
-y=("${x[@]}")
-declare -p y
-#declare -a y=([0]="d" [1]="c" [2]="b" [3]="a")
-${Halt:?}
-
-foo(){
-  echo bar "$@";
-}
-L_;
-foo "$e"
-declare -p l
-
-#: "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
-#function :(){ set -x; builtin : "$@"; set -; }; declare -fxt :
-#_fn_trc
-
-declare -a "l[8-${#n[@]}]=$nL"; exit "${l[8-${#n[@]}]}"
-
-: "count, nBL: ${#nBL[@]}"
-declare -p nBL
-: "count, nBS: ${#nBS[@]}"
-declare -p nBS
-: "count, nF: ${#nF[@]}"
-declare -p nF
-"${Halt:?}"
-
