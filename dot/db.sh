@@ -189,8 +189,7 @@ _mk_v_setenv_delta() {
     #} \
       #|& tee -- "${xtr_senv_delt}"
     #{
-      #diff --suppress-{common-lines,blank-empty} --color=always \
-        #--palette='ad=1;3;38;5;190:de=1;3;38;5;129' \
+      #diff --suppress-{common-lines,blank-empty} --color=always --palette='ad=1;3;38;5;190:de=1;3;38;5;129' \
         #"${xtr_senv_prev}" "${xtr_senv_now}" \
         #| grep -ve nBL -e BASH_COMMAND -e nBS \
           #-e setenv_ -Fe '---'
