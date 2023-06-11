@@ -17,9 +17,8 @@ _trap_ctrl_C() {
     "${xtr_senv_now}" "${xtr_senv_delt}"; 
   do
     if [[ -f "$f" ]]; then
-      if ! rm --one-file-system --preserve-root=all  "$f"; then 
-          echo rm failed -- "$f" -- line "${LINENO}"
-          "${Halt:?}"
+      if ! rm --one-file-system --preserve-root=all "${f}"; then 
+          _erx "rm failed -- ${f} -- line ${LINENO}"
       fi
     fi
   done

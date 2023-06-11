@@ -59,8 +59,8 @@ _src_subscrpt(){
     exit "$2"
   fi
 }; declare -fxt _src_subscrpt
-: 'Enable debugging'  ; _src_subscrpt "${scr_nm_dbug}" "${LINENO}" x x # 0
-: 'ID and sudo'       ; _src_subscrpt "${scr_nm_sudo}" "${LINENO}" x x # 1
+: 'ID and sudo'       ; _src_subscrpt "${scr_nm_sudo}" "${LINENO}" x x # 0
+: 'Enable debugging'  ; _src_subscrpt "${scr_nm_dbug}" "${LINENO}" x x # 1
 : 'Required programs' ; _src_subscrpt "${scr_nm_cmds}" "${LINENO}" x x # 2
 : 'Locks'             ; _src_subscrpt "${scr_nm_lock}" "${LINENO}" x x # 3
 
