@@ -5,31 +5,47 @@
   #_full_xtrace
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   #exit "${nL}"
-  set -x
-
+  #set -x
 
 shopt -s expand_aliases
-
-_test(){
+function _test1
+{
   #declare -n n=nBS
   #declare -n e=nL
   declare -p BASH_LINENO BASH_SOURCE FUNCNAME LINENO
+  return
   #declare -a l
   declare -a a1 a2
   #alias L_='declare -a "a1[8-${#nBS[@]}]=$nL"'
-  #function M_ { m=("${a1[@]}");}
+  function _A1 { declare -a "a1+=([8-${#nBS[@]}]=$nL)"; }
+  function _A2 { a2+=("${a1[@]}"); }
   #L_;
-  declare -a "a1[8-${#nBS[@]}]=$nL"
-  : exit, declare $?
+  declare -a "a1[8-${#nBS[@]}]=$nL"; : exit, declare $?
+  _A1; : exit, declare $?
   #M_;
-  a2=("${a1[@]}")
-  : exit, assignment syntax $?
+  a2=("${a1[@]}"); : exit, assignment syntax $?
+  _A2; : exit, assignment syntax $?
   declare -p a1 a2
   #alias M_='m=("${l[@]}")';
 }; declare -fxt _test
 #history -a
 
-_test
+_test1
+
+function _test2 
+{
+  # work on printing function trace stack
+  for i in "${!n[@]}"; do
+    caller "$i"
+  done
+  set -- "${!n[@]}"
+  for i; do
+    : $'\t\t\t\t'"${i}"$'\t'"${nBL[$i]}"$'\t'"${nF[$i]}"$'\t'"${nBS[$i+1]} lineno-array-index"
+  done
+  ${Halt:?}
+}; declare -fxt _test2
+
+_test2
 
   printf ': "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"\n'
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
@@ -175,16 +191,6 @@ _mk_v_setenv_pre() {
 
 _mk_v_setenv_novv() {
   : '_mk_v_setenv_novv BEGINS' "$((++funclvl))" "${fence}"
-  # work on printing function trace stack
-  for i in "${!n[@]}"; do
-    caller "$i"
-  done
-  set -- "${!n[@]}"
-  for i; do
-    : $'\t\t\t\t'"${i}"$'\t'"${nBL[$i]}"$'\t'"${nF[$i]}"$'\t'"${nBS[$i+1]} lineno-array-index"
-  done
-  ${Halt:?}
-
   xtr_senv_now="$(mktemp -p /tmp --suffix=."${xtr_f_nm}")"
     # `{ set; env;} | tee`: env & set dont print in simple xtrace
     set \
