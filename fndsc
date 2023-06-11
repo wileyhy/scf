@@ -65,21 +65,21 @@ _src(){
         [[ -O "$1" ]] &&
         [[ ! -x "$1" ]] &&
         [[ ! -L "$1" ]];
-  then  if    [[ "$3" == xx ]]
+  then  if    [[ "$4" == xx ]]
         then  verb=(-v --)
               set -x
         fi
         : "${verb[@]:=--}"
         export verb
         source "$1"
-        [[ "$4" == xx ]] && exit "$2"
+        [[ "$3" == xx ]] && exit "$2"
   else  echo source file missing?
         exit "$2"
   fi
 }; declare -fxt _src
 declare -ax verb
 : 'ID and sudo'       ; _src "${scr_nm_sudo}" "${nL}" #xx xx
-: 'Enable debugging'  ; _src "${scr_nm_dbug}" "${nL}" xx xx
+: 'Enable debugging'  ; _src "${scr_nm_dbug}" "${nL}" xx #xx
 : 'Required programs' ; _src "${scr_nm_cmds}" "${nL}" xx xx
 : 'Locks'             ; _src "${scr_nm_lock}" "${nL}" xx xx
 # ^                     ^-function            ^nameref ^  ^-xtrace
