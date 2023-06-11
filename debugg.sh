@@ -39,19 +39,16 @@ function _test2
   for i in "${!nBS[@]}"; do
     caller "$i"
   done
-  time mapfile -t ir < <(rev <<< "${!nBS[@]}" | tr ' ' '\n')
-    declare -p ir
-  echo '${!nBS[@]}:' "${!nBS[@]}"
-  echo '${nBS[@]}:' "${nBS[@]}"
-
+  mapfile -t ir < <(rev <<< "${!nBS[@]}" | tr ' ' '\n')
+  declare -p ir
   echo '${!ir[@]}:' "${!ir[@]}"
   echo '${ir[@]}:' "${ir[@]}"
   for i in "${ir[@]}"; do printf '%s:' "${nBS[i]}"; done
   echo
 
-  set -- "${!nBS[@]}"
+  set -- "${ir[@]}"
   for i; do
-    printf '%s:%s:%s:%s  ' "${i}" "${nBL[$i]}" "${nF[$i]}" "${nBS[$i+1]:-$0}"
+    printf '%s:%s:%s  ' "${nBL[$i]}" "${nF[$i]}" "${nBS[$i+1]:-$0}"
     #: zero: $0
     #: BASH_ARGV0: $BASH_ARGV0
   done
