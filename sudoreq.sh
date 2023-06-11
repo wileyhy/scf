@@ -5,7 +5,7 @@
   #_full_xtrace
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   #exit "${nL}"
-  set -x
+  #set -x
 
 
 if [[ "${UID}" == 0 ]]; then
@@ -22,5 +22,5 @@ fi
   #_full_xtrace
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   #exit "${nL}"
-  set -x
+  #set -x
 
