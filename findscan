@@ -43,10 +43,10 @@ trap '_trap_ctrl_C' INT
 
 
 # Sub-scripts
-scr_nm_dbug='./._debugg.sh'
-scr_nm_sudo='./._sudoreq.sh'
-scr_nm_cmds='./._binsreq.sh'
-scr_nm_lock='./._locks.sh'
+scr_nm_dbug='./_.debugg.sh'
+scr_nm_sudo='./_.sudoreq.sh'
+scr_nm_cmds='./_.binsreq.sh'
+scr_nm_lock='./_.locks.sh'
 export scr_nm_dbug scr_nm_sudo scr_nm_cmd scr_nm_lock
 
 _source_subscript(){
