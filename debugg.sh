@@ -32,18 +32,25 @@ function _test1
 
 _test1
 
-function _test2 
+function _test2
 {
   # work on printing function trace stack
+  set -
   for i in "${!nBS[@]}"; do
     caller "$i"
   done
+  time mapfile -t rev_idcs1 < <(rev <<< "${!nBS[@]}" | tr ' ' '\n')
+    declare -p rev_idcs1
+  time mapfile -t rev_idcs2 < <(for (( i=$(("${#nBS[@]}"-1)); i >=0 ; i-- )); do echo "$i"; done)
+    declare -p rev_idcs2
+
   set -- "${!nBS[@]}"
   for i; do
-    : "$(printf '\t%-10s\t%-10s\t%-10s\t%-10s\n' "${i}" "${nBL[$i]}" "${nF[$i]}" "${nBS[$i+1]:-$0}")"
+    printf '%s:%s:%s:%s  ' "${i}" "${nBL[$i]}" "${nF[$i]}" "${nBS[$i+1]:-$0}"
     #: zero: $0
     #: BASH_ARGV0: $BASH_ARGV0
   done
+  echo
   ${Halt:?}
 }; declare -fxt _test2
 

@@ -58,7 +58,7 @@ export scr_nm_dbug scr_nm_sudo scr_nm_cmd scr_nm_lock
 _src_subscr(){
   if [[ -f "$1" ]] && [[ ! -x "$1" ]] && [[ -O "$1" ]]; then 
     [[ "$3" == xx ]] && set -x
-    . "$1"
+    source "$1"
     [[ "$4" == xx ]] && exit "$2"
   else 
     declare -p nBS nBL; 
