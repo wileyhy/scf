@@ -1,6 +1,7 @@
-#!/bin/bash -x
+#!/bin/bash5.1 -x
 #!/usr/bin/env -iS bash -x
 #   findscan
+#   bash 5.1
 #   shellcheck disable=SC2317
 
 # Note: Keep your goal in mind.

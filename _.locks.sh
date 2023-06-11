@@ -11,50 +11,53 @@
 # Non-critical 
 
 ## Vars & Functions
+
 POSIXLY_CORRECT=0
 LC_ALL=C
+export POSIXLY_CORRECT LC_ALL
 unset IFS
-set -C
+
+lk_cmds_reqd=( pathchk mv link unlink nice sync timeout stdbuf nohup ps )
+lk_cmds_opt=( fuser pgrep )
+export lk_cmds_reqd lk_cmds_opt
 
 
 ## <> Reset the FS during debugging
-### /dev/shm must exist
-if [[ ! -e /dev/shm ]]; then
-  sudo mkdir -m 1777 /dev/shm ||
-   _erx "${LINENO}"
-fi
 
-### remove all previous lock files
-rm -frv --one-file-system --preserve-root=all -- /dev/shm/* ||
+### /dev/shm must exist & remove all previous lock files
+d=/dev/shm
+if [[ ! -e "$d" ]]; then 
+  sudo mkdir -m 1777 "$d" || _erx "${LINENO}"
+else 
+  [[ -d "$d" ]] ||  _erx "${LINENO}"
+fi
+rm -frv --one-file-system --preserve-root=all -- "${d}"/* ||
   _erx "${LINENO}"
+unset d
 
 
 ## Commands 
-### Required: if any of these are missing, print an error and exit
-hash -r
-reqd_commands=(pathchk mv link unlink echo set nice sync timeout stdbuf nohup sleep ps)
 
-for c in "${reqd_commands[@]}"; do
-  full_path="$(type -P "$c" 2> /dev/null)"
+### Required: if any of these are missing, print an error and exit
+hash -r 
+for c in "${lk_cmds_reqd[@]}"; do
+  lk_cmd_abspth="$(type -P "$c" 2> /dev/null)"
   
-  if [[ -z "$full_path" ]]; then
-    _erx "line: ${LINENO}, command ${c} is not available."
+  if [[ -z "${lk_cmd_abspth}" ]]; then
+    _erx "line: ${LINENO}, command "${c}" is not available."
   fi
 done
 
 ### Optional: if any of these are missing, print an info message and continue
-optl_commands=(fuser pgrep)
-
-for c in "${optl_commands[@]}"; do
-  full_path="$(type -P "$c" 2> /dev/null)"
+for c in "${lk_cmds_opt[@]}"; do
+  declare -x "lk_cmd_abspth=$(type -P "${c}" 2> /dev/null)"
   
-  if [[ -z "$full_path" ]]; then
-    echo "INFO: line: ${LINENO}, command ${c} is not available." >&2
+  if [[ -z "$lk_cmd_abspth" ]]; then
+    echo "INFO: line: ${LINENO}, command "${c}" is not available." >&2
   else
-    declare -x "${c}=${c}"
+    declare -x "${c}"="${c}"
   fi
-done; unset c full_path
-
+done; unset c lk_cmd_abspth
 
 
 # Trying
@@ -62,38 +65,30 @@ done; unset c full_path
 ## Verify file names -- using POSIX 2017 functionality
 f="/dev/shm/$$_${rand_i}.f"
 l="/dev/shm/${repo_nm}"
+set -C
 
 for x in "${f}" "${l}"; do
-  pathchk -p /dev/shm || 
+  pathchk -p "${x}" || 
     echo "INFO: line: ${LINENO}, command pathchk failed." >&2 # <>
-  pathchk -P /dev/shm || 
+  pathchk -P "${x}" || 
     echo "INFO: line: ${LINENO}, command pathchk failed." >&2 # <>
-done
+done; unset x
 
 set -- "${f}"
-printf "%b\n" "$*" || "${Halt:?}" # printf cmd per POSIX 2017
+printf "%b\n" "$*" || "${Halt:?}" # printf cmd syntax, POSIX 2017
 set --
 
 if pathchk "${l}"; then
   
-  if link -- "${f}" "${l}" ; then
+  if link -- "${f}" "${l}"; then
     printf 'Creation of lockfile succeeded.\n'
     unlink -- "${f}" || "${Halt:?}"
-  
   else
     printf 'A lock already exists:\n'
     ls -alhFi "${l}"
-    fuser_o="$(fuser -v "${l}")"
-    printf '%s\n' "${fuser_o}"
-    fuser_pid="$(tail -n1 <<< "${fuser_o}" | awk '{ printf $2 }')"
-    
-    if [[ "${pgrep}" ]]; then
-      pgrep "${fuser_pid}"
-    else
-      ps aux | grep "${fuser_pid}"
-    fi
+    ps aux | grep -e "${script_nm}"
   fi
-fi; unset f l 
+fi; unset f l
 
 
   # <> Obligatory debugging block
