@@ -55,36 +55,35 @@ scr_nm_sudo='./dot/su.sh'
 scr_nm_cmds='./dot/rq.sh'
 scr_nm_lock='./dot/lx.sh'
 export scr_nm_dbug scr_nm_sudo scr_nm_cmd scr_nm_lock
-# shellcheck source=./dot/db.sh,./dot/su.sh,./dot/rq.sh,./dot/lx.sh
+declare -ax verb
+
 _src(){
   # if the file is... a file, owned by EUID, not executable and not a symlink
-  if    [[ -f "$1" ]] &&
-        [[ -O "$1" ]] &&
-        [[ ! -x "$1" ]] &&
-        [[ ! -L "$1" ]];
-  # then...
-  then  
-        # ...if the 4th paramter is 'xx', enable "verbose commands" and xtrace
-        if    [[ "$4" == xx ]]
-        then  verb=(-v --)
-              set -x
-        # otherwise, neutralize the unused "verbose commands" syntax
-        else
-              local -I verb=("--")
-        fi
-        export verb
-        # execute the subscript in question in the current context
-        source "$1"
-        # if the 3rd parameter is 'xx', after `source` returns, `exit` 
-        # the calling shell.
-        [[ "$3" == xx ]] && exit "$2"
+  if      [[ -f "$1" ]] &&
+          [[ -O "$1" ]] &&
+          [[ ! -x "$1" ]] &&
+          [[ ! -L "$1" ]];
+  # then... if the 4th paramter is 'xx', enable "verbose commands" and xtrace
+  then    if      [[ "$4" == xx ]]
+          then    verb=(-v --)
+                  set -x
+          # otherwise, neutralize the unused "verbose commands" syntax
+          else    local -I verb=("--")
+          fi
+          export verb
+          # execute the subscript in question in the current context
+          source "$1"
+          # if the 3rd parameter is 'xx', after `source` returns, `exit` 
+          # the calling shell.
+          [[ "$3" == xx ]] && exit "$2"
   # ...otherwise, what the heck? ...and print a line number to xtrace
-  else  echo source file missing?
-        set -x
-        exit "$2"
+  else    echo source file missing?
+          set -x
+          exit "$2"
   fi
 }; declare -fxt _src
-declare -ax verb
+
+# shellcheck source=./dot/db.sh,./dot/su.sh,./dot/rq.sh,./dot/lx.sh
 : 'ID and sudo'       ; _src "${scr_nm_sudo}" "${nL}" #xx xx
 : 'Enable debugging'  ; _src "${scr_nm_dbug}" "${nL}" xx #xx
 : 'Required programs' ; _src "${scr_nm_cmds}" "${nL}" xx xx
