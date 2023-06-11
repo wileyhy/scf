@@ -15,9 +15,9 @@ sc_shells='(sh|bash|dash|ksh)'
 export max_age_of_tmp_files repo_nm script_nm sc_sevr sc_shells
 
 unset LC_ALL
-hash -r
-builtin type -P getconf
-PATH_getconf="$(command getconf PATH)" || "${Halt:?}"
+builtin hash -r
+builtin hash -p "$(builtin type -P getconf)" getconf
+PATH_getconf="$(command -p getconf PATH)" || "${Halt:?}"
 PATH="${PATH_getconf}:/usr/bin:/usr/sbin:${PATH}"
 LC_COLLATE="C.UTF-8"     # for predictable sorting
 LC_CTYPE="C.UTF-8"       #  "   "           "
