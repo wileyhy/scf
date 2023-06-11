@@ -5,24 +5,34 @@
   #_full_xtrace
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   #exit "${nL}"
-  #set -x
+  set -x
 
 
-test(){
-  shopt -s expand_aliases
-  declare -n n=nBS
-  declare -n e=nL 
-  declare -a l 
-  alias L_='declare -a "l[8-${#n[@]}]=$e"' 
-  function M_ { m=("${l[@]}");}
-  L_;  
+shopt -s expand_aliases
+
+_test(){
+  #declare -n n=nBS
+  #declare -n e=nL
+  #declare -a l
+  declare -a a1
+  #alias L_='declare -a "a1[8-${#nBS[@]}]=$nL"'
+  #function M_ { m=("${a1[@]}");}
+  #L_;
+  declare -a "a1[8-${#nBS[@]}]=$nL"
   echo $?
-  M_;  
+  #M_;
+  a2=("${a1[@]}")
   echo $?
-  declare -p l m
-  alias M_='m=("${l[@]}")';
-}
-history -a
+  declare -p a1 a2
+  #alias M_='m=("${l[@]}")';
+}; declare -fxt _test
+#history -a
+
+_test
+
+  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
+  exit "${nL}"
+  set -x
 
 x+=([32-3]=d)
 y=("${x[@]}")
@@ -60,10 +70,10 @@ _trap_ctrl_C() {
   set -x
   trap - INT
   for f in "${xtr_time_f}" "${xtr_senv_prev}" \
-    "${xtr_senv_now}" "${xtr_senv_delt}"; 
+    "${xtr_senv_now}" "${xtr_senv_delt}";
   do
     if [[ -f "$f" ]]; then
-      if ! rm --one-file-system --preserve-root=all "${f}"; then 
+      if ! rm --one-file-system --preserve-root=all "${f}"; then
           _erx "rm failed -- ${f} -- line ${nL}"
       fi
     fi
@@ -86,14 +96,14 @@ touch -d "${max_age_of_tmp_files}" "${xtr_time_f}"
 mapfile -d '' -t xtr_files < <(
   find -P /tmp -maxdepth 1 -type f \
     -name "tmp.[a-zA-Z0-9]*.${repo_nm}.[0-9]*.[0-9]*.xtr*" \
-    '!' -newer "${xtr_time_f}" '!' -name "${xtr_time_f##*/}" -print0 
+    '!' -newer "${xtr_time_f}" '!' -name "${xtr_time_f##*/}" -print0
 )
 
-# ...if they're (inodes are for) files & not symlinks, & owned by the 
+# ...if they're (inodes are for) files & not symlinks, & owned by the
 # same EUID.
 for f in "${xtr_files[@]}"; do
-  if [[ -f "${f}" ]] && [[ ! -L "${f}" ]] && [[ -O "${f}" ]]; then 
-    sudo 
+  if [[ -f "${f}" ]] && [[ ! -L "${f}" ]] && [[ -O "${f}" ]]; then
+    sudo
     chmod 000 "$f"
     xtr_rm_list+=("${f}")
   fi
@@ -117,9 +127,9 @@ fi; unset xtr_rm_list xtr_files
 funclvl=0
 fence=' +++ +++ +++ '
 
-#   _xtrace_duck: If xtrace was previously on, then on first execution 
-# of this function, turn xrtrace off, and on second execution, turn 
-# xtrace back on and forget about this function's settings. If xtrace 
+#   _xtrace_duck: If xtrace was previously on, then on first execution
+# of this function, turn xrtrace off, and on second execution, turn
+# xtrace back on and forget about this function's settings. If xtrace
 # was previously off, then leave it off.
 
 _xtrace_duck() {
@@ -164,19 +174,19 @@ _mk_v_setenv_pre() {
 _mk_v_setenv_novv() {
   : '_mk_v_setenv_novv BEGINS' "$((++funclvl))" "${fence}"
   # work on printing function trace stack
-  for i in "${!n[@]}"; do 
+  for i in "${!n[@]}"; do
     caller "$i"
   done
   set -- "${!n[@]}"
-  for i; do 
+  for i; do
     : $'\t\t\t\t'"${i}"$'\t'"${nBL[$i]}"$'\t'"${nF[$i]}"$'\t'"${nBS[$i+1]} lineno-array-index"
   done
   ${Halt:?}
 
   xtr_senv_now="$(mktemp -p /tmp --suffix=."${xtr_f_nm}")"
-    # `{ set; env;} | tee`: env & set dont print in simple xtrace 
+    # `{ set; env;} | tee`: env & set dont print in simple xtrace
     set \
-      |& tee -- "${xtr_senv_now}" >/dev/null 
+      |& tee -- "${xtr_senv_now}" >/dev/null
     env \
       |& tee -a -- "${xtr_senv_now}" >/dev/null
   : '_mk_v_setenv_novv ENDS  ' "$((--funclvl))" "${fence}"
@@ -186,7 +196,7 @@ _mk_v_setenv_delta() {
   : '_mk_v_setenv_delta BEGINS' "$((++funclvl))" "${fence}"
   : 'if now and prev'
   if [[ -n "${xtr_senv_now}" ]] \
-    && [[ -n "${xtr_senv_prev}" ]]; 
+    && [[ -n "${xtr_senv_prev}" ]];
   then
     : 'if delta'
     if [[ -n "${xtr_senv_delt}" ]]; then
@@ -197,7 +207,7 @@ _mk_v_setenv_delta() {
 
 		# syntax caused a weird bug?
 		# 	with alsa-info.sh line ~465-466
-		#	and then again 
+		#	and then again
         ## create a new delta file, each time
     #xtr_senv_delt="$(mktemp -p /tmp --suffix=."${xtr_f_nm}")" #
     #{
@@ -217,7 +227,7 @@ _mk_v_setenv_delta() {
       #|& tee -a "${xtr_senv_delt}"
 
     # create a new delta file, each time
-    xtr_senv_delt="$(mktemp -p /tmp --suffix=."${xtr_f_nm}.A")" 
+    xtr_senv_delt="$(mktemp -p /tmp --suffix=."${xtr_f_nm}.A")"
       #diff -y -W 500 --suppress-{common-lines,blank-empty} \
 		    #--color=never "${xtr_senv_prev}" "${xtr_senv_now}" \
         #|& grep -v setenv \
