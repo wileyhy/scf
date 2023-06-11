@@ -1,5 +1,5 @@
-#!/bin/bash -x
-#!/usr/bin/env -iS bash -x
+#!/bin/bash
+#!/usr/bin/env -iS bash
 #   findscan
 #   shellcheck disable=SC2317
 
@@ -51,7 +51,7 @@ export scr_nm_dbug scr_nm_sudo scr_nm_cmd scr_nm_lock
 
 _src_subscrpt(){
   if [[ -f "$1" ]] && [[ ! -x "$1" ]] && [[ -O "$1" ]]; then 
-    [[ -n "$3" ]] && [[ "$3" == 'x' ]] && set -x
+    [[ "$3" == 'x' ]] && set -x
     . "$1"
   else 
     declare -p BASH_SOURCE BASH_LINENO; 
