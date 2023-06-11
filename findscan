@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 #!/usr/bin/env -iS bash
 #   findscan
 #   shellcheck disable=SC2317
@@ -65,7 +65,7 @@ _src_subscrpt(){
     exit "$2"
   fi
 }; declare -fxt _src_subscrpt
-: 'ID and sudo'       ; _src_subscrpt "${scr_nm_sudo}" "${nL}" xx #xx 
+: 'ID and sudo'       ; _src_subscrpt "${scr_nm_sudo}" "${nL}" #xx xx 
 : 'Enable debugging'  ; _src_subscrpt "${scr_nm_dbug}" "${nL}" xx xx 
 : 'Required programs' ; _src_subscrpt "${scr_nm_cmds}" "${nL}" xx xx 
 : 'Locks'             ; _src_subscrpt "${scr_nm_lock}" "${nL}" xx xx 
