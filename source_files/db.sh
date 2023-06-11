@@ -8,11 +8,9 @@
   #set -x
 
 
+# work on printing function trace stack
 shopt -s expand_aliases
 alias exit='_fn_trc; set -x; exit'
-#function :(){ set -x; builtin : "$@"; set -; }; declare -fxt :
-
-# work on printing function trace stack
 function _fn_trc(){ local ec="${LINENO}"
   set -
   local i
@@ -23,26 +21,9 @@ function _fn_trc(){ local ec="${LINENO}"
   done; echo "${nBS[0]}:${ec}:_fn_trc:${nL}"
 }; declare -fxt _fn_trc
 
-
-  #printf ': "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"\n'
-  #: "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
-  #_fn_trc
   exit "${nL}"
   set -x
 
-x+=([32-3]=d)
-y=("${x[@]}")
-declare -p y
-#declare -a y=([0]="d" [1]="c" [2]="b" [3]="a")
-${Halt:?}
-
-
-foo(){
-  echo bar "$@";
-}
-L_;
-foo "$e"
-declare -p l
 
 
 trap _exit_trap EXIT TERM
@@ -288,5 +269,20 @@ function _test1 {
 _test1
 ${Halt:?}
 
+x+=([32-3]=d)
+y=("${x[@]}")
+declare -p y
+#declare -a y=([0]="d" [1]="c" [2]="b" [3]="a")
+${Halt:?}
 
+foo(){
+  echo bar "$@";
+}
+L_;
+foo "$e"
+declare -p l
+
+#: "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
+#function :(){ set -x; builtin : "$@"; set -; }; declare -fxt :
+#_fn_trc
 
