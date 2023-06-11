@@ -8,6 +8,52 @@
   #set -x
 
 
+test(){
+  shopt -s expand_aliases
+  declare -n n=nBS
+  declare -n e=nL 
+  declare -a l 
+  alias L_='declare -a "l[8-${#n[@]}]=$e"' 
+  function M_ { m=("${l[@]}");}
+  L_;  
+  echo $?
+  M_;  
+  echo $?
+  declare -p l m
+  alias M_='m=("${l[@]}")';
+}
+history -a
+
+x+=([32-3]=d)
+y=("${x[@]}")
+declare -p y
+#declare -a y=([0]="d" [1]="c" [2]="b" [3]="a")
+
+
+foo(){
+  echo bar "$@";
+}
+L_;
+foo "$e"
+declare -p l
+
+
+trap _exit_trap EXIT TERM
+#_full_xtrace
+
+declare -a "l[8-${#n[@]}]=$nL"; exit "${l[8-${#n[@]}]}"
+
+: "count, nBL: ${#nBL[@]}"
+declare -p nBL
+: "count, nBS: ${#nBS[@]}"
+declare -p nBS
+: "count, nF: ${#nF[@]}"
+declare -p nF
+"${Halt:?}"
+
+
+
+
 : '<>: Debug functions & traps'
 
 _trap_ctrl_C() {
@@ -54,7 +100,7 @@ for f in "${xtr_files[@]}"; do
 done; unset f
 
 if [[ -n "${xtr_rm_list[*]}" ]]; then
-  rm --one-file-system --preserve-root=all "${xtr_rm_list[@]}"
+  rm -fv --one-file-system --preserve-root=all "${xtr_rm_list[@]}"
   break
 fi; unset xtr_rm_list xtr_files
 
