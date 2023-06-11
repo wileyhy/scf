@@ -25,10 +25,10 @@ function _fn_trc(){ local ec="${nL:?}:$-"
   local -a ir
   mapfile -t ir < <(rev <<< "${!nBS[@]}" | tr ' ' '\n')
   for i in "${ir[@]}"; do
-    printf '%s:%s:%s:%s  ' "${i}" "${nBS[$i+1]:-$0}" "${nBL[$i]:?}" \
+    printf '(%s):%s:%s:%s  ' "${i}" "${nBS[$i+1]:-$0}" "${nBL[$i]:?}" \
       "${nF[$i]:?}"
   done;
-  echo "${nBS[0]:?}:${ec:?}:_fn_trc:${nL}"
+  echo "(-1):${nBS[0]:?}:${ec:?}:_fn_trc:${nL}"
   [[ "${hyphen:?}" =~ x ]] && set -x
 }; declare -fxt _fn_trc
 
