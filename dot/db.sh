@@ -33,10 +33,11 @@ function _fn_trc(){ local ec="${nL:?}:$-"
 
 # shadow the `exit` builtin, for when debugging is turned off
 function exit(){ 
+  local ec="$1"
   set -; 
   _fn_trc; 
   set -x; 
-  builtin exit;
+  builtin exit "${ec}";
 }; declare -fxt exit
 
 #cp -a "${verb[@]}" ./README.md ./foo
