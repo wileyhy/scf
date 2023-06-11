@@ -49,10 +49,10 @@ trap '_trap_ctrl_C' INT
 
 
 # Sub-scripts
-scr_nm_dbug='./source_files/db.sh'
-scr_nm_sudo='./source_files/su.sh'
-scr_nm_cmds='./source_files/rq.sh'
-scr_nm_lock='./source_files/lx.sh'
+scr_nm_dbug='./dot/db.sh'
+scr_nm_sudo='./dot/su.sh'
+scr_nm_cmds='./dot/rq.sh'
+scr_nm_lock='./dot/lx.sh'
 export scr_nm_dbug scr_nm_sudo scr_nm_cmd scr_nm_lock
 
 _src(){
