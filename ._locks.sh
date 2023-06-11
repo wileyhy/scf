@@ -18,8 +18,10 @@ set -C
 # Non-critical 
 
 ## <> Debugging: remove all previous lock files
-rm -frv -- '/dev/shm' ||
+rm -frv --one-file-system --preserve-root=all -- /dev/shm/* ||
   _erx "line: ${LINENO}, command rm failed."
+sudo rmdir -v -- /dev/shm ||
+  _erx "line: ${LINENO}, command rmdir failed."
 
 ## Commands 
 ### Required: if any of these are missing, print an error and exit
@@ -33,11 +35,11 @@ for c in "${reqd_commands[@]}"; do
 done
 
 ### Optional: if any of these are missing, print an info message and continue
-optl_commands=(fuser)
+optl_commands=(fuser pgrep)
 for c in "${optl_commands[@]}"; do
   full_path="$(type -P "$c" 2> /dev/null)"
   if [[ -z "$full_path" ]]; then
-    echo "INFO: line: ${LINENO}, command ${c} is not available." 2>&
+    echo "INFO: line: ${LINENO}, command ${c} is not available." >&2
   else
     declare -x "${c}=${c}"
   fi
@@ -45,15 +47,15 @@ done; unset c full_path
 
 ## /dev/shm must exist
 if [[ ! -e /dev/shm ]]; then
-  mkdir -m 1777 /dev/shm ||
+  sudo mkdir -m 1777 /dev/shm ||
    _erx "${LINENO}"
 fi
 
 ## <?> retained for POSIX 2017 functionality
 pathchk -p /dev/shm || 
-  echo "INFO: line: ${LINENO}, command pathchk failed." 2>& # <>
+  echo "INFO: line: ${LINENO}, command pathchk failed." >&2 # <>
 pathchk -P /dev/shm || 
-  echo "INFO: line: ${LINENO}, command pathchk failed." 2>& # <>
+  echo "INFO: line: ${LINENO}, command pathchk failed." >&2 # <>
 
 
 # Trying
@@ -73,7 +75,11 @@ if pathchk "${l}"; then
     fuser_o="$(fuser -v "${l}")"
     printf '%s\n' "${fuser_o}"
     fuser_pid="$(tail -n1 <<< "${fuser_o}" | awk '{ printf $2 }')"
-    ps aux | grep "${fuser_pid}"
+    if [[ "${pgrep}" ]]; then
+      pgrep "${fuser_pid}"
+    else
+      ps aux | grep "${fuser_pid}"
+    fi
   fi
 fi
 
