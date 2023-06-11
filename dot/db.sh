@@ -288,7 +288,9 @@ _debug_prompt() {
 _full_xtrace() {
   : '_full_xtrace BEGINS' "${fn_bndry}" "$((++fn_lvl))"
 
-  trap '_debug_prompt "$_";' DEBUG; set -x
+  # Bug? for the line numbers in _fn_trace to be correct, this `trap` 
+  # command must have two separate command parsings on the same line.
+  trap '_debug_prompt "$_";' DEBUG; set -x 
 
   : '_full_xtrace ENDS  ' "${fn_bndry}" "$((--fn_lvl))"
 }; declare -ftx _full_xtrace
