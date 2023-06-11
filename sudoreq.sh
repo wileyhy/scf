@@ -1,12 +1,6 @@
 # ID and sudo
 
-
-  # <> Obligatory debugging block
-  #_full_xtrace
-  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
-  #exit "${nL}"
-  #set -x
-
+  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}" # <>
 
 if [[ "${UID}" == 0 ]]; then
   printf '\n\t Must be a regular user and use sudo. \n\n'
@@ -16,11 +10,6 @@ elif ! sudo -v; then
   printf 'exiting.\n\n'
   exit "${nL}"
 fi
-
-
-  # <> Obligatory debugging block
-  #_full_xtrace
-  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
-  #exit "${nL}"
-  #set -x
+  
+  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}" # <>
 
