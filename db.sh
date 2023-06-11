@@ -9,29 +9,24 @@
 
 
 shopt -s expand_aliases
-alias exit='set -x; exit'
-function :(){ 
-  set -x; 
-  builtin : "$@"; 
-  set -; 
-}; declare -fxt :
+alias exit='_fn_trc; set -x; exit'
+#function :(){ set -x; builtin : "$@"; set -; }; declare -fxt :
 
 # work on printing function trace stack
-function _test2 { local ec="${LINENO}"
+function _fn_trc(){ local ec="${LINENO}"
   set -
+  local i
+  local -a ir
   mapfile -t ir < <(rev <<< "${!nBS[@]}" | tr ' ' '\n')
-  #declare -p ir
   for i in "${ir[@]}"; do
     printf '%s:%s:%s  ' "${nBS[$i+1]:-$0}" "${nBL[$i]/$'^0$'/}" "${nF[$i]}"
-  done
-  echo "${nBS[0]}:${ec}:${nL}"
-}; declare -fxt _test2
-_test2
+  done; echo "${nBS[0]}:${ec}:_fn_trc:${nL}"
+}; declare -fxt _fn_trc
 
 
-  printf ': "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"\n'
-  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
-  : "$(_test2)"
+  #printf ': "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"\n'
+  #: "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
+  #_fn_trc
   exit "${nL}"
   set -x
 
