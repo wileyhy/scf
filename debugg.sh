@@ -39,10 +39,15 @@ function _test2
   for i in "${!nBS[@]}"; do
     caller "$i"
   done
-  time mapfile -t rev_idcs1 < <(rev <<< "${!nBS[@]}" | tr ' ' '\n')
-    declare -p rev_idcs1
-  time mapfile -t rev_idcs2 < <(for (( i=$(("${#nBS[@]}"-1)); i >=0 ; i-- )); do echo "$i"; done)
-    declare -p rev_idcs2
+  time mapfile -t ir < <(rev <<< "${!nBS[@]}" | tr ' ' '\n')
+    declare -p ir
+  echo '${!nBS[@]}:' "${!nBS[@]}"
+  echo '${nBS[@]}:' "${nBS[@]}"
+
+  echo '${!ir[@]}:' "${!ir[@]}"
+  echo '${ir[@]}:' "${ir[@]}"
+  for i in "${ir[@]}"; do printf '%s:' "${nBS[i]}"; done
+  echo
 
   set -- "${!nBS[@]}"
   for i; do
