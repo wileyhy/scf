@@ -55,7 +55,7 @@ scr_nm_cmds='./binsreq.sh'
 scr_nm_lock='./locks.sh'
 export scr_nm_dbug scr_nm_sudo scr_nm_cmd scr_nm_lock
 
-_src_scr(){
+_src(){
   if [[ -f "$1" ]] && [[ ! -x "$1" ]] && [[ -O "$1" ]]; then 
     [[ "$3" == xx ]] && set -x
     source "$1"
@@ -64,11 +64,11 @@ _src_scr(){
     declare -p nBS nBL; 
     exit "$2"
   fi
-}; declare -fxt _src_scr
-: 'ID and sudo'       ; _src_scr "${scr_nm_sudo}" "${nL}" #xx xx 
-: 'Enable debugging'  ; _src_scr "${scr_nm_dbug}" "${nL}" xx xx 
-: 'Required programs' ; _src_scr "${scr_nm_cmds}" "${nL}" xx xx 
-: 'Locks'             ; _src_scr "${scr_nm_lock}" "${nL}" xx xx 
+}; declare -fxt _src
+: 'ID and sudo'       ; _src "${scr_nm_sudo}" "${nL}" #xx xx 
+: 'Enable debugging'  ; _src "${scr_nm_dbug}" "${nL}" xx xx 
+: 'Required programs' ; _src "${scr_nm_cmds}" "${nL}" xx xx 
+: 'Locks'             ; _src "${scr_nm_lock}" "${nL}" xx xx 
 # ^                     ^-function    ^                ^nameref ^  ^-xtrace
 # ^-Purpose                           ^-filename                ^-exit
 
