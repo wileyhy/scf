@@ -8,6 +8,12 @@
   #set -x
   #######################################
 
+# Vars
+#set -o functrace
+FUNCNEST=8
+PS4='+${nBS[0]}:${nL}:${nF[0]}: '
+export FUNCNEST PS4
+
 ## A function so `:` always prints to xtrace
 #function :(){
   #local hyphen="$-";

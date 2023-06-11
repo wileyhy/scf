@@ -10,7 +10,18 @@
 max_age_of_tmp_files='1 minutes ago'
 repo_nm=scf
 script_nm='./findscan'
-export max_age_of_tmp_files repo_nm script_nm 
+sc_severity=error
+SC_shells='(sh|bash|dash|ksh)'
+export max_age_of_tmp_files repo_nm script_nm sc_severity SC_shells
+
+unset LC_ALL
+getconf_o="$(/usr/bin/command -p getconf PATH)" || "${Halt:?}"
+PATH="${getconf_o}:/usr/bin:/usr/sbin:${PATH}"
+LC_COLLATE="C.UTF-8"     # for predictable sorting
+LC_CTYPE="C.UTF-8"       #  "   "           "
+LC_NUMERIC="en_US.UTF-8" # for commas in large numbers
+GREP_COLORS='mt=01;43'
+export GREP_COLORS LC_COLLATE LC_CTYPE LC_NUMERIC PATH 
 
 rand_i="${RANDOM}"
 rand_uniq_str="${repo_nm}.${$}.${rand_i}"
@@ -166,23 +177,6 @@ exit "$nL"
 
 : 'Variables'
 
-: 'Vars: Environment'
-unset LC_ALL
-#FUNCNEST=8
-set -o functrace
-GREP_COLORS='mt=01;43'
-LC_COLLATE="C.UTF-8"     # for predictable sorting
-LC_CTYPE="C.UTF-8"       #  "   "           "
-LC_NUMERIC="en_US.UTF-8" # for commas in large numbers
-getconf_o="$(/usr/bin/command -p getconf PATH)" \
-  || "${Halt:?}"
-PATH="${getconf_o}:/usr/bin:/usr/sbin:${PATH}"
-PS4='+${nBS[0]}:${nL}:${nF[0]}: '
-export FUNCNEST GREP_COLORS LC_COLLATE LC_CTYPE LC_NUMERIC PATH PS4
-
-: 'Vars: Implementation-dependent args for options parsable by ShellCheck'
-sc_severity=error
-SC_shells='(sh|bash|dash|ksh)'
 
 : 'Vars more frequently subject to change'
 protected_git_dir_1="${HOME}/MYPROJECTS"
