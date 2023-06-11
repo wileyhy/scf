@@ -12,7 +12,7 @@ repo_nm=scf
 script_nm='./findscan'
 export max_age_of_tmp_files repo_nm script_nm
 
-rand_i="${RANDOM}" 
+rand_i="${RANDOM}"
 rand_uniq_str="${repo_nm}.${$}.${rand_i}"
 rand_lock_nm="${rand_uniq_str}.lock.d"
 export rand_i rand_uniq_str rand_lock_nm
@@ -27,7 +27,7 @@ declare -n nL=LINENO
 export nBL nBS nF nL
 
 _erx() {
-  local loc_exit_code="$?" 
+  local loc_exit_code="$?"
   : '_erx BEGINS' "$((++fn_lvl))" "${fn_bndry}"
   echo -e Error: "$@" >&2
   exit "${loc_exit_code}"
@@ -56,20 +56,20 @@ scr_nm_lock='./source_files/lx.sh'
 export scr_nm_dbug scr_nm_sudo scr_nm_cmd scr_nm_lock
 
 _src(){
-  if [[ -f "$1" ]] && [[ ! -x "$1" ]] && [[ -O "$1" ]]; then 
+  if [[ -f "$1" ]] && [[ ! -x "$1" ]] && [[ -O "$1" ]]; then
     [[ "$3" == xx ]] && set -x
     source "$1"
     [[ "$4" == xx ]] && exit "$2"
-  else 
+  else
     echo source file missing?
-    declare -p nBS nBL; 
+    declare -p nBS nBL;
     exit "$2"
   fi
 }; declare -fxt _src
-: 'ID and sudo'       ; _src "${scr_nm_sudo}" "${nL}" #xx xx 
-: 'Enable debugging'  ; _src "${scr_nm_dbug}" "${nL}" xx xx 
-: 'Required programs' ; _src "${scr_nm_cmds}" "${nL}" xx xx 
-: 'Locks'             ; _src "${scr_nm_lock}" "${nL}" xx xx 
+: 'ID and sudo'       ; _src "${scr_nm_sudo}" "${nL}" #xx xx
+: 'Enable debugging'  ; _src "${scr_nm_dbug}" "${nL}" xx xx
+: 'Required programs' ; _src "${scr_nm_cmds}" "${nL}" xx xx
+: 'Locks'             ; _src "${scr_nm_lock}" "${nL}" xx xx
 # ^                     ^-function    ^                ^nameref ^  ^-xtrace
 # ^-Purpose                           ^-filename                ^-exit
 
@@ -90,7 +90,7 @@ _src(){
 a_poss_proces_lock_dirs+=("/dev/shm/${repo_nm}" /var/lock \
   "${XDG_RUNTIME_DIR}" "${TMPDIR}" /var/lock "${HOME}" /tmp \
   /var/tmp)
-#i=0 
+#i=0
 pld="" # SC2155
 timecode="$(builtin printf '%(%F_%H%M%S)T')"
 
@@ -112,7 +112,7 @@ _get_lockdirs(){
 _exit_trap() {
   set -x
   : "EXIT trap BEGINS ++++++++++++++++++++++++++++++++++++++++++++++"
-  trap - DEBUG 
+  trap - DEBUG
   trap - EXIT
 
   # If no such array exists yet, then search for possible lockdirs
@@ -124,11 +124,11 @@ _exit_trap() {
     : 'lkdrs exists'
   fi
 
-  # Delete all possible existing process _lock_directories_. 
-  for pld in "${lkdrs[@]}"; do 
+  # Delete all possible existing process _lock_directories_.
+  for pld in "${lkdrs[@]}"; do
 
     # test and delete lock directories.
-    if [[ -d "${pld}" ]] && [[ ! -L "${pld}" ]]; then 
+    if [[ -d "${pld}" ]] && [[ ! -L "${pld}" ]]; then
       echo sudo rm --one-file-system --preserve-root=all -rfv -- \
         "${pld}" \
         || exit "${nL}"
@@ -149,7 +149,7 @@ exit "$nL"
 : 'Variables'
 
 : 'Vars: Environment'
-unset LC_ALL 
+unset LC_ALL
 #FUNCNEST=8
 set -o functrace
 GREP_COLORS='mt=01;43'
@@ -275,28 +275,28 @@ fn_usage() {
   {
     cat <<-EOF
   ${repo_nm} - ${script_proper_nm}, version ${script_version}
-    Find and scan shell scripts depending on severity level. 
+    Find and scan shell scripts depending on severity level.
     Options are parsed by bash's builtin "getopts".
   Usage:
-    ./${script_nm} -H [b|p|l] -M [r|p|t] 
-      -P [ac|as|bi|bo|ge|sb|pr|sy] -R [DIRECTORY] -S [e|i|s|w] 
-      -V -X [r|p|t] -h -p [ba|cp|cv|fi|ty] -q [a|c|d|i|l|p|u] 
+    ./${script_nm} -H [b|p|l] -M [r|p|t]
+      -P [ac|as|bi|bo|ge|sb|pr|sy] -R [DIRECTORY] -S [e|i|s|w]
+      -V -X [r|p|t] -h -p [ba|cp|cv|fi|ty] -q [a|c|d|i|l|p|u]
       -r [d|y|n] -s [s|y|n]
 
-      l:  Follow symlinks                           
-        [p]   physical                             
-       *[l]   logical                                       
-      d:  Path                                           
+      l:  Follow symlinks
+        [p]   physical
+       *[l]   logical
+      d:  Path
         [ac]  Actually all        h   Help message
         [al]  All                 p:  Progam and method
-       *[as]  As-is                                    
-        [bi]  /bin only                                         
-        [bo]  Both /{,s}bin only                              
+       *[as]  As-is
+        [bi]  /bin only
+        [bo]  Both /{,s}bin only
         [ge]  Getconf PATH only     [fi] "find" binary
         [sb]  /sbin only           *[ty] "bash" builtin "type -a"
         [pr]  Add /proc           q:  Validate information
         [sy]  Add /sys             *[a]   all
-      a:  Path                                            
+      a:  Path
         [DIR]  Add search dir       [d]   add DACs
       c:  Severity level            [i]   add interpreters
        *[e]   error                 [l]   add ACLs
@@ -305,7 +305,7 @@ fn_usage() {
         [w]   warning             r:  Recurse into dirs
       v   Version                   [d|y] Yes   *[n] No
       s:  Scan excluded dirs      *:  Help message
-       *[s|y|b] Yes   [n] No       
+       *[s|y|b] Yes   [n] No
 EOF
   } | more -e
   : 'fn_usage ENDS  ' "$((--fn_lvl))" "${fn_bndry}"
@@ -330,7 +330,7 @@ fn_write_arrays() {
     loc_write_f_b+="_${ABBREV_REL_SEARCH_DIRS}_${loc_array_nm}"
 
     # Bug? When array correctly is empty: 'declare -p ... > /dev/null ||' ?
-    # requires use of fn_write_arrays or fn_write_arrays to debug this. 
+    # requires use of fn_write_arrays or fn_write_arrays to debug this.
     # (~line 2000, 15 May)
 
     # if the input array holds no data, then populate it
@@ -366,7 +366,7 @@ fn_write_arrays() {
 
 
 
-: 'Data dirs' 
+: 'Data dirs'
 
 # This section is super buggy.
 
@@ -508,7 +508,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
         bash_path='/'
         IFS=":" read -ra find_path <<<"${bash_path}"
         find_exclude_optargs=()
-        methods_path=(actually_all) 
+        methods_path=(actually_all)
         methods_prog_cv=bin_find
         #methods_scan_excluded_by=yes
         ;;
@@ -516,19 +516,19 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
         bash_path='/'
         IFS=":" read -ra find_path <<<"${bash_path}"
         find_exclude_optargs=("${find_exclude_optargs_default[@]}")
-        methods_path=(all) 
+        methods_path=(all)
         methods_prog_cv=bin_find
         #methods_scan_excluded_by=no
         ;;
       as* | ai*)
         bash_path="${bash_path_orig}"
         IFS=":" read -ra find_path <<<"${bash_path}"
-        methods_path=('as-is') 
+        methods_path=('as-is')
         ;;
       bi* | b)
         bash_path='/usr/bin'
         IFS=":" read -ra find_path <<<"${bash_path}"
-        methods_path=(bin_only) 
+        methods_path=(bin_only)
         ;;
       bo* | bs*)
         bash_path='/usr/bin:/usr/sbin'
@@ -538,17 +538,17 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
       ge* | g)
         bash_path="${getconf_o}"
         IFS=":" read -ra find_path <<<"${bash_path}"
-        methods_path=(getconf_PATH_only) 
+        methods_path=(getconf_PATH_only)
         ;;
       sb* | so* | s)
         bash_path='/usr/sbin'
         IFS=":" read -ra find_path <<<"${bash_path}"
-        methods_path=(sbin_only) 
+        methods_path=(sbin_only)
         ;;
       pr* | p | pa*)
         bash_path+=':/proc'
         IFS=":" read -ra find_path <<<"${bash_path}"
-        methods_path+=(add_proc) 
+        methods_path+=(add_proc)
         methods_prog_cv=bin_find
         find_exclude_optargs=()
         #methods_scan_excluded_by=yes
@@ -556,7 +556,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
       sy* | sa*)
         bash_path+=':/sys'
         IFS=":" read -ra find_path <<<"${bash_path}"
-        methods_path+=(add_sys) 
+        methods_path+=(add_sys)
         methods_prog_cv=bin_find
         find_exclude_optargs=()
         #methods_scan_excluded_by=yes
@@ -584,30 +584,30 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
       case "${OPTARG:0:1}" in
         l* ) # follow symlinks
           #methods_symlinks_l=logical
-          find_sym_opt_L='-L' 
+          find_sym_opt_L='-L'
 
           case "${methods_prog_cv}" in
             *find)
-              #methods_recurse_n=yes 
+              #methods_recurse_n=yes
               find_exclude_optargs=("${find_exclude_optargs_default[@]}")
-              #methods_scan_excluded_by=no 
+              #methods_scan_excluded_by=no
               ;;
             *bash*)
-              #methods_recurse_n=no 
+              #methods_recurse_n=no
               find_exclude_optargs=()
               #methods_scan_excluded_by=yes
               ;;
-            *) "${arg_wrong__l:?}" 
+            *) "${arg_wrong__l:?}"
               ;;
           esac
           ;;
         p* ) # never follow symlinks
           methods_prog_cv=bin_find
-          #methods_symlinks_l=physical 
-          find_sym_opt_L='-P' 
-          #methods_recurse_n=yes 
+          #methods_symlinks_l=physical
+          find_sym_opt_L='-P'
+          #methods_recurse_n=yes
           find_exclude_optargs=("${find_exclude_optargs_default[@]}")
-          #methods_scan_excluded_by=no 
+          #methods_scan_excluded_by=no
           ;;
         *) "${arg_wrong__l:?}" ;;
       esac ;;
@@ -624,19 +624,19 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
     p) case "${OPTARG:0:2}" in
       [b]*)
         methods_prog_cv=bash_type_a
-        #methods_recurse_n=no 
+        #methods_recurse_n=no
         #methods_symlinks_l=logical
         find_exclude_optargs=()
         #methods_scan_excluded_by=yes
         ;;
-      f*) 
-        methods_prog_cv=bin_find 
-        #methods_recurse_n=yes 
+      f*)
+        methods_prog_cv=bin_find
+        #methods_recurse_n=yes
         find_exclude_optargs=("${find_exclude_optargs_default[@]}")
-        #methods_scan_excluded_by=no 
+        #methods_scan_excluded_by=no
         ;;
-      *) 
-        "${arg_wrong__p:?}" 
+      *)
+        "${arg_wrong__p:?}"
         ;;
     esac ;;
 
@@ -663,26 +663,26 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
     # reversed later on the same command line
     #unset find_path # again, why unset it?
     r) case "${OPTARG:0:1}" in
-      r | d | y) 
-        methods_prog_cv=bin_find 
-        #methods_recurse_n=yes 
+      r | d | y)
+        methods_prog_cv=bin_find
+        #methods_recurse_n=yes
         find_exclude_optargs=("${find_exclude_optargs_default[@]}")
-        #methods_scan_excluded_by=no 
+        #methods_scan_excluded_by=no
         ;;
-      n) 
-        #methods_recurse_n=no 
-        
+      n)
+        #methods_recurse_n=no
+
         if [[ "${methods_prog_cv}" =~ find ]]; then
           methods_prog_cv=bash_type_a
         fi
-            
+
         find_exclude_optargs=()
         #methods_scan_excluded_by=yes
         #methods_symlinks_l=logical                                      # <
-        find_sym_opt_L='-L' 
+        find_sym_opt_L='-L'
         ;;
-      *) 
-        "${arg_wrong__r:?}" 
+      *)
+        "${arg_wrong__r:?}"
         ;;
     esac ;;
 
@@ -691,40 +691,40 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
     # ally excluded search directories that often prove to be somewhat
     # problematic: '/proc', '/sys', and anything with a find '-path'
     # of either '*/git/*' or this script's repo's name. With a default
-    # PATH setting, `bash` usually also skips these directories. The 
-    # default is bash, so disabling this option indicates the wish to 
-    # use `find`, and so clobbers `bash`. To explicitly add '/proc' or 
+    # PATH setting, `bash` usually also skips these directories. The
+    # default is bash, so disabling this option indicates the wish to
+    # use `find`, and so clobbers `bash`. To explicitly add '/proc' or
     # '/sys' to your search path, see option 'd', 'add_proc' and 'add_sys'.
     s) case "${OPTARG:0:1}" in
-        s | y | b) 
-          find_exclude_optargs=() 
-          #methods_scan_excluded_by=yes 
+        s | y | b)
+          find_exclude_optargs=()
+          #methods_scan_excluded_by=yes
           ;;
 
-        n) 
+        n)
           #methods_recurse_n=yes                                         # <
           methods_prog_cv=bin_find
           find_exclude_optargs=("${find_exclude_optargs_default[@]}")
           #methods_scan_excluded_by=no                                   # <
-         
-          # if /proc or /sys have been added to the list of dirs to 
+
+          # if /proc or /sys have been added to the list of dirs to
           # be searched, then remove each of them from each of the
           # variables they've been added to. Then reassign find_path.
 
           # if /proc or /sys...
           for x in /proc /sys; do
 
-            # (loop in case ':/proc' or ':/sys' have been added multiple 
+            # (loop in case ':/proc' or ':/sys' have been added multiple
             # times)
             while :; do
-              
+
               # ...have been added to the list of dirs to be searched...
               if [[ "${bash_path}" =~ ${x} ]]; then
 
                 # then remove them, first from $bash_path...
                 bash_path="${bash_path//:"${x}"}"
-              
-              # (finish the loop when there aren'r any more ':/proc's or 
+
+              # (finish the loop when there aren'r any more ':/proc's or
               # ':/sys's in bash_path)
               else
                 break
@@ -733,13 +733,13 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
 
             # ...then remove them from methods_path.
             if [[ "${methods_path[*]}" =~ ${x#/} ]]; then
-            
+
               # (iterate through each index)
               for i in "${!methods_path[@]}"; do
-              
+
                 if [[ "${methods_path[i]}" =~ ${x#/} ]]; then
                   unset 'methods_path[i]'
-                fi  
+                fi
               done
             fi
 
@@ -747,8 +747,8 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
             IFS=":" read -ra find_path <<<"${bash_path}"
           done && unset x
           ;;
-        *) 
-          "${arg_wrong__s:?}" 
+        *)
+          "${arg_wrong__s:?}"
           ;;
       esac ;;
 
@@ -775,7 +775,7 @@ exit "${nL}"
 _verify_path(){
   : '_verify_path BEGINS'  "$((++fn_lvl))" "${fn_bndry}"
   #_full_xtrace
-  
+
   # ...before running `type` / `command` or they'll print dups
   # Note: var $PATH is always processed
   local loc_var_nm
@@ -794,12 +794,12 @@ _verify_path(){
   local loc_path_{1,2} p
   IFS=':' read -ra loc_path_1 <<< "${loc_nameref}"
 
-  # get the cannonicalized paths of each such dir, replacing the 
+  # get the cannonicalized paths of each such dir, replacing the
   # existing array element with the corrected value. no result
   # from `realpath` sets an empty ('') array value.
   for p in "${!loc_path_1[@]}"; do
     loc_path_1[p]="$(realpath -e "${loc_path_1[p]}" 2>/dev/null)"
-    
+
     # if the resulting index value is empty, then unset it
     if [[ -z "${loc_path_1[p]}" ]]; then
       unset 'loc_path_1[p]'
@@ -832,7 +832,7 @@ _verify_path(){
   )"
 
   # if the path var is bash_path, then reset find_path
-  if [[ "${loc_var_nm}" = bash_path ]]; then 
+  if [[ "${loc_var_nm}" = bash_path ]]; then
     IFS=":" read -ra find_path <<<"${bash_path}"
   fi
   : '_verify_path ENDS  '  "$((--fn_lvl))" "${fn_bndry}"
@@ -848,7 +848,7 @@ _full_xtrace
 
 : 'Verify DACs'
 
-# Bug: var path_2 is now loc_path_2 
+# Bug: var path_2 is now loc_path_2
 
 namei_o="$(
   for d in "${bash_path[@]}"; do
@@ -988,9 +988,9 @@ exit "${nL}"
 
 : 'Process Lock'
 
-#   So, what's the critical section?  For now, its the main `find` 
+#   So, what's the critical section?  For now, its the main `find`
 # command. The script can take so much time to execute, running
-# more than one process at once is wasteful of system resources. 
+# more than one process at once is wasteful of system resources.
 
 
 : 'Variables for Traps and Process Locks'
@@ -998,33 +998,33 @@ exit "${nL}"
 declare -A A_process_lock_dirs
 #a_poss_proces_lock_dirs+=("${XDG_RUNTIME_DIR}" "${TMPDIR}" /var/lock \
 #  "${HOME}" /tmp /var/tmp)
-i=0 
+i=0
 #pld="" # SC2155
 #timecode="$(builtin printf '%(%F_%H%M%S)T')"
 
-#   The purpose of listing so many possible lock locations is that who 
-# knows which of these directory locations will exist on disk whenever 
-# down the road. The issue with including world-writeable dirs such as 
-# /tmp is that /tmp is a consistent part of the Linux file structure, 
-# and that probably isn't going to change any time soon. The notion 
-# behind creating lockdirs, whose names include random number strings 
-# according to a template, is to foil the predictability, and hence 
-# the risk of DOS, that placing a (statically named) lock mechanism in 
-# a world-writeable directory creates. The idea being, if the template 
-# is unique enough that accurately predicting it will be impractical.... 
-# So, 
-  : 'Form of filenames for process lock dirs:' 
+#   The purpose of listing so many possible lock locations is that who
+# knows which of these directory locations will exist on disk whenever
+# down the road. The issue with including world-writeable dirs such as
+# /tmp is that /tmp is a consistent part of the Linux file structure,
+# and that probably isn't going to change any time soon. The notion
+# behind creating lockdirs, whose names include random number strings
+# according to a template, is to foil the predictability, and hence
+# the risk of DOS, that placing a (statically named) lock mechanism in
+# a world-writeable directory creates. The idea being, if the template
+# is unique enough that accurately predicting it will be impractical....
+# So,
+  : 'Form of filenames for process lock dirs:'
   : $'\t' "/tmp/.${repo_nm}.${$}.${rand_i}.lock.d"
-#   Still, the issue occurs of the race condition. Since the filename 
-# changes, the advantage of the atomicity of using `mkdir` is lost.... 
-# or is it?  
-#   So what if you just create a lockdir first, according to the 
-# template, then look for other lockdirs, and based on the info in the 
-# found lockdirs' xattrs, determine whether a duplicate process is 
+#   Still, the issue occurs of the race condition. Since the filename
+# changes, the advantage of the atomicity of using `mkdir` is lost....
+# or is it?
+#   So what if you just create a lockdir first, according to the
+# template, then look for other lockdirs, and based on the info in the
+# found lockdirs' xattrs, determine whether a duplicate process is
 # running?
-#   It seems like that could possibly work, although the entire script 
-# down to plausible filenames could be reconstructed, but for 
-# practicality. 
+#   It seems like that could possibly work, although the entire script
+# down to plausible filenames could be reconstructed, but for
+# practicality.
 
 # An associative array, in case TMPDIR duplicates another array value
 for v in "${a_poss_proces_lock_dirs[@]}"; do
@@ -1032,16 +1032,16 @@ for v in "${a_poss_proces_lock_dirs[@]}"; do
     v="$(realpath -e "${v}")"
     A_process_lock_dirs+=( ["${v}/${rand_lock_nm}"]=$((i++)) )
   fi
-done && unset i v 
+done && unset i v
 
-for i in "${!A_process_lock_dirs[@]}"; do 
-  a_process_lock_dirs+=( ["${A_process_lock_dirs[$i]}"]="$i" ); 
+for i in "${!A_process_lock_dirs[@]}"; do
+  a_process_lock_dirs+=( ["${A_process_lock_dirs[$i]}"]="$i" );
 done && unset A_process_lock_dirs i
 
 #_full_xtrace
 #exit "${nL}"
 
-if [[ "$*" =~ delete_locks ]]; then 
+if [[ "$*" =~ delete_locks ]]; then
   delete_locks='y'
 fi
 
@@ -1052,18 +1052,18 @@ fi
 
 #target_fso=d
 
-for poss_lk_d in "${a_process_lock_dirs[@]}"; do 
-  
+for poss_lk_d in "${a_process_lock_dirs[@]}"; do
+
   #case "${target_fso}" in
     #d)
-      if 
+      if
         #sudo find "${poss_lk_d%/*}" -maxdepth 0 '(' \
         #-type d -a '!' -type l ')' -writable -readable -executable \
-        #-true -exec 
-                
-        sudo mkdir -vm 0700 "${poss_lk_d}" ';'; 
+        #-true -exec
+
+        sudo mkdir -vm 0700 "${poss_lk_d}" ';';
       then
-        process_lock_d="${poss_lk_d}" 
+        process_lock_d="${poss_lk_d}"
         break
         #target_fso=L
       else
@@ -1075,19 +1075,19 @@ for poss_lk_d in "${a_process_lock_dirs[@]}"; do
 		continue
       fi
       #;;
-    
+
     # ln cannot make hardlinks to dirs; chattr -i not supported
     #L)
       #sudo find "${poss_lk_d%/*}" -maxdepth 0 '(' \
         #-type d -a '!' -type l ')' -writable -readable -executable \
-        #-true -exec sudo ln -vs "${process_lock_d}" "${poss_lk_d}" ';' 
-      #;; 
+        #-true -exec sudo ln -vs "${process_lock_d}" "${poss_lk_d}" ';'
+      #;;
   #esac
 done
 
-  # Bug: for some reason, the lockdir gets deleted while the 
+  # Bug: for some reason, the lockdir gets deleted while the
   # symlinks stay put.
-  
+
   #shopt -o functrace
   ${Halt:?}
 
@@ -1097,7 +1097,7 @@ for poss_lk_d in "${a_process_lock_dirs[@]}"; do
     -type d -a '!' -type l ')' -writable -readable -executable \
     -exec mkdir -m 0700 '()' ';'
   )"
-  
+
   : 'Process Lock: Create a lockdir and handle any error'
   if [[ -n "${find_out}" ]]; then
 
@@ -1108,7 +1108,7 @@ for poss_lk_d in "${a_process_lock_dirs[@]}"; do
     else
       continue
     fi
-  
+
   else
     {
       printf '\n\tCannot acquire process lock: <%s>.\n' "${process_lock_d}"
@@ -1127,15 +1127,15 @@ _get_lockdirs
 # Bug: loop var: the lower case L looks like the number 1
 
 for l in "${lkdrs[@]}"; do
-  
+
   # for dirs or syms
   if [[ -d "${l}" ]] \
     || [[ -L "${l}" ]]
   then
-    
+
     if [[ -v delete_locks ]]; then
-      
-      # `rmdir` doesn't remove symlinks 
+
+      # `rmdir` doesn't remove symlinks
       sudo rmdir -v -- "${l}"
     else
       printf '\n\t A process lock exists for this script. Exiting '
@@ -1143,11 +1143,11 @@ for l in "${lkdrs[@]}"; do
       exit "${nL}"
     fi
   fi
-done && unset l # lkdrs # a_poss_proces_lock_dirs # lkdrs_count 
+done && unset l # lkdrs # a_poss_proces_lock_dirs # lkdrs_count
 
 # Note: delete_locks is an undocumented CLI option
 if [[ -v delete_locks ]] \
-  && [[ -n ${lkdrs[*]:0:16} ]]; 
+  && [[ -n ${lkdrs[*]:0:16} ]];
 then
   exit "${nL}"
 fi
@@ -1158,7 +1158,7 @@ _full_xtrace
 
 
 
-# DOS vs atomicity ...really is a more complicated problem than I 
+# DOS vs atomicity ...really is a more complicated problem than I
 # wish to solve in this script.
 
 : 'Rewrite of Process Lock section'
@@ -1169,7 +1169,7 @@ filesystem/repo_nm/lockdir
 
 : 'Exec -mkdir- '
 
-  # mkdir exits 0 -- with a template that includes some randomization, 
+  # mkdir exits 0 -- with a template that includes some randomization,
   # this mkdir call should nearly always exit 0
   : 'if success'
 
@@ -1177,7 +1177,7 @@ filesystem/repo_nm/lockdir
 
       : 'based on number of files found'
 
-      : 'based on names of files' 
+      : 'based on names of files'
 
         : 'use data from other dirnames to...'
 
@@ -1194,16 +1194,16 @@ filesystem/repo_nm/lockdir
 
   # attacker has created a false lockdir
   : 'if fail, then'
-    
+
     # attacker doesn't know some info
-    #   verify that the lockdir is attached to some actual process vs 
+    #   verify that the lockdir is attached to some actual process vs
     # is a dead lock
     #   use PID... for sure ...and PPID
     #     ...and what else? memory addresses?  hashes of ...some info?
     #     UID and PWD and script name
     #   info from `ps`
     #     ...PGID... SID..
-    #   info from `lsof` 
+    #   info from `lsof`
     #     [liveuser@localhost-live scf]$ time lsof 2> /dev/null \
     #       |& awk '$2 == "1315609" { print $9 }'
     #     /home/liveuser/MYPROJECTS/scf
@@ -1218,14 +1218,14 @@ filesystem/repo_nm/lockdir
     #     /dev/pts/4
     #     /dev/pts/4
     #     /home/liveuser/MYPROJECTS/scf/find-and-scan-shell-scripts-sh~
-    #     
+    #
     #     real	0m6.177s
     #     user	0m2.615s
     #     sys	0m3.366s
-    #   
+    #
     #   Stop trying to re-invent the wheel?
-    #   
-    : 'Test for check-digit random string in xattr' 
+    #
+    : 'Test for check-digit random string in xattr'
 
       : 'If fail, then print alert and exit'
 
@@ -1243,7 +1243,7 @@ _full_xtrace
 
 
 
-: 'Search for scripts using either -bash- or -find-' 
+: 'Search for scripts using either -bash- or -find-'
 
 : 'BASH'
 
@@ -1263,37 +1263,37 @@ fi
 while true; do
   tt_o="$(type -t "${STRING}")"
   case "${tt_o}" in
-  
+
     # remove builtin
-    builtin) 
-      enable -n "${STRING}" 
+    builtin)
+      enable -n "${STRING}"
       ;;
-  
+
     # remove functions
-    function) 
-      unset -f "${STRING}" 
+    function)
+      unset -f "${STRING}"
       ;;
-  
+
     # remove alias
-    alias) unalias "${STRING}" 
+    alias) unalias "${STRING}"
       ;;
-  
+
     # Bug: why is '/bin/export' absent from this list?
-    
+
     file)
       mapfile -d '' -t type_a_files < <(
         type -a "${STRING}" \
           | awk -F"${STRING} is " \
-            "/^${STRING} is \//"' { printf "%s\0", $2 }' 
+            "/^${STRING} is \//"' { printf "%s\0", $2 }'
       )
       declare -p type_a_files
 
-      for f in "${type_a_files[@]}"; do 
-        rpm_Vf_o="$(rpm -Vf "${f}" 2>&1)"; 
-      
-        if [[ -n "${rpm_Vf_o}" ]]; then 
-          printf 'rpm: %s\n' "${rpm_Vf_o}"; 
-      
+      for f in "${type_a_files[@]}"; do
+        rpm_Vf_o="$(rpm -Vf "${f}" 2>&1)";
+
+        if [[ -n "${rpm_Vf_o}" ]]; then
+          printf 'rpm: %s\n' "${rpm_Vf_o}";
+
           # parse output of `rpm`:
             # [root@localhost-live ~]# type -a export
             # export is a shell builtin
@@ -1303,35 +1303,35 @@ while true; do
             # [root@localhost-live ~]# rpm -Vf /usr/bin/export
             # file /usr/bin/export is not owned by any package    # <
             #
-    
-          if grep -q 'is not owned by any package' <<< "${rpm_Vf_o}"; then 
+
+          if grep -q 'is not owned by any package' <<< "${rpm_Vf_o}"; then
             echo rm --one-file-system --preserve-root=all -f "${f}"
             continue 1
           fi
-        fi; 
+        fi;
       done && unset f rpm_Vf_o
       unset type_a_files
-    
-      # And... what if it's "owned" by a package from some other package 
+
+      # And... what if it's "owned" by a package from some other package
       # manager (PM)?
       #
-      # each distro has a "primary" package manager, through which any 
-      # "secondary" package managers would be installed. The distro - 
-      # primary PM associations... is a conf file. 
+      # each distro has a "primary" package manager, through which any
+      # "secondary" package managers would be installed. The distro -
+      # primary PM associations... is a conf file.
       #   So, (a) which distro is this script running on, then
       #       (b) query the primary PM
       #
       #   (Partial) List:
-      #   0install chocolatey cpan cran dnf docker dpkg emerge flatpak 
-      # guix homebrew ipkg maven nix npm opkg pacman petget pip portage 
+      #   0install chocolatey cpan cran dnf docker dpkg emerge flatpak
+      # guix homebrew ipkg maven nix npm opkg pacman petget pip portage
       # rpm rubygems scoop slapt-get snap apk-tools zypper
       #
       # see also: https://metacpan.org/release/Alien-Packages
       ;;
 
-    keyword) 
+    keyword)
       true
-    
+
       # testing: shadow a string that is a keyword and that doesn't
       #   also fall into any other category defined by `type -a`
       #
@@ -1353,25 +1353,25 @@ done && unset tt_o
 
 
 ##  Thoughts
-#   
-#   Remove variables and parameters. 
-#   
-#   with bash, use `type -t` and case to ID how the shell would call 
-# a command name, and take appropriarte action from there by removing 
-# anything that isn't a file, ie, an alias, function, etc.  
 #
-#   Then use `type -a` and parse the output of that also, removing 
+#   Remove variables and parameters.
+#
+#   with bash, use `type -t` and case to ID how the shell would call
+# a command name, and take appropriarte action from there by removing
+# anything that isn't a file, ie, an alias, function, etc.
+#
+#   Then use `type -a` and parse the output of that also, removing
 # non-files (ie, syms) as necc.
 #     - `type -a` ignores dangling symlinks
-#   
+#
 #   Then use `hash -r; type -P` to get the list of matches within PATH
-#   
+#
 #   compare the results against `rpm -V`
 #     do any rpm reinstallations as necc
 #
-#   if there are (God forbid) any files w/o rpms, either 
+#   if there are (God forbid) any files w/o rpms, either
 #     print an error and exit, or
-#     offer option to remove the file. 
+#     offer option to remove the file.
 #
 
 exit "${nL}"
@@ -1407,7 +1407,7 @@ then
   tempd="$(mktemp -d --suffix=."${xtr_f_nm/%.xtr/.d}")"
   cd "${tempd}" \
     || _erx cd
-  
+
   # create a dictionary list of each possible initial character, and
   # include commands with odd yet permitted-by-Linux initial
   # characters, such as \n \t \c or \l, etc
@@ -1419,19 +1419,19 @@ then
   done
   allchr[10]=$'\n'
   unset i
-  
+
     # <>
     _full_xtrace
     set -x
 
   # for each possible ascii character or value
   for i in "${!allchr[@]}"; do
-  
+
     # get a per-character (sub-)list of possible command completions
     mapfile -t per_idx_commands < <(
       compgen -A command "${allchr[i]}"
     )
-  
+
       # <>
       #declare -p per_idx_commands
 
@@ -1441,56 +1441,56 @@ then
 
     # for each possible completion string found by `compgen`
     for n in "${!per_idx_commands[@]}"; do
-     
+
         # <> A sort of progress meter
         printf '%s\n' "${per_idx_commands[n]}"
 
-      # ...why? ...debugging... was the original idea. fewer commands, 
+      # ...why? ...debugging... was the original idea. fewer commands,
       # easier to run and catch bugs quickly...
 
       # Bug: command shadowing nightmare
 
-      # Search for commands based on the 
-        
+      # Search for commands based on the
+
       # For anywhere in PATH: bash_type_a
-      # use `type` to get the shell's definition(s) of `compgen`s 
-      # completion string, then use `grep` to filter out full 
+      # use `type` to get the shell's definition(s) of `compgen`s
+      # completion string, then use `grep` to filter out full
       # function definitions.
       mapfile -t shell_builtin_o < <(
         builtin type -a "${per_idx_commands[n]}" \
           |& grep -F "${per_idx_commands[n]}"' is '"${re}"
           #|& grep -F "${per_idx_commands[n]} is "
       )
-      
-      # if `type -a` has no knowledge of the completion string, 
+
+      # if `type -a` has no knowledge of the completion string,
       if [[ -z "${shell_builtin_o[*]}" ]]; then
-        
+
         # then unset the completion string and start with the next one
         unset_per_idx_commands_n=yes
       fi
 
       # for each line of output from `type -a`
       for line in "${!shell_builtin_o[@]}"; do
-      
+
         # if any result (ie, index) of `type -a`s output refers to an
         # alias, function or shell keyword, then unset that index
         if grep -qE ' is a(liased| function| shell (builtin|keyword))' \
-            <<< "${shell_builtin_o[line]}"; 
+            <<< "${shell_builtin_o[line]}";
           then
             unset 'shell_builtin_o[line]'
-        
+
         # if any result refers to a file...
-        elif grep -qE ' is /' <<< "${shell_builtin_o[line]}"; then 
-         
+        elif grep -qE ' is /' <<< "${shell_builtin_o[line]}"; then
+
           command_basename="${shell_builtin_o[line]##*/}" \
-            command_fullpath="${shell_builtin_o[line]##* }" 
-          
+            command_fullpath="${shell_builtin_o[line]##* }"
+
               # <>
               #declare -p all_commands per_idx_commands \
                 #shell_builtin_o line command_basename \
                 #prev_per_idx_cmds
 
-          # ...and if that file is not already included in either the 
+          # ...and if that file is not already included in either the
           # larger all_commands list or the per-ascii-character
           # prev_per_idx_cmds list...
           if ! [[ "${all_commands[*]}" =~ ${command_basename} ]] \
@@ -1498,47 +1498,47 @@ then
               2> /dev/null <<< "${prev_per_idx_cmds[@]}"
           then
 
-            # ...then record the command's basename in the 
+            # ...then record the command's basename in the
             # prev_per_idx_cmds list, unset the type-a output index
             # and start with the next line of type-a output
             prev_per_idx_cmds+=("${command_basename}")
             unset 'shell_builtin_o[line]'
             continue
-        
+
           else
             unset 'shell_builtin_o[line]'
           fi
-        fi; 
+        fi;
 
-        # if all lines of `type -a`s output have been deleted, then 
+        # if all lines of `type -a`s output have been deleted, then
         # begin with the next completion string
         if [[ "${#shell_builtin_o[@]}" -eq 0 ]]; then
           unset_per_idx_commands_n=yes
         fi
       done
-    
+
       # Bug: save to an array the canonicalized pathname of each command.
-    
+
       # remove any directories from the (sub-)list
       if [[ -z "${unset_per_idx_commands_n}" ]]; then
         realpath_e_o1="$(realpath -e "${per_idx_commands[n]}" 2>/dev/null)"
         realpath_e_o2="$(realpath -e "${command_basename}" 2>/dev/null)"
         realpath_e_o3="$(realpath -e "${command_fullpath}" 2>/dev/null)" #<
-      
+
         if [[ -d "${realpath_e_o1}" ]] \
           || [[ -d "${realpath_e_o2}" ]] \
           || [[ -d "${realpath_e_o3}" ]];
-        then 
+        then
           unset_per_idx_commands_n=yes
         fi; unset line shell_builtin_o realpath_e_o{1..3} \
           command_basename command_fullpath
       fi
-      
-      if [[ "${unset_per_idx_commands_n}" == yes ]]; then 
+
+      if [[ "${unset_per_idx_commands_n}" == yes ]]; then
         unset 'per_idx_commands[n]'
-      fi; unset unset_per_idx_commands_n 
+      fi; unset unset_per_idx_commands_n
     done && unset n prev_per_idx_cmds
-    
+
     # add the (sub-)list to the full list, being careful of index numbers
     mapfile -O $((i * 1000)) -t all_commands < <(
       for x in "${per_idx_commands[@]}"; do
@@ -1546,12 +1546,12 @@ then
       done && unset x per_idx_commands
     )
   done && unset i
-  
+
     # <>
     echo 'all_commands, count:' "${#all_commands[@]}"
     exit "${nL}"
     _full_xtrace
- 
+
   cd - \
     || _erx cd
   rmdir -v "${tempd}"; unset tempd
@@ -2129,8 +2129,8 @@ unset d z
 trap - EXIT
 exit 00
 
-# TODO: 
-#   - grep output of `rpm -qi` for URL's, ie, github. which can I 
+# TODO:
+#   - grep output of `rpm -qi` for URL's, ie, github. which can I
 #       repair without adding a new login?
 #   - grep scripts for 'todo's
 #   - grep for 'shellcheck disable'
