@@ -40,6 +40,7 @@ if [[ "$*" =~ rm_locks ]]; then
   rm_locks='y'; export rm_locks; 
 fi
 
+# TODO: edit fn_lvl vars to print '2>3' etc
 _erx() {
   local loc_exit_code="$?"
   : '_erx BEGINS' "${fn_bndry}" "$((++fn_lvl))"
@@ -128,6 +129,7 @@ a_poss_proces_lock_dirs+=("/dev/shm/${repo_nm}" /var/lock \
 pld="" # SC2155
 timecode="$(builtin printf '%(%F_%H%M%S)T')"
 
+# TODO: move this function to lx.sh
 _get_lockdirs(){
   #_full_xtrace
   local -gax lkdrs
@@ -142,7 +144,8 @@ _get_lockdirs(){
   #export lkdrs
 }
 
-
+# Q: can you append cmd lists into traps?
+# TODO? move this function to lx.sh
 _exit_trap() {
   #set -x
   : "EXIT trap BEGINS" "${fn_bndry}" "$((++fn_lvl))"
@@ -182,7 +185,7 @@ trap _exit_trap EXIT TERM
 
 : 'Variables'
 
-
+# TODO: move vars up or dn
 : 'Vars more frequently subject to change'
 protected_git_dir_1="${HOME}/MYPROJECTS"
 protected_git_dir_2="${HOME}/OTHERSPROJECTS"
@@ -191,6 +194,7 @@ script_lic='Apache 2 license'
 script_proper_nm='Script Finder'
 script_version=1.0
 
+# TODO: mk an option-parsing.sh
 : 'Vars re getopts'
 if [[ $# -gt 0 ]]; then
   cli_input=("${@}")
@@ -285,6 +289,7 @@ fn_bak() {
 #  : 'fn_num ENDS  ' "${fn_bndry}" "$((--fn_lvl))"
 #}
 
+# TODO: review options & fix this function
 fn_usage() {
   # Print a usage message and exit with a pre-determined exit code
   # Usage:  fn_usage [exit-code]
@@ -363,6 +368,8 @@ fn_write_arrays() {
   : 'fn_write_arrays ENDS  ' "${fn_bndry}" "$((--fn_lvl))"
 }
 
+# TODO: a file of unused functions
+
 #fn_write_vars() {
 #  : 'fn_write_vars BEGINS' "${fn_bndry}" "$((++fn_lvl))"
 #  # Usage: fn_write_vars [loc_script_section_nm] [raw variable names]
@@ -387,6 +394,8 @@ fn_write_arrays() {
 
 # This section is super buggy.
 
+# TODO? delete this section
+
 # take each found dir and convert abs path [of sym, okay] to a string
 # usable for directory names
 unset index element calc
@@ -407,6 +416,8 @@ unset index element calc
 
 #exit "${nL}"
 #_full_xtrace
+
+# TODO: resolve approaches, prior w lockdirs and current w lockfiles
 
 # Bugs: Hardcoded $mountpoint -- use lock dir as main_d
 
@@ -465,6 +476,8 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
   # Parse command line options
   case "${cli_input}" in
 
+    # Bug: what does '-a' mean?
+
     # PATH (array) - Part 2 - options with args
     a)
       # Input validation, more thorough. Remove unprintable strings.
@@ -472,6 +485,8 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
 
       # Remove unsafe characters
       new_optarg="${OPTARG//["${unsaf_ascii_Pfn_erexstring[@]}"]/}"
+
+      # Bug: printf cmd: '-R'
 
       # If any ASCII characters were removed, print an error and exit
       if [[ "${new_optarg}" != "${OPTARG}" ]]; then
@@ -510,6 +525,9 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
       w*) sc_sevr=warning ;;
       *) "${arg_wrong__c:?}" ;;
     esac ;;
+
+    # Bug: rewrite this comment
+    # TODO: clobbering settings sb in upper case
 
     # PATH (array) - Part 1 -
     #   These options with have no arguments. The default is 'as-is'.
@@ -570,6 +588,9 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
         find_exclude_optargs=()
         #methods_scan_excluded_by=yes
         ;;
+        
+        # TODO: spaces around all redir operators
+        
       sy* | sa*)
         bash_path+=':/sys'
         IFS=":" read -ra find_path <<<"${bash_path}"
@@ -584,6 +605,8 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
     # Help message
     h) fn_usage 0 ;;
 
+    # Bug: is it only GNU find w '-P' & '-L'?
+
     # Follow symlinks
     #   `bash` always follows symlinks, therefore to not follow any
     # symlinks requires `find` and is a clobbering setting, ie,
@@ -593,9 +616,13 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
     # implemented in this script. Default is bash.
     #   Side effect: setting '-l p' also clobbers this variable. Side
     # effects such as these are marked below as "clobber."
+    
+    # TODO: some "production" level solution other than :?
     #   This parameter expansion, ':?', when a parameter is null or
     # unset, causes the shell to immediately halt, ignoring any trap
     # on EXIT.
+    
+    # TODO: move this comment into usage function
     #   Mis-spellings beyond the first one or two letters are allowed.
     l)
       case "${OPTARG:0:1}" in
@@ -632,7 +659,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
     ## Whether and how to save data. Default is temp files.
     #m) case "${OPTARG:0:1}" in
       #p*) memory_usage=persistent_storage ;;
-      #r*) memory_usage=RAsudo namei -xl only ;;
+      #r*) memory_usage=sudo namei -xl only ;; # ?? sed error?
       #t*) memory_usage=temp_files ;;
       #*) "${arg_wrong__m:?}" ;;
     #esac ;;
@@ -659,11 +686,11 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
 
     # What information to verify. The default is all.
     q) case "${OPTARG:0:2}" in
-      l | al*) verify=(all) ;;
+      a | al*) verify=(all) ;;
       u | un*) unset verify ;;
       *) [[ "${verify[*]}" =~ all ]] \
         && unset verify ;;&
-      a | ac*) verify+=(acls) ;;
+      l | ac*) verify+=(acls) ;;
       d | da*) verify+=(dacs) ;;
       i | in*) verify+=(interpreters) ;;
       p | pa*) verify+=(path) ;;
@@ -686,7 +713,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
         find_exclude_optargs=("${find_exclude_optargs_default[@]}")
         #methods_scan_excluded_by=no
         ;;
-      n)
+      n | b)
         #methods_recurse_n=no
 
         if [[ "${methods_prog_cv}" =~ find ]]; then
@@ -703,6 +730,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
         ;;
     esac ;;
 
+
     # Scan excluded dirs
     #   By default, this script assumes for `find` a set of automatic-
     # ally excluded search directories that often prove to be somewhat
@@ -713,7 +741,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
     # use `find`, and so clobbers `bash`. To explicitly add '/proc' or
     # '/sys' to your search path, see option 'd', 'add_proc' and 'add_sys'.
     s) case "${OPTARG:0:1}" in
-        s | y | b)
+        s | y | b) # Q: what do these letters stand for?
           find_exclude_optargs=()
           #methods_scan_excluded_by=yes
           ;;
@@ -762,7 +790,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
 
             # and then re-assign find_path
             IFS=":" read -ra find_path <<<"${bash_path}"
-          done && unset x
+          done; unset x
           ;;
         *)
           "${arg_wrong__s:?}"
@@ -776,6 +804,9 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
   esac
 done
 shopt -u nocasematch
+
+# TODO? resolve use of nocasematch vs use of upper to denote clobbering setting?
+
 
 #declare -p  methods_symlinks_l methods_recurse_n methods_prog_cv \
   #methods_scan_excluded_by find_sym_opt_L find_exclude_optargs \
