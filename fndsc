@@ -36,11 +36,7 @@ export fn_lvl fn_bndry
 
 if [[ "$*" =~ rm_locks ]]; then rm_locks='y'; export rm_locks; fi
 
-declare -n nBL=BASH_LINENO
-declare -n nBS=BASH_SOURCE
-declare -n nF=FUNCNAME
-declare -n nL=LINENO
-export nBL nBS nF nL
+declare -nx nBL=BASH_LINENO nBS=BASH_SOURCE nF=FUNCNAME nL=LINENO
 
 _erx() {
   local loc_exit_code="$?"
