@@ -10,7 +10,7 @@
 
 # Vars
 #set -o functrace
-FUNCNEST=8
+FUNCNEST=32
 #PS4='+${nBS[0]}:${nL}:${nF[0]}: '
 export FUNCNEST #PS4
 
@@ -24,6 +24,7 @@ export FUNCNEST #PS4
 
 # Print a function trace stack, and capture the FN's LINENO on line 0
 function _fn_trc(){ local line_hyphen="${nL:?}:$-"
+  : '_fn_trc BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   declare -p FUNCNAME BASH_SOURCE LINENO BASH_LINENO
   set -x # normally `set -`
   local line=${line_hyphen%:*}
@@ -38,16 +39,19 @@ function _fn_trc(){ local line_hyphen="${nL:?}:$-"
   done;
   echo "(-1):${nBS[0]:?}:${line:?}:_fn_trc:${nL}"
   [[ "${hyphen:?}" =~ x ]] && set -x
+  : '_fn_trc ENDS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
 }; declare -fxt _fn_trc
 
 # shadow the `exit` builtin, for when debugging is turned off
 function exit(){ local line="$1"
+  : 'function exit BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   declare -p FUNCNAME BASH_SOURCE LINENO BASH_LINENO
   set -; 
   _fn_trc; 
   declare -p BASH_SOURCE LINENO BASH_LINENO FUNCNAME BASH_COMMAND
   set -x; 
   builtin exit "${line}";
+  : 'function exit ENDS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
 }; declare -fxt exit
 
 #cp -a "${verb[@]}" ./README.md ./foo
@@ -68,7 +72,7 @@ function exit(){ local line="$1"
   
   # echoing values inline is very different from displaying a PS4 prompt
   declare -p FUNCNAME BASH_SOURCE LINENO BASH_LINENO
-  PS4=' + ${nBS[0]}(${nL}):  ${nF[0]}:${nF[1]}:${nF[2]}:${nF[3]}:${nF[4]}:  |=|  '
+  PS4='\n\e[0;104m+[${#nBS[@]}]${nBS[0]##*/}(${nL}) [$((${#nBS[@]}-1))]${nBS[1]##*/}(${nBL[0]})${nF[0]} [$((${#nBS[@]}-2))]${nBS[2]##*/}(${nBL[1]})${nF[1]} [$((${#nBS[@]}-3))]${nBS[3]##*/}(${nBL[2]})${nF[2]} [$((${#nBS[@]}-4))]${nBS[4]##*/}(${nBL[3]})${nF[3]} \e[m\n    |=\t=|> \e[0;93m '
   
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}" 
   : "${nBS[1]}:${nBL[0]} ${nBS[0]}:${nL}"
@@ -80,6 +84,7 @@ function exit(){ local line="$1"
 : '<>: Debug functions & traps'
 
 _trap_ctrl_C() {
+  : '_trap_ctrl_C BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   declare -p FUNCNAME BASH_SOURCE LINENO BASH_LINENO
   set -x
   trap - INT
@@ -111,6 +116,7 @@ _trap_ctrl_C() {
 
   # kill the script with INT
   command -p kill -s INT "$$"
+  : '_trap_ctrl_C ENDS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
 }; declare -fxt _trap_ctrl_C
 
 # redefine the INT trap
@@ -176,7 +182,7 @@ fn_lvl=0; fn_bndry=' +++ +++ +++ '
 # was previously off, then leave it off.
 
 _xtrace_duck() {
-  : '_xtrace_duck BEGINS' "${fn_bndry}" "$((++fn_lvl))"
+  : '_xtrace_duck BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   declare -p FUNCNAME BASH_SOURCE LINENO BASH_LINENO
 
   # If xtrace is on...
@@ -202,7 +208,7 @@ _xtrace_duck() {
     # but if xtrace is off and was previously off... (return).
     fi
   fi
-  : '_xtrace_duck ENDS  ' "${fn_bndry}" "$((--fn_lvl))"
+  : '_xtrace_duck ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }; declare -ftx _xtrace_duck
 
 
@@ -210,8 +216,8 @@ _xtrace_duck() {
 # shell variables and parameters between each execution of a command;
 # for use when the DEBUG trap is enabled.
 
-_mk_v_setenv_pre() {
-  : '_mk_v_setenv_pre BEGINS' "${fn_bndry}" "$((++fn_lvl))"
+_mk_v_setenv_pre() { 
+  : '_mk_v_setenv_pre BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   declare -p FUNCNAME BASH_SOURCE LINENO BASH_LINENO
 
   : 'if now file exists'
@@ -228,12 +234,12 @@ _mk_v_setenv_pre() {
     xtr_senv_prev="${xtr_senv_now}"
   fi
 
-  : '_mk_v_setenv_pre ENDS  ' "${fn_bndry}" "$((--fn_lvl))"
+  : '_mk_v_setenv_pre ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }; declare -ftx _mk_v_setenv_pre
 
 
 _mk_v_setenv_novv() {
-  : '_mk_v_setenv_novv BEGINS' "${fn_bndry}" "$((++fn_lvl))"
+  : '_mk_v_setenv_novv BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   declare -p FUNCNAME BASH_SOURCE LINENO BASH_LINENO
 
   # create 'now' file
@@ -243,12 +249,12 @@ _mk_v_setenv_novv() {
   set |& tee -- "${xtr_senv_now}" >/dev/null
   env |& tee -a -- "${xtr_senv_now}" >/dev/null
 
-  : '_mk_v_setenv_novv ENDS  ' "${fn_bndry}" "$((--fn_lvl))"
+  : '_mk_v_setenv_novv ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }; declare -ftx _mk_v_setenv_novv
 
 
 _mk_v_setenv_delta() {
-  : '_mk_v_setenv_delta BEGINS' "${fn_bndry}" "$((++fn_lvl))"
+  : '_mk_v_setenv_delta BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   declare -p FUNCNAME BASH_SOURCE LINENO BASH_LINENO
 
   : 'if now and prev'
@@ -285,12 +291,12 @@ _mk_v_setenv_delta() {
     export GREP_COLORS='mt=01;43'
   fi
 
-  : '_mk_v_setenv_delta ENDS  ' "${fn_bndry}" "$((--fn_lvl))"
+  : '_mk_v_setenv_delta ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }; declare -ftx _mk_v_setenv_delta
 
 
 _mk_deltas() {
-  : '_mk_deltas BEGINS' "${fn_bndry}" "$((++fn_lvl))"
+  : '_mk_deltas BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   declare -p FUNCNAME BASH_SOURCE LINENO BASH_LINENO
 
   #_xtrace_duck
@@ -300,12 +306,12 @@ _mk_deltas() {
   #_xtrace_duck
 
   declare -p FUNCNAME BASH_SOURCE LINENO BASH_LINENO
-  : '_mk_deltas ENDS  ' "${fn_bndry}" "$((--fn_lvl))"
+  : '_mk_deltas ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }; declare -ftx _mk_deltas
 
 
 _debug_prompt() {
-  : '_debug_prompt BEGINS' "${fn_bndry}" "$((++fn_lvl))"
+  : '_debug_prompt BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   declare -p FUNCNAME BASH_SOURCE LINENO BASH_LINENO
   local hyphen="$-"
   _mk_deltas
@@ -315,16 +321,16 @@ _debug_prompt() {
   _fn_trc
   declare -p FUNCNAME BASH_SOURCE LINENO BASH_LINENO
   set -
-  declare -p BASH_SOURCE LINENO BASH_LINENO FUNCNAME BASH_COMMAND
+
   read -rp " +[${nBS[0]}:${nL}] ${BASH_COMMAND[0]}?" _
   [[ "${hyphen}" =~ x ]] && set -x
 
-  : '_debug_prompt ENDS  ' "${fn_bndry}" "$((--fn_lvl))"
+  : '_debug_prompt ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }; declare -ftx _debug_prompt
 
 
 _full_xtrace() {
-  : '_full_xtrace BEGINS' "${fn_bndry}" "$((++fn_lvl))"
+  : '_full_xtrace BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   declare -p FUNCNAME BASH_SOURCE LINENO BASH_LINENO
 
   # Bug? for the line numbers in _fn_trace to be correct, this `trap` 
@@ -332,7 +338,7 @@ _full_xtrace() {
   trap '_debug_prompt "$_";' DEBUG; set -x 
   declare -p FUNCNAME BASH_SOURCE LINENO BASH_LINENO
 
-  : '_full_xtrace ENDS  ' "${fn_bndry}" "$((--fn_lvl))"
+  : '_full_xtrace ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }; declare -ftx _full_xtrace
 
 
