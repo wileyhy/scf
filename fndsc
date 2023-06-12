@@ -1046,6 +1046,7 @@ for dir in "${bash_path[@]}"; do
       fi
     fi
 
+    # Bug: dup PE w 2 above
     sub_dir="$(dirname "${sub_dir:="${dir}"}")"
   done
 done
@@ -1059,6 +1060,8 @@ unset end_dirname full_dir_list ext_array dir sub_dir num_sub_dirs \
 
 
 # SECTION C
+
+# TODO: move entire section to lx.sh
 
 : 'Process Lock'
 
@@ -1099,6 +1102,8 @@ i=0
 #   It seems like that could possibly work, although the entire script
 # down to plausible filenames could be reconstructed, but for
 # practicality.
+
+# Bug: is there a simpler way to do this section?
 
 # An associative array, in case TMPDIR duplicates another array value
 for v in "${a_poss_proces_lock_dirs[@]}"; do
@@ -1163,17 +1168,18 @@ done
 
 for poss_lk_d in "${a_process_lock_dirs[@]}"; do
   # use the first one that fulfills certain requirements
-  find_out="$( find "${poss_lk_d}" -maxdepth 0 '(' \
+  mapfile -d '' -t find_out < <(
+    find "${poss_lk_d}" -maxdepth 0 '(' \
     -type d -a '!' -type l ')' -writable -readable -executable \
     -exec mkdir -m 0700 '()' ';'
-  )"
+  )
 
   : 'Process Lock: Create a lockdir and handle any error'
-  if [[ -n "${find_out}" ]]; then
+  if [[ -n "${find_out[0]}" ]]; then
 
-	# Bug: $find_out will expand to mult filenames
+	# x solved x - Bug: $find_out will expand to mult filenames
 
-    if mkdir -m 0700 "${process_lock_d:="${find_out}"}" 2>/dev/null; then
+    if mkdir -m 0700 "${process_lock_d:="${find_out[0]}"}" 2>/dev/null; then
       break
     else
       continue
@@ -1213,7 +1219,7 @@ for l in "${lkdrs[@]}"; do
       #exit "${nL}"
     fi
   fi
-done && unset l # lkdrs # a_poss_proces_lock_dirs # lkdrs_count
+done; unset l # lkdrs # a_poss_proces_lock_dirs # lkdrs_count
 
 # Note: rm_locks is an undocumented CLI option
 if [[ -v rm_locks ]] \
