@@ -861,6 +861,8 @@ _verify_path(){
     _erx _verify_path "${loc_nameref}"
   fi
 
+  # Q: necc to re-exec `local p`?
+  
   # remove any duplicates while preserving order of dirs
   for p in "${!loc_path_1[@]}"; do
     if [[ "${loc_path_2[*]}" =~ ${loc_path_1[p]} ]]; then
@@ -868,7 +870,7 @@ _verify_path(){
     else
       loc_path_2+=("${loc_path_1[p]}")
     fi
-  done && unset p
+  done; unset p
 
   # reset indices of loc_path_2
   loc_path_2=("${loc_path_2[@]}")
@@ -894,7 +896,7 @@ _verify_path bash_path
 #exit "${nL}"
 #_full_xtrace
 
-
+# TODO: move this section to separate source script
 
 : 'Verify DACs'
 
@@ -915,18 +917,20 @@ if [[ -n "${namei_o}" ]]; then
   exit "${nL}"
 fi
 
+# TODO: remove "loc_" from any local varnames
 
+# TODO: move this section to a separate script
 
 : 'Verify ACLs'
 
 # Variables, this section
 unset end_dirname full_dir_list ext_array dir sub_dir num_sub_dirs N n \
   extglob_pattern ext_first ext_last getfacl_o grep_o
-end_dirname=/
+end_dirname=/ # TODO: ch varnm to fs_root_d
 declare -A full_dir_list
 ext_array=()
 
-# for each actual directory in bash_path
+# for each actual directory in bash_path ("big loop"?)
 for dir in "${bash_path[@]}"; do
 
   # limit the number of loops to the number of constituent directory
@@ -936,33 +940,53 @@ for dir in "${bash_path[@]}"; do
   num_sub_dirs="$(tr '/' '\0' <<< "$dir" \
     | gawk --lint -F'\0' '{ print NF }')"
   N=$((num_sub_dirs - 1))
+  
+  # Bug: sub_dir's sb ID'd fr dir programtcly w nulls if poss
+  # create array w awk? or w read / mapfile ?
+  #IFS=/ read -ra a_sub_dirs <<< "$dir"
+  #mapfile -d '' -t a_sub_dirs < <(tr '/' '\0' <<< "${dir#/}")
 
-  # read the ACLs of each dir and sub_dir
+  # Bug? shouldnt this be a regular for loop?
+  
+  # read the ACLs of each dir and sub_dir ("small loop"?)
   for ((n = N; n >= 0; --n)); do
 
     # Assign a value to $sub_dir as necessary
     : "${sub_dir:="${dir}"}"
 
-    # <> quote ${extglob_pattern or not? - SC-2053=w
-    [[ "${sub_dir}" = "${extglob_pattern}" ]]
-    echo $?
-    #[[ "${sub_dir}" = ${extglob_pattern} ]] ; echo $?
-    #"${Halt:?}"
+    # TODO: quote ${extglob_pattern or not? - SC-2053=w.
+    # Also write a lg comment explaining this section of code
+    
+      # <>
+      [[ "${sub_dir}" = "${extglob_pattern}" ]]
+      echo $?
+      #[[ "${sub_dir}" = ${extglob_pattern} ]] ; echo $?
+      #"${Halt:?}"
 
     # If the sub_dir is already listed in the extglob_pattern, then
     # move on to the next small loop
+    
+    # Bug: this [[ cmd is wrong; sb [ ext =~ sub ] ...correct?
     if [[ "${sub_dir}" = "${extglob_pattern}" ]]; then
+    
+      # Bug: this PE dups above same PE
       sub_dir="$(dirname "${sub_dir:="${dir}"}")"
 
       # If the sub_dir is '/', then move on to the next big loop
       if [[ "${sub_dir}" = "${end_dirname}" ]]; then
         break
       fi
+      
+      # otherwise carry on w the next small loop
       continue
     fi
 
+    # testing each constituent subdir of all dirs in PATH will 
+    # necessarily involve listing some dirs, ie, /usr, more than
+    # once
+
     # Use an Associative array to filter out duplicate entries.
-    # (With associative arrays, duplicate assignments are indempotent.)
+    # (With associative arrays, duplicate assignments are idempotent.)
     full_dir_list["${sub_dir}"]+="${n},"
 
     # create a list of directories and subdirectories that have been
@@ -978,7 +1002,7 @@ for dir in "${bash_path[@]}"; do
     :;: "<>"
     declare -p  ext_array
 
-    ext_last="${ext_array[*]: -1:1}" # [@] or [*] ? SC-2124=w
+    ext_last="${ext_array[*]: -1:1}" # [@] or [*] ? SC-2124=w TODO
 
     #_full_xtrace
     :;: "<>"
