@@ -24,16 +24,19 @@ export lk_cmds_reqd lk_cmds_opt
 
 ## <> Reset the FS during debugging
 
-### /dev/shm must exist & remove all previous lock files
+### /dev/shm must exist
 d=/dev/shm
 if [[ ! -e "$d" ]]; then 
   sudo mkdir -m 1777 "$d" || _erx "${nL}"
 else 
   [[ -d "$d" ]] ||  _erx "${nL}"
+fi; unset d
+
+### remove all previous lock files
+if [[ -v delete_locks ]]; then
+  rm -frv --one-file-system --preserve-root=all -- "${d:?}"/* || 
+    _erx "${nL}"
 fi
-rm -frv --one-file-system --preserve-root=all -- "${d:?}"/* ||
-  _erx "${nL}"
-unset d
 
 
 ## Commands 

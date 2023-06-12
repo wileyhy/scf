@@ -1075,7 +1075,7 @@ for poss_lk_d in "${a_process_lock_dirs[@]}"; do
         #-type d -a '!' -type l ')' -writable -readable -executable \
         #-true -exec
 
-        sudo mkdir -vm 0700 "${poss_lk_d}" ';';
+        sudo mkdir -vm 0700 "${poss_lk_d}";
       then
         process_lock_d="${poss_lk_d}"
         break
