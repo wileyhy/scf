@@ -26,7 +26,7 @@ export FUNCNEST #PS4
 function _fn_trc(){ local line_hyphen="${nL:?}:$-"
   : '_fn_trc BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   #declare -p FUNCNAME BASH_SOURCE LINENO BASH_LINENO
-  set -x # normally `set -`
+  set - # normally `set -`
   local line=${line_hyphen%:*}
   local hyphen="${line_hyphen#*:}"
   unset line_hyphen
@@ -34,10 +34,10 @@ function _fn_trc(){ local line_hyphen="${nL:?}:$-"
   local -a ir # (indices reversed)
   mapfile -t ir < <(rev <<< "${!nBS[@]}" | tr ' ' '\n')
   for i in "${ir[@]}"; do
-    printf '(%s):%s:%s:%s  ' "${i}" "${nBS[$i+1]:-$0}" "${nBL[$i]:?}" \
+    printf '(-%d):%s:%s:%s  ' "${i}" "${nBS[$i+1]:-$0}" "${nBL[$i]:?}" \
       "${nF[$i]:?}"
   done;
-  echo "(-1):${nBS[0]:?}:${line:?}:_fn_trc:${nL}"
+  echo "(+1):${nBS[0]:?}:${line:?}:_fn_trc:${nL}"
   [[ "${hyphen:?}" =~ x ]] && set -x
   : '_fn_trc ENDS' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }; declare -fxt _fn_trc
@@ -74,12 +74,12 @@ function exit(){ local line="$1"
   #declare -p FUNCNAME BASH_SOURCE LINENO BASH_LINENO
   PS4='\n\e[0;104m+[${#nBS[@]}]${nBS[0]##*/}(${nL}) [$((${#nBS[@]}-1))]${nBS[1]##*/}(${nBL[0]})${nF[0]} [$((${#nBS[@]}-2))]${nBS[2]##*/}(${nBL[1]})${nF[1]} [$((${#nBS[@]}-3))]${nBS[3]##*/}(${nBL[2]})${nF[2]} [$((${#nBS[@]}-4))]${nBS[4]##*/}(${nBL[3]})${nF[3]} \e[m\n    |=\t=|> \e[0;93m '
   
-  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}" 
-  : "${nBS[1]}:${nBL[0]} ${nBS[0]}:${nL}"
+  #: "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}" 
+  #: "${nBS[1]}:${nBL[0]} ${nBS[0]}:${nL}"
   #"${Halt:?}"
 
   export FUNCNEST PS4
-  set -x
+  #set -x
   #exit "${nL}"
 : '<>: Debug functions & traps'
 
@@ -103,7 +103,7 @@ _trap_ctrl_C() {
   # if there are any files in array $rm_list, then remove then all at
   # once
   if [[ -n "${rm_list[*]:0:8}" ]]; then
-    if ! rm -f ${verb} --one-file-system --preserve-root=all \
+    if ! rm -f "${verb[@]}" --one-file-system --preserve-root=all \
       -- "${rm_list[@]}";
     then
       _erx "unlink failed, line ${nL}"
@@ -154,20 +154,20 @@ for f in "${xtr_files[@]}"; do
   if [[ -f "${f}" ]] && [[ ! -L "${f}" ]] && [[ -O "${f}" ]]; then
 
     # then protect them and add then to an array $xtr_rm_list
-    chmod ${verb} 000 "$f"
+    chmod "${verb[@]}" 000 "$f"
     xtr_rm_list+=("${f}")
   fi
 done; unset f
 
 # remove the $xtr_rm_list files all at once
 if [[ -n "${xtr_rm_list[*]}" ]]; then
-  rm -f ${verb} --one-file-system --preserve-root=all -- "${xtr_rm_list[@]}"
+  rm -f --one-file-system --preserve-root=all "${verb[@]}" "${xtr_rm_list[@]}"
 fi; unset xtr_rm_list xtr_files
 
 
   # <> Obligatory debugging block
   #_full_xtrace
-  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
+  #: "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   #exit "${nL}"
   #set -x
 
@@ -317,12 +317,12 @@ _debug_prompt() {
   _mk_deltas
   #declare -p FUNCNAME BASH_SOURCE LINENO BASH_LINENO
 
-  : '                                       ~~~ ~~ ~ PROMPT ~ ~~ ~~~'
-  _fn_trc
+  : '                                ~~~ ~~ ~ PROMPT ~ ~~ ~~~'
+  #_fn_trc
   #declare -p FUNCNAME BASH_SOURCE LINENO BASH_LINENO
   set -
 
-  read -rp " +[${nBS[0]}:${nL}] ${BASH_COMMAND[0]}?" _
+  read -rp " +[${nBS[0]}:${nL}] ${BASH_COMMAND}?" _
   [[ "${hyphen}" =~ x ]] && set -x
 
   : '_debug_prompt ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
