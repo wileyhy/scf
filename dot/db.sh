@@ -39,7 +39,7 @@ function _fn_trc(){ local line_hyphen="${nL:?}:$-"
   done;
   echo "(-1):${nBS[0]:?}:${line:?}:_fn_trc:${nL}"
   [[ "${hyphen:?}" =~ x ]] && set -x
-  : '_fn_trc ENDS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
+  : '_fn_trc ENDS' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }; declare -fxt _fn_trc
 
 # shadow the `exit` builtin, for when debugging is turned off
@@ -51,7 +51,7 @@ function exit(){ local line="$1"
   declare -p BASH_SOURCE LINENO BASH_LINENO FUNCNAME BASH_COMMAND
   set -x; 
   builtin exit "${line}";
-  : 'function exit ENDS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
+  : 'function exit ENDS' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }; declare -fxt exit
 
 #cp -a "${verb[@]}" ./README.md ./foo
@@ -116,7 +116,7 @@ _trap_ctrl_C() {
 
   # kill the script with INT
   command -p kill -s INT "$$"
-  : '_trap_ctrl_C ENDS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
+  : '_trap_ctrl_C ENDS' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }; declare -fxt _trap_ctrl_C
 
 # redefine the INT trap
