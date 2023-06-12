@@ -43,6 +43,7 @@ function exit(){
   local ec="$1"
   set -; 
   _fn_trc; 
+  declare -p BASH_SOURCE LINENO BASH_LINENO FUNCNAME BASH_COMMAND
   set -x; 
   builtin exit "${ec}";
 }; declare -fxt exit
