@@ -1242,12 +1242,28 @@ fi
 # define STRING
 STRING='export'
 
+# Why is command shadowing an issue in this script? 
+# I want to use in-shell facilities to generate a
+# list of possible commands (& .'. shell scripts), on
+# the presumption that the shell will only try to exec
+# a file it can find, either in PATH, through the ENV
+# or by abspath on the CLI. So bash must be able to
+# ID the command somehow. bash reports on strings via
+# `type -a` and `declare -p|n`; bash reports on types 
+# strings via `compgen -A command`. So this script in-
+# tends to parse the output of compgen, removing any 
+# 'command shadows' therefrom, and use type to ID any
+# actual files to which any remaining command names 
+# may refer.
+
 # remove all variable and nameref name collisions
 dec_o="$(declare -p "${STRING}")"
 if [[ -n "${dec_o}" ]]; then
   unset -v "${STRING}"
   unset -n "${STRING}"
 fi
+
+# Bug: infinite loop
 
 # type -t
 while true; do
@@ -1278,6 +1294,9 @@ while true; do
       )
       declare -p type_a_files
 
+      # Does comnand pass `rpm -V`? ie, has it been
+      # tampered with / installed by a 3rd party ...
+      # ...but `aide` exists. 
       for f in "${type_a_files[@]}"; do
         rpm_Vf_o="$(rpm -Vf "${f}" 2>&1)";
 
@@ -1299,7 +1318,7 @@ while true; do
             continue 1
           fi
         fi;
-      done && unset f rpm_Vf_o
+      done; unset f rpm_Vf_o
       unset type_a_files
 
       # And... what if it's "owned" by a package from some other package
@@ -1331,7 +1350,7 @@ while true; do
       ;;
   esac
   break
-done && unset tt_o
+done; unset tt_o
 
 # remove hash table
 # lookup file and force a PATH search with type -P
