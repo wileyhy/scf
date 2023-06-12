@@ -23,10 +23,11 @@ export FUNCNEST #PS4
 #}; declare -fxt :
 
 # Print a function trace stack, and capture the FN's LINENO on line 0
-function _fn_trc(){ local line="${nL:?}:$-"
-  set -x
-  local hyphen="${line#*:}"
-  line=${line%:*}
+function _fn_trc(){ local line_hyphen="${nL:?}:$-"
+  set -x # normally `set -`
+  local line=${line_hyphen%:*}
+  local hyphen="${line_hyphen#*:}"
+  unset line_hyphen
   local i
   local -a ir # (indices reversed)
   mapfile -t ir < <(rev <<< "${!nBS[@]}" | tr ' ' '\n')
@@ -39,13 +40,12 @@ function _fn_trc(){ local line="${nL:?}:$-"
 }; declare -fxt _fn_trc
 
 # shadow the `exit` builtin, for when debugging is turned off
-function exit(){ 
-  local ec="$1"
+function exit(){ local line="$1"
   set -; 
   _fn_trc; 
   declare -p BASH_SOURCE LINENO BASH_LINENO FUNCNAME BASH_COMMAND
   set -x; 
-  builtin exit "${ec}";
+  builtin exit "${line}";
 }; declare -fxt exit
 
 #cp -a "${verb[@]}" ./README.md ./foo
