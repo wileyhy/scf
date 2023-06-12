@@ -52,18 +52,21 @@ function exit(){ local line="$1"
 
   #type -a exit
   _fn_trc
-  
-  #PS4="+${nBS[1]}:${nBL[0]}:${nF[0]}:${nL}:" # LINENO gets set permanently at (line) 56
-  #PS4="$(_fn_trc)" # # LINENO gets set permanently at (line) 58
+ 
+# Note: values assigned to prompt variables must be surrounded by 
+# single quotes, not double quote marks. #facepalm
 
-  #PS4='+${nBS[0]}:${nL}:${nF[0]}: '          # doesn't make too much sense :-\, but LINENO changes
-  #PS4='+${nBS[0]}:${nL}:${nF[0]}:${nL} '     # and LINENO still changes
-  #PS4='+${nBS[0]}:${nF[0]}:${nL} '           # and still LINENO changes
-  PS4="+${nBS[1]}:${nBL[0]}:${nF[0]}:${nL}:" # LINENO gets set permanently at (line) 56
+  #PS4='+${nBS[1]}:${nBL[0]}:${nF[0]}:${nL} ' 
+  #PS4='$(_fn_trc)'
+
+  #PS4='+${nBS[0]}:${nL}:${nF[0]}: '
+  #PS4='+${nBS[0]}:${nL}:${nF[0]}:${nL} '
+  #PS4='+${nBS[0]}:${nF[0]}:${nL} '
+  PS4='+${nBS[1]}:${nBL[0]}:${nF[0]}:${nL}:'
   
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   
-  : "${nBS[1]}:${nBL[0]} ${nBS[0]}:${nL}" # LINENO is correct     # most correct
+  : "${nBS[1]}:${nBL[0]} ${nBS[0]}:${nL}"
 
   export FUNCNEST PS4
   set -x
