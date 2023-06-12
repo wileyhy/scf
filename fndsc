@@ -816,7 +816,7 @@ shopt -u nocasematch
 #_full_xtrace
 #exit "${nL}"
 
-
+# TODO: move this section to a separate source script
 
 : 'Verify PATH'
 
@@ -831,6 +831,7 @@ _verify_path(){
   loc_var_nm="${1}"
   loc_nameref="${1}"
 
+  # Q: "CLI optargs" means, of this function?
   # var $bash_path is only processed when the CLI optargs say so
   if [[ "${loc_var_nm}" == bash_path ]] \
     && [[ "${verify[*]}" != *+(all|path)* ]]
