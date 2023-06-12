@@ -39,6 +39,11 @@ function exit(){ local line="$1"
   : 'function exit BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   set -; 
   set -x; 
+  
+  # reset the terminal prompt color
+  unset PS4
+  printf '\e[m'
+  
   builtin exit "${line}";
   : 'function exit ENDS' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }; declare -fxt exit
@@ -70,6 +75,10 @@ _trap_ctrl_C() {
     fi
   fi; unset rm_list
 
+  # reset the terminal prompt color
+  unset PS4
+  printf '\e[m'
+  
   # kill the script with INT
   command -p kill -s INT "$$"
   : '_trap_ctrl_C ENDS' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
@@ -285,5 +294,6 @@ _full_xtrace() {
   #: "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   #exit "${nL}"
   #set -x
+  sleep 3
 
 exit 00
