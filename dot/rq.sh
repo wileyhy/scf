@@ -8,8 +8,9 @@
   set -x
 
 
-reqd_cmds=( awk chmod cp cut dirname find grep ln ls mkdir rm rmdir
-  stat sudo tee )
+reqd_cmds=( 
+  awk chmod cp cut dirname find grep ln ls mkdir rm rmdir stat sudo tee 
+)
 yn=n
 
 

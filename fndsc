@@ -128,7 +128,7 @@ pld="" # SC2155
 timecode="$(builtin printf '%(%F_%H%M%S)T')"
 
 _get_lockdirs(){
-  _full_xtrace
+  #_full_xtrace
   local -gax lkdrs
 
   mapfile -d '' -t lkdrs < <(
@@ -177,7 +177,7 @@ _exit_trap() {
 
 trap _exit_trap EXIT TERM
 #_full_xtrace
-exit "$nL"
+#exit "$nL"
 
 : 'Variables'
 
@@ -230,8 +230,8 @@ methods_prog_cv=bash_type_a
 verify=(all)
 
 # <>
-_full_xtrace
-exit "${nL}"
+#_full_xtrace
+#exit "${nL}"
 
 : 'Functions'
 
@@ -404,8 +404,8 @@ unset index element calc
   #fi
 #done
 
-exit "${nL}"
-_full_xtrace
+#exit "${nL}"
+#_full_xtrace
 
 # Bugs: Hardcoded $mountpoint -- use lock dir as main_d
 
@@ -449,8 +449,8 @@ fi
 #set -x; :;: "<>"; sudo namei -xl  -- "${curr_time_ssubd}"
 
 # <>
-_full_xtrace
-exit "${nL}"
+#_full_xtrace
+#exit "${nL}"
 
 
 
@@ -781,8 +781,8 @@ shopt -u nocasematch
   #bash_path find_path PATH methods_path
 
 # <>
-_full_xtrace
-exit "${nL}"
+#_full_xtrace
+#exit "${nL}"
 
 
 
@@ -857,8 +857,8 @@ _verify_path(){
 _verify_path PATH
 _verify_path bash_path
 
-exit "${nL}"
-_full_xtrace
+#exit "${nL}"
+#_full_xtrace
 
 
 
@@ -940,16 +940,16 @@ for dir in "${bash_path[@]}"; do
     [[ -n "${ext_first}" ]] \
       && unset 'ext_array[0]'
 
-    _full_xtrace
+    #_full_xtrace
     :;: "<>"
     declare -p  ext_array
 
     ext_last="${ext_array[*]: -1:1}" # [@] or [*] ? SC-2124=w
 
-    _full_xtrace
+    #_full_xtrace
     :;: "<>"
     declare -p  ext_last
-    exit "${nL}"
+    #exit "${nL}"
 
     [[ -n "${ext_last}" ]] \
       && unset "ext_array[${#ext_array[@]}]"
@@ -995,8 +995,8 @@ unset end_dirname full_dir_list ext_array dir sub_dir num_sub_dirs \
   N n extglob_pattern ext_first ext_last getfacl_o grep_o
 
 # <>
-_full_xtrace
-exit "${nL}"
+#_full_xtrace
+#exit "${nL}"
 
 
 
@@ -1169,7 +1169,7 @@ then
 fi
 
 #exit "${nL}"
-_full_xtrace
+#_full_xtrace
 
 
 
@@ -1254,8 +1254,8 @@ filesystem/repo_nm/lockdir
 : ''
 
 
-exit "${nL}"
-_full_xtrace
+#exit "${nL}"
+#_full_xtrace
 
 
 
@@ -1390,8 +1390,8 @@ done && unset tt_o
 #     offer option to remove the file.
 #
 
-exit "${nL}"
-_full_xtrace
+#exit "${nL}"
+#_full_xtrace
 
 
 # Bug: this section /\ and this section \/ need to be merged.
@@ -1437,7 +1437,7 @@ then
   unset i
 
     # <>
-    _full_xtrace
+    #_full_xtrace
     set -x
 
   # for each possible ascii character or value
@@ -1565,8 +1565,8 @@ then
 
     # <>
     echo 'all_commands, count:' "${#all_commands[@]}"
-    exit "${nL}"
-    _full_xtrace
+    #exit "${nL}"
+    #_full_xtrace
 
   cd - \
     || _erx cd
@@ -1581,8 +1581,8 @@ else
 fi
 
 # <>
-_full_xtrace
-exit "${nL}"
+#_full_xtrace
+#exit "${nL}"
 
 
 
@@ -1619,8 +1619,8 @@ mapfile -d '' -t a_all_files_sorted < <(
     | sort -z
 )
 
-_full_xtrace
-exit "${nL}"
+#_full_xtrace
+#exit "${nL}"
 
 
 
@@ -1830,8 +1830,8 @@ printf '%s\n' "${a_shell_scripts[@]}" \
     "${a_write_path_nms[@]}" >/dev/null
 fn_bak "${a_write_path_nms[@]}"
 
-_full_xtrace
-exit "${nL}"
+#_full_xtrace
+#exit "${nL}"
 
 # <> ?
 fn_write_arrays a_write_path_nms
@@ -1860,8 +1860,8 @@ mapfile -t a_interpreters < <(
     || _erx "P:${PIPESTATUS[*]}"
 )
 
-_full_xtrace
-exit "${nL}"
+#_full_xtrace
+#exit "${nL}"
 
 # <>
 :;: "<>"
@@ -1911,11 +1911,11 @@ mapfile -t a_interps_rps < <(
     | sort -u
 )
 
-_full_xtrace
-exit "${nL}"
+#_full_xtrace
+#exit "${nL}"
 
 # <>
-exit "${nL}"
+#exit "${nL}"
 
 # for each interpreter, print it in the 1st 32 bits of a line.
 
@@ -1980,10 +1980,10 @@ unset b
 #set -x; :;: "<>";
 fn_write_arrays a_write_path_nms a_interpreters a_interps_rps \
   a_interps_disk_repo
-exit "${nL}"
+#exit "${nL}"
 
-_full_xtrace
-exit "${nL}"
+#_full_xtrace
+#exit "${nL}"
 
 # SECTION E
 
@@ -2012,13 +2012,13 @@ sudo  rsync -ca -- "${list_crunchbangs}_SC-scrpts-list" /tmp \
 fn_bak "${list_crunchbangs}_SC-scrpts-list" /tmp/*_SC-scrpts-list
 
 # <>
-_full_xtrace
+#_full_xtrace
 :;: "<>"
 fn_write_arrays timecode list_crunchbangs sc_shells
-exit "${nL}"
+#exit "${nL}"
 
-_full_xtrace
-exit "${nL}"
+#_full_xtrace
+#exit "${nL}"
 
 : 'CENTRAL TASK, 2 of 2: with ShellCheck scan each script for errors'
 
