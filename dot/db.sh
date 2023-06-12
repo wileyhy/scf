@@ -57,7 +57,8 @@ function exit(){ local line="$1"
   #PS4="$(_fn_trc)" # # LINENO gets set permanently at (line) 58
 
   #PS4='+${nBS[0]}:${nL}:${nF[0]}: '          # doesn't make too much sense :-\, but LINENO changes
-  PS4='+${nBS[0]}:${nL}:${nF[0]}:${nL} '     # 
+  #PS4='+${nBS[0]}:${nL}:${nF[0]}:${nL} '     # and LINENO still changes
+  PS4='+${nBS[0]}:${nF[0]}:${nL} '            #
   
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   
