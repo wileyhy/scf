@@ -51,10 +51,10 @@ function exit(){
 
   #type -a exit
   _fn_trc
-  #exit "${nL}"
-  #set -x
   PS4='+${nBS[0]}:${nL}:${nF[0]}: '
   export FUNCNEST PS4
+  set -x
+  exit "${nL}"
 
 
 : '<>: Debug functions & traps'
