@@ -1270,6 +1270,7 @@ while true; do
       # function time { } ! [[ ]] coproc
       ;;
   esac
+  break
 done && unset tt_o
 
 # remove hash table
