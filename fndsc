@@ -71,17 +71,19 @@ export scr_nm_dbug scr_nm_sudo scr_nm_cmd scr_nm_lock
 declare -ax verb
 
 _src(){
-  # if the file is... a file, owned by EUID, not executable and not a symlink
+  # if the file is... a file, owned by EUID, not executable and not a 
+  # symlink
   if      [[ -f "$1" ]] &&
           [[ -O "$1" ]] &&
           [[ ! -x "$1" ]] &&
           [[ ! -L "$1" ]];
-  # then... if the 4th paramter is 'xx', enable "verbose commands" and xtrace
+  # then... if the 4th paramter is 'xx', enable xtrace and "verbose 
+  # commands"
   then    if      [[ "$4" == xx ]]
-          then    verb=(-v --)
-                  set -x
+          then    set -x
+                  local -I "verb=(-v --)"
           # otherwise, neutralize the unused "verbose commands" syntax
-          else    local -I verb=("--")
+          else    local -I "verb=(--)"
           fi
           export verb
           # execute the subscript in question in the current context
