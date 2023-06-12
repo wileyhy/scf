@@ -1296,7 +1296,12 @@ while true; do
 
       # Does comnand pass `rpm -V`? ie, has it been
       # tampered with / installed by a 3rd party ...
-      # ...but `aide` exists. 
+      # ...but `aide` exists. how do you know the rpmdb
+      # hasnt been tampered with? ...by using aide. :-/
+      # so check for whether aide is in use...? at least
+      # list the problem files as output. ...and print 
+      # a warning. okay.
+    
       for f in "${type_a_files[@]}"; do
         rpm_Vf_o="$(rpm -Vf "${f}" 2>&1)";
 
