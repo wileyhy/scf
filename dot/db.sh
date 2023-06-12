@@ -1,31 +1,23 @@
 # Debugging
 
-  #######################################
+
   # <> Obligatory debugging block
   #_full_xtrace
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   #exit "${nL}"
   #set -x
-  #######################################
+
 
 # Vars
 #set -o functrace
 FUNCNEST=32
-#PS4='+${nBS[0]}:${nL}:${nF[0]}: '
-export FUNCNEST #PS4
+PS4='\n\e[0;104m+[${#nBS[@]}]${nBS[0]##*/}(${nL}) [$((${#nBS[@]}-1))]${nBS[1]##*/}(${nBL[0]})${nF[0]} [$((${#nBS[@]}-2))]${nBS[2]##*/}(${nBL[1]})${nF[1]} [$((${#nBS[@]}-3))]${nBS[3]##*/}(${nBL[2]})${nF[2]} [$((${#nBS[@]}-4))]${nBS[4]##*/}(${nBL[3]})${nF[3]} \e[m\n    |=\t=|> \e[0;93m '
+export FUNCNEST PS4
 
-## A function so `:` always prints to xtrace
-#function :(){
-  #local hyphen="$-";
-  #set -x;
-  #printf '%b\n' "$@" >&2;
-  #[[ "$hyphen" =~ x ]] || set -;
-#}; declare -fxt :
 
 # Print a function trace stack, and capture the FN's LINENO on line 0
 function _fn_trc(){ local line_hyphen="${nL:?}:$-"
   : '_fn_trc BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
-  #declare -p FUNCNAME BASH_SOURCE LINENO BASH_LINENO
   set - # normally `set -`
   local line=${line_hyphen%:*}
   local hyphen="${line_hyphen#*:}"
@@ -45,47 +37,17 @@ function _fn_trc(){ local line_hyphen="${nL:?}:$-"
 # shadow the `exit` builtin, for when debugging is turned off
 function exit(){ local line="$1"
   : 'function exit BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
-  #declare -p FUNCNAME BASH_SOURCE LINENO BASH_LINENO
   set -; 
-  _fn_trc; 
-  #declare -p BASH_SOURCE LINENO BASH_LINENO FUNCNAME BASH_COMMAND
   set -x; 
   builtin exit "${line}";
   : 'function exit ENDS' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }; declare -fxt exit
 
-#cp -a "${verb[@]}" ./README.md ./foo
 
-  #type -a exit
-  _fn_trc
- 
-# Note: values assigned to prompt variables must be surrounded by 
-# single quotes, not double quote marks. #facepalm
-
-  #PS4='+${nBS[1]}:${nBL[0]}:${nF[0]}:${nL} ' 
-  #PS4='$(_fn_trc)'
-
-  #PS4='+${nBS[0]}:${nL}:${nF[0]}: '
-  #PS4='+${nBS[0]}:${nL}:${nF[0]}:${nL} '
-  #PS4='+${nBS[0]}:${nF[0]}:${nL} '
-  #PS4='+${nBS[1]}:${nBL[0]}:${nF[0]}:${nL}:'
-  
-  # echoing values inline is very different from displaying a PS4 prompt
-  #declare -p FUNCNAME BASH_SOURCE LINENO BASH_LINENO
-  PS4='\n\e[0;104m+[${#nBS[@]}]${nBS[0]##*/}(${nL}) [$((${#nBS[@]}-1))]${nBS[1]##*/}(${nBL[0]})${nF[0]} [$((${#nBS[@]}-2))]${nBS[2]##*/}(${nBL[1]})${nF[1]} [$((${#nBS[@]}-3))]${nBS[3]##*/}(${nBL[2]})${nF[2]} [$((${#nBS[@]}-4))]${nBS[4]##*/}(${nBL[3]})${nF[3]} \e[m\n    |=\t=|> \e[0;93m '
-  
-  #: "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}" 
-  #: "${nBS[1]}:${nBL[0]} ${nBS[0]}:${nL}"
-  #"${Halt:?}"
-
-  export FUNCNEST PS4
-  #set -x
-  #exit "${nL}"
 : '<>: Debug functions & traps'
 
 _trap_ctrl_C() {
   : '_trap_ctrl_C BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
-  #declare -p FUNCNAME BASH_SOURCE LINENO BASH_LINENO
   set -x
   trap - INT
 
@@ -100,19 +62,13 @@ _trap_ctrl_C() {
     fi
   done; unset f xtr_time_f xtr_senv_prev xtr_senv_now xtr_senv_delt
 
-  # if there are any files in array $rm_list, then remove then all at
-  # once
+  # if there are any files in array $rm_list, then remove then all at once
   if [[ -n "${rm_list[*]:0:8}" ]]; then
-    if ! rm -f "${verb[@]}" --one-file-system --preserve-root=all \
-      -- "${rm_list[@]}";
+    if ! rm -f --one-file-system --preserve-root=all "${verb[@]}" "${rm_list[@]}";
     then
       _erx "unlink failed, line ${nL}"
     fi
   fi; unset rm_list
-
-  # print a function trace (or two...)
-  _fn_trc
-  : "${nBS[0]}:${nL}:_trap_ctrl_C"
 
   # kill the script with INT
   command -p kill -s INT "$$"
@@ -121,11 +77,6 @@ _trap_ctrl_C() {
 
 # redefine the INT trap
 trap '_trap_ctrl_C' INT
-
-  # <>
-  #_fn_trc
-  #set -x
-  #sleep 10
 
 
 : '<> Delete any left over xtrace files from -mktemp -p /tmp-'
@@ -183,7 +134,6 @@ fn_lvl=0; fn_bndry=' +++ +++ +++ '
 
 _xtrace_duck() {
   : '_xtrace_duck BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
-  #declare -p FUNCNAME BASH_SOURCE LINENO BASH_LINENO
 
   # If xtrace is on...
   if [[ "$-" =~ x ]]; then
@@ -218,7 +168,6 @@ _xtrace_duck() {
 
 _mk_v_setenv_pre() { 
   : '_mk_v_setenv_pre BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
-  #declare -p FUNCNAME BASH_SOURCE LINENO BASH_LINENO
 
   : 'if now file exists'
   if [[ -n "${xtr_senv_now}" ]]; then
@@ -240,7 +189,6 @@ _mk_v_setenv_pre() {
 
 _mk_v_setenv_novv() {
   : '_mk_v_setenv_novv BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
-  #declare -p FUNCNAME BASH_SOURCE LINENO BASH_LINENO
 
   # create 'now' file
   xtr_senv_now="$(mktemp -p /tmp --suffix=."${xtr_f_nm}")"
@@ -255,7 +203,6 @@ _mk_v_setenv_novv() {
 
 _mk_v_setenv_delta() {
   : '_mk_v_setenv_delta BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
-  #declare -p FUNCNAME BASH_SOURCE LINENO BASH_LINENO
 
   : 'if now and prev'
   if [[ -n "${xtr_senv_now}" ]] \
@@ -297,7 +244,6 @@ _mk_v_setenv_delta() {
 
 _mk_deltas() {
   : '_mk_deltas BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
-  #declare -p FUNCNAME BASH_SOURCE LINENO BASH_LINENO
 
   #_xtrace_duck
   _mk_v_setenv_pre
@@ -305,28 +251,17 @@ _mk_deltas() {
   _mk_v_setenv_delta
   #_xtrace_duck
 
-  #declare -p FUNCNAME BASH_SOURCE LINENO BASH_LINENO
   : '_mk_deltas ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }; declare -ftx _mk_deltas
 
 
 _debug_prompt() {
   : '_debug_prompt BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
-  #declare -p FUNCNAME BASH_SOURCE LINENO BASH_LINENO
   local hyphen="$-"
   _mk_deltas
-  #declare -p FUNCNAME BASH_SOURCE LINENO BASH_LINENO
-
   : '                                ~~~ ~~ ~ PROMPT ~ ~~ ~~~'
-  #_fn_trc
-  #declare -p FUNCNAME BASH_SOURCE LINENO BASH_LINENO
-  set -
-  : a
-  : b
   read -rp " +[${nBS[0]}:${nL}] ${BASH_COMMAND}?" _
-  : c
   [[ "${hyphen}" =~ x ]] && set -x
-  : d
 
   : '_debug_prompt ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }; declare -ftx _debug_prompt
@@ -334,12 +269,11 @@ _debug_prompt() {
 
 _full_xtrace() {
   : '_full_xtrace BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
-  #declare -p FUNCNAME BASH_SOURCE LINENO BASH_LINENO
 
   # Bug? for the line numbers in _fn_trace to be correct, this `trap` 
   # command must have two separate command parsings on the same line.
-  trap '_debug_prompt "$_";' DEBUG; set -x 
-  #declare -p FUNCNAME BASH_SOURCE LINENO BASH_LINENO
+  trap '_debug_prompt "$_";' DEBUG; echo cmd after DEBUG trap, $LINENO
+  set -x 
 
   : '_full_xtrace ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }; declare -ftx _full_xtrace
@@ -347,18 +281,9 @@ _full_xtrace() {
 
   # <> Obligatory debugging block
   #declare -p FUNCNAME BASH_SOURCE LINENO BASH_LINENO
-  _full_xtrace
-  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
+  #_full_xtrace
+  #: "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   #exit "${nL}"
   #set -x
-
-# Test of "full xtrace"
-cat << EOF > ./foo
-#!/bin/bash
-echo bar
-EOF
-chmod +x ./foo
-./foo
-rm -f ./foo
 
 exit 00
