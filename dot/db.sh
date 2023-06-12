@@ -11,8 +11,8 @@
 # Vars
 #set -o functrace
 FUNCNEST=8
-PS4='+${nBS[0]}:${nL}:${nF[0]}: '
-export FUNCNEST PS4
+#PS4='+${nBS[0]}:${nL}:${nF[0]}: '
+export FUNCNEST #PS4
 
 ## A function so `:` always prints to xtrace
 #function :(){
@@ -50,9 +50,11 @@ function exit(){
 #cp -a "${verb[@]}" ./README.md ./foo
 
   #type -a exit
-  #_fn_trc
+  _fn_trc
   #exit "${nL}"
   #set -x
+  PS4='+${nBS[0]}:${nL}:${nF[0]}: '
+  export FUNCNEST PS4
 
 
 : '<>: Debug functions & traps'
