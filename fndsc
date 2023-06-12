@@ -1105,7 +1105,7 @@ done
   # symlinks stay put.
 
   #shopt -o functrace
-  ${Halt:?}
+  #${Halt:?}
 
 for poss_lk_d in "${a_process_lock_dirs[@]}"; do
   # use the first one that fulfills certain requirements
