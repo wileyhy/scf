@@ -34,6 +34,8 @@ export rand_i rand_uniq_str rand_lock_nm xtr_f_nm
 fn_lvl=0; fn_bndry=' +++ +++ +++ '
 export fn_lvl fn_bndry
 
+if [[ "$*" =~ delete_locks ]]; then delete_locks='y'; export delete_locks; fi
+
 declare -n nBL=BASH_LINENO
 declare -n nBS=BASH_SOURCE
 declare -n nF=FUNCNAME
@@ -1056,10 +1058,6 @@ done && unset A_process_lock_dirs i
 
 #_full_xtrace
 #exit "${nL}"
-
-if [[ "$*" =~ delete_locks ]]; then
-  delete_locks='y'
-fi
 
 
 # Bug: race condition btw defining and `mkdir`?
