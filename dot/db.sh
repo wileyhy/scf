@@ -23,18 +23,18 @@ export FUNCNEST #PS4
 #}; declare -fxt :
 
 # Print a function trace stack, and capture the FN's LINENO on line 0
-function _fn_trc(){ local ec="${nL:?}:$-"
+function _fn_trc(){ local line="${nL:?}:$-"
   set -x
-  local hyphen="${ec#*:}"
-  ec=${ec%:*}
+  local hyphen="${line#*:}"
+  line=${line%:*}
   local i
-  local -a ir
+  local -a ir # (indices reversed)
   mapfile -t ir < <(rev <<< "${!nBS[@]}" | tr ' ' '\n')
   for i in "${ir[@]}"; do
     printf '(%s):%s:%s:%s  ' "${i}" "${nBS[$i+1]:-$0}" "${nBL[$i]:?}" \
       "${nF[$i]:?}"
   done;
-  echo "(-1):${nBS[0]:?}:${ec:?}:_fn_trc:${nL}"
+  echo "(-1):${nBS[0]:?}:${line:?}:_fn_trc:${nL}"
   [[ "${hyphen:?}" =~ x ]] && set -x
 }; declare -fxt _fn_trc
 
