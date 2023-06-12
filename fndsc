@@ -72,11 +72,9 @@ scr_nm_lock='./dot/lx.sh'
 export scr_nm_dbug scr_nm_sudo scr_nm_cmd scr_nm_lock
 declare -ax verb
 
-# shellcheck source=./dot/db.sh source=./dot/su.sh source=./dot/rq.sh source=./dot/lx.sh
 _src(){
   # if the file is... a file, owned by EUID, not executable and not a 
   # symlink
-  # shellcheck source=./dot/db.sh source=./dot/su.sh source=./dot/rq.sh source=./dot/lx.sh
   if      [[ -f "$1" ]] &&
           [[ -O "$1" ]] &&
           [[ ! -x "$1" ]] &&
@@ -91,7 +89,7 @@ _src(){
           fi
           export verb
           # execute the subscript in question in the current context
-          # shellcheck source=./dot/db.sh source=./dot/su.sh source=./dot/rq.sh source=./dot/lx.sh
+          # shellcheck disable=
           source "$1"
           # if the 3rd parameter is 'xx', after `source` returns, `exit` 
           # the calling shell.
