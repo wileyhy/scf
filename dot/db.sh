@@ -54,10 +54,14 @@ function exit(){ local line="$1"
   _fn_trc
   #PS4='+${nBS[0]}:${nL}:${nF[0]}: '
   PS4="+${nBS[1]}:${nBL[0]}:${nF[0]}:${nL}:"
+
+  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
+  
+  : "${nBS[1]}:${nBL[0]} ${nBS[0]}:${nL}"
+
   export FUNCNEST PS4
   set -x
   exit "${nL}"
-
 : '<>: Debug functions & traps'
 
 _trap_ctrl_C() {
