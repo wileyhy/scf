@@ -119,10 +119,11 @@ _src(){
 
 : 'Variables for Traps (and Process Locks)'
 
-#declare -A A_process_lock_dirs
+# TODO: move this array to lx.sh
 a_poss_proces_lock_dirs+=("/dev/shm/${repo_nm}" /var/lock \
   "${XDG_RUNTIME_DIR}" "${TMPDIR}" /var/lock "${HOME}" /tmp \
   /var/tmp)
+  
 #i=0
 pld="" # SC2155
 timecode="$(builtin printf '%(%F_%H%M%S)T')"
