@@ -266,7 +266,7 @@ _mk_v_setenv_delta() {
     if [[ -n "${xtr_senv_delt}" ]]; then
 
       # add the current delta data to the history thereof
-      tee -a "${xtr_delta_sum_f}" < "${xtr_senv_delt}"
+      tee -a "${xtr_delta_sum_f}" < "${xtr_senv_delt}" > /dev/null
 
       # and unlink the current delta data file
       unlink -- "${xtr_senv_delt}"
@@ -321,9 +321,12 @@ _debug_prompt() {
   #_fn_trc
   #declare -p FUNCNAME BASH_SOURCE LINENO BASH_LINENO
   set -
-
+  : a
+  : b
   read -rp " +[${nBS[0]}:${nL}] ${BASH_COMMAND}?" _
+  : c
   [[ "${hyphen}" =~ x ]] && set -x
+  : d
 
   : '_debug_prompt ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }; declare -ftx _debug_prompt
