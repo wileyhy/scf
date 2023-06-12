@@ -100,7 +100,7 @@ _src(){
 
 # shellcheck source=./dot/db.sh,./dot/su.sh,./dot/rq.sh,./dot/lx.sh
 : 'ID and sudo'       ; _src "${scr_nm_sudo}" "${nL}" #xx xx
-: 'Enable debugging'  ; _src "${scr_nm_dbug}" "${nL}" xx xx
+: 'Enable debugging'  ; _src "${scr_nm_dbug}" "${nL}" xy xx
 : 'Required programs' ; _src "${scr_nm_cmds}" "${nL}" xx xx
 : 'Locks'             ; _src "${scr_nm_lock}" "${nL}" xx xx
 # ^                     ^-function            ^nameref ^  ^-xtrace

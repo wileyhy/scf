@@ -294,6 +294,7 @@ _full_xtrace() {
   #: "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   #exit "${nL}"
   #set -x
-  sleep 3
 
-exit 00
+  # <>
+  #sleep 3
+  #exit 00
