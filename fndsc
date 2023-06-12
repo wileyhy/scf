@@ -34,7 +34,7 @@ export rand_i rand_uniq_str rand_lock_nm xtr_f_nm
 fn_lvl=0; fn_bndry=' +++ +++ +++ '
 export fn_lvl fn_bndry
 
-if [[ "$*" =~ delete_locks ]]; then delete_locks='y'; export delete_locks; fi
+if [[ "$*" =~ rm_locks ]]; then rm_locks='y'; export rm_locks; fi
 
 declare -n nBL=BASH_LINENO
 declare -n nBS=BASH_SOURCE
@@ -1050,19 +1050,19 @@ for v in "${a_poss_proces_lock_dirs[@]}"; do
     v="$(realpath -e "${v}")"
     A_process_lock_dirs+=( ["${v}/${rand_lock_nm}"]=$((i++)) )
   fi
-done && unset i v
+done; unset i v
 
 for i in "${!A_process_lock_dirs[@]}"; do
   a_process_lock_dirs+=( ["${A_process_lock_dirs[$i]}"]="$i" );
-done && unset A_process_lock_dirs i
+done; unset A_process_lock_dirs i
 
 #_full_xtrace
 #exit "${nL}"
 
 
-# Bug: race condition btw defining and `mkdir`?
+# Bug: race condition btw defining and mkdir?
 
-: 'Process Lock: Define & create the lockdir'
+: 'Process Lock: Define and create the lockdir'
 
 #target_fso=d
 
@@ -1103,7 +1103,7 @@ done
   # symlinks stay put.
 
   #shopt -o functrace
-  #${Halt:?}
+  #"${Halt:?}"
 
 for poss_lk_d in "${a_process_lock_dirs[@]}"; do
   # use the first one that fulfills certain requirements
@@ -1147,7 +1147,7 @@ for l in "${lkdrs[@]}"; do
     || [[ -L "${l}" ]]
   then
 
-    if [[ -v delete_locks ]]; then
+    if [[ -v rm_locks ]]; then
 
       # `rmdir` doesn't remove symlinks
       sudo rmdir -v -- "${l}"
@@ -1159,8 +1159,8 @@ for l in "${lkdrs[@]}"; do
   fi
 done && unset l # lkdrs # a_poss_proces_lock_dirs # lkdrs_count
 
-# Note: delete_locks is an undocumented CLI option
-if [[ -v delete_locks ]] \
+# Note: rm_locks is an undocumented CLI option
+if [[ -v rm_locks ]] \
   && [[ -n ${lkdrs[*]:0:16} ]];
 then
   exit "${nL}"
@@ -1644,7 +1644,7 @@ for all_files_index in "${!a_all_files_sorted[@]}"; do
 
       : 'Crunchbangs'
 
-      # q, does strings recognize unicode? Color codes? Cr's? Etc
+      # q, does strings recognize unicode? Color codes? Crs? Etc
       # test dd vs strings
 
       strings_o="$(strings -n1 <"${each_sorted_f}" \
@@ -2060,7 +2060,7 @@ hash
 exit 00
 
 # TODO:
-#   - grep output of `rpm -qi` for URL's, ie, github. which can I
+#   - grep output of rpm -qi for URLs, ie, github. which can I
 #       repair without adding a new login?
 #   - grep scripts for 'todo's
 #   - grep for 'shellcheck disable'

@@ -33,7 +33,8 @@ else
 fi; unset d
 
 ### remove all previous lock files
-if [[ -v delete_locks ]]; then
+#### Note: rm_locks is an undocumented CLI option
+if [[ -v rm_locks ]]; then
   rm -frv --one-file-system --preserve-root=all -- "${d:?}"/* || 
     _erx "${nL}"
 fi
