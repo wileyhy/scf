@@ -143,7 +143,7 @@ _get_lockdirs(){
 
 
 _exit_trap() {
-  set -x
+  #set -x
   : "EXIT trap BEGINS" "${fn_bndry}" "$((++fn_lvl))"
   trap - DEBUG
   trap - EXIT
@@ -913,7 +913,7 @@ for dir in "${bash_path[@]}"; do
     [[ "${sub_dir}" = "${extglob_pattern}" ]]
     echo $?
     #[[ "${sub_dir}" = ${extglob_pattern} ]] ; echo $?
-    "${Halt:?}"
+    #"${Halt:?}"
 
     # If the sub_dir is already listed in the extglob_pattern, then
     # move on to the next small loop
