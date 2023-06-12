@@ -109,8 +109,8 @@ _src(){
 
   # <> Obligatory debugging block
   #_full_xtrace
-  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
-  exit "${nL}"
+  #: "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
+  #exit "${nL}"
   set -x
 
 

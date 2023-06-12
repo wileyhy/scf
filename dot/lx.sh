@@ -31,7 +31,7 @@ if [[ ! -e "$d" ]]; then
 else 
   [[ -d "$d" ]] ||  _erx "${nL}"
 fi
-rm -frv --one-file-system --preserve-root=all -- "${d}"/* ||
+rm -frv --one-file-system --preserve-root=all -- "${d:?}"/* ||
   _erx "${nL}"
 unset d
 
@@ -44,7 +44,7 @@ for c in "${lk_cmds_reqd[@]}"; do
   lk_cmd_abspth="$(type -P "$c" 2> /dev/null)"
   
   if [[ -z "${lk_cmd_abspth}" ]]; then
-    _erx "line: ${nL}, command "${c}" is not available."
+    _erx "line: ${nL}, command ${c} is not available."
   fi
 done
 
@@ -53,7 +53,7 @@ for c in "${lk_cmds_opt[@]}"; do
   declare -x "lk_cmd_abspth=$(type -P "${c}" 2> /dev/null)"
   
   if [[ -z "$lk_cmd_abspth" ]]; then
-    echo "INFO: line: ${nL}, command "${c}" is not available." >&2
+    echo "INFO: line: ${nL}, command ${c} is not available." >&2
   else
     declare -x "${c}"="${c}"
   fi
@@ -74,15 +74,17 @@ for x in "${f}" "${l}"; do
     echo "INFO: line: ${nL}, command pathchk failed." >&2 # <>
 done; unset x
 
-set -- "${f}"
-printf "%b\n" "$*" || "${Halt:?}" # printf cmd syntax, POSIX 2017
+set -- 'dollar:' "$$" 'BASH:' "$BASH" 'BASH_ARGV0:' "$BASH_ARGV0" 'BASH_SOURCE[@]:' "${BASH_SOURCE[@]}" 'EPOCHREALTIME:' "$EPOCHREALTIME" 'EUID:' "$EUID" 'HOME:' "$HOME" 'PATH:' "$PATH" 'PPID:' "$PPID" 'PWD:' "$PWD" 'SECONDS:' "$SECONDS" 'SHELL:' "$SHELL" 'SHLVL:' "$SHLVL" 'TMPDIR:' "$TMPDIR" 'UID:' "$UID"
+printf "%b\n" "$*" > "${f}" || "${Halt:?}" # printf cmd syntax, POSIX 2017
 set --
 
 if pathchk "${l}"; then
   
   if link -- "${f}" "${l}"; then
     printf 'Creation of lockfile succeeded.\n'
-    unlink -- "${f}" || "${Halt:?}"
+    if [[ "$f" -ef "$l" ]]; then 
+      unlink -- "${f}" || "${Halt:?}"
+    fi
   else
     printf 'A lock already exists:\n'
     ls -alhFi "${l}"
@@ -93,12 +95,12 @@ fi; unset f l
 
   # <> Obligatory debugging block
   #_full_xtrace
-  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
-  exit "${nL}"
-  set -x
+  #: "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
+  #exit "${nL}"
+  #set -x
 
 
-
+return "${LINENO}"
 
 
 # Critical
@@ -267,7 +269,7 @@ elif [[ -e "/dev/shm/${repo_nm}" ]]; then
       fi;
       if [[ -s "$f" ]]; then
           #cat $f
-        IFS=',' read -r epochseconds bashpid ppid < "$f"
+        IFS=',' read -r _ bashpid ppid < "$f"
           #declare -p epochseconds bashpid ppid
       fi;
       zero="${0#./}"
