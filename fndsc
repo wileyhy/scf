@@ -1130,7 +1130,7 @@ for poss_lk_d in "${a_process_lock_dirs[@]}"; do
       printf '\n\tCannot acquire process lock: <%s>.\n' "${process_lock_d}"
       printf 'Exiting.\n\n'
     } 1>&2
-    exit "${nL}"
+    #exit "${nL}"
   fi
 done
 
