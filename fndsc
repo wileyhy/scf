@@ -1156,7 +1156,7 @@ for l in "${lkdrs[@]}"; do
     else
       printf '\n\t A process lock exists for this script. Exiting '
       printf 'now.\n\n'
-      exit "${nL}"
+      #exit "${nL}"
     fi
   fi
 done && unset l # lkdrs # a_poss_proces_lock_dirs # lkdrs_count
