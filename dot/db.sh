@@ -52,10 +52,9 @@ function exit(){ local line="$1"
 
   #type -a exit
   _fn_trc
-  #PS4='+${nBS[0]}:${nL}:${nF[0]}: '
+  PS4='+${nBS[0]}:${nL}:${nF[0]}: '          # doesn't make too much sense :-\
   #PS4="+${nBS[1]}:${nBL[0]}:${nF[0]}:${nL}:" # LINENO gets set permanently at (line) 56
-
-  PS4="$(_fn_trc)"
+  #PS4="$(_fn_trc)" # # LINENO gets set permanently at (line) 58
 
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   
