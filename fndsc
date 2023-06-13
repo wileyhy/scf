@@ -1361,6 +1361,10 @@ done; unset tt_o
 # lookup file and force a PATH search with type -P
 # type -a
 
+# using dnf & rpm are "ecpensive" opetations. it
+# would be better to do such a function after the 
+# ELF files have been removed from the list
+
 # dnf provides FILE
 # rpm -V RPM
 # dnf -y --allowerasing reinstall RPM
@@ -1386,7 +1390,8 @@ done; unset tt_o
 #
 #   if there are (God forbid) any files w/o rpms, either
 #     print an error and exit, or
-#     offer option to remove the file.
+#     offer option to remove the file. ...too draconian. just 
+#     list out any files of mysterious origin.
 #
 
 #exit "${nL}"
@@ -1558,9 +1563,9 @@ then
     mapfile -O $((i * 1000)) -t all_commands < <(
       for x in "${per_idx_commands[@]}"; do
         printf '%s\n' "${x}"
-      done && unset x per_idx_commands
+      done; unset x per_idx_commands
     )
-  done && unset i
+  done; unset i
 
     # <>
     echo 'all_commands, count:' "${#all_commands[@]}"
