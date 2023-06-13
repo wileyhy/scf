@@ -1,16 +1,15 @@
 #!/bin/bash
 #!/usr/bin/env -iS bash
-#   findscan
+#   fndscn
 #   shellcheck disable=SC2317
 
 # Note: Keep your goal in mind.
 
-# SECTION A
 
 max_age_of_tmp_files='1 minutes ago'
-repo_nm=scf
-script_nm='./findscan'
-sc_sevr=error
+repo_nm='scf'
+script_nm='./fndsc'
+sc_sevr='error'
 sc_shells='(sh|bash|dash|ksh)'
 tcode="$(builtin printf '%(%F_%H%M%S)T')"
 export max_age_of_tmp_files repo_nm script_nm sc_sevr sc_shells tcode
@@ -52,19 +51,12 @@ if [[ "$*" =~ rm_locks ]]; then
 fi
 
 _erx() {
-  local loc_exit_code="$?"
+  local exit_code="$?"
   : '_erx BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   echo -e Error: "$@" >&2
-  exit "${loc_exit_code}"
+  exit "${exit_code}"
   : '_erx ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }; declare -fxt _erx
-
-#_trap_ctrl_C() {
-  #set -x
-  #trap - INT
-  #command -p kill -s INT "$$"
-#}; declare -fxt '_trap_ctrl_C'
-#trap '_trap_ctrl_C' INT
 
 
   # <> Obligatory debugging block
@@ -74,11 +66,7 @@ _erx() {
 
 
 # Sub-scripts
-scr_nm_dbug='./dot/db.sh'
-scr_nm_sudo='./dot/su.sh'
-scr_nm_cmds='./dot/rq.sh'
-scr_nm_lock='./dot/lx.sh'
-export scr_nm_dbug scr_nm_sudo scr_nm_cmd scr_nm_lock
+
 declare -ax verb
 
 _src(){
@@ -88,7 +76,8 @@ _src(){
           [[ -O "$1" ]] &&
           [[ ! -x "$1" ]] &&
           [[ ! -L "$1" ]];
-  # then... if the 4th paramter is 'xx', enable xtrace and "verbose 
+  
+  # then... depending on the 4th parameter, enable xtrace and "verbose 
   # commands"
   then    if      [[ "$4" == y ]]
           then    set -x
@@ -96,13 +85,16 @@ _src(){
           # otherwise, neutralize the unused "verbose commands" syntax
           else    local -I "verb=(--)"
           fi
+          
           export verb
           # execute the subscript in question in the current context
           # shellcheck disable=SC1094,SC1090
           source "$1"
-          # if the 3rd parameter is 'xx', after `source` returns, `exit` 
-          # the calling shell.
+          
+          # depending on the 3rd parameter, after `source` returns, 
+          # `exit` the calling shell.
           [[ "$3" == y ]] && exit "$2"
+  
   # ...otherwise, what the heck? ...and print a line number to xtrace
   else    echo source file missing?
           set -x
@@ -110,12 +102,18 @@ _src(){
   fi
 }; declare -fxt _src
 
-: 'ID and sudo'       ; _src "${scr_nm_sudo}" "${nL}"   n n
-: 'Enable debugging'  ; _src "${scr_nm_dbug}" "${nL}"   n n
-: 'Required programs' ; _src "${scr_nm_cmds}" "${nL}"   n y
-: 'Locks'             ; _src "${scr_nm_lock}" "${nL}"   n y
-# ^                     ^-function            ^nameref  ^ ^-xtrace
-# ^-Purpose                  ^-filename                 ^-exit
+: 'ID and sudo'       ; _src './sudo.sh'          "${nL}"   n n
+: 'Enable debugging'  ; _src './debug.sh'         "${nL}"   n n
+: 'Required programs' ; _src './reqd-cmds.sh'     "${nL}"   n y
+: 'Locks'             ; _src './locks.sh'         "${nL}"   n y
+: 'Verify PATH'       ; _src './path-verify.sh'   "${nL}"   y y
+: 'Verify DACs'       ; _src './perms-verify.sh'  "${nL}"   y y
+: 'Verify ACLs'       ; _src './acls-verify.sh'   "${nL}"   y y
+: 'Option Parsing'    ; _src './opt-parsing.sh'   "${nL}"   y y
+: 'Storing findings'  ; _src './storage.sh'       "${nL}"   y y
+
+# ^--Purpose             ^--function      nameref--^  xtrace--^
+#                               ^--filename           exit--^
 
 
   # <> Obligatory debugging block
@@ -128,14 +126,6 @@ _src(){
 
 # Q: can you append cmd lists into traps?
 
-
-# Section B
-
-
-# TODO: remove "loc_" from any local varnames
-
-
-# SECTION C
 
 
 : 'Search for scripts using either -bash- or -find-'

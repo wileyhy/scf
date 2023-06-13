@@ -145,9 +145,9 @@ fi; unset xtr_rm_list xtr_files
 fn_bak() {
   : 'fn_bak BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   # for each of multiple input files
-  for loc_filename_a in "${@}"; do
+  for filename_a in "${@}"; do
     # test verifying existence of input
-    if sudo /bin/test -f "${loc_filename_a}"; then 
+    if sudo /bin/test -f "${filename_a}"; then 
 
       # Bug: Why does this ^ test req sudo when this test \/ doesnt?
       # Requires use of fn_bak or fn_bak to debug this.
@@ -155,21 +155,21 @@ fn_bak() {
 
       # if the destination (.bak) file already exists,
       # then age it first.
-      if [[ -f "${loc_filename_a}.bak" ]]; then 
-        if [[ -s "${loc_filename_a}.bak" ]]; then 
+      if [[ -f "${filename_a}.bak" ]]; then 
+        if [[ -s "${filename_a}.bak" ]]; then 
           return
         else
           sudo  rm --one-file-system --preserve-root=all -f -- \ 
-            "${loc_filename_a}.bak"
+            "${filename_a}.bak"
         fi
       fi   
       # write a new .bak file
-      sudo  rsync -acq -- "${loc_filename_a}"{,.bak} \
+      sudo  rsync -acq -- "${filename_a}"{,.bak} \
         || _erx "${nL}"
     # if input file DNE, then print an error and exit
     else 
       {    
-        echo WARNING: file DNE "${loc_filename_a}"
+        echo WARNING: file DNE "${filename_a}"
         return
       }    
     fi   
@@ -181,32 +181,32 @@ fn_write_arrays() {
   : 'fn_write_arrays BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   # Write each array to a file on disk.
   # Usage: fn_write_arrays [arrays]
-  loc_write_d_b="${curr_time_ssubd}arrays"
-  if [[ ! -d "${loc_write_d_b}" ]]; then
-    sudo  mkdir -p -- "${loc_write_d_b}" \
+  write_d_b="${curr_time_ssubd}arrays"
+  if [[ ! -d "${write_d_b}" ]]; then
+    sudo  mkdir -p -- "${write_d_b}" \
       || _erx "${nL}"
   fi
   # for each of multiple input array names
-  for loc_unquotd_array_nm_b in "${@}"; do
+  for unquotd_array_nm_b in "${@}"; do
     # create local variables, for use as both array and string
-    local -n loc_nameref_b="${loc_unquotd_array_nm_b}"
-    loc_array_nm="${loc_unquotd_array_nm_b}"
-    loc_write_f_b="${loc_write_d_b}/_${sc_sev_abrv}"
-    loc_write_f_b+="_${ABBREV_REL_SEARCH_DIRS}_${loc_array_nm}"
+    local -n nameref_b="${unquotd_array_nm_b}"
+    array_nm="${unquotd_array_nm_b}"
+    write_f_b="${write_d_b}/_${sc_sev_abrv}"
+    write_f_b+="_${ABBREV_REL_SEARCH_DIRS}_${array_nm}"
 
     # Bug? When array correctly is empty: 'declare -p ... > /dev/null ||' ?
     # requires use of fn_write_arrays or fn_write_arrays to debug this.
     # (~line 2000, 15 May)
 
     # if the input array holds no data, then populate it
-    if [[ ! -v loc_nameref_b[@] ]]; then
-      loc_nameref_b=([0]='fn_write_arrays: Empty array')
+    if [[ ! -v nameref_b[@] ]]; then
+      nameref_b=([0]='fn_write_arrays: Empty array')
     fi
     # then write a data file to disk
-    declare -p "${loc_array_nm}" \
-      | sudo  tee --output-error=exit  -- "${loc_write_f_b}" >/dev/null
+    declare -p "${array_nm}" \
+      | sudo  tee --output-error=exit  -- "${write_f_b}" >/dev/null
     # write a backup of the new data file
-    fn_bak "${loc_write_f_b}"
+    fn_bak "${write_f_b}"
   done
   : 'fn_write_arrays ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }

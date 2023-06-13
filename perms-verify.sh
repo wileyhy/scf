@@ -3,7 +3,7 @@
 
 
 : 'Verify DACs'
-# Bug: var path_2 is now loc_path_2
+# Bug: var path_2 is now path_2
 namei_o="$(
   for d in "${bash_path[@]}"; do
     namei -xl "$(
