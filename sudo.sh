@@ -1,8 +1,6 @@
 # ID and sudo
 # shellcheck shell=bash
 
-trap -p DEBUG
-exit $nL
 
 if [[ "$3" == y ]]; then set -x; verb=(-v --); else verb=(--); fi
 [[ "$2" == y ]] && exit "$1"
@@ -11,7 +9,7 @@ if [[ "$3" == y ]]; then set -x; verb=(-v --); else verb=(--); fi
   # <> Obligatory debugging block
   #_full_xtrace
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
-  #exit "${nL}"
+  exit "${nL}"
   #set -x
 
 
