@@ -54,7 +54,179 @@ trap _exit_trap EXIT TERM
 #_full_xtrace
 #exit "$nL"
 
+: 'Process Lock'
 
+#   So, what's the critical section?  For now, its the main `find`
+# command. The script can take so much time to execute, running
+# more than one process at once is wasteful of system resources.
+
+
+: 'Variables for Traps and Process Locks'
+
+declare -A A_process_lock_dirs
+#a_poss_proces_lock_dirs+=("${XDG_RUNTIME_DIR}" "${TMPDIR}" /var/lock \
+#  "${HOME}" /tmp /var/tmp)
+i=0
+#pld="" # SC2155
+#tcode="$(builtin printf '%(%F_%H%M%S)T')"
+
+#   The purpose of listing so many possible lock locations is that who
+# knows which of these directory locations will exist on disk whenever
+# down the road. The issue with including world-writeable dirs such as
+# /tmp is that /tmp is a consistent part of the Linux file structure,
+# and that probably isn't going to change any time soon. The notion
+# behind creating lockdirs, whose names include random number strings
+# according to a template, is to foil the predictability, and hence
+# the risk of DOS, that placing a (statically named) lock mechanism in
+# a world-writeable directory creates. The idea being, if the template
+# is unique enough that accurately predicting it will be impractical....
+# So,
+  : 'Form of filenames for process lock dirs:'
+  : $'\t' "/tmp/.${repo_nm}.${$}.${rand_i}.lock.d"
+#   Still, the issue occurs of the race condition. Since the filename
+# changes, the advantage of the atomicity of using `mkdir` is lost....
+# or is it?
+#   So what if you just create a lockdir first, according to the
+# template, then look for other lockdirs, and based on the info in the
+# found lockdirs' xattrs, determine whether a duplicate process is
+# running?
+#   It seems like that could possibly work, although the entire script
+# down to plausible filenames could be reconstructed, but for
+# practicality.
+
+# Bug: is there a simpler way to do this section?
+
+# An associative array, in case TMPDIR duplicates another array value
+for v in "${a_poss_proces_lock_dirs[@]}"; do
+  if [[ -d "${v}" ]]; then
+    v="$(realpath -e "${v}")"
+    A_process_lock_dirs+=( ["${v}/${rand_lock_nm}"]=$((i++)) )
+  fi
+done; unset i v
+
+for i in "${!A_process_lock_dirs[@]}"; do
+  a_process_lock_dirs+=( ["${A_process_lock_dirs[$i]}"]="$i" );
+done; unset A_process_lock_dirs i
+
+#_full_xtrace
+#exit "${nL}"
+
+
+# Bug: race condition btw defining and mkdir?
+
+: 'Process Lock: Define and create the lockdir'
+
+#target_fso=d
+
+for poss_lk_d in "${a_process_lock_dirs[@]}"; do
+
+  #case "${target_fso}" in
+    #d)
+      if
+        #sudo find "${poss_lk_d%/*}" -maxdepth 0 '(' \
+        #-type d -a '!' -type l ')' -writable -readable -executable \
+        #-true -exec
+
+        sudo mkdir -vm 0700 "${poss_lk_d}";
+      then
+        process_lock_d="${poss_lk_d}"
+        break
+        #target_fso=L
+      else
+		printf '\t\nA filesystem object already exists at %s\n\n' "${poss_lk_d}"
+		file "${poss_lk_d}"
+		stat "${poss_lk_d}"
+		fuser "${poss_lk_d}"
+		ls -alhFiR "${poss_lk_d}"
+		continue
+      fi
+      #;;
+
+    # ln cannot make hardlinks to dirs; chattr -i not supported
+    #L)
+      #sudo find "${poss_lk_d%/*}" -maxdepth 0 '(' \
+        #-type d -a '!' -type l ')' -writable -readable -executable \
+        #-true -exec sudo ln -vs "${process_lock_d}" "${poss_lk_d}" ';'
+      #;;
+  #esac
+done
+
+  # Bug: for some reason, the lockdir gets deleted while the
+  # symlinks stay put.
+
+  #shopt -o functrace
+  #"${Halt:?}"
+
+for poss_lk_d in "${a_process_lock_dirs[@]}"; do
+  # use the first one that fulfills certain requirements
+  mapfile -d '' -t find_out < <(
+    find "${poss_lk_d}" -maxdepth 0 '(' \
+    -type d -a '!' -type l ')' -writable -readable -executable \
+    -exec mkdir -m 0700 '()' ';'
+  )
+
+  : 'Process Lock: Create a lockdir and handle any error'
+  if [[ -n "${find_out[0]}" ]]; then
+
+	# x solved x - Bug: $find_out will expand to mult filenames
+
+    if mkdir -m 0700 "${process_lock_d:="${find_out[0]}"}" 2>/dev/null; then
+      break
+    else
+      continue
+    fi
+
+  else
+    {
+      printf '\n\tCannot acquire process lock: <%s>.\n' "${process_lock_d}"
+      printf 'Exiting.\n\n'
+    } 1>&2
+    #exit "${nL}"
+  fi
+done
+
+
+: 'Process Lock: Search for existing lockdirs'
+
+declare -p a_process_lock_dirs
+_get_lockdirs
+
+# Bug: loop var: the lower case L looks like the number 1
+
+for l in "${lkdrs[@]}"; do
+
+  # for dirs or syms
+  if [[ -d "${l}" ]] \
+    || [[ -L "${l}" ]]
+  then
+
+    if [[ -v rm_locks ]]; then
+
+      # `rmdir` doesn't remove symlinks
+      sudo rmdir -v -- "${l}"
+    else
+      printf '\n\t A process lock exists for this script. Exiting '
+      printf 'now.\n\n'
+      #exit "${nL}"
+    fi
+  fi
+done; unset l # lkdrs # a_poss_proces_lock_dirs # lkdrs_count
+
+# Note: rm_locks is an undocumented CLI option
+if [[ -v rm_locks ]] \
+  && [[ -n ${lkdrs[*]:0:16} ]];
+then
+  exit "${nL}"
+fi
+
+#exit "${nL}"
+#_full_xtrace
+
+
+
+
+
+# New section ==================================
 
 
   # <> Obligatory debugging block
