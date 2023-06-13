@@ -12,7 +12,8 @@ repo_nm=scf
 script_nm='./findscan'
 sc_sevr=error
 sc_shells='(sh|bash|dash|ksh)'
-export max_age_of_tmp_files repo_nm script_nm sc_sevr sc_shells
+timecode="$(builtin printf '%(%F_%H%M%S)T')"
+export max_age_of_tmp_files repo_nm script_nm sc_sevr sc_shells timecode
 
 unset LC_ALL
 builtin hash -r
@@ -119,29 +120,9 @@ _src(){
 
 : 'Variables for Traps (and Process Locks)'
 
-# TODO: move this array to lx.sh
-a_poss_proces_lock_dirs+=("/dev/shm/${repo_nm}" /var/lock \
-  "${XDG_RUNTIME_DIR}" "${TMPDIR}" /var/lock "${HOME}" /tmp \
-  /var/tmp)
-  
 #i=0
 pld="" # SC2155
-timecode="$(builtin printf '%(%F_%H%M%S)T')"
 
-# TODO: move this function to lx.sh
-_get_lockdirs(){
-  #_full_xtrace
-  local -gax lkdrs
-
-  mapfile -d '' -t lkdrs < <(
-    sudo find "${a_poss_proces_lock_dirs[@]}" \
-      -mindepth 1 -maxdepth 1 \( \
-      -type d -o -type l \) \( \
-      -name '*lock*' -a -name '*scf*' \) \
-      -print0 2> /dev/null
-  )
-  #export lkdrs
-}
 
 # Q: can you append cmd lists into traps?
 # TODO? move this function to lx.sh

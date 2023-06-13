@@ -1,6 +1,29 @@
 # Locks
 
 
+### Transfers from ./fndsc
+
+a_poss_proces_lock_dirs+=("/dev/shm/${repo_nm}" /var/lock \
+  "${XDG_RUNTIME_DIR}" "${TMPDIR}" /var/lock "${HOME}" /tmp \
+  /var/tmp)
+
+_get_lockdirs(){
+  #_full_xtrace
+  local -gax lkdrs
+
+  mapfile -d '' -t lkdrs < <(
+    sudo find "${a_poss_proces_lock_dirs[@]}" \
+      -mindepth 1 -maxdepth 1 \( \
+      -type d -o -type l \) \( \
+      -name '*lock*' -a -name '*scf*' \) \
+      -print0 2> /dev/null
+  )
+  #export lkdrs
+}
+
+
+
+
   # <> Obligatory debugging block
   #_full_xtrace
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
@@ -113,9 +136,7 @@ return "${LINENO}"
 
 
 # Exit
-
-
-
+exit "${nL}"
 
 
 
@@ -334,6 +355,7 @@ exit 101
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   #exit "${nL}"
   set -x
+
 
 
 
