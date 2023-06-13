@@ -76,7 +76,7 @@ function _post_src(){
           
   # depending on the 2rd parameter, after `source` returns, 
   # `exit` the calling shell with lineno $1.
-  if [[ "$2" == y ]]; then echo script_nm:"$1"; exit "${nL}"; fi
+  if [[ "$2" == y ]]; then echo "${script_nm}:$1"; exit "$4"; fi
 }; declare -fxt _post_src
 
 shopt -u sourcepath

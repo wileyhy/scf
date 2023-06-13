@@ -2,7 +2,7 @@
 # shellcheck shell=bash
 
 echo 'ampersand:' "$@"
-_post_src "$@"
+_post_src "$@" "${nL}"
 
 
   # <> Obligatory debugging block
