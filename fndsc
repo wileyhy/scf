@@ -1055,7 +1055,7 @@ trap - EXIT
 hash
 exit 00
 
-# TODO:
+# TODO: (end of script list)
 #   - grep output of rpm -qi for URLs, ie, github. which can I
 #       repair without adding a new login?
 #   - grep scripts for 'todo's
