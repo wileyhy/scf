@@ -103,14 +103,14 @@ _src(){
 }; declare -fxt _src
 
 : 'ID and sudo'       ; _src './sudo.sh'          "${nL}"   n n
-: 'Enable debugging'  ; _src './debug.sh'         "${nL}"   n n
+: 'Enable debugging'  ; _src './fixing.sh'        "${nL}"   n n
 : 'Required programs' ; _src './reqd-cmds.sh'     "${nL}"   n y
 : 'Locks'             ; _src './locks.sh'         "${nL}"   n y
 : 'Verify PATH'       ; _src './path-verify.sh'   "${nL}"   y y
-: 'Verify DACs'       ; _src './perms-verify.sh'  "${nL}"   y y
+: 'Verify DACs'       ; _src './dacs-verify.sh'   "${nL}"   y y
 : 'Verify ACLs'       ; _src './acls-verify.sh'   "${nL}"   y y
 : 'Option Parsing'    ; _src './opt-parsing.sh'   "${nL}"   y y
-: 'Storing findings'  ; _src './storage.sh'       "${nL}"   y y
+: 'Storing findings'  ; _src './hard-disk.sh'     "${nL}"   y y
 
 # ^--Purpose             ^--function      nameref--^  xtrace--^
 #                               ^--filename           exit--^
