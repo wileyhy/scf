@@ -66,51 +66,32 @@ _erx() {
 
 
 # Sub-scripts
-
+verb=(--)
 declare -ax verb
 
-_src(){
-  # if the file is... a file, owned by EUID, not executable and not a 
-  # symlink
-  if      [[ -f "$1" ]] &&
-          [[ -O "$1" ]] &&
-          [[ ! -x "$1" ]] &&
-          [[ ! -L "$1" ]];
-  
-  # then... depending on the 4th parameter, enable xtrace and "verbose 
-  # commands"
-  then    if      [[ "$4" == y ]]
-          then    set -x
-                  local -I "verb=(-v --)"
-          # otherwise, neutralize the unused "verbose commands" syntax
-          else    local -I "verb=(--)"
-          fi
+# depending on the 3th parameter, enable xtrace and "verbose commands"
+if      [[ "$3" == y ]]
+then    set -x
+        verb=(-v --)
+# otherwise, neutralize the unused "verbose commands" syntax
+else    verb=(--)
+fi
           
-          export verb
-          # execute the subscript in question in the current context
-          # shellcheck disable=SC1094,SC1090
-          source "$1"
-          
-          # depending on the 3rd parameter, after `source` returns, 
-          # `exit` the calling shell.
-          [[ "$3" == y ]] && exit "$2"
+# depending on the 2rd parameter, after `source` returns, 
+# `exit` the calling shell with lineno $1.
+[[ "$2" == y ]] && exit "$1"
   
-  # ...otherwise, what the heck? ...and print a line number to xtrace
-  else    echo source file missing?
-          set -x
-          exit "$2"
-  fi
-}; declare -fxt _src
+shopt -u sourcepath
 
-: 'ID and sudo'       ; _src './sudo.sh'          "${nL}"   n n
-: 'Enable debugging'  ; _src './gardening.sh'     "${nL}"   n n
-: 'Required programs' ; _src './reqd-cmds.sh'     "${nL}"   n y
-: 'Locks'             ; _src './locks.sh'         "${nL}"   n y
-: 'Verify PATH'       ; _src './path-verify.sh'   "${nL}"   y y
-: 'Verify DACs'       ; _src './dacs-verify.sh'   "${nL}"   y y
-: 'Verify ACLs'       ; _src './acls-verify.sh'   "${nL}"   y y
-: 'Option Parsing'    ; _src './opt-parsing.sh'   "${nL}"   y y
-: 'Storing findings'  ; _src './hard-disk.sh'     "${nL}"   y y
+: 'ID and sudo'       ; . -T './sudo.sh'          "${nL}"   y y
+: 'Enable debugging'  ; . -T './gardening.sh'     "${nL}"   n n
+: 'Required programs' ; . -T './reqd-cmds.sh'     "${nL}"   n y
+: 'Locks'             ; . -T './locks.sh'         "${nL}"   n y
+: 'Verify PATH'       ; . -T './path-verify.sh'   "${nL}"   y y
+: 'Verify DACs'       ; . -T './dacs-verify.sh'   "${nL}"   y y
+: 'Verify ACLs'       ; . -T './acls-verify.sh'   "${nL}"   y y
+: 'Option Parsing'    ; . -T './opt-parsing.sh'   "${nL}"   y y
+: 'Storing findings'  ; . -T './hard-disk.sh'     "${nL}"   y y
 
 # ^--Purpose             ^--function      nameref--^  xtrace--^
 #                               ^--filename           exit--^
