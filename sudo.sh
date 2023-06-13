@@ -1,7 +1,8 @@
 # ID and sudo
 # shellcheck shell=bash
 
-_post_src
+echo 'ampersand:' "$@"
+_post_src "$@"
 
 
   # <> Obligatory debugging block
