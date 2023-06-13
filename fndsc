@@ -103,7 +103,7 @@ _src(){
 }; declare -fxt _src
 
 : 'ID and sudo'       ; _src './sudo.sh'          "${nL}"   n n
-: 'Enable debugging'  ; _src './fixing.sh'        "${nL}"   n n
+: 'Enable debugging'  ; _src './gardening.sh'     "${nL}"   n n
 : 'Required programs' ; _src './reqd-cmds.sh'     "${nL}"   n y
 : 'Locks'             ; _src './locks.sh'         "${nL}"   n y
 : 'Verify PATH'       ; _src './path-verify.sh'   "${nL}"   y y
