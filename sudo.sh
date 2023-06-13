@@ -1,9 +1,7 @@
 # ID and sudo
 # shellcheck shell=bash
 
-
-if [[ "$3" == y ]]; then set -x; verb=(-v --); else verb=(--); fi
-[[ "$2" == y ]] && exit "$1"
+_post_src
 
 
   # <> Obligatory debugging block
