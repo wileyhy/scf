@@ -12,8 +12,8 @@ repo_nm=scf
 script_nm='./findscan'
 sc_sevr=error
 sc_shells='(sh|bash|dash|ksh)'
-timecode="$(builtin printf '%(%F_%H%M%S)T')"
-export max_age_of_tmp_files repo_nm script_nm sc_sevr sc_shells timecode
+tcode="$(builtin printf '%(%F_%H%M%S)T')"
+export max_age_of_tmp_files repo_nm script_nm sc_sevr sc_shells tcode
 
 unset LC_ALL
 builtin hash -r
@@ -405,7 +405,7 @@ unset index element calc
 mountpoint=/run/media/root/29_Mar_2023
 main_d="${mountpoint}/${script_dirnm}"
 data_subd="${main_d}/latest_data"
-curr_time_ssubd="${data_subd}/t_${timecode}/"
+curr_time_ssubd="${data_subd}/t_${tcode}/"
 list_crunchbangs="${curr_time_ssubd}/crunchbangs"
 : 'data files'
 a_write_path_nms=("${list_crunchbangs:=crunchbangs}"
@@ -1057,7 +1057,7 @@ declare -A A_process_lock_dirs
 #  "${HOME}" /tmp /var/tmp)
 i=0
 #pld="" # SC2155
-#timecode="$(builtin printf '%(%F_%H%M%S)T')"
+#tcode="$(builtin printf '%(%F_%H%M%S)T')"
 
 #   The purpose of listing so many possible lock locations is that who
 # knows which of these directory locations will exist on disk whenever
@@ -1804,7 +1804,7 @@ sudo  touch -- "${a_write_path_nms[@]}"
 
 : 'write a file header'
 {
-  printf '# crunchbangs -- %s\n' "${timecode%-*}"
+  printf '# crunchbangs -- %s\n' "${tcode%-*}"
   printf '# %s\n' "$(declare -p a_relevant_search_dirs)"
 } | sudo  tee --output-error=exit  -- "${a_write_path_nms[@]}" >/dev/null
 
@@ -1977,7 +1977,7 @@ fn_write_arrays a_write_path_nms a_interpreters a_interps_rps \
 # print one file header
 
 {
-  printf '# SC-scrpts-list -- %s\n' "${timecode%-*}"
+  printf '# SC-scrpts-list -- %s\n' "${tcode%-*}"
   printf '# %s\n' "$(declare -p  a_relevant_search_dirs)"
 } | sudo  tee --output-error=exit  -- \
     "${list_crunchbangs}_SC-scrpts-list" >/dev/null
@@ -1998,7 +1998,7 @@ fn_bak "${list_crunchbangs}_SC-scrpts-list" /tmp/*_SC-scrpts-list
 # <>
 #_full_xtrace
 :;: "<>"
-fn_write_arrays timecode list_crunchbangs sc_shells
+fn_write_arrays tcode list_crunchbangs sc_shells
 #exit "${nL}"
 
 #_full_xtrace
