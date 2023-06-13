@@ -2,6 +2,10 @@
 # shellcheck shell=bash
 
 
+if [[ "$3" == y ]]; then set -x; verb=(-v --); else verb=(--); fi
+[[ "$2" == y ]] && exit "$1"
+
+
   # <> Obligatory debugging block
   #_full_xtrace
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
