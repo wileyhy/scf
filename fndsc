@@ -78,6 +78,7 @@ if [[ "$3" == y ]]; then set -x; verb=(-v --); else verb=(--); fi
 [[ "$2" == y ]] && exit "$1"
   
 shopt -u sourcepath
+set -T
 
 : 'ID and sudo'       ; source -T './sudo.sh'          "${nL}"   y y
 exit $nL
