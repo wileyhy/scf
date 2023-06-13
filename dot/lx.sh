@@ -1,6 +1,9 @@
 # Locks
 
 
+# TODO: resolve approaches, prior w lockdirs and current w lockfiles
+#   Prev: "use lock dir as main_d"
+
 ### Transfers from ./fndsc
 
 a_poss_proces_lock_dirs+=("/dev/shm/${repo_nm}" /var/lock \
@@ -20,6 +23,36 @@ _get_lockdirs(){
   )
   #export lkdrs
 }
+
+_exit_trap() {
+  #set -x
+  : "EXIT trap BEGINS" "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
+  trap - DEBUG
+  trap - EXIT
+  # If no such array exists yet, then search for possible lockdirs
+  if ! declare -pa lkdrs 2> /dev/null 1>&2; then
+    : 'lkdrs DNE'
+    _get_lockdirs
+    declare -p lkdrs
+  else
+    : 'lkdrs exists'
+  fi
+  # Delete all possible existing process _lock_directories_.
+  for pld in "${lkdrs[@]}"; do
+    # test and delete lock directories.
+    if [[ -d "${pld}" ]] && [[ ! -L "${pld}" ]]; then
+      echo sudo rm --one-file-system --preserve-root=all -rfv -- \
+        "${pld}" \
+        || exit "${nL}"
+    fi
+  done && unset pld
+    # <>
+    #: "${Halt?}"
+  command -p kill -s INT "$$"
+}
+trap _exit_trap EXIT TERM
+#_full_xtrace
+#exit "$nL"
 
 
 

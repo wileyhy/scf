@@ -17,6 +17,7 @@ far_ps4='\e[0;104m+[${#nBS[@]}]${nBS[0]##*/}(${nL}) [$((${#nBS[@]}-1))]${nBS[1]#
 PS4="${far_ps4}"
 export FUNCNEST close_ps4 far_ps4 PS4
 
+
 # Print a function trace stack, and capture the FN's LINENO on line 0
 function _fn_trc(){ local line_hyphen="${nL:?}:$-"
   : '_fn_trc BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
@@ -36,6 +37,7 @@ function _fn_trc(){ local line_hyphen="${nL:?}:$-"
   : '_fn_trc ENDS' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }; declare -fxt _fn_trc
 
+
 # shadow the `exit` builtin, for when debugging is turned off
 function exit(){ local line="$1"
   : 'function exit BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
@@ -49,6 +51,7 @@ function exit(){ local line="$1"
   builtin exit "${line}";
   : 'function exit ENDS' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }; declare -fxt exit
+
 
 
 : '<>: Debug functions & traps'
@@ -88,6 +91,7 @@ _trap_ctrl_C() {
 
 # redefine the INT trap
 trap '_trap_ctrl_C' INT
+
 
 
 : '<> Delete any left over xtrace files from -mktemp -p /tmp-'
@@ -132,6 +136,81 @@ fi; unset xtr_rm_list xtr_files
   #: "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   #exit "${nL}"
   #set -x
+
+
+
+: 'Some standard data- & file-maintenance functions' 
+# Probably not nec in final script
+
+fn_bak() {
+  : 'fn_bak BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
+  # for each of multiple input files
+  for loc_filename_a in "${@}"; do
+    # test verifying existence of input
+    if sudo /bin/test -f "${loc_filename_a}"; then 
+
+      # Bug: Why does this ^ test req sudo when this test \/ doesnt?
+      # Requires use of fn_bak or fn_bak to debug this.
+      # (~line 2000, 15 May)
+
+      # if the destination (.bak) file already exists,
+      # then age it first.
+      if [[ -f "${loc_filename_a}.bak" ]]; then 
+        if [[ -s "${loc_filename_a}.bak" ]]; then 
+          return
+        else
+          sudo  rm --one-file-system --preserve-root=all -f -- \ 
+            "${loc_filename_a}.bak"
+        fi
+      fi   
+      # write a new .bak file
+      sudo  rsync -acq -- "${loc_filename_a}"{,.bak} \
+        || _erx "${nL}"
+    # if input file DNE, then print an error and exit
+    else 
+      {    
+        echo WARNING: file DNE "${loc_filename_a}"
+        return
+      }    
+    fi   
+  done 
+  : 'fn_bak ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
+}
+
+fn_write_arrays() {
+  : 'fn_write_arrays BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
+  # Write each array to a file on disk.
+  # Usage: fn_write_arrays [arrays]
+  loc_write_d_b="${curr_time_ssubd}arrays"
+  if [[ ! -d "${loc_write_d_b}" ]]; then
+    sudo  mkdir -p -- "${loc_write_d_b}" \
+      || _erx "${nL}"
+  fi
+  # for each of multiple input array names
+  for loc_unquotd_array_nm_b in "${@}"; do
+    # create local variables, for use as both array and string
+    local -n loc_nameref_b="${loc_unquotd_array_nm_b}"
+    loc_array_nm="${loc_unquotd_array_nm_b}"
+    loc_write_f_b="${loc_write_d_b}/_${sc_sev_abrv}"
+    loc_write_f_b+="_${ABBREV_REL_SEARCH_DIRS}_${loc_array_nm}"
+
+    # Bug? When array correctly is empty: 'declare -p ... > /dev/null ||' ?
+    # requires use of fn_write_arrays or fn_write_arrays to debug this.
+    # (~line 2000, 15 May)
+
+    # if the input array holds no data, then populate it
+    if [[ ! -v loc_nameref_b[@] ]]; then
+      loc_nameref_b=([0]='fn_write_arrays: Empty array')
+    fi
+    # then write a data file to disk
+    declare -p "${loc_array_nm}" \
+      | sudo  tee --output-error=exit  -- "${loc_write_f_b}" >/dev/null
+    # write a backup of the new data file
+    fn_bak "${loc_write_f_b}"
+  done
+  : 'fn_write_arrays ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
+}
+
 
 
 : '<> Debug: "Full xTrace" variables and functions'
