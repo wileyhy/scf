@@ -1,6 +1,7 @@
 # ID and sudo
 # shellcheck shell=bash
 
+trap -p DEBUG
 echo 'ampersand:' "$@"
 _post_src "$@" "${nL}"
 

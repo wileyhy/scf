@@ -81,6 +81,7 @@ function _post_src(){
 
 shopt -u sourcepath
 set -Cx
+trap 'echo foo' DEBUG
 
 : 'ID and sudo'       ; source './sudo.sh'          "${nL}"   y y
 exit $nL
