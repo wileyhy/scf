@@ -923,9 +923,9 @@ fi
 : 'Verify ACLs'
 
 # Variables, this section
-unset end_dirname full_dir_list ext_array dir sub_dir num_sub_dirs N n \
+unset fs_root_d full_dir_list ext_array dir sub_dir num_sub_dirs N n \
   extglob_pattern ext_first ext_last getfacl_o grep_o
-end_dirname=/ # TODO: ch varnm to fs_root_d
+fs_root_d=/
 declare -A full_dir_list
 ext_array=()
 
@@ -972,7 +972,7 @@ for dir in "${bash_path[@]}"; do
       sub_dir="$(dirname "${sub_dir:="${dir}"}")"
 
       # If the sub_dir is '/', then move on to the next big loop
-      if [[ "${sub_dir}" = "${end_dirname}" ]]; then
+      if [[ "${sub_dir}" = "${fs_root_d}" ]]; then
         break
       fi
       
@@ -1040,7 +1040,7 @@ for dir in "${bash_path[@]}"; do
 
     # otherwise, move on to the next big loop
     else
-      if [[ "${sub_dir}" = "${end_dirname}" ]]; then
+      if [[ "${sub_dir}" = "${fs_root_d}" ]]; then
         break
       fi
     fi
@@ -1049,7 +1049,7 @@ for dir in "${bash_path[@]}"; do
     sub_dir="$(dirname "${sub_dir:="${dir}"}")"
   done
 done
-unset end_dirname full_dir_list ext_array dir sub_dir num_sub_dirs \
+unset fs_root_d full_dir_list ext_array dir sub_dir num_sub_dirs \
   N n extglob_pattern ext_first ext_last getfacl_o grep_o
 
 # <>
