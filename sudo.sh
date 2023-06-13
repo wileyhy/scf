@@ -1,6 +1,8 @@
 # ID and sudo
 # shellcheck shell=bash
 
+trap -p DEBUG
+exit $nL
 
 if [[ "$3" == y ]]; then set -x; verb=(-v --); else verb=(--); fi
 [[ "$2" == y ]] && exit "$1"

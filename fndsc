@@ -76,11 +76,13 @@ if [[ "$3" == y ]]; then set -x; verb=(-v --); else verb=(--); fi
 # depending on the 2rd parameter, after `source` returns, 
 # `exit` the calling shell with lineno $1.
 [[ "$2" == y ]] && exit "$1"
-  
+
+
 shopt -u sourcepath
 set -T
+trap 'echo foo' DEBUG
 
-: 'ID and sudo'       ; source -T './sudo.sh'          "${nL}"   y y
+: 'ID and sudo'       ; source './sudo.sh'          "${nL}"   y y
 exit $nL
 : 'Enable debugging'  ; . -T './gardening.sh'     "${nL}"   n n
 : 'Required programs' ; . -T './reqd-cmds.sh'     "${nL}"   n y
