@@ -79,7 +79,7 @@ if [[ "$3" == y ]]; then set -x; verb=(-v --); else verb=(--); fi
 
 
 shopt -u sourcepath
-set -T
+set -CTx
 trap 'echo foo' DEBUG
 
 : 'ID and sudo'       ; source './sudo.sh'          "${nL}"   y y
