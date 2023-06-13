@@ -1,4 +1,5 @@
 # Required programs
+# shellcheck shell=bash
 
 
   # <> Obligatory debugging block

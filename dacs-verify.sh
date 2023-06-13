@@ -1,5 +1,5 @@
 # Verify DAC's
-
+# shellcheck shell=bash
 
 
 : 'Verify DACs'

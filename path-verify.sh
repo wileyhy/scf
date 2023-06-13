@@ -1,5 +1,5 @@
 # Verify PATH
-
+# shellcheck shell=bash
 
 : 'Verify PATH'
 _verify_path(){

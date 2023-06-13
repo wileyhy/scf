@@ -1,4 +1,5 @@
 # Debugging
+# shellcheck shell=bash
 
 
   # <> Obligatory debugging block

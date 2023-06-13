@@ -1,4 +1,5 @@
 # Data directories
+# shellcheck shell=bash
 
 
 : 'Data dirs'

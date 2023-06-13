@@ -1,5 +1,5 @@
 # Verify ACL's
-
+# shellcheck shell=bash
 
 : 'Verify ACLs'
 # Variables, this section

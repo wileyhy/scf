@@ -1,4 +1,5 @@
 # ID and sudo
+# shellcheck shell=bash
 
 
   # <> Obligatory debugging block

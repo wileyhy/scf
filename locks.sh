@@ -1,4 +1,5 @@
 # Locks
+# shellcheck shell=bash
 
 
 # TODO: resolve approaches, prior w lockdirs and current w lockfiles
