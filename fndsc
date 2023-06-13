@@ -40,13 +40,12 @@ if [[ "$*" =~ rm_locks ]]; then
   rm_locks='y'; export rm_locks; 
 fi
 
-# TODO: edit fn_lvl vars to print '2>3' etc
 _erx() {
   local loc_exit_code="$?"
-  : '_erx BEGINS' "${fn_bndry}" "$((++fn_lvl))"
+  : '_erx BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   echo -e Error: "$@" >&2
   exit "${loc_exit_code}"
-  : '_erx ENDS  ' "${fn_bndry}" "$((--fn_lvl))"
+  : '_erx ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }; declare -fxt _erx
 
 #_trap_ctrl_C() {
@@ -148,7 +147,7 @@ _get_lockdirs(){
 # TODO? move this function to lx.sh
 _exit_trap() {
   #set -x
-  : "EXIT trap BEGINS" "${fn_bndry}" "$((++fn_lvl))"
+  : "EXIT trap BEGINS" "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   trap - DEBUG
   trap - EXIT
 
@@ -241,7 +240,7 @@ verify=(all)
 : 'Functions'
 
 fn_bak() {
-  : 'fn_bak BEGINS' "${fn_bndry}" "$((++fn_lvl))"
+  : 'fn_bak BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   # for each of multiple input files
   for loc_filename_a in "${@}"; do
     # test verifying existence of input
@@ -272,11 +271,11 @@ fn_bak() {
       }
     fi
   done
-  : 'fn_bak ENDS  ' "${fn_bndry}" "$((--fn_lvl))"
+  : 'fn_bak ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }
 
 #fn_num() {
-#  : 'fn_num BEGINS' "${fn_bndry}" "$((++fn_lvl))"
+#  : 'fn_num BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
 #  # Usage: fn_num [raw arrays names]
 #  # for each of multiple input array names
 #  for loc_unquotd_array_nm_a in "${@}"; do
@@ -286,14 +285,14 @@ fn_bak() {
 #    # input array
 #    echo ${#loc_nameref_a[@]}
 #  done
-#  : 'fn_num ENDS  ' "${fn_bndry}" "$((--fn_lvl))"
+#  : 'fn_num ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 #}
 
 # TODO: review options & fix this function
 fn_usage() {
   # Print a usage message and exit with a pre-determined exit code
   # Usage:  fn_usage [exit-code]
-  : 'fn_usage BEGINS' "${fn_bndry}" "$((++fn_lvl))"
+  : 'fn_usage BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   {
     cat <<-EOF
   ${repo_nm} - ${script_proper_nm}, version ${script_version}
@@ -330,12 +329,12 @@ fn_usage() {
        *[s|y|b] Yes   [n] No
 EOF
   } | more -e
-  : 'fn_usage ENDS  ' "${fn_bndry}" "$((--fn_lvl))"
+  : 'fn_usage ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
   exit "${1}"
 }
 
 fn_write_arrays() {
-  : 'fn_write_arrays BEGINS' "${fn_bndry}" "$((++fn_lvl))"
+  : 'fn_write_arrays BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   # Write each array to a file on disk.
   # Usage: fn_write_arrays [arrays]
   loc_write_d_b="${curr_time_ssubd}arrays"
@@ -365,13 +364,13 @@ fn_write_arrays() {
     # write a backup of the new data file
     fn_bak "${loc_write_f_b}"
   done
-  : 'fn_write_arrays ENDS  ' "${fn_bndry}" "$((--fn_lvl))"
+  : 'fn_write_arrays ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }
 
 # TODO: a file of unused functions
 
 #fn_write_vars() {
-#  : 'fn_write_vars BEGINS' "${fn_bndry}" "$((++fn_lvl))"
+#  : 'fn_write_vars BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
 #  # Usage: fn_write_vars [loc_script_section_nm] [raw variable names]
 #  # first pos-parm is string used for differentiating filename
 #  loc_script_section_nm="${1}"
@@ -385,7 +384,7 @@ fn_write_arrays() {
 #    | sudo  tee --output-error=exit  -- "${loc_write_f_a}" >/dev/null
 #  # and write a .bak file
 #  fn_bak "${loc_write_f_a}"
-#  : 'fn_write_vars ENDS  ' "${fn_bndry}" "$((--fn_lvl))"
+#  : 'fn_write_vars ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 #}
 
 
@@ -821,7 +820,7 @@ shopt -u nocasematch
 : 'Verify PATH'
 
 _verify_path(){
-  : '_verify_path BEGINS'  "${fn_bndry}" "$((++fn_lvl))"
+  : '_verify_path BEGINS'  "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   #_full_xtrace
 
   # ...before running `type` / `command` or they'll print dups
@@ -887,7 +886,7 @@ _verify_path(){
   if [[ "${loc_var_nm}" = bash_path ]]; then
     IFS=":" read -ra find_path <<<"${bash_path}"
   fi
-  : '_verify_path ENDS  '  "${fn_bndry}" "$((--fn_lvl))"
+  : '_verify_path ENDS  '  "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }
 
 _verify_path PATH
