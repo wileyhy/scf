@@ -46,7 +46,7 @@ script_version=1.0
 export fn_lvl fn_bndry protected_git_dir_1 protected_git_dir_2 \
   script_dirnm script_lic script_proper_nm script_version
 
-# Undocumented CLI option # TODO: document it
+# Undocumented CLI option 
 if [[ "$*" =~ rm_locks ]]; then 
   rm_locks='y'; export rm_locks; 
 fi
