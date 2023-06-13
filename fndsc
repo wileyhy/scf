@@ -69,14 +69,15 @@ _erx() {
 verb=(--)
 declare -ax verb
 
+# Usage: _post_src "${nL}" "$@"
 function _post_src(){
   # depending on the 3th parameter, enable xtrace and "verbose commands"
   # otherwise, neutralize the unused "verbose commands" syntax
-  if [[ "$3" == y ]]; then set -x; verb=(-v --); else verb=(--); fi
+  if [[ "$4" == y ]]; then set -x; verb=(-v --); else verb=(--); fi
           
   # depending on the 2rd parameter, after `source` returns, 
   # `exit` the calling shell with lineno $1.
-  if [[ "$2" == y ]]; then echo "${script_nm}:$1"; exit "$4"; fi
+  if [[ "$3" == y ]]; then echo "${script_nm}:$2"; exit "$1"; fi
 }; declare -fxt _post_src
 
 shopt -u sourcepath
