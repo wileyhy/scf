@@ -80,18 +80,18 @@ function _post_src(){
 }; declare -fxt _post_src
 
 shopt -u sourcepath
-set -CTx
+set -Cx
 
 : 'ID and sudo'       ; source './sudo.sh'          "${nL}"   y y
 exit $nL
-: 'Enable debugging'  ; . -T './gardening.sh'     "${nL}"   n n
-: 'Required programs' ; . -T './reqd-cmds.sh'     "${nL}"   n y
-: 'Locks'             ; . -T './locks.sh'         "${nL}"   n y
-: 'Verify PATH'       ; . -T './path-verify.sh'   "${nL}"   y y
-: 'Verify DACs'       ; . -T './dacs-verify.sh'   "${nL}"   y y
-: 'Verify ACLs'       ; . -T './acls-verify.sh'   "${nL}"   y y
-: 'Option Parsing'    ; . -T './opt-parsing.sh'   "${nL}"   y y
-: 'Storing findings'  ; . -T './hard-disk.sh'     "${nL}"   y y
+: 'Enable debugging'  ; . './gardening.sh'     "${nL}"   n n
+: 'Required programs' ; . './reqd-cmds.sh'     "${nL}"   n y
+: 'Locks'             ; . './locks.sh'         "${nL}"   n y
+: 'Verify PATH'       ; . './path-verify.sh'   "${nL}"   y y
+: 'Verify DACs'       ; . './dacs-verify.sh'   "${nL}"   y y
+: 'Verify ACLs'       ; . './acls-verify.sh'   "${nL}"   y y
+: 'Option Parsing'    ; . './opt-parsing.sh'   "${nL}"   y y
+: 'Storing findings'  ; . './hard-disk.sh'     "${nL}"   y y
 
 # ^--Purpose             ^--function      nameref--^  xtrace--^
 #                               ^--filename           exit--^
