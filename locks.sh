@@ -7,7 +7,7 @@
 
 ### Transfers from ./fndsc
 
-a_poss_proces_lock_dirs+=("/dev/shm/${scr_scr_repo_nm}" /var/lock \
+a_poss_proces_lock_dirs+=("/dev/shm/${scr_repo_nm}" /var/lock \
   "${XDG_RUNTIME_DIR}" "${TMPDIR}" /var/lock "${HOME}" /tmp \
   /var/tmp)
 
@@ -83,7 +83,7 @@ i=0
 # is unique enough that accurately predicting it will be impractical....
 # So,
   : 'Form of filenames for process lock dirs:'
-  : $'\t' "/tmp/.${scr_scr_repo_nm}.${$}.${rand_i}.lock.d"
+  : $'\t' "/tmp/.${scr_repo_nm}.${$}.${rand_i}.lock.d"
 #   Still, the issue occurs of the race condition. Since the filename
 # changes, the advantage of the atomicity of using `mkdir` is lost....
 # or is it?
@@ -297,7 +297,7 @@ done; unset c lk_cmd_abspth
 
 ## Verify file names -- using POSIX 2017 functionality
 f="/dev/shm/$$_${rand_i}.f"
-l="/dev/shm/${scr_scr_repo_nm}"
+l="/dev/shm/${scr_repo_nm}"
 set -C
 
 for x in "${f}" "${l}"; do
@@ -370,7 +370,7 @@ case "$ans" in
   [Yy])
     while :; do
       sleep 60;
-      if [[ -e "/dev/shm/${scr_scr_repo_nm}" ]]; then
+      if [[ -e "/dev/shm/${scr_repo_nm}" ]]; then
         continue
       else
         break
@@ -382,10 +382,10 @@ unset POSIXLY_CORRECT
 # lhunath: "mkdir is not defined to be an atomic operation and as 
 #+ such that "side-effect" is an implementation detail of the file 
 #+ system"
-if mkdir -m 0700 -- "/dev/shm/${scr_scr_repo_nm}" 2> /dev/null; then
+if mkdir -m 0700 -- "/dev/shm/${scr_repo_nm}" 2> /dev/null; then
   printf 'Creation of lockdir succeeded.\n'
 
-  i="$( for f in "/dev/shm/${scr_scr_repo_nm}"/*; do 
+  i="$( for f in "/dev/shm/${scr_repo_nm}"/*; do 
           if [[ -e "$f" ]]; then 
             basename "$f"; 
           else 
@@ -401,12 +401,12 @@ if mkdir -m 0700 -- "/dev/shm/${scr_scr_repo_nm}" 2> /dev/null; then
 
 
   # for use of `lsof`
-  pushd "/dev/shm/${scr_scr_repo_nm}" ||
+  pushd "/dev/shm/${scr_repo_nm}" ||
     "${Halt:?}"
-  for f in "/dev/shm/${scr_scr_repo_nm}"/[0-9]*; do
+  for f in "/dev/shm/${scr_repo_nm}"/[0-9]*; do
     if [[ -e "$f" ]]; then
       printf 'Racing process exists; exiting.\n'
-      head "/dev/shm/${scr_scr_repo_nm}"/*
+      head "/dev/shm/${scr_repo_nm}"/*
       exit "${nL}"
     fi
   done
@@ -414,7 +414,7 @@ if mkdir -m 0700 -- "/dev/shm/${scr_scr_repo_nm}" 2> /dev/null; then
     sleep 60
   unset i f
   # benchmark this syntax
-  i="$( for f in "/dev/shm/${scr_scr_repo_nm}"/*; do
+  i="$( for f in "/dev/shm/${scr_repo_nm}"/*; do
           if [[ -e "$f" ]]; then
             basename "$f";
           else
@@ -432,7 +432,7 @@ if mkdir -m 0700 -- "/dev/shm/${scr_scr_repo_nm}" 2> /dev/null; then
 
 
     # benchmark this syntax
-  for f in "/dev/shm/${scr_scr_repo_nm}"/*; do
+  for f in "/dev/shm/${scr_repo_nm}"/*; do
           if [[ -e "$f" ]]; then
             i="$(basename "$f")";
           else
@@ -445,13 +445,13 @@ if mkdir -m 0700 -- "/dev/shm/${scr_scr_repo_nm}" 2> /dev/null; then
             fi
           fi;
         done
- mv -v "/dev/shm/${scr_scr_repo_nm}/$i" "/dev/shm/${scr_scr_repo_nm}/$((++i))";
+ mv -v "/dev/shm/${scr_repo_nm}/$i" "/dev/shm/${scr_repo_nm}/$((++i))";
 
 
 
   veri_lockfile="${f/\*/$((i))}"
   present_lock_count="$(basename "$veri_lockfile")";
-  for f in "/dev/shm/${scr_scr_repo_nm}"/[0-9]*; do
+  for f in "/dev/shm/${scr_repo_nm}"/[0-9]*; do
     if [[ -e "$f" ]]; then
       if [[ $present_lock_count -ne 0 ]]; then
         printf 'Racing process exists; exiting.\n'
@@ -462,33 +462,33 @@ if mkdir -m 0700 -- "/dev/shm/${scr_scr_repo_nm}" 2> /dev/null; then
     fi;
       done
   [[ -z "$veri_lockfile" ]] \
-    && veri_lockfile="/dev/shm/${scr_scr_repo_nm}/0"
-  echo "$EPOCHSECONDS,$BASHPID,$PPID" > "/dev/shm/${scr_scr_repo_nm}/pidfile" \
+    && veri_lockfile="/dev/shm/${scr_repo_nm}/0"
+  echo "$EPOCHSECONDS,$BASHPID,$PPID" > "/dev/shm/${scr_repo_nm}/pidfile" \
     || _erx "${nL}"
-  if mv -f "/dev/shm/${scr_scr_repo_nm}/pidfile" "$veri_lockfile"; then
+  if mv -f "/dev/shm/${scr_repo_nm}/pidfile" "$veri_lockfile"; then
     printf 'Writing data to process file.\n'
   else
     printf 'Racing process exists; exiting.\n'
     exit "${nL}"
   fi
-elif [[ -e "/dev/shm/${scr_scr_repo_nm}" ]]; then
-  if [[ -d "/dev/shm/${scr_scr_repo_nm}" ]]; then
+elif [[ -e "/dev/shm/${scr_repo_nm}" ]]; then
+  if [[ -d "/dev/shm/${scr_repo_nm}" ]]; then
     printf 'Creation of lockdir already occurred.\n'
     unset i f
-    i="$( for f in "/dev/shm/${scr_scr_repo_nm}"/*; do
+    i="$( for f in "/dev/shm/${scr_repo_nm}"/*; do
             if [[ -e "$f" ]]; then
               basename "$f";
             fi;
           done
     )" _mv_file;
     shopt -s nullglob
-        prior_process_files=("/dev/shm/${scr_scr_repo_nm}"/[0-9]*)
+        prior_process_files=("/dev/shm/${scr_repo_nm}"/[0-9]*)
 
     # wrong
     if [[ "${#prior_process_files[@]}" -eq 0 ]]; then
 
 
-      rm -frv -- "/dev/shm/${scr_scr_repo_nm}"
+      rm -frv -- "/dev/shm/${scr_repo_nm}"
       printf 'A prior process failed to clean up properly; exiting.\n'
       exit "${nL}"
     fi
@@ -506,7 +506,7 @@ elif [[ -e "/dev/shm/${scr_scr_repo_nm}" ]]; then
       zero="${0#./}"
       #set -
       ps_o="$(ps aux \
-        |& grep -e "${bashpid:='bash'}" -e "${ppid:="${scr_scr_repo_nm}"}" -e "${zero:='.sh'}" \
+        |& grep -e "${bashpid:='bash'}" -e "${ppid:="${scr_repo_nm}"}" -e "${zero:='.sh'}" \
         |& grep -ve grep -e "${BASHPID}" -e "${PPID}")"
 
       #set -x
@@ -536,7 +536,7 @@ elif [[ -e "/dev/shm/${scr_scr_repo_nm}" ]]; then
           ;;
       esac
       printf 'Removing lockdir and exiting.\n'
-      rm -frv -- "/dev/shm/${scr_scr_repo_nm}"
+      rm -frv -- "/dev/shm/${scr_repo_nm}"
       exit "${nL}"
     done
     shopt -u nullglob
@@ -546,10 +546,10 @@ elif [[ -e "/dev/shm/${scr_scr_repo_nm}" ]]; then
 else
   _erx "${nL}"
 fi;
-#declare -p f i; ls -a "/dev/shm/${scr_scr_repo_nm}/"; set -;
+#declare -p f i; ls -a "/dev/shm/${scr_repo_nm}/"; set -;
 echo
-stat "/dev/shm/${scr_scr_repo_nm}"/[0-9]*;
-head "/dev/shm/${scr_scr_repo_nm}"/[0-9]*;
+stat "/dev/shm/${scr_repo_nm}"/[0-9]*;
+head "/dev/shm/${scr_repo_nm}"/[0-9]*;
 unset f i ps_o
 exit 101
 

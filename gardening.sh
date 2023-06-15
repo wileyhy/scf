@@ -111,7 +111,7 @@ touch -d "${scr_max_age_of_tmp_files:?}" "${xtr_time_f}"
 # Get the list of remaining xtrace log files (older than the time file)
 mapfile -d '' -t xtr_files < <(
   find -P /tmp -maxdepth 1 -type f \
-    -name "tmp.[a-zA-Z0-9]*.${scr_scr_repo_nm:?}.[0-9]*.[0-9]*.xtr*" \
+    -name "tmp.[a-zA-Z0-9]*.${scr_repo_nm:?}.[0-9]*.[0-9]*.xtr*" \
     '!' -newer "${xtr_time_f}" '!' -name "${xtr_time_f##*/}" -print0
 )
 
