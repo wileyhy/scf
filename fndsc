@@ -76,8 +76,11 @@ _erx() {
   #set -x
 
 
+# Error: this syntax causes a segfault. 15 June 2023, v. 5.2.15(1)-release
+#verb=(--) declare -ax verb 
+
 # Sub-scripts
-verb=(--) declare -ax verb
+declare -ax verb=( '--' )
 
 # Usage: _post_src "${nL}" "$@"
 function _post_src(){
