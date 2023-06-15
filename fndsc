@@ -6,13 +6,13 @@
 # Note: Keep your goal in mind.
 
 
-max_age_of_tmp_files='1 minutes ago'
+scr_max_age_of_tmp_files='1 minutes ago'
 repo_nm='scf'
 script_nm='./fndsc'
 sc_sevr='error'
 sc_shells='(sh|bash|dash|ksh)'
 tcode="$(builtin printf '%(%F_%H%M%S)T')"
-export max_age_of_tmp_files repo_nm script_nm sc_sevr sc_shells tcode
+export scr_max_age_of_tmp_files repo_nm script_nm sc_sevr sc_shells tcode
 
 unset CDPATH
 readonly CDPATH

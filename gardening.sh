@@ -104,7 +104,7 @@ export rand_f_nm xtr_time_f xtr_delta_sum_f
 unset f xtr_rm_list xtr_files
 
 # Create the xtrace time file
-touch -d "${max_age_of_tmp_files:?}" "${xtr_time_f}"
+touch -d "${scr_max_age_of_tmp_files:?}" "${xtr_time_f}"
 
 # Remove any errant xtrace log files
 
