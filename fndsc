@@ -84,19 +84,18 @@ shopt -u sourcepath
 set -x
 trap 'echo foo' DEBUG
 
-: 'ID and sudo'       ; source './sudo.sh'          "${nL}"   y y
-exit $nL
-: 'Enable debugging'  ; . './gardening.sh'     "${nL}"   n n
-: 'Required programs' ; . './reqd-cmds.sh'     "${nL}"   n y
-: 'Locks'             ; . './locks.sh'         "${nL}"   n y
-: 'Verify PATH'       ; . './path-verify.sh'   "${nL}"   y y
-: 'Verify DACs'       ; . './dacs-verify.sh'   "${nL}"   y y
-: 'Verify ACLs'       ; . './acls-verify.sh'   "${nL}"   y y
-: 'Option Parsing'    ; . './opt-parsing.sh'   "${nL}"   y y
-: 'Storing findings'  ; . './hard-disk.sh'     "${nL}"   y y
+: 'ID and sudo'       ; . './sudo.sh'          "${nL}"   y y; exit $nL
+: 'Enable debugging'  ; . './gardening.sh'     "${nL}"   y y; exit $nL
+: 'Required programs' ; . './reqd-cmds.sh'     "${nL}"   y y; exit $nL
+: 'Locks'             ; . './locks.sh'         "${nL}"   y y; exit $nL
+: 'Verify PATH'       ; . './path-verify.sh'   "${nL}"   y y; exit $nL
+: 'Verify DACs'       ; . './dacs-verify.sh'   "${nL}"   y y; exit $nL
+: 'Verify ACLs'       ; . './acls-verify.sh'   "${nL}"   y y; exit $nL
+: 'Option Parsing'    ; . './opt-parsing.sh'   "${nL}"   y y; exit $nL
+: 'Storing findings'  ; . './hard-disk.sh'     "${nL}"   y y; exit $nL
 
-# ^--Purpose             ^--function      nameref--^  xtrace--^
-#                               ^--filename           exit--^
+# ^--Purpose            ^--dot         nameref--^  xtrace--^
+#                            ^--filename           exit--^
 
 
   # <> Obligatory debugging block
