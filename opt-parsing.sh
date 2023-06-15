@@ -24,7 +24,7 @@ easter_egg="$(
 find_exclude_optargs_default=(
   [0]='(' [1]='!' [2]='-name' [3]='proc' [4]='-a' [5]='!'
   [6]='-name' [7]='sys' [8]='-a' [9]='!' [10]='-iname'
-  [11]="${script_dirnm}*" [12]='-a' [13]='!' [14]='-ipath'
+  [11]="${scr_dirnm}*" [12]='-a' [13]='!' [14]='-ipath'
   [15]="${protected_git_dir_1}" [16]='-a' [17]='!' [18]='-ipath'
   [19]="${protected_git_dir_2}" [20]='-a' [21]='!' [22]='-path'
   [23]='*/git/*' [24]=')'
@@ -51,7 +51,7 @@ fn_usage() {
   : 'fn_usage BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   {
     cat <<-EOF
-  ${scr_repo_nm} - ${script_proper_nm}, version ${script_version}
+  ${scr_repo_nm} - ${scr_proper_nm}, version ${scr_version}
     Find and scan shell scripts depending on severity level.
     Options are parsed by bash's builtin "getopts".
   Usage:
@@ -418,8 +418,8 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
           ;;
       esac ;;
 
-    v) printf '\n\t%s, version %s. %s.\n\n' "${script_proper_nm}" \
-      "${script_version}" "${script_lic}" ;;
+    v) printf '\n\t%s, version %s. %s.\n\n' "${scr_proper_nm}" \
+      "${scr_version}" "${scr_lic}" ;;
 
     *) fn_usage 1 ;;
   esac

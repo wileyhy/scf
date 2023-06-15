@@ -48,12 +48,12 @@ fn_bndry=' +++ +++ +++ ' fn_lvl=0 export fn_lvl fn_bndry
 
 protected_git_dir_1="${HOME}/MYPROJECTS"
 protected_git_dir_2="${HOME}/OTHERSPROJECTS"
-script_dirnm="${scr_scr_repo_nm}.d"
-script_lic='Apache 2 license'
-script_proper_nm='Script Finder'
-script_version=1.0
+scr_dirnm="${scr_scr_repo_nm}.d"
+scr_lic='Apache 2 license'
+scr_proper_nm='Script Finder'
+scr_version=1.0
 export fn_lvl fn_bndry protected_git_dir_1 protected_git_dir_2 \
-  script_dirnm script_lic script_proper_nm script_version
+  scr_dirnm scr_lic scr_proper_nm scr_version
 
 # Undocumented CLI option 
 if [[ "$*" =~ rm_locks ]]; then 
@@ -953,7 +953,7 @@ sort_o="$(sort -gr <<<"${wc_o}")"
 awko="$(gawk --lint '{ print $2 }' <<<"${sort_o}")"
 
 # create a list of script names sorted by line count descending
-mapfile -t a_each_script_list_sorted_by_linect \
+mapfile -t a_each_scr_list_sorted_by_linect \
   <<<"${awko}"
 
 # define file name, including severity and path symbols (target file)
@@ -966,7 +966,7 @@ i=0
 {
 
   # for each sorted script
-  for sorted_script in "${!a_each_script_list_sorted_by_linect[@]}"; do
+  for sorted_script in "${!a_each_scr_list_sorted_by_linect[@]}"; do
 
     # run shellcheck with selected/default severity
     # remove URL's
@@ -979,9 +979,9 @@ i=0
     # on any non-zero exit status, print an error, incuding PIPEFAIL
     # array, and exit the script when filters, etc completes, print
     # a NULL to start a new mapfile index
-    mapfile -d '' -t a_each_script_SC_results < <(
+    mapfile -d '' -t a_each_scr_SC_results < <(
       shellcheck -S "${SC_sevr}" \
-        "${a_each_script_list_sorted_by_linect[sorted_script]}" \
+        "${a_each_scr_list_sorted_by_linect[sorted_script]}" \
         | grep -Fv 'shellcheck.net' \
         | grep -Eo "SC[0-9]{4}.*" \
         | cut -b -64 \
@@ -994,16 +994,16 @@ i=0
     )
 
     # if there's any output from shellcheck
-    if [[ -n "${a_each_script_SC_results[*]:0:1}" ]]; then
+    if [[ -n "${a_each_scr_SC_results[*]:0:1}" ]]; then
 
       # Bug: iterator sb $sorted_script ? sorted_script should have
 
       # print a line header. (as-is:) including a new index number
       # for each script
       printf '\n%-4d%s\n' $((i++)) \
-        "${a_each_script_list_sorted_by_linect[sorted_script]}"
+        "${a_each_scr_list_sorted_by_linect[sorted_script]}"
       # print all massaged SC results for each script
-      printf '%s' "${a_each_script_SC_results[@]}"
+      printf '%s' "${a_each_scr_SC_results[@]}"
     fi
   done
   unset i
