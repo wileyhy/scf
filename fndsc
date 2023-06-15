@@ -10,9 +10,10 @@ scr_max_age_of_tmp_files='1 minutes ago'
 scr_scr_repo_nm='scf'
 scr_nm='./fndsc'
 scr_tcode="$(builtin printf '%(%F_%H%M%S)T')"
+export scr_max_age_of_tmp_files scr_scr_repo_nm scr_nm scr_tcode
 SC_sevr='error'
-sc_shells='(sh|bash|dash|ksh)'
-export scr_max_age_of_tmp_files scr_scr_repo_nm scr_nm SC_sevr sc_shells scr_tcode
+SC_shells='(sh|bash|dash|ksh)'
+export SC_sevr SC_shells 
 
 unset CDPATH
 readonly CDPATH
@@ -29,23 +30,21 @@ PATH_getconf="$( \
     "${Halt:?}"
 )"
 PATH="${PATH_getconf}:/usr/bin:/usr/sbin:${PATH}" export PATH
-path="${PATH}" readonly path
 
 unset LC_ALL 
-LC_COLLATE="C.UTF-8"     # for predictable sorting
-LC_CTYPE="C.UTF-8"       #  "   "           "
-LC_NUMERIC="en_US.UTF-8" # for commas in large numbers
-GREP_COLORS='mt=01;43'
-export GREP_COLORS LC_COLLATE LC_CTYPE LC_NUMERIC 
+LC_COLLATE="C.UTF-8" LC_CTYPE="C.UTF-8" # for predictable sorting
+LC_NUMERIC="en_US.UTF-8"                # for commas in large numbers
+export LC_COLLATE LC_CTYPE LC_NUMERIC 
+
+GREP_COLORS='mt=01;43' export GREP_COLORS
+declare -nx nBL=BASH_LINENO nBS=BASH_SOURCE nF=FUNCNAME nL=LINENO
 
 rand_i="${RANDOM}"
 rand_uniq_str="${scr_scr_repo_nm}.${$}.${rand_i}"
-rand_lock_nm="${rand_uniq_str}.lock.d"
-rand_f_nm="${rand_uniq_str:?}.xtr"
+rand_lock_nm="${rand_uniq_str}.lock.d" rand_f_nm="${rand_uniq_str:?}.xtr"
 export rand_i rand_uniq_str rand_lock_nm rand_f_nm
 
 fn_bndry=' +++ +++ +++ ' fn_lvl=0 export fn_lvl fn_bndry 
-declare -nx nBL=BASH_LINENO nBS=BASH_SOURCE nF=FUNCNAME nL=LINENO
 
 protected_git_dir_1="${HOME}/MYPROJECTS"
 protected_git_dir_2="${HOME}/OTHERSPROJECTS"
@@ -890,7 +889,7 @@ fn_write_arrays a_write_path_nms a_interpreters a_interps_rps \
 
 # filter out interpreters not compatible with shellcheck.
 # file $list_crunchbangs is located in $time_dir.
-sudo  grep -E -- '/bin/'"${sc_shells}"'.*%=%=%=%' "${list_crunchbangs}" \
+sudo  grep -E -- '/bin/'"${SC_shells}"'.*%=%=%=%' "${list_crunchbangs}" \
   | sudo  tee -a -- "${list_crunchbangs}_SC-scrpts-list" \
   || _erx "${nL}"
 
@@ -904,7 +903,7 @@ fn_bak "${list_crunchbangs}_SC-scrpts-list" /tmp/*_SC-scrpts-list
 # <>
 #_full_xtrace
 :;: "<>"
-fn_write_arrays scr_tcode list_crunchbangs sc_shells
+fn_write_arrays scr_tcode list_crunchbangs SC_shells
 #exit "${nL}"
 
 #_full_xtrace
