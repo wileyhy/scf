@@ -14,11 +14,23 @@ sc_shells='(sh|bash|dash|ksh)'
 tcode="$(builtin printf '%(%F_%H%M%S)T')"
 export max_age_of_tmp_files repo_nm script_nm sc_sevr sc_shells tcode
 
-unset LC_ALL
+unset LC_ALL CDPATH
+readonly CDPATH
+
 builtin hash -r
-builtin hash -p "$(builtin type -P getconf)" getconf
-PATH_getconf="$(command -p getconf PATH)" || "${Halt:?}"
-PATH="${PATH_getconf}:/usr/bin:/usr/sbin:${PATH}"
+forced_path_search="$( \
+  builtin type -P getconf
+)"
+[[ -z "$forced_path_search" ]] && 
+  "${Halt:?}"
+builtin hash -p "${forced_path_search}" getconf
+PATH_getconf="$( \
+  command -p getconf PATH || 
+    "${Halt:?}"
+)"
+PATH="${PATH_getconf}:/usr/bin:/usr/sbin:${PATH}" export PATH
+path="${PATH}" readonly path
+
 LC_COLLATE="C.UTF-8"     # for predictable sorting
 LC_CTYPE="C.UTF-8"       #  "   "           "
 LC_NUMERIC="en_US.UTF-8" # for commas in large numbers
@@ -31,9 +43,7 @@ rand_lock_nm="${rand_uniq_str}.lock.d"
 xtr_f_nm="${rand_uniq_str:?}.xtr"
 export rand_i rand_uniq_str rand_lock_nm xtr_f_nm
 
-fn_bndry=' +++ +++ +++ '
-fn_lvl=0; 
-export fn_lvl fn_bndry 
+fn_bndry=' +++ +++ +++ ' fn_lvl=0 export fn_lvl fn_bndry 
 declare -nx nBL=BASH_LINENO nBS=BASH_SOURCE nF=FUNCNAME nL=LINENO
 
 protected_git_dir_1="${HOME}/MYPROJECTS"
@@ -47,7 +57,7 @@ export fn_lvl fn_bndry protected_git_dir_1 protected_git_dir_2 \
 
 # Undocumented CLI option 
 if [[ "$*" =~ rm_locks ]]; then 
-  rm_locks='y'; export rm_locks; 
+  rm_locks='y' export rm_locks; 
 fi
 
 _erx() {
