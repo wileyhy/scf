@@ -69,7 +69,7 @@ declare -A A_process_lock_dirs
 #  "${HOME}" /tmp /var/tmp)
 i=0
 #pld="" # SC2155
-#tcode="$(builtin printf '%(%F_%H%M%S)T')"
+#scr_tcode="$(builtin printf '%(%F_%H%M%S)T')"
 
 #   The purpose of listing so many possible lock locations is that who
 # knows which of these directory locations will exist on disk whenever

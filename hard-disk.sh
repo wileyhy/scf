@@ -12,7 +12,7 @@
 mountpoint=/run/media/root/29_Mar_2023
 main_d="${mountpoint}/${script_dirnm}"
 data_subd="${main_d}/latest_data"
-curr_time_ssubd="${data_subd}/t_${tcode}/"
+curr_time_ssubd="${data_subd}/t_${scr_tcode}/"
 list_crunchbangs="${curr_time_ssubd}/crunchbangs"
 : 'data files'
 a_write_path_nms=("${list_crunchbangs:=crunchbangs}"
