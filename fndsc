@@ -10,9 +10,9 @@ scr_max_age_of_tmp_files='1 minutes ago'
 scr_scr_repo_nm='scf'
 scr_nm='./fndsc'
 scr_tcode="$(builtin printf '%(%F_%H%M%S)T')"
-sc_sevr='error'
+SC_sevr='error'
 sc_shells='(sh|bash|dash|ksh)'
-export scr_max_age_of_tmp_files scr_scr_repo_nm scr_nm sc_sevr sc_shells scr_tcode
+export scr_max_age_of_tmp_files scr_scr_repo_nm scr_nm SC_sevr sc_shells scr_tcode
 
 unset CDPATH
 readonly CDPATH
@@ -981,7 +981,7 @@ i=0
     # array, and exit the script when filters, etc completes, print
     # a NULL to start a new mapfile index
     mapfile -d '' -t a_each_script_SC_results < <(
-      shellcheck -S "${sc_sevr}" \
+      shellcheck -S "${SC_sevr}" \
         "${a_each_script_list_sorted_by_linect[sorted_script]}" \
         | grep -Fv 'shellcheck.net' \
         | grep -Eo "SC[0-9]{4}.*" \

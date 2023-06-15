@@ -32,7 +32,7 @@ find_exclude_optargs_default=(
 find_exclude_optargs=()
 IFS=':' read -ra find_path <<<"${bash_path}"
 find_sym_opt_L='-L'
-sc_sev_abrv="${sc_sevr:0:1}"
+sc_sev_abrv="${SC_sevr:0:1}"
 #methods_recurse_n=no
 methods_path=('as-is')
 methods_prog_cv=bash_type_a
@@ -140,10 +140,10 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
 
     # ShellCheck's '-S' setting, ie, severity level. Default is error.
     c) case "${OPTARG:0:1}" in
-      e*) sc_sevr=error ;;
-      i*) sc_sevr=info ;;
-      s*) sc_sevr=style ;;
-      w*) sc_sevr=warning ;;
+      e*) SC_sevr=error ;;
+      i*) SC_sevr=info ;;
+      s*) SC_sevr=style ;;
+      w*) SC_sevr=warning ;;
       *) "${arg_wrong__c:?}" ;;
     esac ;;
 
