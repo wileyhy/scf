@@ -51,7 +51,7 @@ fn_usage() {
   : 'fn_usage BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   {
     cat <<-EOF
-  ${repo_nm} - ${script_proper_nm}, version ${script_version}
+  ${scr_repo_nm} - ${script_proper_nm}, version ${script_version}
     Find and scan shell scripts depending on severity level.
     Options are parsed by bash's builtin "getopts".
   Usage:

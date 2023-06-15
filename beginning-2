@@ -8,7 +8,7 @@
 # Frequently changing variables
 dev_d1=~/MYPROJECTS
 dev_d2=~/OTHERSPROJECTS
-repo_nm=scf
+scr_repo_nm=scf
 
 # Regular users only
 if [[ "${UID}" == 0 ]]; then
@@ -161,11 +161,11 @@ then
 fi
 
 # Clone repo
-if [[ ! -d ./"${repo_nm}" ]] \
-  || [[ ! -f ./"${repo_nm}"/README.md ]]; 
+if [[ ! -d ./"${scr_repo_nm}" ]] \
+  || [[ ! -f ./"${scr_repo_nm}"/README.md ]]; 
 then
   git clone -o 'github' \
-    https://github.com/wileyhy/"${repo_nm}" \
+    https://github.com/wileyhy/"${scr_repo_nm}" \
     || exit "${nL}"
 fi
 
@@ -247,9 +247,9 @@ export GPG_TTY
 # Remind user of commands for the interactive shell
 set -x
 popd
-if [[ "${PWD}" != "${dev_d1}/${repo_nm}" ]]; then 
+if [[ "${PWD}" != "${dev_d1}/${scr_repo_nm}" ]]; then 
   printf '\n\t Now run this command: \n'
-  printf '\n\t cd %s/%s; git status \n\n' "${dev_d1}" "${repo_nm}"
+  printf '\n\t cd %s/%s; git status \n\n' "${dev_d1}" "${scr_repo_nm}"
 fi
 
 # Clean up
