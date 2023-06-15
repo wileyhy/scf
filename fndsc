@@ -14,7 +14,7 @@ sc_shells='(sh|bash|dash|ksh)'
 tcode="$(builtin printf '%(%F_%H%M%S)T')"
 export max_age_of_tmp_files repo_nm script_nm sc_sevr sc_shells tcode
 
-unset LC_ALL CDPATH
+unset CDPATH
 readonly CDPATH
 
 builtin hash -r
@@ -31,17 +31,18 @@ PATH_getconf="$( \
 PATH="${PATH_getconf}:/usr/bin:/usr/sbin:${PATH}" export PATH
 path="${PATH}" readonly path
 
+unset LC_ALL 
 LC_COLLATE="C.UTF-8"     # for predictable sorting
 LC_CTYPE="C.UTF-8"       #  "   "           "
 LC_NUMERIC="en_US.UTF-8" # for commas in large numbers
 GREP_COLORS='mt=01;43'
-export GREP_COLORS LC_COLLATE LC_CTYPE LC_NUMERIC PATH 
+export GREP_COLORS LC_COLLATE LC_CTYPE LC_NUMERIC 
 
 rand_i="${RANDOM}"
 rand_uniq_str="${repo_nm}.${$}.${rand_i}"
 rand_lock_nm="${rand_uniq_str}.lock.d"
-xtr_f_nm="${rand_uniq_str:?}.xtr"
-export rand_i rand_uniq_str rand_lock_nm xtr_f_nm
+rand_f_nm="${rand_uniq_str:?}.xtr"
+export rand_i rand_uniq_str rand_lock_nm rand_f_nm
 
 fn_bndry=' +++ +++ +++ ' fn_lvl=0 export fn_lvl fn_bndry 
 declare -nx nBL=BASH_LINENO nBS=BASH_SOURCE nF=FUNCNAME nL=LINENO
@@ -309,7 +310,7 @@ then
 
   # Workaround: `compgen -c "*"` was picking up executable shell
   # scripts from the CWD
-  tempd="$(mktemp -d --suffix=."${xtr_f_nm/%.xtr/.d}")"
+  tempd="$(mktemp -d --suffix=."${rand_f_nm/%.xtr/.d}")"
   cd "${tempd}" \
     || _erx cd
 

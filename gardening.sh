@@ -98,9 +98,9 @@ trap '_trap_ctrl_C' INT
 : '<> Delete any left over xtrace files from -mktemp -p /tmp-'
 
 # Vars
-xtr_time_f="/tmp/tmp.mtime_file.${xtr_f_nm}"
-xtr_delta_sum_f="$(mktemp -p /tmp --suffix=."${xtr_f_nm}.E")"
-export xtr_f_nm xtr_time_f xtr_delta_sum_f
+xtr_time_f="/tmp/tmp.mtime_file.${rand_f_nm}"
+xtr_delta_sum_f="$(mktemp -p /tmp --suffix=."${rand_f_nm}.E")"
+export rand_f_nm xtr_time_f xtr_delta_sum_f
 unset f xtr_rm_list xtr_files
 
 # Create the xtrace time file
@@ -282,7 +282,7 @@ _mk_v_setenv_novv() {
   : '_mk_v_setenv_novv BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
 
   # create 'now' file
-  xtr_senv_now="$(mktemp -p /tmp --suffix=."${xtr_f_nm}")"
+  xtr_senv_now="$(mktemp -p /tmp --suffix=."${rand_f_nm}")"
 
   # output data to new file
   set |& tee -- "${xtr_senv_now}" >/dev/null
@@ -311,7 +311,7 @@ _mk_v_setenv_delta() {
     fi
 
     # create a new delta file, each time
-    xtr_senv_delt="$(mktemp -p /tmp --suffix=."${xtr_f_nm}.A")"
+    xtr_senv_delt="$(mktemp -p /tmp --suffix=."${rand_f_nm}.A")"
 
       # write the diff of the 'prev' and 'now' files to the new
       # 'delta' file
