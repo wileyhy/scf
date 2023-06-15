@@ -25,8 +25,8 @@ find_exclude_optargs_default=(
   [0]='(' [1]='!' [2]='-name' [3]='proc' [4]='-a' [5]='!'
   [6]='-name' [7]='sys' [8]='-a' [9]='!' [10]='-iname'
   [11]="${scr_dirnm}*" [12]='-a' [13]='!' [14]='-ipath'
-  [15]="${protected_git_dir_1}" [16]='-a' [17]='!' [18]='-ipath'
-  [19]="${protected_git_dir_2}" [20]='-a' [21]='!' [22]='-path'
+  [15]="${scr_protected_git_dir_1}" [16]='-a' [17]='!' [18]='-ipath'
+  [19]="${scr_protected_git_dir_2}" [20]='-a' [21]='!' [22]='-path'
   [23]='*/git/*' [24]=')'
 )
 find_exclude_optargs=()
