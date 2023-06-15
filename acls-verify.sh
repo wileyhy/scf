@@ -89,7 +89,7 @@ for dir in "${bash_path[@]}"; do
     # If found, exit the script and inform the user
     if [[ -n "${grep_o}" ]]; then
       printf '\n%s: ACL defined for this directory:\n\t%s\n\n' \
-        "${script_nm}" "${sub_dir}"
+        "${scr_nm}" "${sub_dir}"
       echo "${getfacl_o}"
       printf '\n\tThis command will remove all ACL\x27s from the '
       printf 'specified directory:\n\n\t\tsetfacl -b %s\n\n' "${sub_dir}"

@@ -8,11 +8,11 @@
 
 scr_max_age_of_tmp_files='1 minutes ago'
 scr_scr_repo_nm='scf'
-script_nm='./fndsc'
+scr_nm='./fndsc'
 sc_sevr='error'
 sc_shells='(sh|bash|dash|ksh)'
 tcode="$(builtin printf '%(%F_%H%M%S)T')"
-export scr_max_age_of_tmp_files scr_scr_repo_nm script_nm sc_sevr sc_shells tcode
+export scr_max_age_of_tmp_files scr_scr_repo_nm scr_nm sc_sevr sc_shells tcode
 
 unset CDPATH
 readonly CDPATH
@@ -88,7 +88,7 @@ function _post_src(){
           
   # depending on the 2rd parameter, after `source` returns, 
   # `exit` the calling shell with lineno $1.
-  if [[ "$3" == y ]]; then echo caller="${script_nm}:$2"; exit "$1"; fi
+  if [[ "$3" == y ]]; then echo caller="${scr_nm}:$2"; exit "$1"; fi
 }; declare -fxt _post_src
 
 shopt -u sourcepath

@@ -321,7 +321,7 @@ if pathchk "${l}"; then
   else
     printf 'A lock already exists:\n'
     ls -alhFi "${l}"
-    ps aux | grep -e "${script_nm}"
+    ps aux | grep -e "${scr_nm}"
   fi
 fi; unset f l
 
