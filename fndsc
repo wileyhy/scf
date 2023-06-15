@@ -81,6 +81,7 @@ function _post_src(){
 }; declare -fxt _post_src
 
 shopt -u sourcepath
+set -T
 set -x
 trap 'echo foo' DEBUG
 
