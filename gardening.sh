@@ -20,13 +20,14 @@ close_ps4='\n\e[0;104m+[${#nBS[@]}]${nBS[0]##*/}(${nL}) [$((${#nBS[@]}-1))]${nBS
 #         ^color       ^fnlvl    ^sub-script   ^lineno     ^((fnlvl-1))  ^callerOprev  ^lineno   ^fn colo^r p^rompt ^color
 #far_ps4='\e[0;104m+ <${nF[0]:0:8}> [${#nBS[@]}]${nBS[0]##*/}(${nL}) [$((${#nBS[@]}-1))]${nBS[1]##*/}(${nBL[0]}) \e[m > \e[0;93m '
 #far_ps4='\e[0;104m+[${#nBS[@]}]${nBS[0]##*/}(${nL}) [$((${#nBS[@]}-1))]${nBS[1]##*/}(${nBL[0]}) <${nF[0]:0:8}> \e[m > \e[0;93m '
-far_ps4='\e[0;104m+[${#nBS[@]}]${nBS[0]##*/}(${nL}) <${nF[0]:0:8}> [$((${#nBS[@]}-1))]${nBS[1]##*/}(${nBL[0]}) \e[m > \e[0;93m '
+#far_ps4='\e[0;104m+[${#nBS[@]}]${nBS[0]##*/}(${nL}) <${nF[0]:0:8}> [$((${#nBS[@]}-1))]${nBS[1]##*/}(${nBL[0]}) \e[m > \e[0;93m '
+far_ps4='\e[0;104m+At:[${#nBS[@]}]${nBS[0]##*/}(${nL}) In:<${nF[0]:0:8}> Fr:[$((${#nBS[@]}-1))]${nBS[1]##*/}(${nBL[0]}) \e[m > \e[0;93m '
 PS4="${far_ps4}"
 export FUNCNEST close_ps4 far_ps4 PS4
 
 
 # Print a function trace stack, and capture the FN's LINENO on line 0
-function _fun_trc(){ local line_hyphen="${nL:?}:$-"; : '_fun_trc BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
+function _fun_trc(){ : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"; local line_hyphen="${nL:?}:$-"
   set - # normally `set -`
   local line=${line_hyphen%:*}
   local hyphen="${line_hyphen#*:}"
@@ -219,6 +220,14 @@ fn_lvl=0; fn_bndry=' +++ +++ +++ '
 # xtrace back on and forget about this function's settings. If xtrace
 # was previously off, then leave it off.
 
+# Error: the code is "$_" should point to _mk_v_setenv_pre, but instead, its still defined as _xtrace_duck
+# +[5]gardening.sh(308) <_mk_delt> [4]gardening.sh(326)  >  : _xtrace_duck
+# +[5]gardening.sh(310) <_mk_delt> [4]gardening.sh(326)  >  _mk_v_setenv_pre
+# +[6]gardening.sh(247) <_mk_v_se> [5]gardening.sh(310)  >  : _xtrace_duck BEGINS ' +++ +++ +++ ' '3>4'
+# +[6]gardening.sh(248) <_mk_v_se> [5]gardening.sh(310)  >  : 'if now file exists'
+# +[6]gardening.sh(249) <_mk_v_se> [5]gardening.sh(310)  >  [[ -n '' ]]
+
+
 _xtrace_duck() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   # If xtrace is on...
   if [[ "$-" =~ x ]]; then
@@ -304,27 +313,19 @@ _mk_v_setenv_delta() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
 
 _mk_deltas() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   # Note: comment out `_xtrace_duck` with ':' (and not '#')
-  #: "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}" # xtra
   : _xtrace_duck
-  #: "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}" # xtra
   _mk_v_setenv_pre
-  #: "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}" # xtra
   _mk_v_setenv_novv
-  #: "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}" # xtra
   _mk_v_setenv_delta
-  #: "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}" # xtra
   : _xtrace_duck
-  #: "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}" # xtra
   : '_mk_deltas ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }; declare -ftx _mk_deltas
 
 
-_debug_prompt() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
+_debug_prompt() { : '_debug_prompt BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   echo 'ampersand, _debug_prompt:' "$@"
   local hyphen="$-"
-  #: "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}" # xtra
   _mk_deltas
-  #: "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}" # xtra
   : '                                ~~~ ~~ ~ PROMPT ~ ~~ ~~~'
   read -rp "R+[${nBS[0]}:${nL}]  |  ${BASH_COMMAND}?  |" _
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
@@ -336,8 +337,6 @@ _debug_prompt() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
 _full_xtrace() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   # Bug? for the line numbers in _fun_trc to be correct, this `trap` 
   # command must have two separate command parsings on the same line.
-  
-  #: "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}" # xtra ?
   
   # Bug? within `trap`, the command after `_debug_prompt` has line number of 351 [trap(lineno)+1], even though both commands are on line 350.
   _fun_trc
