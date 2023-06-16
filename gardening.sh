@@ -40,22 +40,6 @@ function _fn_trc(){ local line_hyphen="${nL:?}:$-"
 }; declare -fxt _fn_trc
 
 
-# shadow the `exit` builtin, for when debugging is turned off
-function exit(){ local line="$1"
-  : 'function exit BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
-  set -; 
-  set -x; 
-  
-  # reset the terminal prompt color
-  unset PS4
-  printf '\e[m'
-  
-  builtin exit "${line}";
-  : 'function exit ENDS' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
-}; declare -fxt exit
-
-
-
 : '<>: Debug functions & traps'
 
 _trap_ctrl_C() {
