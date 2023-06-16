@@ -79,9 +79,13 @@ _erx() {
 # Sub-scripts
 declare -ax verb=( '--' )
 
+shopt -s expand_aliases
+alias p_='echo -e "\e[0;34m"'
+
 # Processes positional parameters as they were passed to source
 # Usage: source [./script] "${nL}" [y|n] [y|n]; _post_src "${nL}" "$@"
 function _post_src(){
+  p_
   printf '%b' "\e[0;34m"
 
   # enable xtrace and "verbose commands"
