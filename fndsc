@@ -89,7 +89,7 @@ declare -ax verb=( '--' )
 # Processes positional parameters as they were passed to source
 # Usage: source [./script] "${nL}" [y|n] [y|n]; _post_src "${nL}" "$@"
 function _post_src(){
-  printf '%b' "\e[0;34m"
+  [[ ! -v PS4 ]] && printf '%b' "\e[0;34m"
 
   # enable xtrace and "verbose commands"
   if [[ "$4" == y ]]; then 
@@ -105,7 +105,7 @@ function _post_src(){
     echo caller="${scr_nm}:$2"; 
     exit "$1"; 
   fi
-  printf '%b' "\e[m"
+  [[ ! -v PS4 ]] && printf '%b' "\e[m"
 }; declare -fxt _post_src
 
 shopt -u sourcepath
@@ -113,7 +113,7 @@ shopt -u sourcepath
 #set -x
 
 : 'ID and sudo'       ; . './sudo.sh'          "${nL}"   n n; #exit $nL
-: 'Enable debugging'  ; . './gardening.sh'     "${nL}"   n y; exit $nL
+: 'Enable debugging'  ; . './gardening.sh'     "${nL}"   n y; #exit $nL
 : 'Required programs' ; . './reqd-cmds.sh'     "${nL}"   y y; exit $nL
 : 'Locks'             ; . './locks.sh'         "${nL}"   y y; exit $nL
 : 'Verify PATH'       ; . './path-verify.sh'   "${nL}"   y y; exit $nL
