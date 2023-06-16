@@ -25,8 +25,8 @@ export FUNCNEST close_ps4 far_ps4 PS4
 
 
 # Print a function trace stack, and capture the FN's LINENO on line 0
-function _fn_trc(){ local line_hyphen="${nL:?}:$-"
-  : '_fn_trc BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
+function _fun_trc(){ local line_hyphen="${nL:?}:$-"
+  : '_fun_trc BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   set - # normally `set -`
   local line=${line_hyphen%:*}
   local hyphen="${line_hyphen#*:}"
@@ -38,10 +38,10 @@ function _fn_trc(){ local line_hyphen="${nL:?}:$-"
     printf '(-%d):%s:%s:%s  ' "${i}" "${nBS[$i+1]:-$0}" "${nBL[$i]:?}" \
       "${nF[$i]:?}"
   done;
-  echo "(+1):${nBS[0]:?}:${line:?}:_fn_trc:${nL}"
+  echo "(+1):${nBS[0]:?}:${line:?}:_fun_trc:${nL}"
   [[ "${hyphen:?}" =~ x ]] && set -x
-  : '_fn_trc ENDS' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
-}; declare -fxt _fn_trc
+  : '_fun_trc ENDS' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
+}; declare -fxt _fun_trc
 
 
 : '<>: Debug functions & traps'
@@ -344,14 +344,14 @@ _debug_prompt() {
 
 _full_xtrace() {
   : '_full_xtrace BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
-  # Bug? for the line numbers in _fn_trace to be correct, this `trap` 
+  # Bug? for the line numbers in _fun_trc to be correct, this `trap` 
   # command must have two separate command parsings on the same line.
   
   #: "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}" # xtra ?
   
   # Bug? within `trap`, the command after `_debug_prompt` has line number of 351 [trap(lineno)+1], even though both commands are on line 350.
-  _fn_trc
-  trap '_fn_trc; : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}  |  prints in underscore shell variable"; _debug_prompt "$_"; : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"' DEBUG; echo cmd after DEBUG trap, $LINENO
+  _fun_trc
+  trap '_fun_trc; : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}  |  prints in underscore shell variable"; _debug_prompt "$_"; : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"' DEBUG; echo cmd after DEBUG trap, $LINENO
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}" # 
   set -x 
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
