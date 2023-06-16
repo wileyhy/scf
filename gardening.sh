@@ -228,24 +228,18 @@ _xtrace_duck() {
 
   # If xtrace is on...
   if [[ "$-" =~ x ]]; then
-
     # ...then record its state
     local -gx xtrace_prev
-
     # and turn xtrace off
     set -
-
   # but if xtrace is off...
   else
-
     # ...then if xtrace was previously on...
     : 'if prev'
     if [[ -n "${xtrace_prev}" ]]; then
-
       # ...then restore xtrace and unset the record of its state
       set -x
       unset xtrace_prev
-
     # but if xtrace is off and was previously off... (return).
     fi
   fi
@@ -256,70 +250,54 @@ _xtrace_duck() {
 #   Remaining functions: A set of functions for printing changes in
 # shell variables and parameters between each execution of a command;
 # for use when the DEBUG trap is enabled.
-
 _mk_v_setenv_pre() { 
   : '_mk_v_setenv_pre BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
-
   : 'if now file exists'
   if [[ -n "${xtr_senv_now}" ]]; then
-
     : 'if prev file exists'
     if [[ -n "${xtr_senv_prev}" ]]; then
-
       : 'remove prev file'
       unlink -- "${xtr_senv_prev}"
     fi
-
     # turn the "now" file into the "prev" file
     xtr_senv_prev="${xtr_senv_now}"
   fi
-
   : '_mk_v_setenv_pre ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }; declare -ftx _mk_v_setenv_pre
 
 
 _mk_v_setenv_novv() {
   : '_mk_v_setenv_novv BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
-
   # create 'now' file
   xtr_senv_now="$(mktemp -p /tmp --suffix=."${rand_f_nm}")"
-
   # output data to new file
   set |& tee -- "${xtr_senv_now}" >/dev/null
   env |& tee -a -- "${xtr_senv_now}" >/dev/null
-
   : '_mk_v_setenv_novv ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }; declare -ftx _mk_v_setenv_novv
 
 
 _mk_v_setenv_delta() {
   : '_mk_v_setenv_delta BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
-
   : 'if now and prev'
   if [[ -n "${xtr_senv_now}" ]] \
     && [[ -n "${xtr_senv_prev}" ]];
   then
-
     : 'if delta'
     if [[ -n "${xtr_senv_delt}" ]]; then
-
       # add the current delta data to the history thereof
       tee -a "${xtr_delta_sum_f}" < "${xtr_senv_delt}" > /dev/null
-
       # and unlink the current delta data file
       unlink -- "${xtr_senv_delt}"
     fi
-
     # create a new delta file, each time
     xtr_senv_delt="$(mktemp -p /tmp --suffix=."${rand_f_nm}.A")"
-
       # write the diff of the 'prev' and 'now' files to the new
       # 'delta' file
       diff --color=always --palette='ad=1;3;38;5;190:de=1;3;38;5;129' \
         --suppress-{common-lines,blank-empty} \
         "${xtr_senv_prev}" "${xtr_senv_now}" \
         |& tee -a "${xtr_senv_delt}"
-
     # set colors for `wc` output
     export GREP_COLORS='mt=01;104'
     wc "${xtr_senv_delt}" \
@@ -328,14 +306,12 @@ _mk_v_setenv_delta() {
     # reset colors for `grep` output
     export GREP_COLORS='mt=01;43'
   fi
-
   : '_mk_v_setenv_delta ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }; declare -ftx _mk_v_setenv_delta
 
 
 _mk_deltas() {
   : '_mk_deltas BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
-
   # Note: comment out `_xtrace_duck` with ':' (and not '#')
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   : _xtrace_duck
@@ -348,7 +324,6 @@ _mk_deltas() {
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   : _xtrace_duck
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
-
   : '_mk_deltas ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }; declare -ftx _mk_deltas
 
@@ -363,21 +338,18 @@ _debug_prompt() {
   read -rp " +[${nBS[0]}:${nL}] ${BASH_COMMAND}?" _
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   [[ "${hyphen}" =~ x ]] && set -x
-
   : '_debug_prompt ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }; declare -ftx _debug_prompt
 
 
 _full_xtrace() {
   : '_full_xtrace BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
-
   # Bug? for the line numbers in _fn_trace to be correct, this `trap` 
   # command must have two separate command parsings on the same line.
   trap ': "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
         _debug_prompt "$_";
         : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"' DEBUG; echo cmd after DEBUG trap, $LINENO
   set -x 
-
   : '_full_xtrace ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }; declare -ftx _full_xtrace
 
