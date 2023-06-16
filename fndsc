@@ -78,7 +78,7 @@ _erx() {
 
 # Sub-scripts
 declare -ax verb=( '--' )
-trap "printf %b '\e[m'" EXIT
+trap "printf '\e[m'" EXIT
 
 # Processes positional parameters as they were passed to source
 # Usage: source [./script] "${nL}" [y|n] [y|n]; _post_src "${nL}" "$@"
@@ -104,10 +104,10 @@ function _post_src(){
 
 shopt -u sourcepath
 #set -T
-set -x
+#set -x
 
 : 'ID and sudo'       ; . './sudo.sh'          "${nL}"   n n; #exit $nL
-: 'Enable debugging'  ; . './gardening.sh'     "${nL}"   y y; exit $nL
+: 'Enable debugging'  ; . './gardening.sh'     "${nL}"   n y; exit $nL
 : 'Required programs' ; . './reqd-cmds.sh'     "${nL}"   y y; exit $nL
 : 'Locks'             ; . './locks.sh'         "${nL}"   y y; exit $nL
 : 'Verify PATH'       ; . './path-verify.sh'   "${nL}"   y y; exit $nL
