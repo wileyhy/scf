@@ -42,6 +42,15 @@ function _fn_trc(){ local line_hyphen="${nL:?}:$-"
 
 : '<>: Debug functions & traps'
 
+#function exit { local line="${nL}"
+  #: 'function exit BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
+  #unset PS4
+  #printf '\e[m'
+  #builtin exit "${line}";
+#}; declare -fxt exit
+
+
+
 _trap_ctrl_C() {
   : '_trap_ctrl_C BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   set -x
