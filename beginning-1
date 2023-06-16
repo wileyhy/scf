@@ -93,6 +93,7 @@ sudo dnf -y install \
   debian-keyring \
   procps-ng \
   git-fame # 🙄     # perhaps later: memstomp bpftrace gdb valgrind
+  # python3-ptrace fatrace apitrace x11trace memstrack kernelshark
 sudo dnf -y upgrade bash bash-completion
 sudo dnf -y --security upgrade
 
