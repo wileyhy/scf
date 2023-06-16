@@ -299,7 +299,7 @@ _mk_v_setenv_delta() {
         "${xtr_senv_prev}" "${xtr_senv_now}" \
         |& tee -a "${xtr_senv_delt}"
     # set colors for `wc` output
-    export GREP_COLORS='mt=01;104'
+    export GREP_COLORS='mt=01;101'
     wc "${xtr_senv_delt}" \
       | grep --color=always -E '.*'
 
@@ -347,9 +347,7 @@ _full_xtrace() {
   # Bug? for the line numbers in _fn_trace to be correct, this `trap` 
   # command must have two separate command parsings on the same line.
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
-  trap ': "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
-        _debug_prompt "$_";
-        : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"' DEBUG; echo cmd after DEBUG trap, $LINENO
+  trap ': "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"; _debug_prompt "$_"; : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"' DEBUG; echo cmd after DEBUG trap, $LINENO
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   set -x 
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
