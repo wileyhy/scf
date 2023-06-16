@@ -250,8 +250,7 @@ _xtrace_duck() {
 #   Remaining functions: A set of functions for printing changes in
 # shell variables and parameters between each execution of a command;
 # for use when the DEBUG trap is enabled.
-_mk_v_setenv_pre() { 
-  : '_mk_v_setenv_pre BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
+_mk_v_setenv_pre() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))" # trying $_ in place of literal '_mk_v_setenv_pre'
   : 'if now file exists'
   if [[ -n "${xtr_senv_now}" ]]; then
     : 'if prev file exists'
