@@ -113,8 +113,8 @@ shopt -u sourcepath
 #set -x
 
 : 'ID and sudo'       ; . './sudo.sh'          "${nL}"   n n; #exit $nL
-: 'Enable debugging'  ; . './gardening.sh'     "${nL}"   n n; exit $nL
-: 'Required programs' ; . './reqd-cmds.sh'     "${nL}"   n y; exit $nL
+: 'Enable debugging'  ; . './gardening.sh'     "${nL}"   n y; exit $nL
+: 'Required programs' ; . './reqd-cmds.sh'     "${nL}"   y y; exit $nL
 : 'Locks'             ; . './locks.sh'         "${nL}"   y y; exit $nL
 : 'Verify PATH'       ; . './path-verify.sh'   "${nL}"   y y; exit $nL
 : 'Verify DACs'       ; . './dacs-verify.sh'   "${nL}"   y y; exit $nL
