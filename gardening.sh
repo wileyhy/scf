@@ -17,8 +17,9 @@ FUNCNEST=32
 close_ps4='\n\e[0;104m+[${#nBS[@]}]${nBS[0]##*/}(${nL}) [$((${#nBS[@]}-1))]${nBS[1]##*/}(${nBL[0]})${nF[0]} [$((${#nBS[@]}-2))]${nBS[2]##*/}(${nBL[1]})${nF[1]} [$((${#nBS[@]}-3))]${nBS[3]##*/}(${nBL[2]})${nF[2]} [$((${#nBS[@]}-4))]${nBS[4]##*/}(${nBL[3]})${nF[3]} \e[m\n    |=\t=|> \e[0;93m '
 
 #far_ps4='\e[0;104m+[${#nBS[@]}]${nBS[0]##*/}(${nL}) [$((${#nBS[@]}-1))]${nBS[1]##*/}(${nBL[0]})|${nF[0]} \e[m > \e[0;93m '
-far_ps4='\e[0;104m+ <${nF[0]:0:8}> [${#nBS[@]}]${nBS[0]##*/}(${nL}) [$((${#nBS[@]}-1))]${nBS[1]##*/}(${nBL[0]}) \e[m > \e[0;93m '
 #         ^color       ^fnlvl    ^sub-script   ^lineno     ^((fnlvl-1))  ^callerOprev  ^lineno   ^fn colo^r p^rompt ^color
+#far_ps4='\e[0;104m+ <${nF[0]:0:8}> [${#nBS[@]}]${nBS[0]##*/}(${nL}) [$((${#nBS[@]}-1))]${nBS[1]##*/}(${nBL[0]}) \e[m > \e[0;93m '
+far_ps4='\e[0;104m+[${#nBS[@]}]${nBS[0]##*/}(${nL}) [$((${#nBS[@]}-1))]${nBS[1]##*/}(${nBL[0]}) <${nF[0]:0:8}> \e[m > \e[0;93m '
 PS4="${far_ps4}"
 export FUNCNEST close_ps4 far_ps4 PS4
 
@@ -88,7 +89,9 @@ _trap_ctrl_C() {
 }; declare -fxt _trap_ctrl_C
 
 # redefine the INT trap
-trap '_trap_ctrl_C' INT
+trap ': "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"; 
+      _trap_ctrl_C;
+      : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"' INT
 
 
 
@@ -333,11 +336,17 @@ _mk_v_setenv_delta() {
 _mk_deltas() {
   : '_mk_deltas BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
 
+  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   #_xtrace_duck
+  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   _mk_v_setenv_pre
+  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   _mk_v_setenv_novv
+  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   _mk_v_setenv_delta
+  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   #_xtrace_duck
+  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
 
   : '_mk_deltas ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }; declare -ftx _mk_deltas
@@ -346,9 +355,12 @@ _mk_deltas() {
 _debug_prompt() {
   : '_debug_prompt BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   local hyphen="$-"
+  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   _mk_deltas
+  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   : '                                ~~~ ~~ ~ PROMPT ~ ~~ ~~~'
   read -rp " +[${nBS[0]}:${nL}] ${BASH_COMMAND}?" _
+  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   [[ "${hyphen}" =~ x ]] && set -x
 
   : '_debug_prompt ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
@@ -360,7 +372,9 @@ _full_xtrace() {
 
   # Bug? for the line numbers in _fn_trace to be correct, this `trap` 
   # command must have two separate command parsings on the same line.
-  trap '_debug_prompt "$_";' DEBUG; echo cmd after DEBUG trap, $LINENO
+  trap ': "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
+        _debug_prompt "$_"
+        : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"' DEBUG; echo cmd after DEBUG trap, $LINENO
   set -x 
 
   : '_full_xtrace ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
@@ -370,7 +384,7 @@ _full_xtrace() {
   # <> Obligatory debugging block
   #declare -p FUNCNAME BASH_SOURCE LINENO BASH_LINENO
   _full_xtrace
-  #: "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
+  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   #exit "${nL}"
   #set -x
 
