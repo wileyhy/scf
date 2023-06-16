@@ -87,8 +87,11 @@ declare -ax verb=( '--' )
   #printf '\e[m'
 
 # Processes positional parameters as they were passed to source
-# Usage: source [./script] "${nL}" [y|n] [y|n]; _post_src "${nL}" "$@"
-function _post_src(){
+# Usage: source [./script] "${nL}" [y|n] [y|n] ; _post_src "${nL}" "$@"
+#                   of caller-^                 of sub-script-^
+# pos-parms for _post_src:
+#              {<---------------------------->}                    ^^^^
+function _post_src {
   #[[ ! -v PS4 ]] && printf '%b' "\e[0;34m"
 
   # enable xtrace and "verbose commands"
