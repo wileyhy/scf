@@ -1,6 +1,8 @@
 # Required programs
 # shellcheck shell=bash
 
+# Distros tested:
+#   Fedora 38
 
   # <> Obligatory debugging block
   _post_src "${nL}" "$@"
@@ -10,9 +12,7 @@
   #set -x
 
 
-reqd_cmds=( 
-  awk chmod cp cut dirname find grep ln ls mkdir rm rmdir stat sudo tee 
-)
+reqd_cmds=( file fuser getfacl namei pgrep shellcheck stat strings sudo )
 yn=n
 
 
