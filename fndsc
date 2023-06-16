@@ -89,7 +89,7 @@ declare -ax verb=( '--' )
 # Processes positional parameters as they were passed to source
 # Usage: source [./script] "${nL}" [y|n] [y|n]; _post_src "${nL}" "$@"
 function _post_src(){
-  [[ ! -v PS4 ]] && printf '%b' "\e[0;34m"
+  #[[ ! -v PS4 ]] && printf '%b' "\e[0;34m"
 
   # enable xtrace and "verbose commands"
   if [[ "$4" == y ]]; then 
@@ -105,7 +105,8 @@ function _post_src(){
     echo caller="${scr_nm}:$2"; 
     exit "$1"; 
   fi
-  [[ ! -v PS4 ]] && printf '%b' "\e[m"
+  #[[ ! -v PS4 ]] && 
+    printf '%b' "\e[m"
 }; declare -fxt _post_src
 
 shopt -u sourcepath
