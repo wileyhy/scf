@@ -342,8 +342,7 @@ _debug_prompt() {
 }; declare -ftx _debug_prompt
 
 
-_full_xtrace() {
-  : '_full_xtrace BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
+_full_xtrace() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))" # trying $_ in place of literal '_full_xtrace'
   # Bug? for the line numbers in _fun_trc to be correct, this `trap` 
   # command must have two separate command parsings on the same line.
   
