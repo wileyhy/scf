@@ -330,6 +330,7 @@ _mk_deltas() {
 
 _debug_prompt() {
   : '_debug_prompt BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
+  echo 'ampersand, _debug_prompt:' "$@"
   local hyphen="$-"
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   _mk_deltas
@@ -347,6 +348,7 @@ _full_xtrace() {
   # Bug? for the line numbers in _fn_trace to be correct, this `trap` 
   # command must have two separate command parsings on the same line.
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
+  # within `trap`, the command after `_debug_prompt` has line number of 351 [trap(lineno)+1], even though both commands are on line 350.
   trap ': "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"; _debug_prompt "$_"; : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"' DEBUG; echo cmd after DEBUG trap, $LINENO
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   set -x 
