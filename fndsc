@@ -61,7 +61,7 @@ if [[ "$*" =~ rm_locks ]]; then
   rm_locks='y' export rm_locks; 
 fi
 
-_erx() {
+_erx() { 
   local exit_code="$?"
   : '_erx BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   echo -e Error: "$@" >&2
@@ -79,15 +79,26 @@ _erx() {
 # Sub-scripts
 declare -ax verb=( '--' )
 
-# Usage: _post_src "${nL}" "$@"
+# Processes positional parameters as they were passed to source
+# Usage: source [./script] "${nL}" [y|n] [y|n]; _post_src "${nL}" "$@"
 function _post_src(){
-  # depending on the 3th parameter, enable xtrace and "verbose commands"
+  printf '%b' "\e[0;34m"
+
+  # enable xtrace and "verbose commands"
+  if [[ "$4" == y ]]; then 
+    set -x; 
+    verb=(-v --); 
   # otherwise, neutralize the unused "verbose commands" syntax
-  if [[ "$4" == y ]]; then set -x; verb=(-v --); else verb=(--); fi
+  else 
+    verb=(--); 
+  fi
           
-  # depending on the 2rd parameter, after `source` returns, 
-  # `exit` the calling shell with lineno $1.
-  if [[ "$3" == y ]]; then echo caller="${scr_nm}:$2"; exit "$1"; fi
+  # after `source` returns, `exit` the calling shell with lineno $1.
+  if [[ "$3" == y ]]; then 
+    echo caller="${scr_nm}:$2"; 
+    exit "$1"; 
+  fi
+  printf '%b' "\e[m"
 }; declare -fxt _post_src
 
 shopt -u sourcepath
