@@ -346,10 +346,13 @@ _full_xtrace() {
   : '_full_xtrace BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   # Bug? for the line numbers in _fn_trace to be correct, this `trap` 
   # command must have two separate command parsings on the same line.
+  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   trap ': "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
         _debug_prompt "$_";
         : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"' DEBUG; echo cmd after DEBUG trap, $LINENO
+  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   set -x 
+  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   : '_full_xtrace ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }; declare -ftx _full_xtrace
 
