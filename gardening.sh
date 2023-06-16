@@ -15,7 +15,9 @@
 #set -o functrace
 FUNCNEST=32
 close_ps4='\n\e[0;104m+[${#nBS[@]}]${nBS[0]##*/}(${nL}) [$((${#nBS[@]}-1))]${nBS[1]##*/}(${nBL[0]})${nF[0]} [$((${#nBS[@]}-2))]${nBS[2]##*/}(${nBL[1]})${nF[1]} [$((${#nBS[@]}-3))]${nBS[3]##*/}(${nBL[2]})${nF[2]} [$((${#nBS[@]}-4))]${nBS[4]##*/}(${nBL[3]})${nF[3]} \e[m\n    |=\t=|> \e[0;93m '
+
 far_ps4='\e[0;104m+[${#nBS[@]}]${nBS[0]##*/}(${nL}) [$((${#nBS[@]}-1))]${nBS[1]##*/}(${nBL[0]})${nF[0]} \e[m > \e[0;93m '
+#         ^color       ^fnlvl    ^sub-script   ^lineno     ^((fnlvl-1))  ^callerOprev  ^lineno   ^fn colo^r p^rompt ^color
 PS4="${far_ps4}"
 export FUNCNEST close_ps4 far_ps4 PS4
 
@@ -42,12 +44,12 @@ function _fn_trc(){ local line_hyphen="${nL:?}:$-"
 
 : '<>: Debug functions & traps'
 
-#function exit { local line="${nL}"
-  #: 'function exit BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
-  #unset PS4
-  #printf '\e[m'
-  #builtin exit "${line}";
-#}; declare -fxt exit
+function exit { local line="${nL}"
+  : 'function exit BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
+  unset PS4
+  printf '\e[m'
+  builtin exit "${line}";
+}; declare -fxt exit
 
 
 
