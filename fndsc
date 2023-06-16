@@ -78,7 +78,13 @@ _erx() {
 
 # Sub-scripts
 declare -ax verb=( '--' )
-trap "unset PS4; printf '\e[m'" EXIT
+
+  # Note: Exit traps don't print accurate trace data in PS4; so use a function
+  #far_ps4='\e[0;104m+[${#nBS[@]}]${nBS[0]##*/}(${nL}) [$((${#nBS[@]}-1))]${nBS[1]##*/}(${nBL[0]})${nF[0]} \e[m > \e[0;93m ' 
+  #trap "unset PS4; printf '\e[m'" EXIT 
+  #+[1]fndsc(110) [0](0)  >  exit 110
+  #+[1]fndsc(1) [0](0)  >  unset PS4
+  #printf '\e[m'
 
 # Processes positional parameters as they were passed to source
 # Usage: source [./script] "${nL}" [y|n] [y|n]; _post_src "${nL}" "$@"
