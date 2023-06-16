@@ -94,7 +94,7 @@ shopt -u sourcepath
 #set -T
 set -x
 
-: 'ID and sudo'       ; . './sudo.sh'          "${nL}"   y y; exit $nL
+: 'ID and sudo'       ; . './sudo.sh'          "${nL}"   n n; #exit $nL
 : 'Enable debugging'  ; . './gardening.sh'     "${nL}"   y y; exit $nL
 : 'Required programs' ; . './reqd-cmds.sh'     "${nL}"   y y; exit $nL
 : 'Locks'             ; . './locks.sh'         "${nL}"   y y; exit $nL
