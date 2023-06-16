@@ -78,6 +78,7 @@ _erx() {
 
 # Sub-scripts
 declare -ax verb=( '--' )
+trap "printf %b '\e[m'" EXIT
 
 # Processes positional parameters as they were passed to source
 # Usage: source [./script] "${nL}" [y|n] [y|n]; _post_src "${nL}" "$@"
