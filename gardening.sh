@@ -25,8 +25,7 @@ export FUNCNEST close_ps4 far_ps4 PS4
 
 
 # Print a function trace stack, and capture the FN's LINENO on line 0
-function _fun_trc(){ local line_hyphen="${nL:?}:$-"
-  : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
+function _fun_trc(){ local line_hyphen="${nL:?}:$-"; : '_fun_trc BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   set - # normally `set -`
   local line=${line_hyphen%:*}
   local hyphen="${line_hyphen#*:}"
