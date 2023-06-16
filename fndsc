@@ -91,9 +91,8 @@ function _post_src(){
 }; declare -fxt _post_src
 
 shopt -u sourcepath
-set -T
+#set -T
 set -x
-trap 'echo foo' DEBUG
 
 : 'ID and sudo'       ; . './sudo.sh'          "${nL}"   y y; exit $nL
 : 'Enable debugging'  ; . './gardening.sh'     "${nL}"   y y; exit $nL
