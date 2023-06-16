@@ -2,6 +2,14 @@
 # shellcheck shell=bash
 
 
+  # <> Obligatory debugging block
+  _post_src "${nL}" "$@"
+  #_full_xtrace
+  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
+  exit "${nL}"
+  #set -x
+
+
 : 'Verify DACs'
 # Bug: var path_2 is now path_2
 namei_o="$(

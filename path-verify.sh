@@ -1,6 +1,15 @@
 # Verify PATH
 # shellcheck shell=bash
 
+
+  # <> Obligatory debugging block
+  _post_src "${nL}" "$@"
+  #_full_xtrace
+  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
+  exit "${nL}"
+  #set -x
+
+  
 : 'Verify PATH'
 _verify_path(){
   : '_verify_path BEGINS'  "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"

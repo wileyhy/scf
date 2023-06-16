@@ -1,6 +1,15 @@
 # Option parsing
 # shellcheck shell=bash
 
+
+  # <> Obligatory debugging block
+  _post_src "${nL}" "$@"
+  #_full_xtrace
+  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
+  exit "${nL}"
+  #set -x
+
+
 : 'Vars re getopts'
 if [[ $# -gt 0 ]]; then
   cli_input=("${@}")

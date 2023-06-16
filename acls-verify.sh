@@ -1,6 +1,15 @@
 # Verify ACL's
 # shellcheck shell=bash
 
+
+  # <> Obligatory debugging block
+  _post_src "${nL}" "$@"
+  #_full_xtrace
+  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
+  exit "${nL}"
+  #set -x
+
+
 : 'Verify ACLs'
 # Variables, this section
 unset fs_root_d full_dir_list ext_array dir sub_dir num_sub_dirs N n \

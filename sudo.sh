@@ -2,7 +2,6 @@
 # shellcheck shell=bash
 
 
-
   # <> Obligatory debugging block
   _post_src "${nL}" "$@"
   #_full_xtrace

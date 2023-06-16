@@ -2,6 +2,14 @@
 # shellcheck shell=bash
 
 
+  # <> Obligatory debugging block
+  _post_src "${nL}" "$@"
+  #_full_xtrace
+  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
+  exit "${nL}"
+  #set -x
+
+
 # TODO: resolve approaches, prior w lockdirs and current w lockfiles
 #   Prev: "use lock dir as main_d"
 
