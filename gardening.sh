@@ -336,8 +336,9 @@ _mk_v_setenv_delta() {
 _mk_deltas() {
   : '_mk_deltas BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
 
+  # Note: comment out `_xtrace_duck` with ':' (and not '#')
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
-  #_xtrace_duck
+  : _xtrace_duck
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   _mk_v_setenv_pre
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
@@ -345,7 +346,7 @@ _mk_deltas() {
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   _mk_v_setenv_delta
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
-  #_xtrace_duck
+  : _xtrace_duck
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
 
   : '_mk_deltas ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
@@ -373,7 +374,7 @@ _full_xtrace() {
   # Bug? for the line numbers in _fn_trace to be correct, this `trap` 
   # command must have two separate command parsings on the same line.
   trap ': "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
-        _debug_prompt "$_"
+        _debug_prompt "$_";
         : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"' DEBUG; echo cmd after DEBUG trap, $LINENO
   set -x 
 
