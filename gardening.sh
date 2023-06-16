@@ -19,7 +19,8 @@ close_ps4='\n\e[0;104m+[${#nBS[@]}]${nBS[0]##*/}(${nL}) [$((${#nBS[@]}-1))]${nBS
 #far_ps4='\e[0;104m+[${#nBS[@]}]${nBS[0]##*/}(${nL}) [$((${#nBS[@]}-1))]${nBS[1]##*/}(${nBL[0]})|${nF[0]} \e[m > \e[0;93m '
 #         ^color       ^fnlvl    ^sub-script   ^lineno     ^((fnlvl-1))  ^callerOprev  ^lineno   ^fn colo^r p^rompt ^color
 #far_ps4='\e[0;104m+ <${nF[0]:0:8}> [${#nBS[@]}]${nBS[0]##*/}(${nL}) [$((${#nBS[@]}-1))]${nBS[1]##*/}(${nBL[0]}) \e[m > \e[0;93m '
-far_ps4='\e[0;104m+[${#nBS[@]}]${nBS[0]##*/}(${nL}) [$((${#nBS[@]}-1))]${nBS[1]##*/}(${nBL[0]}) <${nF[0]:0:8}> \e[m > \e[0;93m '
+#far_ps4='\e[0;104m+[${#nBS[@]}]${nBS[0]##*/}(${nL}) [$((${#nBS[@]}-1))]${nBS[1]##*/}(${nBL[0]}) <${nF[0]:0:8}> \e[m > \e[0;93m '
+far_ps4='\e[0;104m+[${#nBS[@]}]${nBS[0]##*/}(${nL}) <${nF[0]:0:8}> [$((${#nBS[@]}-1))]${nBS[1]##*/}(${nBL[0]}) \e[m > \e[0;93m '
 PS4="${far_ps4}"
 export FUNCNEST close_ps4 far_ps4 PS4
 
