@@ -313,17 +313,17 @@ _mk_v_setenv_delta() {
 _mk_deltas() {
   : '_mk_deltas BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   # Note: comment out `_xtrace_duck` with ':' (and not '#')
-  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
+  #: "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}" # xtra
   : _xtrace_duck
-  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
+  #: "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}" # xtra
   _mk_v_setenv_pre
-  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
+  #: "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}" # xtra
   _mk_v_setenv_novv
-  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
+  #: "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}" # xtra
   _mk_v_setenv_delta
-  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
+  #: "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}" # xtra
   : _xtrace_duck
-  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
+  #: "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}" # xtra
   : '_mk_deltas ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }; declare -ftx _mk_deltas
 
@@ -332,11 +332,11 @@ _debug_prompt() {
   : '_debug_prompt BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   echo 'ampersand, _debug_prompt:' "$@"
   local hyphen="$-"
-  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
+  #: "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}" # xtra
   _mk_deltas
-  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
+  #: "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}" # xtra
   : '                                ~~~ ~~ ~ PROMPT ~ ~~ ~~~'
-  read -rp " +[${nBS[0]}:${nL}] ${BASH_COMMAND}?" _
+  read -rp "R+[${nBS[0]}:${nL}]  |  ${BASH_COMMAND}?  |" _
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   [[ "${hyphen}" =~ x ]] && set -x
   : '_debug_prompt ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
@@ -347,10 +347,10 @@ _full_xtrace() {
   : '_full_xtrace BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   # Bug? for the line numbers in _fn_trace to be correct, this `trap` 
   # command must have two separate command parsings on the same line.
-  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
+  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}" # 
   # within `trap`, the command after `_debug_prompt` has line number of 351 [trap(lineno)+1], even though both commands are on line 350.
   trap ': "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"; _debug_prompt "$_"; : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"' DEBUG; echo cmd after DEBUG trap, $LINENO
-  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
+  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}" # 
   set -x 
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   : '_full_xtrace ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
