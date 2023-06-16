@@ -350,7 +350,8 @@ _full_xtrace() {
   #: "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}" # xtra ?
   
   # Bug? within `trap`, the command after `_debug_prompt` has line number of 351 [trap(lineno)+1], even though both commands are on line 350.
-  trap ': "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}  |  prints in underscore shell variable"; _debug_prompt "$_"; : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"' DEBUG; echo cmd after DEBUG trap, $LINENO
+  _fn_trc
+  trap '_fn_trc; : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}  |  prints in underscore shell variable"; _debug_prompt "$_"; : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"' DEBUG; echo cmd after DEBUG trap, $LINENO
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}" # 
   set -x 
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
