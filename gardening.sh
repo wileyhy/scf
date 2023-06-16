@@ -368,7 +368,7 @@ _full_xtrace() {
 
   # <> Obligatory debugging block
   #declare -p FUNCNAME BASH_SOURCE LINENO BASH_LINENO
-  #_full_xtrace
+  _full_xtrace
   #: "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   #exit "${nL}"
   #set -x
