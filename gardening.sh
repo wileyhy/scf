@@ -96,7 +96,7 @@ trap ': "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"; _trap_ctrl_C; : "${nBS[0]}:${nL} 
 
 # Vars
 xtr_time_f="/tmp/tmp.mtime_file.${rand_f_nm}"
-xtr_delta_sum_f="$(mktemp -p /tmp --suffix=."${rand_f_nm}.E")"
+xtr_delta_sum_f="$(mktemp -p /tmp --suffix=."${rand_f_nm}.E" 2>&1)"
 export rand_f_nm xtr_time_f xtr_delta_sum_f
 unset f xtr_rm_list xtr_files
 
@@ -189,8 +189,9 @@ fn_write_arrays() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
     array_nm="${unquotd_array_nm_b}"
     write_f_b="${write_d_b}/_${sc_sev_abrv}"
     write_f_b+="_${ABBREV_REL_SEARCH_DIRS}_${array_nm}"
+    decl_o="$(declare -p "${array_nm}" 2>&1)"
 
-    # Bug? When array correctly is empty: 'declare -p ... > /dev/null ||' ?
+    # Bug? When array correctly is empty: 'declare -p ... > ||' ?
     # requires use of fn_write_arrays or fn_write_arrays to debug this.
     # (~line 2000, 15 May)
 
@@ -199,8 +200,8 @@ fn_write_arrays() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
       nameref_b=([0]='fn_write_arrays: Empty array')
     fi
     # then write a data file to disk
-    declare -p "${array_nm}" \
-      | sudo  tee --output-error=exit  -- "${write_f_b}" >/dev/null
+    [[ -n "${decl_o}" ]] &&
+      cat "${decl_o}" > "${write_f_b}" # stderr to console
     # write a backup of the new data file
     fn_bak "${write_f_b}"
   done
@@ -268,11 +269,13 @@ _mk_v_setenv_pre() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
 
 _mk_v_setenv_novv() {
   : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
-  # create 'now' file
-  xtr_senv_now="$(mktemp -p /tmp --suffix=."${rand_f_nm}")"
+  
+  `# create 'now' file
+  xtr_senv_now="$(mktemp -p /tmp --suffix=."${rand_f_nm}" 2>&1)"
+  
   # output data to new file
-  set |& tee -- "${xtr_senv_now}" >/dev/null
-  env |& tee -a -- "${xtr_senv_now}" >/dev/null
+  set >  "${xtr_senv_now}" # stderr to term
+  env >> "${xtr_senv_now}" # stderr to term
   : '_mk_v_setenv_novv ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }; declare -ftx _mk_v_setenv_novv
 
@@ -285,12 +288,12 @@ _mk_v_setenv_delta() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
     : 'if delta'
     if [[ -n "${xtr_senv_delt}" ]]; then
       # add the current delta data to the history thereof
-      tee -a "${xtr_delta_sum_f}" < "${xtr_senv_delt}" > /dev/null
+      cat "${xtr_senv_delt}" >> "${xtr_delta_sum_f}" # stderr to term
       # and unlink the current delta data file
       unlink -- "${xtr_senv_delt}"
     fi
     # create a new delta file, each time
-    xtr_senv_delt="$(mktemp -p /tmp --suffix=."${rand_f_nm}.A")"
+    xtr_senv_delt="$(mktemp -p /tmp --suffix=."${rand_f_nm}.A" 2>&1)"
       # write the diff of the 'prev' and 'now' files to the new
       # 'delta' file
       diff --color=always --palette='ad=1;3;38;5;190:de=1;3;38;5;129' \

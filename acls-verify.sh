@@ -23,8 +23,8 @@ for dir in "${bash_path[@]}"; do
   # inodes. safely split each directory into its constituent directory
   # names, ie, by using NULL's in place of '/'s
   unset sub_dir
-  num_sub_dirs="$(tr '/' '\0' <<< "$dir" \
-    | gawk --lint -F'\0' '{ print NF }')"
+  num_sub_dirs="$(tr '/' '\0' <<< "$dir" |& 
+    gawk --lint -F'\0' '{ print NF }' 2>&1)"
   N=$((num_sub_dirs - 1))
   # Bug: sub_dir's sb ID'd fr dir programtcly w nulls if poss
   # create array w awk? or w read / mapfile ?
@@ -47,7 +47,7 @@ for dir in "${bash_path[@]}"; do
     # Bug: this [[ cmd is wrong; sb [ ext =~ sub ] ...correct?
     if [[ "${sub_dir}" = "${extglob_pattern}" ]]; then
       # Bug: this PE dups above same PE
-      sub_dir="$(dirname "${sub_dir:="${dir}"}")"
+      sub_dir="$(dirname "${sub_dir:="${dir}"}" 2>&1)"
       # If the sub_dir is '/', then move on to the next big loop
       if [[ "${sub_dir}" = "${fs_root_d}" ]]; then
         break
@@ -82,19 +82,19 @@ for dir in "${bash_path[@]}"; do
     # index math can be a little weird
     # create the exglob_pattern
     if [[ -n "${ext_first}" ]]; then
-      extglob_pattern="$(printf '@(%s' "${ext_first}")"
+      extglob_pattern="$(printf '@(%s' "${ext_first}" 2>&1)"
       [[ "${#ext_array[@]}" -gt 0 ]] \
-        && extglob_pattern+="$(printf '|%s' "${ext_array[@]}")"
+        && extglob_pattern+="$(printf '|%s' "${ext_array[@]}" 2>&1)"
       if [[ -n "${ext_last}" ]]; then
-        extglob_pattern+="$(printf '|%s)' "${ext_last}")"
+        extglob_pattern+="$(printf '|%s)' "${ext_last}" 2>&1)"
       else
-        extglob_pattern+="$(printf ')')"
+        extglob_pattern+="$(printf ')' 2>&1)"
       fi
     fi
     # look for any ACL's on the directory
-    getfacl_o="$(getfacl -enp -- "${sub_dir}" 2>/dev/null)"
+    getfacl_o="$(getfacl -enp -- "${sub_dir}" 2>&1)"
     grep_o="$(grep -ve '^#' -e ^'user::' -e ^'group::' -e ^'other::' \
-      <<<"${getfacl_o}")"
+      <<< "${getfacl_o}" 2>&1)"
     # If found, exit the script and inform the user
     if [[ -n "${grep_o}" ]]; then
       printf '\n%s: ACL defined for this directory:\n\t%s\n\n' \
@@ -110,7 +110,7 @@ for dir in "${bash_path[@]}"; do
       fi
     fi
     # Bug: dup PE w 2 above
-    sub_dir="$(dirname "${sub_dir:="${dir}"}")"
+    sub_dir="$(dirname "${sub_dir:="${dir}"}" 2>&1)"
   done
 done
 unset fs_root_d full_dir_list ext_array dir sub_dir num_sub_dirs \

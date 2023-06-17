@@ -21,14 +21,16 @@ unsaf_ascii=(
   [18]="}" [19]="[" [20]="]" [21]="[[" [22]="]]" [23]="\$"
   [24]="="
 )
-unsaf_ascii_Pfn_erexstring="$(printf '%s' "${unsaf_ascii[@]}")"
+unsaf_ascii_Pfn_erexstring="$(printf '%s' "${unsaf_ascii[@]}" 2>&1)"
 bash_path_orig="${PATH}"
 bash_path="${bash_path_orig}"
 easter_egg="$(
-  printf '%s%s%s' 'CgkiSSB3b3VsZCBoYXZlIG1hZGUgdGhpcyBzaG9y' \
-    'dGVyLCBidXQgSSBkaWRuJ3QgaGF2ZSB0aGUg' \
-    'dGltZS4iCgkJLS0gTWFyayBUd2FpbgoK' \
-    | base64 -d
+  {
+    printf '%s%s%s' 'CgkiSSB3b3VsZCBoYXZlIG1hZGUgdGhpcyBzaG9y' \
+      'dGVyLCBidXQgSSBkaWRuJ3QgaGF2ZSB0aGUg' \
+      'dGltZS4iCgkJLS0gTWFyayBUd2FpbgoK' | 
+    base64 -d
+  } 2>&1
 )"
 find_exclude_optargs_default=(
   [0]='(' [1]='!' [2]='-name' [3]='proc' [4]='-a' [5]='!'
@@ -39,7 +41,7 @@ find_exclude_optargs_default=(
   [23]='*/git/*' [24]=')'
 )
 find_exclude_optargs=()
-IFS=':' read -ra find_path <<<"${bash_path}"
+IFS=':' read -ra find_path <<< "${bash_path}"
 find_sym_opt_L='-L'
 sc_sev_abrv="${SC_sevr:0:1}"
 #methods_recurse_n=no
@@ -60,42 +62,43 @@ fn_usage() {
   : 'fn_usage BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   {
     cat <<-EOF
-  ${scr_repo_nm} - ${scr_proper_nm}, version ${scr_version}
-    Find and scan shell scripts depending on severity level.
-    Options are parsed by bash's builtin "getopts".
-  Usage:
-    ./${scr_nm} -H [b|p|l] -M [r|p|t]
-      -P [ac|as|bi|bo|ge|sb|pr|sy] -R [DIRECTORY] -S [e|i|s|w]
-      -V -X [r|p|t] -h -p [ba|cp|cv|fi|ty] -q [a|c|d|i|l|p|u]
-      -r [d|y|n] -s [s|y|n]
-
-      l:  Follow symlinks
-        [p]   physical
-       *[l]   logical
-      d:  Path
-        [ac]  Actually all        h   Help message
-        [al]  All                 p:  Progam and method
-       *[as]  As-is
-        [bi]  /bin only
-        [bo]  Both /{,s}bin only
-        [ge]  Getconf PATH only     [fi] "find" binary
-        [sb]  /sbin only           *[ty] "bash" builtin "type -a"
-        [pr]  Add /proc           q:  Validate information
-        [sy]  Add /sys             *[a]   all
-      a:  Path
-        [DIR]  Add search dir       [d]   add DACs
-      c:  Severity level            [i]   add interpreters
-       *[e]   error                 [l]   add ACLs
-        [i]   info                  [p]   add PATH
-        [s]   style                 [u]   unset all
-        [w]   warning             r:  Recurse into dirs
-      v   Version                   [d|y] Yes   *[n] No
-      s:  Scan excluded dirs      *:  Help message
-       *[s|y|b] Yes   [n] No
+    ${scr_repo_nm} - ${scr_proper_nm}, version ${scr_version}
+      Find and scan shell scripts depending on severity level.
+      Options are parsed by bash's builtin "getopts".
+    Usage:
+      ./${scr_nm} -H [b|p|l] -M [r|p|t]
+        -P [ac|as|bi|bo|ge|sb|pr|sy] -R [DIRECTORY] -S [e|i|s|w]
+        -V -X [r|p|t] -h -p [ba|cp|cv|fi|ty] -q [a|c|d|i|l|p|u]
+        -r [d|y|n] -s [s|y|n]
+  
+        l:  Follow symlinks
+          [p]   physical
+        *[l]   logical
+        d:  Path
+          [ac]  Actually all        h   Help message
+          [al]  All                 p:  Progam and method
+        *[as]  As-is
+          [bi]  /bin only
+          [bo]  Both /{,s}bin only
+          [ge]  Getconf PATH only     [fi] "find" binary
+          [sb]  /sbin only           *[ty] "bash" builtin "type -a"
+          [pr]  Add /proc           q:  Validate information
+          [sy]  Add /sys             *[a]   all
+        a:  Path
+          [DIR]  Add search dir       [d]   add DACs
+        c:  Severity level            [i]   add interpreters
+        *[e]   error                 [l]   add ACLs
+          [i]   info                  [p]   add PATH
+          [s]   style                 [u]   unset all
+          [w]   warning             r:  Recurse into dirs
+        v   Version                   [d|y] Yes   *[n] No
+        s:  Scan excluded dirs      *:  Help message
+        *[s|y|b] Yes   [n] No
 EOF
-  } | more -e
+  } 2>&1 |
+    more -e
   : 'fn_usage ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
-  exit "${1}"
+  exit "$1"
 }
 
 : 'Option parsing'
@@ -111,7 +114,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
     # PATH (array) - Part 2 - options with args
     a)
       # Input validation, more thorough. Remove unprintable strings.
-      OPTARG="$(strings -n1 <<<"${OPTARG}")"
+      OPTARG="$(strings -n1 <<< "${OPTARG}" 2>&1)"
 
       # Remove unsafe characters
       new_optarg="${OPTARG//["${unsaf_ascii_Pfn_erexstring[@]}"]/}"
@@ -125,7 +128,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
       fi
 
       # Canonicalize path
-      new_optarg="$(realpath -e "${new_optarg}")"
+      new_optarg="$(realpath -e "${new_optarg}" 2>&1)"
 
       # Amended value must be a directory
       if [[ ! -d "${new_optarg}" ]]; then
@@ -134,7 +137,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
 
       # Append dirname to bash_path and reset find_path
       bash_path+=":${new_optarg}"
-      IFS=":" read -ra find_path <<<"${bash_path}"
+      IFS=":" read -ra find_path <<< "${bash_path}"
 
       # adjust tracking array
       new_optarg="${new_optarg//\//_}"
@@ -171,7 +174,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
 
       ac* | aa*)
         bash_path='/'
-        IFS=":" read -ra find_path <<<"${bash_path}"
+        IFS=":" read -ra find_path <<< "${bash_path}"
         find_exclude_optargs=()
         methods_path=(actually_all)
         methods_prog_cv=bin_find
@@ -179,7 +182,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
         ;;
       al* )
         bash_path='/'
-        IFS=":" read -ra find_path <<<"${bash_path}"
+        IFS=":" read -ra find_path <<< "${bash_path}"
         find_exclude_optargs=("${find_exclude_optargs_default[@]}")
         methods_path=(all)
         methods_prog_cv=bin_find
@@ -187,32 +190,32 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
         ;;
       as* | ai*)
         bash_path="${bash_path_orig}"
-        IFS=":" read -ra find_path <<<"${bash_path}"
+        IFS=":" read -ra find_path <<< "${bash_path}"
         methods_path=('as-is')
         ;;
       bi* | b)
         bash_path='/usr/bin'
-        IFS=":" read -ra find_path <<<"${bash_path}"
+        IFS=":" read -ra find_path <<< "${bash_path}"
         methods_path=(bin_only)
         ;;
       bo* | bs*)
         bash_path='/usr/bin:/usr/sbin'
-        IFS=":" read -ra find_path <<<"${bash_path}"
+        IFS=":" read -ra find_path <<< "${bash_path}"
         methods_path=(both_bin_sbin_only)
         ;;
       ge* | g)
         bash_path="${PATH_getconf}"
-        IFS=":" read -ra find_path <<<"${bash_path}"
+        IFS=":" read -ra find_path <<< "${bash_path}"
         methods_path=(getconf_PATH_only)
         ;;
       sb* | so* | s)
         bash_path='/usr/sbin'
-        IFS=":" read -ra find_path <<<"${bash_path}"
+        IFS=":" read -ra find_path <<< "${bash_path}"
         methods_path=(sbin_only)
         ;;
       pr* | p | pa*)
         bash_path+=':/proc'
-        IFS=":" read -ra find_path <<<"${bash_path}"
+        IFS=":" read -ra find_path <<< "${bash_path}"
         methods_path+=(add_proc)
         methods_prog_cv=bin_find
         find_exclude_optargs=()
@@ -223,7 +226,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
         
       sy* | sa*)
         bash_path+=':/sys'
-        IFS=":" read -ra find_path <<<"${bash_path}"
+        IFS=":" read -ra find_path <<< "${bash_path}"
         methods_path+=(add_sys)
         methods_prog_cv=bin_find
         find_exclude_optargs=()
@@ -419,7 +422,7 @@ while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
             fi
 
             # and then re-assign find_path
-            IFS=":" read -ra find_path <<<"${bash_path}"
+            IFS=":" read -ra find_path <<< "${bash_path}"
           done; unset x
           ;;
         *)

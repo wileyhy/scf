@@ -28,7 +28,7 @@ _get_lockdirs(){
       -mindepth 1 -maxdepth 1 \( \
       -type d -o -type l \) \( \
       -name '*lock*' -a -name '*scf*' \) \
-      -print0 2> /dev/null
+      -print0 2>&1
   )
   #export lkdrs
 }
@@ -39,7 +39,8 @@ _exit_trap() {
   trap - DEBUG
   trap - EXIT
   # If no such array exists yet, then search for possible lockdirs
-  if ! declare -pa lkdrs 2> /dev/null 1>&2; then
+  if [[ "${#lkdrs[@]}" -eq 0 ]]
+  then
     : 'lkdrs DNE'
     _get_lockdirs
     declare -p lkdrs
@@ -77,7 +78,7 @@ declare -A A_process_lock_dirs
 #  "${HOME}" /tmp /var/tmp)
 i=0
 #pld="" # SC2155
-#scr_tcode="$(builtin printf '%(%F_%H%M%S)T')"
+#scr_tcode="$(builtin printf '%(%F_%H%M%S)T' 2>&1)"
 
 #   The purpose of listing so many possible lock locations is that who
 # knows which of these directory locations will exist on disk whenever
@@ -108,7 +109,7 @@ i=0
 # An associative array, in case TMPDIR duplicates another array value
 for v in "${a_poss_proces_lock_dirs[@]}"; do
   if [[ -d "${v}" ]]; then
-    v="$(realpath -e "${v}")"
+    v="$(realpath -e "${v}" 2>&1)"
     A_process_lock_dirs+=( ["${v}/${rand_lock_nm}"]=$((i++)) )
   fi
 done; unset i v
@@ -179,7 +180,8 @@ for poss_lk_d in "${a_process_lock_dirs[@]}"; do
 
 	# x solved x - Bug: $find_out will expand to mult filenames
 
-    if mkdir -m 0700 "${process_lock_d:="${find_out[0]}"}" 2>/dev/null; then
+    if mkdir -m 0700 "${process_lock_d:="${find_out[0]}"}"
+    then
       break
     else
       continue
@@ -189,7 +191,7 @@ for poss_lk_d in "${a_process_lock_dirs[@]}"; do
     {
       printf '\n\tCannot acquire process lock: <%s>.\n' "${process_lock_d}"
       printf 'Exiting.\n\n'
-    } 1>&2
+    } >&2
     #exit "${nL}"
   fi
 done
@@ -282,7 +284,7 @@ fi
 ### Required: if any of these are missing, print an error and exit
 hash -r 
 for c in "${lk_cmds_reqd[@]}"; do
-  lk_cmd_abspth="$(type -P "$c" 2> /dev/null)"
+  lk_cmd_abspth="$(type -P "$c" 2>&1)"
   
   if [[ -z "${lk_cmd_abspth}" ]]; then
     _erx "line: ${nL}, command ${c} is not available."
@@ -291,7 +293,7 @@ done
 
 ### Optional: if any of these are missing, print an info message and continue
 for c in "${lk_cmds_opt[@]}"; do
-  declare -x "lk_cmd_abspth=$(type -P "${c}" 2> /dev/null)"
+  declare -x "lk_cmd_abspth=$(type -P "${c}" 2>&1 )"
   
   if [[ -z "$lk_cmd_abspth" ]]; then
     echo "INFO: line: ${nL}, command ${c} is not available." >&2
@@ -390,16 +392,18 @@ unset POSIXLY_CORRECT
 # lhunath: "mkdir is not defined to be an atomic operation and as 
 #+ such that "side-effect" is an implementation detail of the file 
 #+ system"
-if mkdir -m 0700 -- "/dev/shm/${scr_repo_nm}" 2> /dev/null; then
+if mkdir -m 0700 -- "/dev/shm/${scr_repo_nm}" 
+then
   printf 'Creation of lockdir succeeded.\n'
 
+  # probably deleting this chunck
   i="$( for f in "/dev/shm/${scr_repo_nm}"/*; do 
           if [[ -e "$f" ]]; then 
             basename "$f"; 
           else 
             if : > "${f/\*/${i:=$((n))}}"; then 
               export creation_t="${EPOCHSECONDS}"
-              printf 'Process file created.\n' 1>&2 
+              printf 'Process file created.\n' >&2 
             else
               : 'touch failed'
             fi
@@ -430,7 +434,7 @@ if mkdir -m 0700 -- "/dev/shm/${scr_repo_nm}" 2> /dev/null; then
             #+ SC2030 (info): Modification of creation_t is local (to subshell caused by $(..) expansion).
             if : > "${f/\*/${i:=$((n))}}"; then
               export creation_t="${EPOCHSECONDS}"
-              printf 'Process file created.\n' 1>&2
+              printf 'Process file created.\n' >&2
             else
               : 'touch failed'
             fi
@@ -442,12 +446,12 @@ if mkdir -m 0700 -- "/dev/shm/${scr_repo_nm}" 2> /dev/null; then
     # benchmark this syntax
   for f in "/dev/shm/${scr_repo_nm}"/*; do
           if [[ -e "$f" ]]; then
-            i="$(basename "$f")";
+            i="$(basename "$f" 2>&1)";
           else
       # trying `: >` vs `touch`
             if : > "${f/\*/${i:=$((n))}}"; then
               export creation_t="${EPOCHSECONDS}"
-              printf 'Process file created.\n' 1>&2
+              printf 'Process file created.\n' >&2
             else
               : 'touch failed'
             fi
@@ -458,7 +462,7 @@ if mkdir -m 0700 -- "/dev/shm/${scr_repo_nm}" 2> /dev/null; then
 
 
   veri_lockfile="${f/\*/$((i))}"
-  present_lock_count="$(basename "$veri_lockfile")";
+  present_lock_count="$(basename "$veri_lockfile" 2>&1)";
   for f in "/dev/shm/${scr_repo_nm}"/[0-9]*; do
     if [[ -e "$f" ]]; then
       if [[ $present_lock_count -ne 0 ]]; then
@@ -504,7 +508,7 @@ elif [[ -e "/dev/shm/${scr_repo_nm}" ]]; then
 
     for f in "${prior_process_files[@]}"; do
       if [[ -e "$f" ]]; then
-        present_lock_count="$(basename "$f")";
+        present_lock_count="$(basename "$f" 2>&1)";
       fi;
       if [[ -s "$f" ]]; then
           #cat $f
@@ -515,7 +519,7 @@ elif [[ -e "/dev/shm/${scr_repo_nm}" ]]; then
       #set -
       ps_o="$(ps aux \
         |& grep -e "${bashpid:='bash'}" -e "${ppid:="${scr_repo_nm}"}" -e "${zero:='.sh'}" \
-        |& grep -ve grep -e "${BASHPID}" -e "${PPID}")"
+        |& grep -ve grep -e "${BASHPID}" -e "${PPID}" 2>&1)"
 
       #set -x
       case "$present_lock_count" in

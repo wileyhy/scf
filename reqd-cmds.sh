@@ -17,25 +17,30 @@ yn=n
 
 
 hash -r;
-for c in "${reqd_cmds[@]}"; do
-  type_P_o="$(type -P "$c")"
-  if [[ -n "$type_P_o" ]]; then
+for c in "${reqd_cmds[@]}"
+do
+  type_P_o="$(type -P "$c" 2>&1)"
+  if [[ -n "$type_P_o" ]]
+  then
     hash -p "$type_P_o" "$c"
   else
     yn=y
     list+=("$c")
   fi;
-done; unset c reqd_cmds type_P_o
+done
+unset c reqd_cmds type_P_o
 
 
-if [[ "$yn" == 'n' ]]; then
+if [[ "$yn" == 'n' ]]
+then
   : 'No additional commands are required'
 else
   printf '\n\t Please install the following commands:\n'
   printf '\t\t%s\n' "${list[@]}"
   echo
   exit "$nL"
-fi; unset yn list
+fi
+unset yn list
 
 
   # <> Obligatory debugging block

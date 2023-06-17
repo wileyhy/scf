@@ -13,13 +13,15 @@
 : 'Verify DACs'
 # Bug: var path_2 is now path_2
 namei_o="$(
-  for d in "${bash_path[@]}"; do
-    namei -xl "$(
-      realpath -e "$d" 2>/dev/null
-    )"
-  done \
-    | grep -v ^'f:' \
-    | gawk --lint '$2 !~ /root/ || $3 !~ /root/ { print }'
+  {
+    for d in "${bash_path[@]}"; do
+      namei -xl "$(
+        realpath -e "$d" 2>&1
+      )"
+    done \
+      | grep -v ^'f:' \
+      | gawk --lint '$2 !~ /root/ || $3 !~ /root/ { print }'
+  } 2>&1
 )"
 if [[ -n "${namei_o}" ]]; then
   echo 'A directory in PATH is not fully owned by root (DAC).'
