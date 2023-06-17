@@ -88,9 +88,7 @@ _trap_ctrl_C() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
 }; declare -fxt _trap_ctrl_C
 
 # redefine the INT trap
-trap ': "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"; 
-      _trap_ctrl_C;
-      : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"' INT
+trap ': "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"; _trap_ctrl_C; : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"' INT
 
 
 
