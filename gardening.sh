@@ -370,26 +370,26 @@ declare -fx _debug_prompt
 # Bug? within trap, the command after _debug_prompt has line number of 351 [trap(lineno)+1], even though both commands are on line 350.
 _full_xtrace() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   _fun_trc
-  trap '_fun_trc; : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}  |  PIUSV"; _debug_prompt "$_"; : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"' DEBUG; echo cmd after DEBUG trap, $LINENO
+  trap '_fun_trc; : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}  |  PIUSV"; _debug_prompt "$_"; : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"' DEBUG; echo cmd after DEBUG trap, $LINENO, 5741
   # "Prints In Underscore Shell Variable"
-  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}" #
-  set -x
-  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
-  : '_full_xtrace ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
+  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}, 28666" #
+  set -x 16074
+  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}, 21506"
+  : '_full_xtrace ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl)), 26149"
 }
 declare -fx _full_xtrace
 #declare -t _full_xtrace
 
 
   # <> Obligatory debugging block
-  declare -p FUNCNAME BASH_SOURCE LINENO BASH_LINENO
+  declare -p FUNCNAME BASH_SOURCE LINENO BASH_LINENO 
   trap 'declare -p FUNCNAME BASH_SOURCE LINENO BASH_LINENO' EXIT
   caller
-  _full_xtrace
-  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
+  _full_xtrace 3580
+  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}, 31722"
   #exit "${nL}"
   #set -x
 
   # <>
   #sleep 3
-  #exit 00
+  exit 1001
