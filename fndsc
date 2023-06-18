@@ -90,7 +90,8 @@ _erx() {
   exit "${exit_code}"
   : '_erx ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }
-declare -fxt _erx
+declare -fx _erx
+#declare -t _erx
 
 
   # <> Obligatory debugging block
@@ -141,7 +142,8 @@ function _post_src {
   #[[ ! -v PS4 ]] &&
     printf '%b' "\e[m"
 }
-declare -fxt _post_src
+declare -fx _post_src
+#declare -t _post_src
 
 #set -T
 #set -x

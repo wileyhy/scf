@@ -48,7 +48,8 @@ function _fun_trc(){ : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"; lo
     set -x
   : '_fun_trc ENDS' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }
-declare -fxt _fun_trc
+declare -fx _fun_trc
+#declare -t _fun_trc
 
 
 : '<>: Debug functions & traps'
@@ -58,7 +59,8 @@ function exit { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   printf '\e[m'
   builtin exit "${nL}"
 }
-declare -fxt exit
+declare -fx exit
+#declare -t exit
 
 
 
@@ -107,7 +109,8 @@ _trap_ctrl_C() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   command -p kill -s INT "$$"
   : '_trap_ctrl_C ENDS' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }
-declare -fxt _trap_ctrl_C
+declare -fx _trap_ctrl_C
+#declare -t _trap_ctrl_C
 
 # redefine the INT trap
 trap ': "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"; _trap_ctrl_C; : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"' INT
@@ -272,7 +275,9 @@ _xtrace_duck() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
     fi
   fi
   : '_xtrace_duck ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
-}; declare -ftx _xtrace_duck
+}
+declare -fx _xtrace_duck
+#declare -t _xtrace_duck
 
 
 #   Remaining functions: A set of functions for printing changes in
@@ -291,7 +296,8 @@ _mk_v_setenv_pre() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   fi
   : '_mk_v_setenv_pre ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }
-declare -ftx _mk_v_setenv_pre
+declare -fx _mk_v_setenv_pre
+#declare -t _mk_v_setenv_pre
 
 
 _mk_v_setenv_novv() {
@@ -305,7 +311,8 @@ _mk_v_setenv_novv() {
   env >> "${xtr_senv_now}" # stderr to term
   : '_mk_v_setenv_novv ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }
-declare -ftx _mk_v_setenv_novv
+declare -fx _mk_v_setenv_novv
+#declare -t _mk_v_setenv_novv
 
 
 _mk_v_setenv_delta() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
@@ -315,51 +322,63 @@ _mk_v_setenv_delta() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   then
     : 'if delta'
     if [[ -v xtr_senv_delt ]]; then
+      
       # add the current delta data to the history thereof
       cat "${xtr_senv_delt}" >> "${xtr_delta_sum_f}" # stderr to term
+      
       # and unlink the current delta data file
       unlink -- "${xtr_senv_delt}"
     fi
+    
     # create a new delta file, each time
     xtr_senv_delt="$(mktemp -p /tmp --suffix=."${rand_f_nm}.A" 2>&1)"
-      # write the diff of the 'prev' and 'now' files to the new
-      # 'delta' file
-      diff --color=always --palette='ad=1;3;38;5;190:de=1;3;38;5;129' \
-        --suppress-{common-lines,blank-empty} \
-        "${xtr_senv_prev}" "${xtr_senv_now}" >> "${xtr_senv_delt}"
+      
+      # write the diff of the 'prev' and 'now' files to the new 'delta' file
+      diff --color=always --palette='ad=1;3;38;5;190:de=1;3;38;5;129' --suppress-{common-lines,blank-empty} "${xtr_senv_prev}" "${xtr_senv_now}" >> "${xtr_senv_delt}"
+    
     # set colors for wc output
-    export GREP_COLORS='mt=01;101'
-    wc "${xtr_senv_delt}" | 
-      grep --color=always -E '.*'
+    GREP_COLORS='mt=01;101' export GREP_COLORS
+    wc "${xtr_senv_delt}" | grep --color=always -E '.*'
 
     # reset colors for grep output
-    export GREP_COLORS='mt=01;43'
-    grep --color=always -E '.*' <<< "${xtr_senv_delt}"
+    GREP_COLORS='mt=01;43' export GREP_COLORS
+    grep --color=always -E '.*' < "${xtr_senv_delt}"
   fi
+
   : '_mk_v_setenv_delta ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
-}; declare -ftx _mk_v_setenv_delta
+}
+declare -fx _mk_v_setenv_delta
+#declare -t _mk_v_setenv_delta
 
 
 _mk_deltas() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
+  
   # Note: comment out _xtrace_duck with : (and not #)
   : _xtrace_duck
   _mk_v_setenv_pre
   _mk_v_setenv_novv
   _mk_v_setenv_delta
   : _xtrace_duck
+  
   : '_mk_deltas ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
-}; declare -ftx _mk_deltas
+}
+declare -fx _mk_deltas
+#declare -t _mk_deltas
 
 
 _debug_prompt() { : '_debug_prompt BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
+  
   #echo 'ampersand, _debug_prompt:' "$@"
   local hyphen="$-"
+  
   _mk_deltas
+  
   : '                                                                                      ~~~ ~~ ~ PROMPT ~ ~~ ~~~'
-  #read -rp "R+[${nBS[0]}:${nL}]  |  ${BASH_COMMAND}?  |: " _
   read -rp "R+ [${nBS[1]}:${nBL[0]}]  |  ${BASH_COMMAND}?  |: " _
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
+  
   [[ "${hyphen}" =~ x ]] && set -x
+  
   : '_debug_prompt ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }
 declare -fx _debug_prompt
