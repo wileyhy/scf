@@ -24,7 +24,7 @@ _verify_path(){
   
   # Q: "CLI optargs" here means, of this function?
   
-  # var $bash_path is only processed when the CLI optargs say so
+  # var $bash_path is only processed when its option is included on the CLI
   if [[ "${var_nm}" == bash_path ]] && 
     [[ "${verify[*]}" != *+(all|path)* ]]
   then
@@ -92,7 +92,8 @@ _verify_path(){
   fi
   : '_verify_path ENDS  '  "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }
-declare -fxt
+declare -fx _verify_path
+declare -t _verify_path
 
 # verify path vars
 _verify_path PATH
@@ -101,6 +102,4 @@ _verify_path PATH
 
 #exit "${nL}"
 #_full_xtrace
-
-
 
