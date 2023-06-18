@@ -91,7 +91,7 @@ _erx() {
   : '_erx ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }
 declare -fx _erx
-#declare -t _erx
+declare -t _erx
 
 
   # <> Obligatory debugging block
@@ -136,20 +136,23 @@ function _post_src {
   # after `source` returns, `exit` the calling shell with lineno $1.
   if [[ "$3" == y ]]
   then
+    # prints script name and line number of main script & function definition
     echo caller="${scr_nm}:$2"
+
+    # prints line number of script where function's executed
     exit "$1"
   fi
   #[[ ! -v PS4 ]] &&
     printf '%b' "\e[m"
 }
 declare -fx _post_src
-#declare -t _post_src
+declare -t _post_src
 
 #set -T
 #set -x
 
  : 'ID and sudo'       ; . './sudo.sh'          "${nL}"   n n n; #exit $nL
- : 'Enable debugging'  ; . './gardening.sh'     "${nL}"   y y y; #exit $nL
+ : 'Enable debugging'  ; . './gardening.sh'     "${nL}"   n y y; #exit $nL
  : 'Required programs' ; . './reqd-cmds.sh'     "${nL}"   n y y; exit $nL
  : 'Locks'             ; . './locks.sh'         "${nL}"   n y y; exit $nL
 #: 'Verify PATH'       ; . './path-verify.sh'   "${nL}"   n y y; exit $nL

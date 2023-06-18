@@ -3,6 +3,7 @@
 
 
   # <> Obligatory debugging block
+  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   _post_src "${nL}" "$@"
   #_full_xtrace
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
@@ -397,9 +398,7 @@ _full_xtrace() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   
   # PIUSV = "Prints In Underscore Shell Variable"
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}, 28666"
-  trap '_fun_trc; \
-    : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}  |  PIUSV"; _debug_prompt "$_"; \
-    : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"' DEBUG; \
+  trap '_fun_trc; : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}  |  PIUSV"; _debug_prompt "$_"; : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"' DEBUG; 
     echo cmd after DEBUG trap, $LINENO, 5741
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}, 21506"
   
