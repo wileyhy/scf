@@ -337,12 +337,12 @@ _mk_v_setenv_delta() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
       diff --color=always --palette='ad=1;3;38;5;190:de=1;3;38;5;129' --suppress-{common-lines,blank-empty} "${xtr_senv_prev}" "${xtr_senv_now}" >> "${xtr_senv_delt}"
     
     # set colors for wc output
-    GREP_COLORS='mt=01;101' export GREP_COLORS
-    wc "${xtr_senv_delt}" | grep --color=always -E '.*'
+    #GREP_COLORS='mt=01;101' export GREP_COLORS
+    #wc "${xtr_senv_delt}" | grep --color=always -E '.*'
 
     # reset colors for grep output
     GREP_COLORS='mt=01;43' export GREP_COLORS
-    grep --color=always -E '.*' < "${xtr_senv_delt}"
+    #grep --color=always -E '.*' < "${xtr_senv_delt}"
   fi
 
   : '_mk_v_setenv_delta ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
@@ -391,12 +391,18 @@ declare -fx _debug_prompt
 # Bug? within trap, the command after _debug_prompt has line number of 351 [trap(lineno)+1], even though both commands are on line 350.
 
 _full_xtrace() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
+  
   #_fun_trc
+  #set -x 16074
+  
   # PIUSV = "Prints In Underscore Shell Variable"
-  trap '_fun_trc; : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}  |  PIUSV"; _debug_prompt "$_"; : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"' DEBUG; echo cmd after DEBUG trap, $LINENO, 5741
-  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}, 28666" #
-  set -x 16074
+  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}, 28666"
+  trap '_fun_trc; \
+    : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}  |  PIUSV"; _debug_prompt "$_"; \
+    : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"' DEBUG; \
+    echo cmd after DEBUG trap, $LINENO, 5741
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}, 21506"
+  
   : '_full_xtrace ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl)), 26149"
 }
 declare -fx _full_xtrace
