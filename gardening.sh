@@ -16,13 +16,7 @@
 #set -o functrace
 FUNCNEST=32
 close_ps4='\n\e[0;104m+[${#nBS[@]}]${nBS[0]##*/}(${nL}) [$((${#nBS[@]}-1))]${nBS[1]##*/}(${nBL[0]})${nF[0]} [$((${#nBS[@]}-2))]${nBS[2]##*/}(${nBL[1]})${nF[1]} [$((${#nBS[@]}-3))]${nBS[3]##*/}(${nBL[2]})${nF[2]} [$((${#nBS[@]}-4))]${nBS[4]##*/}(${nBL[3]})${nF[3]} \e[m\n    |=\t=|> \e[0;93m '
-
-#far_ps4='\e[0;104m+[${#nBS[@]}]${nBS[0]##*/}(${nL}) [$((${#nBS[@]}-1))]${nBS[1]##*/}(${nBL[0]})|${nF[0]} \e[m > \e[0;93m '
-#         ^color       ^fnlvl    ^sub-script   ^lineno     ^((fnlvl-1))  ^callerOprev  ^lineno   ^fn colo^r p^rompt ^color
-#far_ps4='\e[0;104m+ <${nF[0]:0:8}> [${#nBS[@]}]${nBS[0]##*/}(${nL}) [$((${#nBS[@]}-1))]${nBS[1]##*/}(${nBL[0]}) \e[m > \e[0;93m '
-#far_ps4='\e[0;104m+[${#nBS[@]}]${nBS[0]##*/}(${nL}) [$((${#nBS[@]}-1))]${nBS[1]##*/}(${nBL[0]}) <${nF[0]:0:8}> \e[m > \e[0;93m '
-#far_ps4='\e[0;104m+[${#nBS[@]}]${nBS[0]##*/}(${nL}) <${nF[0]:0:8}> [$((${#nBS[@]}-1))]${nBS[1]##*/}(${nBL[0]}) \e[m > \e[0;93m '
-far_ps4='\e[0;104m+ At:[${#nBS[@]}]${nBS[0]##*/}(${nL}) In:<`cut -c-8 <<< ${nF[0]:-""}`> Fr:[$((${#nBS[@]}-1))]${nBS[1]##*/}(${nBL[0]}) \e[m > \e[0;93m '
+far_ps4='\e[0;104m+ At:[${#nBS[@]}]"$( cut -c -8 <<< ${nBS[0]##*/} )"(${nL}) In:<"$( cut -c -8 <<< ${nF[0]:-} )"> Fr:[$((${#nBS[@]}-1))]"$( cut -c -8 <<< ${nBS[1]##*/} )"(${nBL[0]}) \e[m > \e[0;93m '
 PS4="${far_ps4}" export PS4
 export FUNCNEST close_ps4 far_ps4 
 
@@ -338,14 +332,15 @@ _mk_v_setenv_delta() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
       diff --color=always --palette='ad=1;3;38;5;190:de=1;3;38;5;129' --suppress-{common-lines,blank-empty} "${xtr_senv_prev}" "${xtr_senv_now}" >> "${xtr_senv_delt}"
     
     # set colors for wc output
-    GREP_COLORS='mt=01;101' export GREP_COLORS
-    wc "${xtr_senv_delt}" | grep --color=always -E '.*'
-    GREP_COLORS='' export GREP_COLORS
-    printf '\e[m'
+    #GREP_COLORS='mt=01;101' export GREP_COLORS
+    #wc "${xtr_senv_delt}" | grep --color=always -E '.*'
+    #GREP_COLORS='' export GREP_COLORS
+    #printf '\e[m'
     
     # reset colors for grep output
-    GREP_COLORS='mt=01;43' export GREP_COLORS
-    grep --color=always -E '.*' < "${xtr_senv_delt}"
+    #GREP_COLORS='mt=01;43' export GREP_COLORS
+    #grep --color=always -E '.*' < "${xtr_senv_delt}"
+    cat "${xtr_senv_delt}"
   fi
 
   : '_mk_v_setenv_delta ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
@@ -378,7 +373,7 @@ _debug_prompt() { : '_debug_prompt BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl)
   
   _mk_deltas
   
-  : '                                                                                      ~~~ ~~ ~ PROMPT ~ ~~ ~~~'
+  : '                                                           ~~~ ~~ ~ PROMPT ~ ~~ ~~~'
   read -rp "R+ [${nBS[1]}:${nBL[0]}]  |  ${BASH_COMMAND}?  |: " _
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   
