@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -Cux
 #!/usr/bin/env -iS bash
 #   fndscn
 #   shellcheck disable=SC2317
@@ -28,13 +28,13 @@ unset CDPATH
 readonly CDPATH
 
 builtin hash -r
-forced_path_search="$( \
-  builtin type -P getconf 2>&1
+forced_path_search="$( 
+  builtin type -P getconf 2>&1 
 )"
 [[ -z "$forced_path_search" ]] &&
   "${Halt:?}"
 builtin hash -p "${forced_path_search}" getconf
-PATH_getconf="$( \
+PATH_getconf="$( 
   command -p getconf PATH 2>&1 ||
     "${Halt:?}"
 )"
