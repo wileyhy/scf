@@ -136,11 +136,11 @@ function _post_src {
   # after `source` returns, `exit` the calling shell with lineno $1.
   if [[ "$4" == y ]]
   then
-    # prints script name and line number of main script & function definition
-    echo caller="$1:$2"
+    # prints script name and line number of script where function's executed
+    : called_at: "$1:$2"
 
     # prints line number of script where function's executed
-    exit "$2"
+    exit -1
   fi
   #[[ ! -v PS4 ]] &&
     printf '%b' "\e[m"
