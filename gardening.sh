@@ -22,7 +22,7 @@ close_ps4='\n\e[0;104m+[${#nBS[@]}]${nBS[0]##*/}(${nL}) [$((${#nBS[@]}-1))]${nBS
 #far_ps4='\e[0;104m+[${#nBS[@]}]${nBS[0]##*/}(${nL}) [$((${#nBS[@]}-1))]${nBS[1]##*/}(${nBL[0]}) <${nF[0]:0:8}> \e[m > \e[0;93m '
 #far_ps4='\e[0;104m+[${#nBS[@]}]${nBS[0]##*/}(${nL}) <${nF[0]:0:8}> [$((${#nBS[@]}-1))]${nBS[1]##*/}(${nBL[0]}) \e[m > \e[0;93m '
 far_ps4='\e[0;104m+ At:[${#nBS[@]}]${nBS[0]##*/}(${nL}) In:<${nF[0]:0:8}> Fr:[$((${#nBS[@]}-1))]${nBS[1]##*/}(${nBL[0]}) \e[m > \e[0;93m '
-#PS4="${far_ps4}" export PS4
+PS4="${far_ps4}" export PS4
 export FUNCNEST close_ps4 far_ps4 
 
 
@@ -355,7 +355,8 @@ _debug_prompt() { : '_debug_prompt BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl)
   local hyphen="$-"
   _mk_deltas
   : '                                                                                      ~~~ ~~ ~ PROMPT ~ ~~ ~~~'
-  read -rp "R+[${nBS[0]}:${nL}]  |  ${BASH_COMMAND}?  |: " _
+  #read -rp "R+[${nBS[0]}:${nL}]  |  ${BASH_COMMAND}?  |: " _
+  read -rp "R+ [${nBS[1]}:${nBL[0]}]  |  ${BASH_COMMAND}?  |: " _
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   [[ "${hyphen}" =~ x ]] && set -x
   : '_debug_prompt ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
@@ -370,8 +371,8 @@ declare -fx _debug_prompt
 # Bug? within trap, the command after _debug_prompt has line number of 351 [trap(lineno)+1], even though both commands are on line 350.
 _full_xtrace() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   _fun_trc
+  # PIUSV = "Prints In Underscore Shell Variable"
   trap '_fun_trc; : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}  |  PIUSV"; _debug_prompt "$_"; : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"' DEBUG; echo cmd after DEBUG trap, $LINENO, 5741
-  # "Prints In Underscore Shell Variable"
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}, 28666" #
   set -x 16074
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}, 21506"
