@@ -156,7 +156,7 @@ declare -t _post_src
 
  : 'ID and sudo'       ; . './sudo.sh'          "${nL}"   n n n; #exit $nL
  # So PS4 is on whenever xtrace is on, and DEBUG trap is always on once defined: 2023-06-18 0840
- : 'Enable debugging'  ; . './gardening.sh'     "${nL}"   n n n; #exit $nL
+ : 'Enable debugging'  ; . './gardening.sh'     "${nL}"   n y y; #exit $nL
  : 'Required programs' ; . './reqd-cmds.sh'     "${nL}"   n y y; exit $nL
  : 'Locks'             ; . './locks.sh'         "${nL}"   n y y; exit $nL
 #: 'Verify PATH'       ; . './path-verify.sh'   "${nL}"   n y y; exit $nL

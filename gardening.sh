@@ -50,7 +50,7 @@ function _fun_trc(){ : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"; lo
   : '_fun_trc ENDS' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }
 declare -fx _fun_trc
-#declare -t _fun_trc
+declare -t _fun_trc
 
 
 : '<>: Debug functions & traps'
@@ -61,7 +61,7 @@ function exit { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   builtin exit "${nL}"
 }
 declare -fx exit
-#declare -t exit
+declare -t exit
 
 
 
@@ -111,7 +111,7 @@ _trap_ctrl_C() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   : '_trap_ctrl_C ENDS' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }
 declare -fx _trap_ctrl_C
-#declare -t _trap_ctrl_C
+declare -t _trap_ctrl_C
 
 # redefine the INT trap
 trap ': "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"; _trap_ctrl_C; : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"' INT
@@ -278,7 +278,7 @@ _xtrace_duck() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   : '_xtrace_duck ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }
 declare -fx _xtrace_duck
-#declare -t _xtrace_duck
+declare -t _xtrace_duck
 
 
 #   Remaining functions: A set of functions for printing changes in
@@ -298,7 +298,7 @@ _mk_v_setenv_pre() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   : '_mk_v_setenv_pre ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }
 declare -fx _mk_v_setenv_pre
-#declare -t _mk_v_setenv_pre
+declare -t _mk_v_setenv_pre
 
 
 _mk_v_setenv_novv() {
@@ -313,7 +313,7 @@ _mk_v_setenv_novv() {
   : '_mk_v_setenv_novv ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }
 declare -fx _mk_v_setenv_novv
-#declare -t _mk_v_setenv_novv
+declare -t _mk_v_setenv_novv
 
 
 _mk_v_setenv_delta() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
@@ -340,6 +340,7 @@ _mk_v_setenv_delta() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
     # set colors for wc output
     GREP_COLORS='mt=01;101' export GREP_COLORS
     wc "${xtr_senv_delt}" | grep --color=always -E '.*'
+    GREP_COLORS='' export GREP_COLORS
     printf '\e[m'
     
     # reset colors for grep output
@@ -350,7 +351,7 @@ _mk_v_setenv_delta() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   : '_mk_v_setenv_delta ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }
 declare -fx _mk_v_setenv_delta
-#declare -t _mk_v_setenv_delta
+declare -t _mk_v_setenv_delta
 
 
 _mk_deltas() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
@@ -365,7 +366,7 @@ _mk_deltas() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   : '_mk_deltas ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }
 declare -fx _mk_deltas
-#declare -t _mk_deltas
+declare -t _mk_deltas
 
 
 _debug_prompt() { : '_debug_prompt BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
@@ -386,7 +387,7 @@ _debug_prompt() { : '_debug_prompt BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl)
   : '_debug_prompt ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }
 declare -fx _debug_prompt
-#declare -t _debug_prompt
+declare -t _debug_prompt
 
 
 # Bug? for the line numbers in _fun_trc to be correct, this trap
@@ -408,7 +409,7 @@ _full_xtrace() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   : '_full_xtrace ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl)), 26149"
 }
 declare -fx _full_xtrace
-#declare -t _full_xtrace
+declare -t _full_xtrace
 
 
   # <> Obligatory debugging block
