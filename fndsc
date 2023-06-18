@@ -35,13 +35,20 @@ unset CDPATH
 readonly CDPATH
 
 builtin hash -r
-forced_path_search="$(
-  builtin type -P getconf 2>&1
-  )"
-[[ -z "$forced_path_search" ]] &&
-  "${Halt:?}"
-builtin hash -p "${forced_path_search}" getconf
-#                                                                     < cmd
+for c in getconf realpath
+do
+  forced_path_search="$(
+    builtin type -P "$c" 2>&1
+    )"
+  if [[ -z "$forced_path_search" ]] ||
+    [[ ! -f "$forced_path_search" ]]
+  then
+    "${Halt:?}"
+  fi
+  builtin hash -p "${forced_path_search}" "$c"
+done
+unset c forced_path_search
+
 PATH_getconf="$(
   command -p getconf PATH 2>&1 ||
     "${Halt:?}"
