@@ -57,8 +57,11 @@ PATH_getconf="$(
 PATH="${PATH_getconf}:/usr/bin:/usr/sbin:${PATH}"
 export PATH
 
-[[ -f ./path-verify.sh ]] &&
+if [[ -f ./path-verify.sh ]]; then
   source ./path-verify.sh
+else
+  "${Halt:?}"
+fi
 #declare -p PATH
 
 unset LC_ALL
@@ -152,7 +155,7 @@ declare -t _post_src
 #set -x
 
  : 'ID and sudo'       ; . './sudo.sh'          "${nL}"   n n n; #exit $nL
- : 'Enable debugging'  ; . './gardening.sh'     "${nL}"   y y y; #exit $nL
+ : 'Enable debugging'  ; . './gardening.sh'     "${nL}"   n y y; #exit $nL
  : 'Required programs' ; . './reqd-cmds.sh'     "${nL}"   n y y; exit $nL
  : 'Locks'             ; . './locks.sh'         "${nL}"   n y y; exit $nL
 #: 'Verify PATH'       ; . './path-verify.sh'   "${nL}"   n y y; exit $nL
