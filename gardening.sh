@@ -329,8 +329,8 @@ _mk_v_setenv_delta() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
         "${xtr_senv_prev}" "${xtr_senv_now}" >> "${xtr_senv_delt}"
     # set colors for wc output
     export GREP_COLORS='mt=01;101'
-    wc "${xtr_senv_delt}" \
-      | grep --color=always -E '.*'
+    wc "${xtr_senv_delt}" | 
+      grep --color=always -E '.*'
 
     # reset colors for grep output
     export GREP_COLORS='mt=01;43'
@@ -354,8 +354,8 @@ _debug_prompt() { : '_debug_prompt BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl)
   echo 'ampersand, _debug_prompt:' "$@"
   local hyphen="$-"
   _mk_deltas
-  : '                                ~~~ ~~ ~ PROMPT ~ ~~ ~~~'
-  read -rp "R+[${nBS[0]}:${nL}]  |  ${BASH_COMMAND}?  |" _
+  : '                                                                                      ~~~ ~~ ~ PROMPT ~ ~~ ~~~'
+  read -rp "R+[${nBS[0]}:${nL}]  |  ${BASH_COMMAND}?  |: " _
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   [[ "${hyphen}" =~ x ]] && set -x
   : '_debug_prompt ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
@@ -383,10 +383,11 @@ declare -fx _full_xtrace
 
   # <> Obligatory debugging block
   declare -p FUNCNAME BASH_SOURCE LINENO BASH_LINENO 
-  trap 'declare -p FUNCNAME BASH_SOURCE LINENO BASH_LINENO' EXIT
+  #trap 'declare -p FUNCNAME BASH_SOURCE LINENO BASH_LINENO' EXIT
   caller
   _full_xtrace 3580
-  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}, 31722"
+  : 31722
+  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   #exit "${nL}"
   #set -x
 
