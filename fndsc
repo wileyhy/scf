@@ -72,7 +72,7 @@ _erx() {
 
 
   # <> Obligatory debugging block
-  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
+  : "${nBS[0]}:${nL}"
   #exit "${nL}"
   #set -x
 
