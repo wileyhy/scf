@@ -1,4 +1,4 @@
-#!/bin/bash -Cux
+#!/bin/bash -Ceux
 #!/usr/bin/env -iS bash
 #   fndscn
 #   shellcheck disable=SC2317
