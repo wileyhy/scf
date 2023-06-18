@@ -81,7 +81,7 @@ _verify_path(){
       unset 'path_2[0]';
       [[ -n "${path_2[*]}" ]] && 
         printf ':%s' "${path_2[@]}"
-    } 2>&1
+    } 
   )"
   
   # if the path var is bash_path, then reset find_path

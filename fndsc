@@ -1,4 +1,4 @@
-#!/bin/bash -Ceux
+#!/bin/bash -Cx
 #!/usr/bin/env -iS bash
 #   fndscn
 #   shellcheck disable=SC2317
@@ -26,6 +26,9 @@ SC_sevr=error
 SC_shells='(sh|bash|dash|ksh)'
 export SC_sevr SC_shells
 
+fn_bndry=' +++ +++ +++ ' 
+fn_lvl=0 
+export fn_lvl fn_bndry
 declare -nx nBL=BASH_LINENO nBS=BASH_SOURCE nF=FUNCNAME nL=LINENO
 
 unset CDPATH
@@ -38,16 +41,17 @@ forced_path_search="$(
 [[ -z "$forced_path_search" ]] &&
   "${Halt:?}"
 builtin hash -p "${forced_path_search}" getconf
+#                                                                     < cmd
 PATH_getconf="$(
   command -p getconf PATH 2>&1 ||
     "${Halt:?}"
-  )"       # cmd
+  )"
 PATH="${PATH_getconf}:/usr/bin:/usr/sbin:${PATH}"
 export PATH
 
+
 [[ -f ./path-verify.sh ]] &&
   source ./path-verify.sh
-declare -p PATH
 
 
 unset LC_ALL
@@ -64,10 +68,6 @@ rand_lock_nm="${rand_uniq_str}.lock.d"
 rand_f_nm="${rand_uniq_str:?}.xtr"
 export rand_i rand_uniq_str rand_lock_nm rand_f_nm
 
-fn_bndry=' +++ +++ +++ ' 
-fn_lvl=0 
-export fn_lvl fn_bndry
-
 
 # Undocumented CLI option
 if [[ "$*" =~ rm_locks ]]
@@ -82,7 +82,8 @@ _erx() {
   echo -e Error: "$@" >&2
   exit "${exit_code}"
   : '_erx ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
-}; declare -fxt _erx
+}
+declare -fxt _erx
 
 
   # <> Obligatory debugging block

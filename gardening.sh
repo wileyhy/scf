@@ -34,15 +34,22 @@ function _fun_trc(){ : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"; lo
   unset line_hyphen
   local i
   local -a ir # (indices reversed)
-  mapfile -t ir < <(rev <<< "${!nBS[@]}" | tr ' ' '\n')
-  for i in "${ir[@]}"; do
+  #                                                                 < x2 cmds
+  mapfile -t ir < <(
+    rev <<< "${!nBS[@]}" | 
+    tr ' ' '\n'
+    )
+  for i in "${ir[@]}"
+  do
     printf '(-%d):%s:%s:%s  ' "${i}" "${nBS[$i+1]:-$0}" "${nBL[$i]:?}" \
       "${nF[$i]:?}"
-  done;
+  done
   echo "(+1):${nBS[0]:?}:${line:?}:_fun_trc:${nL}"
-  [[ "${hyphen:?}" =~ x ]] && set -x
+  [[ "${hyphen:?}" =~ x ]] && 
+    set -x
   : '_fun_trc ENDS' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
-}; declare -fxt _fun_trc
+}
+declare -fxt _fun_trc
 
 
 : '<>: Debug functions & traps'
@@ -50,8 +57,9 @@ function _fun_trc(){ : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"; lo
 function exit { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   unset PS4
   printf '\e[m'
-  builtin exit "${nL}";
-}; declare -fxt exit
+  builtin exit "${nL}"
+}
+declare -fxt exit
 
 
 
@@ -65,27 +73,35 @@ _trap_ctrl_C() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   do
 
     # as possible, add each to an array $rm_list
-    if [[ -f "${f}" ]] && [[ ! -L "${f}" ]] && [[ -O "${f}" ]]; then
+    if [[ -f "${f}" ]] && 
+      [[ ! -L "${f}" ]] && 
+      [[ -O "${f}" ]]
+    then
       rm_list+=("${f}")
     fi
-  done; unset f xtr_time_f xtr_senv_prev xtr_senv_now xtr_senv_delt
+  done
+  unset f xtr_time_f xtr_senv_prev xtr_senv_now xtr_senv_delt
 
   # if there are any files in array $rm_list, then remove then all at once
-  if [[ -n "${rm_list[*]:0:8}" ]]; then
-    if ! rm -f --one-file-system --preserve-root=all "${verb[@]}" "${rm_list[@]}";
+  if [[ -n "${rm_list[*]:0:8}" ]]
+  then
+    #                                                               < cmd
+    if ! rm -f --one-file-system --preserve-root=all "${verb[@]}" "${rm_list[@]}"
     then
       _erx "unlink failed, line ${nL}"
     fi
-  fi; unset rm_list
+  fi
+  unset rm_list
 
   # reset the terminal prompt color
   unset PS4
   printf '\e[m'
   
-  # kill the script with INT
+  # kill the script with INT                                        < cmd
   command -p kill -s INT "$$"
   : '_trap_ctrl_C ENDS' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
-}; declare -fxt _trap_ctrl_C
+}
+declare -fxt _trap_ctrl_C
 
 # redefine the INT trap
 trap ': "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"; _trap_ctrl_C; : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"' INT
@@ -96,21 +112,26 @@ trap ': "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"; _trap_ctrl_C; : "${nBS[0]}:${nL} 
 
 # Vars
 xtr_time_f="/tmp/tmp.mtime_file.${rand_f_nm}"
-xtr_delta_sum_f="$(mktemp -p /tmp --suffix=."${rand_f_nm}.E" 2>&1)"
+#                                                                   < cmd
+xtr_delta_sum_f="$(
+  mktemp -p /tmp --suffix=."${rand_f_nm}.E" 2>&1
+  )"
 export rand_f_nm xtr_time_f xtr_delta_sum_f
 unset f xtr_rm_list xtr_files
 
 # Create the xtrace time file
+#                                                                   < cmd
 touch -d "${scr_max_age_of_tmp_files:?}" "${xtr_time_f}"
 
 # Remove any errant xtrace log files
 
 # Get the list of remaining xtrace log files (older than the time file)
+#                                                                   < cmd
 mapfile -d '' -t xtr_files < <(
   find -P /tmp -maxdepth 1 -type f \
     -name "tmp.[a-zA-Z0-9]*.${scr_repo_nm:?}.[0-9]*.[0-9]*.xtr*" \
     '!' -newer "${xtr_time_f}" '!' -name "${xtr_time_f##*/}" -print0
-)
+  )
 
 # ...if they're (if inodes are) for files & not symlinks, & owned by
 # the same EUID....
@@ -118,15 +139,18 @@ for f in "${xtr_files[@]}"; do
   if [[ -f "${f}" ]] && [[ ! -L "${f}" ]] && [[ -O "${f}" ]]; then
 
     # then protect them and add then to an array $xtr_rm_list
+    #                                                               < cmd
     chmod "${verb[@]}" 000 "$f"
     xtr_rm_list+=("${f}")
   fi
-done; unset f
+done
+unset f
 
 # remove the $xtr_rm_list files all at once
 if [[ -n "${xtr_rm_list[*]}" ]]; then
   rm -f --one-file-system --preserve-root=all "${verb[@]}" "${xtr_rm_list[@]}"
-fi; unset xtr_rm_list xtr_files
+fi
+unset xtr_rm_list xtr_files
 
 
   # <> Obligatory debugging block
@@ -161,7 +185,7 @@ fn_bak() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
         fi
       fi   
       # write a new .bak file
-      sudo  rsync -acq -- "${filename_a}"{,.bak} \
+      sudo rsync -acq -- "${filename_a}"{,.bak} \
         || _erx "${nL}"
     # if input file DNE, then print an error and exit
     else 
@@ -179,7 +203,7 @@ fn_write_arrays() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   # Usage: fn_write_arrays [arrays]
   write_d_b="${curr_time_ssubd}arrays"
   if [[ ! -d "${write_d_b}" ]]; then
-    sudo  mkdir -p -- "${write_d_b}" \
+    sudo mkdir -p -- "${write_d_b}" \
       || _erx "${nL}"
   fi
   # for each of multiple input array names
@@ -189,7 +213,9 @@ fn_write_arrays() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
     array_nm="${unquotd_array_nm_b}"
     write_f_b="${write_d_b}/_${sc_sev_abrv}"
     write_f_b+="_${ABBREV_REL_SEARCH_DIRS}_${array_nm}"
-    decl_o="$(declare -p "${array_nm}" 2>&1)"
+    decl_o="$(
+      declare -p "${array_nm}" 2>&1
+      )"
 
     # Bug? When array correctly is empty: 'declare -p ... > ||' ?
     # requires use of fn_write_arrays or fn_write_arrays to debug this.
@@ -211,8 +237,6 @@ fn_write_arrays() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
 
 
 : '<> Debug: "Full xTrace" variables and functions'
-
-fn_lvl=0; fn_bndry=' +++ +++ +++ '
 
 #   _xtrace_duck: If xtrace was previously on, then on first execution
 # of this function, turn xrtrace off, and on second execution, turn
@@ -264,7 +288,8 @@ _mk_v_setenv_pre() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
     xtr_senv_prev="${xtr_senv_now}"
   fi
   : '_mk_v_setenv_pre ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
-}; declare -ftx _mk_v_setenv_pre
+}
+declare -ftx _mk_v_setenv_pre
 
 
 _mk_v_setenv_novv() {
@@ -277,7 +302,8 @@ _mk_v_setenv_novv() {
   set >  "${xtr_senv_now}" # stderr to term
   env >> "${xtr_senv_now}" # stderr to term
   : '_mk_v_setenv_novv ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
-}; declare -ftx _mk_v_setenv_novv
+}
+declare -ftx _mk_v_setenv_novv
 
 
 _mk_v_setenv_delta() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
@@ -298,8 +324,7 @@ _mk_v_setenv_delta() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
       # 'delta' file
       diff --color=always --palette='ad=1;3;38;5;190:de=1;3;38;5;129' \
         --suppress-{common-lines,blank-empty} \
-        "${xtr_senv_prev}" "${xtr_senv_now}" \
-        |& tee -a "${xtr_senv_delt}"
+        "${xtr_senv_prev}" "${xtr_senv_now}" > "${xtr_senv_delt}"
     # set colors for `wc` output
     export GREP_COLORS='mt=01;101'
     wc "${xtr_senv_delt}" \
