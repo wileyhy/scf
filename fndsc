@@ -1,4 +1,4 @@
-#!/bin/bash -Cxu
+#!/bin/bash -Cu
 #!/usr/bin/env -iS bash
 #   fndscn
 #   shellcheck disable=SC2317
@@ -155,7 +155,7 @@ declare -t _post_src
 #set -x
 
  : 'ID and sudo'       ; . './sudo.sh'          "${nL}"   n n n; #exit $nL
- : 'Enable debugging'  ; . './gardening.sh'     "${nL}"   n n y; #exit $nL
+ : 'Enable debugging'  ; . './gardening.sh'     "${nL}"   n n n; #exit $nL
  : 'Required programs' ; . './reqd-cmds.sh'     "${nL}"   n y y; exit $nL
  : 'Locks'             ; . './locks.sh'         "${nL}"   n y y; exit $nL
 #: 'Verify PATH'       ; . './path-verify.sh'   "${nL}"   n y y; exit $nL
