@@ -33,6 +33,7 @@ declare -nx nBL=BASH_LINENO nBS=BASH_SOURCE nF=FUNCNAME nL=LINENO
 
 unset CDPATH
 readonly CDPATH
+shopt -u sourcepath
 
 builtin hash -r
 for c in getconf realpath
@@ -55,7 +56,6 @@ PATH_getconf="$(
   )"
 PATH="${PATH_getconf}:/usr/bin:/usr/sbin:${PATH}"
 export PATH
-
 
 [[ -f ./path-verify.sh ]] &&
   source ./path-verify.sh
@@ -138,7 +138,6 @@ function _post_src {
 }
 declare -fxt _post_src
 
-shopt -u sourcepath
 #set -T
 #set -x
 
