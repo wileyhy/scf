@@ -148,15 +148,15 @@ declare -fx _post_src
 #set -T
 #set -x
 
-: 'ID and sudo'       ; . './sudo.sh'          "${nL}"   n n n; #exit $nL
-: 'Enable debugging'  ; . './gardening.sh'     "${nL}"   n y n; #exit $nL
-: 'Required programs' ; . './reqd-cmds.sh'     "${nL}"   n y y; exit $nL
-: 'Locks'             ; . './locks.sh'         "${nL}"   n y y; exit $nL
-: 'Verify PATH'       ; . './path-verify.sh'   "${nL}"   n y y; exit $nL
-: 'Verify DACs'       ; . './dacs-verify.sh'   "${nL}"   n y y; exit $nL
-: 'Verify ACLs'       ; . './acls-verify.sh'   "${nL}"   n y y; exit $nL
-: 'Option Parsing'    ; . './opt-parsing.sh'   "${nL}"   n y y; exit $nL
-: 'Storing findings'  ; . './hard-disk.sh'     "${nL}"   n y y; exit $nL
+ : 'ID and sudo'       ; . './sudo.sh'          "${nL}"   n n n; #exit $nL
+ : 'Enable debugging'  ; . './gardening.sh'     "${nL}"   y y y; #exit $nL
+ : 'Required programs' ; . './reqd-cmds.sh'     "${nL}"   n y y; exit $nL
+ : 'Locks'             ; . './locks.sh'         "${nL}"   n y y; exit $nL
+#: 'Verify PATH'       ; . './path-verify.sh'   "${nL}"   n y y; exit $nL
+ : 'Verify DACs'       ; . './dacs-verify.sh'   "${nL}"   n y y; exit $nL
+ : 'Verify ACLs'       ; . './acls-verify.sh'   "${nL}"   n y y; exit $nL
+ : 'Option Parsing'    ; . './opt-parsing.sh'   "${nL}"   n y y; exit $nL
+ : 'Storing findings'  ; . './hard-disk.sh'     "${nL}"   n y y; exit $nL
 
 # ^--Purpose            ^--dot         nameref--^  xtrace--^
 #                            ^--filename           exit--^   ^-verbose
