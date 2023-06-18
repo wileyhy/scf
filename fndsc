@@ -12,7 +12,7 @@ scr_nm='./fndsc'
 scr_proper_nm='Find scripts'
 scr_protected_git_dir_1="${HOME}/MYPROJECTS"
 scr_protected_git_dir_2="${HOME}/OTHERSPROJECTS"
-scr_repo_nm='scf' 
+scr_repo_nm='scf'
 scr_tcode="$(builtin printf '%(%F_%H%M%S)T' 2>&1)"
 scr_version=1.0
 export scr_lic scr_max_age_of_tmp_files scr_nm scr_proper_nm \
@@ -22,7 +22,7 @@ scr_dirnm="${scr_repo_nm}.d" export scr_dirnm
 
 SC_sevr='error'
 SC_shells='(sh|bash|dash|ksh)'
-export SC_sevr SC_shells 
+export SC_sevr SC_shells
 
 unset CDPATH
 readonly CDPATH
@@ -31,19 +31,19 @@ builtin hash -r
 forced_path_search="$( \
   builtin type -P getconf 2>&1
 )"
-[[ -z "$forced_path_search" ]] && 
+[[ -z "$forced_path_search" ]] &&
   "${Halt:?}"
 builtin hash -p "${forced_path_search}" getconf
 PATH_getconf="$( \
-  command -p getconf PATH 2>&1 || 
+  command -p getconf PATH 2>&1 ||
     "${Halt:?}"
 )"
 PATH="${PATH_getconf}:/usr/bin:/usr/sbin:${PATH}" export PATH
 
-unset LC_ALL 
+unset LC_ALL
 LC_COLLATE="C.UTF-8" LC_CTYPE="C.UTF-8" # for predictable sorting
 LC_NUMERIC="en_US.UTF-8"                # for commas in large numbers
-export LC_COLLATE LC_CTYPE LC_NUMERIC 
+export LC_COLLATE LC_CTYPE LC_NUMERIC
 
 GREP_COLORS='mt=01;43' export GREP_COLORS
 declare -nx nBL=BASH_LINENO nBS=BASH_SOURCE nF=FUNCNAME nL=LINENO
@@ -53,15 +53,16 @@ rand_uniq_str="${scr_repo_nm}.${$}.${rand_i}"
 rand_lock_nm="${rand_uniq_str}.lock.d" rand_f_nm="${rand_uniq_str:?}.xtr"
 export rand_i rand_uniq_str rand_lock_nm rand_f_nm
 
-fn_bndry=' +++ +++ +++ ' fn_lvl=0 export fn_lvl fn_bndry 
+fn_bndry=' +++ +++ +++ ' fn_lvl=0 export fn_lvl fn_bndry
 
 
-# Undocumented CLI option 
-if [[ "$*" =~ rm_locks ]]; then 
-  rm_locks='y' export rm_locks; 
+# Undocumented CLI option
+if [[ "$*" =~ rm_locks ]]
+then
+  rm_locks='y' export rm_locks
 fi
 
-_erx() { 
+_erx() {
   local exit_code="$?"
   : '_erx BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   echo -e Error: "$@" >&2
@@ -80,8 +81,8 @@ _erx() {
 declare -ax verb=( '--' )
 
   # Note: Exit traps don't print accurate trace data in PS4; so use a function
-  #far_ps4='\e[0;104m+[${#nBS[@]}]${nBS[0]##*/}(${nL}) [$((${#nBS[@]}-1))]${nBS[1]##*/}(${nBL[0]})${nF[0]} \e[m > \e[0;93m ' 
-  #trap "unset PS4; printf '\e[m'" EXIT 
+  #far_ps4='\e[0;104m+[${#nBS[@]}]${nBS[0]##*/}(${nL}) [$((${#nBS[@]}-1))]${nBS[1]##*/}(${nBL[0]})${nF[0]} \e[m > \e[0;93m '
+  #trap "unset PS4; printf '\e[m'" EXIT
   #+[1]fndsc(110) [0](0)  >  exit 110
   #+[1]fndsc(1) [0](0)  >  unset PS4
   #printf '\e[m'
@@ -95,20 +96,22 @@ function _post_src {
   #[[ ! -v PS4 ]] && printf '%b' "\e[0;34m"
 
   # enable xtrace and "verbose commands"
-  if [[ "$4" == y ]]; then 
-    set -x; 
-    verb=(-v --); 
+  if [[ "$4" == y ]]
+  then
+    set -x
+    verb=(-v --)
   # otherwise, neutralize the unused "verbose commands" syntax
-  else 
-    verb=(--); 
+  else
+    verb=(--)
   fi
-          
+
   # after `source` returns, `exit` the calling shell with lineno $1.
-  if [[ "$3" == y ]]; then 
-    echo caller="${scr_nm}:$2"; 
-    exit "$1"; 
+  if [[ "$3" == y ]]
+  then
+    echo caller="${scr_nm}:$2"
+    exit "$1"
   fi
-  #[[ ! -v PS4 ]] && 
+  #[[ ! -v PS4 ]] &&
     printf '%b' "\e[m"
 }; declare -fxt _post_src
 
@@ -148,23 +151,24 @@ shopt -u sourcepath
 # define STRING
 STRING='export'
 
-# Why is command shadowing an issue in this script? 
+# Why is command shadowing an issue in this script?
 # I want to use in-shell facilities to generate a
 # list of possible commands (& .'. shell scripts), on
 # the presumption that the shell will only try to exec
 # a file it can find, either in PATH, through the ENV
 # or by abspath on the CLI. So bash must be able to
 # ID the command somehow. bash reports on strings via
-# `type -a` and `declare -p|n`; bash reports on types 
+# `type -a` and `declare -p|n`; bash reports on types
 # strings via `compgen -A command`. So this script in-
-# tends to parse the output of compgen, removing any 
+# tends to parse the output of compgen, removing any
 # 'command shadows' therefrom, and use type to ID any
-# actual files to which any remaining command names 
+# actual files to which any remaining command names
 # may refer.
 
 # remove all variable and nameref name collisions
 dec_o="$(declare -p "${STRING}" 2>&1)"
-if [[ -n "${dec_o}" ]]; then
+if [[ -n "${dec_o}" ]]
+then
   unset -v "${STRING}"
   unset -n "${STRING}"
 fi
@@ -172,7 +176,8 @@ fi
 # Bug: infinite loop
 
 # type -t
-while true; do
+while true
+do
   tt_o="$(type -t "${STRING}" 2>&1)"
   case "${tt_o}" in
 
@@ -198,8 +203,8 @@ while true; do
     # what about with process subtitutions?
     file)
       mapfile -d '' -t type_a_files < <(
-        type -a "${STRING}" \
-          | awk -F"${STRING} is " \
+        type -a "${STRING}" |
+          awk -F"${STRING} is " \
             "/^${STRING} is \//"' { printf "%s\0", $2 }'
       )
       declare -p type_a_files
@@ -209,14 +214,16 @@ while true; do
       # ...but `aide` exists. how do you know the rpmdb
       # hasnt been tampered with? ...by using aide. :-/
       # so check for whether aide is in use...? at least
-      # list the problem files as output. ...and print 
+      # list the problem files as output. ...and print
       # a warning. okay.
-    
-      for f in "${type_a_files[@]}"; do
-        rpm_Vf_o="$(rpm -Vf "${f}" 2>&1 2>&1)";
 
-        if [[ -n "${rpm_Vf_o}" ]]; then
-          printf 'rpm: %s\n' "${rpm_Vf_o}";
+      for f in "${type_a_files[@]}"
+      do
+        rpm_Vf_o="$(rpm -Vf "${f}" 2>&1 2>&1)"
+
+        if [[ -n "${rpm_Vf_o}" ]]
+        then
+          printf 'rpm: %s\n' "${rpm_Vf_o}"
 
           # parse output of `rpm`:
             # [root@localhost-live ~]# type -a export
@@ -228,12 +235,14 @@ while true; do
             # file /usr/bin/export is not owned by any package    # <
             #
 
-          if grep -q 'is not owned by any package' <<< "${rpm_Vf_o}"; then
+          if grep -q 'is not owned by any package' <<< "${rpm_Vf_o}"
+          then
             echo rm --one-file-system --preserve-root=all -f "${f}"
             continue 1
           fi
-        fi;
-      done; unset f rpm_Vf_o
+        fi
+      done
+      unset f rpm_Vf_o
       unset type_a_files
 
       # And... what if it's "owned" by a package from some other package
@@ -265,14 +274,15 @@ while true; do
       ;;
   esac
   break
-done; unset tt_o
+done
+unset tt_o
 
 # remove hash table
 # lookup file and force a PATH search with type -P
 # type -a
 
 # using dnf & rpm are "ecpensive" opetations. it
-# would be better to do such a function after the 
+# would be better to do such a function after the
 # ELF files have been removed from the list
 
 # dnf provides FILE
@@ -300,7 +310,7 @@ done; unset tt_o
 #
 #   if there are (God forbid) any files w/o rpms, either
 #     print an error and exit, or
-#     offer option to remove the file. ...too draconian. just 
+#     offer option to remove the file. ...too draconian. just
 #     list out any files of mysterious origin.
 #
 
@@ -314,15 +324,15 @@ done; unset tt_o
 
 # get list of actual top level directories
 mapfile -t real_dirs < <(
-  sudo find / -maxdepth 1 -mindepth 1 -type d \! -empty \
-    | sort
+  sudo find / -maxdepth 1 -mindepth 1 -type d \! -empty |
+    sort
 )
 re="$(
   {
     printf '(%s' "${real_dirs[0]#/}"
     unset 'real_dirs[0]'
     printf '|%s' "${real_dirs[@]#/}"
-    printf ')\n' 
+    printf ')\n'
   } 2>&1
 )"
 
@@ -337,16 +347,20 @@ then
   # Workaround: `compgen -c "*"` was picking up executable shell
   # scripts from the CWD
   tempd="$(mktemp -d --suffix=."${rand_f_nm/%.xtr/.d}" 2>&1)"
-  cd "${tempd}" \
-    || _erx cd
+  cd "${tempd}" ||
+    _erx cd
 
   # create a dictionary list of each possible initial character, and
   # include commands with odd yet permitted-by-Linux initial
   # characters, such as \n \t \c or \l, etc
-    #for i in 33 42 46 47 58; do
-    #for i in 91 95; do
-    #for i in {97..127}; do
-  for i in 8 9 10 11 12 13 {32..127}; do
+    #for i in 33 42 46 47 58
+    #do
+    #for i in 91 95
+    #do
+    #for i in {97..127}
+    #do
+  for i in 8 9 10 11 12 13 {32..127}
+  do
     allchr+=(["$i"]="$(printf '%b' "\\$(printf %03o "$i" 2>&1)" 2>&1)")
   done
   allchr[10]=$'\n'
@@ -357,7 +371,8 @@ then
     set -x
 
   # for each possible ascii character or value
-  for i in "${!allchr[@]}"; do
+  for i in "${!allchr[@]}"
+  do
 
     # get a per-character (sub-)list of possible command completions
     mapfile -t per_idx_commands < <(
@@ -372,7 +387,8 @@ then
     # shell builtin and/or directory
 
     # for each possible completion string found by `compgen`
-    for n in "${!per_idx_commands[@]}"; do
+    for n in "${!per_idx_commands[@]}"
+    do
 
         # <> A sort of progress meter
         printf '%s\n' "${per_idx_commands[n]}"
@@ -389,30 +405,33 @@ then
       # completion string, then use `grep` to filter out full
       # function definitions.
       mapfile -t shell_builtin_o < <(
-        builtin type -a "${per_idx_commands[n]}" \
-          |& grep -F "${per_idx_commands[n]}"' is '"${re}"
-          #|& grep -F "${per_idx_commands[n]} is "
+        builtin type -a "${per_idx_commands[n]}" |&
+          grep -F "${per_idx_commands[n]}"' is '"${re}" #|&
+          #grep -F "${per_idx_commands[n]} is "
       )
 
       # if `type -a` has no knowledge of the completion string,
-      if [[ -z "${shell_builtin_o[*]}" ]]; then
+      if [[ -z "${shell_builtin_o[*]}" ]]
+      then
 
         # then unset the completion string and start with the next one
         unset_per_idx_commands_n=yes
       fi
 
       # for each line of output from `type -a`
-      for line in "${!shell_builtin_o[@]}"; do
+      for line in "${!shell_builtin_o[@]}"
+      do
 
         # if any result (ie, index) of `type -a`s output refers to an
         # alias, function or shell keyword, then unset that index
         if grep -qE ' is a(liased| function| shell (builtin|keyword))' \
-            <<< "${shell_builtin_o[line]}";
+            <<< "${shell_builtin_o[line]}"
           then
             unset 'shell_builtin_o[line]'
 
         # if any result refers to a file...
-        elif grep -qE ' is /' <<< "${shell_builtin_o[line]}"; then
+        elif grep -qE ' is /' <<< "${shell_builtin_o[line]}"
+        then
 
           command_basename="${shell_builtin_o[line]##*/}" \
             command_fullpath="${shell_builtin_o[line]##* }"
@@ -426,8 +445,8 @@ then
           # larger all_commands list or the per-ascii-character
           # prev_per_idx_cmds list...
           printf_o="$(printf '\%s' "${command_basename}" 2>&1)"
-          if ! [[ "${all_commands[*]}" =~ ${command_basename} ]] && 
-            ! grep -qE "${printf_o:?}" <<< "${prev_per_idx_cmds[@]}" # likely bug, removed /dev/null, untested
+          if ! [[ "${all_commands[*]}" =~ ${command_basename} ]] &&
+            ! grep -qE "${printf_o:?}" <<< "${prev_per_idx_cmds[@]}" # likely bug, removed /dev\/null, untested
           then
 
             # ...then record the command's basename in the
@@ -445,7 +464,8 @@ then
 
         # if all lines of `type -a`s output have been deleted, then
         # begin with the next completion string
-        if [[ "${#shell_builtin_o[@]}" -eq 0 ]]; then
+        if [[ "${#shell_builtin_o[@]}" -eq 0 ]]
+        then
           unset_per_idx_commands_n=yes
         fi
       done
@@ -453,45 +473,55 @@ then
       # Bug: save to an array the canonicalized pathname of each command.
 
       # remove any directories from the (sub-)list
-      if [[ -z "${unset_per_idx_commands_n}" ]]; then
+      if [[ -z "${unset_per_idx_commands_n}" ]]
+      then
         realpath_e_o1="$(realpath -e "${per_idx_commands[n]}" 2>&1)"
         realpath_e_o2="$(realpath -e "${command_basename}"  2>&1)"
         realpath_e_o3="$(realpath -e "${command_fullpath}"  2>&1)" #<
 
-        if [[ -d "${realpath_e_o1}" ]] \
-          || [[ -d "${realpath_e_o2}" ]] \
-          || [[ -d "${realpath_e_o3}" ]];
+        if [[ -d "${realpath_e_o1}" ]] ||
+          [[ -d "${realpath_e_o2}" ]] ||
+          [[ -d "${realpath_e_o3}" ]]
         then
           unset_per_idx_commands_n=yes
-        fi; unset line shell_builtin_o realpath_e_o{1..3} \
+        fi
+        unset line shell_builtin_o realpath_e_o{1..3} \
           command_basename command_fullpath
       fi
 
-      if [[ "${unset_per_idx_commands_n}" == yes ]]; then
+      if [[ "${unset_per_idx_commands_n}" == yes ]]
+      then
         unset 'per_idx_commands[n]'
-      fi; unset unset_per_idx_commands_n
-    done && unset n prev_per_idx_cmds
+      fi
+      unset unset_per_idx_commands_n
+    done
+    unset n prev_per_idx_cmds
 
     # add the (sub-)list to the full list, being careful of index numbers
     mapfile -O $((i * 1000)) -t all_commands < <(
-      for x in "${per_idx_commands[@]}"; do
+      for x in "${per_idx_commands[@]}"
+      do
         printf '%s\n' "${x}"
-      done; unset x per_idx_commands
+      done
+      unset x per_idx_commands
     )
-  done; unset i
+  done
+  unset i
 
     # <>
     echo 'all_commands, count:' "${#all_commands[@]}"
     #exit "${nL}"
     #_full_xtrace
 
-  cd - \
-    || _erx cd
-  rmdir -v "${tempd}"; unset tempd
+  cd - ||
+    _erx cd
+  rmdir -v "${tempd}"
+  unset tempd
 
-elif [[ "${methods_prog_cv}" = *bin_find ]]; then
-  hash find 2> /dev/null \
-    || exit "${nL}"
+elif [[ "${methods_prog_cv}" = *bin_find ]]
+then
+  hash find ||
+    exit "${nL}"
 
 else
   echo error
@@ -507,16 +537,18 @@ fi
 
 : 'Gather filenames from local attached disk storage'
 
-if [[ "${ABBREV_REL_SEARCH_DIRS}" == all ]]; then
+if [[ "${ABBREV_REL_SEARCH_DIRS}" == all ]]
+then
 
   : 'set a value for a_relevant_search_dirs and..'
   mapfile -d '' -t a_relevant_search_dirs < <(
     sudo  find "${find_sym_opt_L}" "${find_path[@]}" -mindepth 1 \
       -maxdepth 1 -type d \! -empty \
-      "${find_exclude_optargs[@]}" -print0 2> /dev/null
+      "${find_exclude_optargs[@]}" -print0
   )
 
-  for sd in "${a_relevant_search_dirs[@]}"; do
+  for sd in "${a_relevant_search_dirs[@]}"
+  do
 
     # assign
     echo "${sd}"
@@ -527,13 +559,13 @@ fi
 : 'Find all files within the search area. Even the empty ones.'
 mapfile -d '' -t a_all_files < <(
   sudo  find "${a_relevant_search_dirs[@]}" -mindepth 1 -type f \
-    -print0 2> /dev/null
+    -print0
 )
 
 : 'Sort the original array and test it.'
 mapfile -d '' -t a_all_files_sorted < <(
-  printf '%s\0' "${a_all_files[@]}" \
-    | sort -z
+  printf '%s\0' "${a_all_files[@]}" |
+    sort -z
 )
 
 #_full_xtrace
@@ -559,7 +591,8 @@ unset IFS
 #.   difftd by search dir / search type / etc. See file "priority"
 
 
-for all_files_index in "${!a_all_files_sorted[@]}"; do
+for all_files_index in "${!a_all_files_sorted[@]}"
+do
 
   : 'Loop'
 
@@ -569,22 +602,24 @@ for all_files_index in "${!a_all_files_sorted[@]}"; do
   : 'file must exist'
   each_sorted_f="${a_all_files_sorted[all_files_index]}"
 
-  if [[ ! -e "${each_sorted_f}" ]]; then
+  if [[ ! -e "${each_sorted_f}" ]]
+  then
     a_file_DNE+=([all_files_index]="${each_sorted_f}")
     continue
   fi
 
   : 'list of empties'
-  if [[ ! -s "${each_sorted_f}" ]]; then
+  if [[ ! -s "${each_sorted_f}" ]]
+  then
     a_empty_files+=([all_files_index]="${each_sorted_f}")
     continue
   fi
 
   : '-file- magic'
-  printf '+ %-8d: ' "${all_files_index}" \
-    | sudo  tee -a -- "${curr_time_ssubd}file_out" > /dev/null
+  sudo /bin/printf '+ %-8d: ' "${all_files_index}" >> \
+    "${curr_time_ssubd}file_out"
 
-  file_o="$(sudo  file -pk -- "${each_sorted_f}" 2>&1)" # Bug: needs erx
+  file_o="$(sudo file -pk -- "${each_sorted_f}" 2>&1)" # Bug: needs erx
   file_o="${file_o%%64-bit LSB *}"
   a_bin_file_output+=([all_files_index]="${file_o}")
 
@@ -592,13 +627,12 @@ for all_files_index in "${!a_all_files_sorted[@]}"; do
   #. use symbols or csv to indicate test results, w common indices
   # Bug: [[ -n sb right after exec file
 
-  if [[ -n "${file_o}" ]]; then
-    sudo  tee -a -- "${curr_time_ssubd}file_out" <<< "${file_o}" \
-      > /dev/null
+  if [[ -n "${file_o}" ]]
+  then
+    sudo cat <<< "${file_o}" >> "${curr_time_ssubd}file_out"
   else
     err_msg="WARNING: -file- produced 0 output:  <${each_sorted_f}>"
-    sudo  tee -a -- "${curr_time_ssubd}file_out" <<< "${err_msg}" \
-      > /dev/null
+    sudo cat <<< "${err_msg}" >> "${curr_time_ssubd}file_out"
   fi
 
   # Bug: keep `od` output in an array
@@ -616,16 +650,16 @@ for all_files_index in "${!a_all_files_sorted[@]}"; do
 
   od_o="$(
     {
-      sudo  od -j 0 -N 2 -t x1z -v -- "${each_sorted_f}" \
-        | tr -s ' ' \
-        | gawk --lint '{ print $2, $3, $4 }' \
-        | tr -d '\n' \
-        || _erx "P:${PIPESTATUS[*]} I:${all_files_index} ${each_sorted_f}"
+      sudo  od -j 0 -N 2 -t x1z -v -- "${each_sorted_f}" |
+        tr -s ' ' |
+        gawk --lint '{ print $2, $3, $4 }' |
+        tr -d '\n' ||
+          _erx "P:${PIPESTATUS[*]} I:${all_files_index} ${each_sorted_f}"
     } 2>&1
   )"
 
-  [[ -n "${od_o}" ]] \
-    || _erx "I:${all_files_index} ${each_sorted_f}"
+  [[ -n "${od_o}" ]] ||
+    _erx "I:${all_files_index} ${each_sorted_f}"
 
   a_bin_od_output+=([all_files_index]="${od_o}")
 
@@ -634,16 +668,19 @@ for all_files_index in "${!a_all_files_sorted[@]}"; do
   export printable_chars # SC-2034
 
   : '-od_o- non-zero'
-  if [[ -z "${byte_0}" ]]; then
+  if [[ -z "${byte_0}" ]]
+  then
     _erx "I:${all_files_index} <${each_sorted_f}>" \
       '*unreachable code*'
-  elif [[ "${byte_0}" == @(23|21) ]]; then
+  elif [[ "${byte_0}" == @(23|21) ]]
+  then
     : 'compare hexadecimals'
 
     : 'endianness'
     # https://unix.stackexchange.com/questions/55770/does-hexdump-respect-the-endianness-of-its-system
     # Also:  `lscpu | awk '/Endian/ { print $3 }`
-    if [[ "${byte_0}${byte_1}" == 2123 ]]; then
+    if [[ "${byte_0}${byte_1}" == 2123 ]]
+    then
       a_incorrect_endianness+=([all_files_index]="${each_sorted_f}")
 
     else
@@ -655,19 +692,20 @@ for all_files_index in "${!a_all_files_sorted[@]}"; do
 
       strings_o="$(
         {
-          strings -n1 <"${each_sorted_f}" \
-            | head -n1 \
-            | cut -b -$((2 ** 14)) \
-            || _erx "P:${PIPESTATUS[*]} I:${all_files_index} \
-              ${each_sorted_f}"
+          strings -n1 <"${each_sorted_f}" |
+            head -n1 |
+            cut -b -$((2 ** 14)) ||
+              _erx "P:${PIPESTATUS[*]} I:${all_files_index} \
+                ${each_sorted_f}"
         } 2>&1
       )"
 
-      IFS= read -r first_line_printable <<< "${strings_o}" \
-        || _erx "I:${all_files_index} ${each_sorted_f}"
+      IFS= read -r first_line_printable <<< "${strings_o}" ||
+        _erx "I:${all_files_index} ${each_sorted_f}"
 
       : '-#!comment-'
-      if [[ "${first_line_printable}" =~ ^'#!comment' ]]; then
+      if [[ "${first_line_printable}" =~ ^'#!comment' ]]
+      then
         a_crunches_with_hashbang_comments+=(
           [all_files_index]="${each_sorted_f}")
         continue
@@ -678,10 +716,12 @@ for all_files_index in "${!a_all_files_sorted[@]}"; do
       # FR: sort also per-rpm, awk script, probably
 
       : 'outside of rpm'
-      if ! rpm -qf "${each_sorted_f}" 2> /dev/null >&2; then
+      if ! rpm -qf "${each_sorted_f}"
+      then
 
         : 'user or system'
-        if [[ "${each_sorted_f}" = /@(root|home|run/media)/* ]]; then
+        if [[ "${each_sorted_f}" = /@(root|home|run/media)/* ]]
+        then
           a_non_rpm_user_crunches+=(
             [all_files_index]="${each_sorted_f}"
           )
@@ -736,7 +776,7 @@ export "${a_arrays[@]}"
 
 fn_write_arrays "${a_arrays[@]}"
 fn_bak "${curr_time_ssubd}/file_out"
-#exit "${nL}";
+#exit "${nL}"
 
 : 'create the original list_crunchbangs'
 sudo  touch -- "${a_write_path_nms[@]}"
@@ -744,13 +784,12 @@ sudo  touch -- "${a_write_path_nms[@]}"
 : 'write a file header'
 {
   printf '# crunchbangs -- %s\n' "${scr_tcode%-*}"
-  printf '# %s\n' "$(declare -p a_relevant_search_dirs 2>&1)"
-} | sudo  tee --output-error=exit  -- "${a_write_path_nms[@]}" > /dev/null
+  printf '# %s\n' "$(declare -p a_relevant_search_dirs 2>&1)" |
+    sudo cat > "${a_write_path_nms[@]}"
 
 : 'printing contents of a_shell_scripts array, with backup'
-printf '%s\n' "${a_shell_scripts[@]}" \
-  | sudo  tee --output-error=exit  -a -- \
-    "${a_write_path_nms[@]}" > /dev/null
+printf '%s\n' "${a_shell_scripts[@]}" |
+  sudo cat >> "${a_write_path_nms[@]}"
 fn_bak "${a_write_path_nms[@]}"
 
 #_full_xtrace
@@ -759,10 +798,10 @@ fn_bak "${a_write_path_nms[@]}"
 # <> ?
 fn_write_arrays a_write_path_nms
 
-#set -x; :;: "<>";
+#set -x; :;: "<>"
 
 sudo  head -- "/tmp/${list_crunchbangs##*/}"
-#exit "${nL}";
+#exit "${nL}"
 
 : 'Verify interpreters'
 
@@ -775,12 +814,12 @@ sudo  head -- "/tmp/${list_crunchbangs##*/}"
 # Note: in `awk` cmd, %=%=%=% may need to be double quoted
 mapfile -t a_interpreters < <(
   sudo gawk --lint 'BEGIN { FS = "%=%=%=%" } ; /#!/ { print $2 }' -- \
-    "/tmp/${list_crunchbangs##*/}" \
-    | gawk --lint 'BEGIN { FS = " -" } ; { print $1 }' \
-    | sed 's, *,,g' \
-    | sort -u \
-    | cut -b3- \
-    || _erx "P:${PIPESTATUS[*]}"
+    "/tmp/${list_crunchbangs##*/}" |
+    gawk --lint 'BEGIN { FS = " -" } ; { print $1 }' |
+    sed 's, *,,g' |
+    sort -u |
+    cut -b3- ||
+      _erx "P:${PIPESTATUS[*]}"
 )
 
 #_full_xtrace
@@ -810,14 +849,17 @@ mapfile -t a_interpreters < <(
 
 # Bug: parse output of type -a
 
-for program in "${a_interpreters[@]}"; do
+for program in "${a_interpreters[@]}"
+do
   : 'type -a'
   command_o="$(type -a "${program}" 2>&1)"
 
-  if [[ -n "${command_o}" ]]; then
+  if [[ -n "${command_o}" ]]
+  then
     realpath_o="$(realpath -e "${command_o}" 2>&1)"
 
-    if [[ -f "${realpath_o}" ]]; then
+    if [[ -f "${realpath_o}" ]]
+    then
       a_interps_rps+=("${realpath_o}")
       on_disk="exists on disk"
       break
@@ -830,8 +872,8 @@ done
 # Canonicalize interpreters paths, sort and list each unique binary.
 #   Note: new indices starting from 0
 mapfile -t a_interps_rps < <(
-  sudo realpath -e -- "${a_interpreters[@]}" \
-    | sort -u
+  sudo realpath -e -- "${a_interpreters[@]}" |
+    sort -u
 )
 
 #_full_xtrace
@@ -843,7 +885,8 @@ mapfile -t a_interps_rps < <(
 # for each interpreter, print it in the 1st 32 bits of a line.
 
 {
-  for b in "${!a_interps_rps[@]}"; do
+  for b in "${!a_interps_rps[@]}"
+  do
 
     printf '%-32s' "${a_interps_rps[b]}"
 
@@ -852,11 +895,7 @@ mapfile -t a_interps_rps < <(
     # use a shell builtin to test for each interpreter's presence on
     # disk, and write to a variable the test's result
 
-    if type -a "${a_interps_rps[b]}" > /dev/null; then
-      on_disk="exists on disk"
-    else
-      on_disk="DNE on disk"
-    fi
+    on_disk="$(command -V "${a_interps_rps[b]}")"
 
     # create a new array of structured data: index, interpreter and
     # test result
@@ -871,15 +910,16 @@ mapfile -t a_interps_rps < <(
     # sort rpms and print each unique
     dnf_po="$(
       {
-        sudo  dnf provides -- "${a_interps_rps[b]}" \
-          | gawk --lint '/x86_64|i686/ { print $1 }' \
-          | sort -u
+        sudo  dnf provides -- "${a_interps_rps[b]}" |
+          gawk --lint '/x86_64|i686/ { print $1 }' |
+          sort -u
       } 2>&1
     )"
 
     # based on whether there was any output,
     # save a result message to variable
-    if [[ -n "$dnf_po" ]]; then
+    if [[ -n "$dnf_po" ]]
+    then
       in_repos="exists in repos"
     else
       in_repos="DNE in repos"
@@ -896,13 +936,12 @@ mapfile -t a_interps_rps < <(
     printf '%s\n' "$dnf_po"
     unset dnf_po on_disk in_repos
 
-  done
-} | sudo  tee --output-error=exit  -a -- \
-    "${curr_time_ssubd}a_interpreters" > /dev/null
+  done |
+    sudo cat >> "${curr_time_ssubd}a_interpreters"
 unset b
 
 # <>
-#set -x; :;: "<>";
+#set -x; :;: "<>"
 fn_write_arrays a_write_path_nms a_interpreters a_interps_rps \
   a_interps_disk_repo
 #exit "${nL}"
@@ -919,19 +958,18 @@ fn_write_arrays a_write_path_nms a_interpreters a_interps_rps \
 
 {
   printf '# SC-scrpts-list -- %s\n' "${scr_tcode%-*}"
-  printf '# %s\n' "$(declare -p  a_relevant_search_dirs 2>&1)"
-} | sudo  tee --output-error=exit  -- \
-    "${list_crunchbangs}_SC-scrpts-list" > /dev/null
+  printf '# %s\n' "$(declare -p  a_relevant_search_dirs 2>&1)" |
+    sudo cat >> "${list_crunchbangs}_SC-scrpts-list"
 
 # filter out interpreters not compatible with shellcheck.
 # file $list_crunchbangs is located in $time_dir.
-sudo  grep -E -- '/bin/'"${SC_shells}"'.*%=%=%=%' "${list_crunchbangs}" \
-  | sudo  tee -a -- "${list_crunchbangs}_SC-scrpts-list" \
-  || _erx "${nL}"
+sudo  grep -E -- '/bin/'"${SC_shells}"'.*%=%=%=%' "${list_crunchbangs}" |
+  sudo  tee -a -- "${list_crunchbangs}_SC-scrpts-list" ||
+    _erx "${nL}"
 
 # Copy list to /tmp
-sudo  rsync -ca -- "${list_crunchbangs}_SC-scrpts-list" /tmp \
-  || _erx "${nL}"
+sudo  rsync -ca -- "${list_crunchbangs}_SC-scrpts-list" /tmp ||
+  _erx "${nL}"
 
 # Backup both lists
 fn_bak "${list_crunchbangs}_SC-scrpts-list" /tmp/*_SC-scrpts-list
@@ -1002,7 +1040,8 @@ i=0
 {
 
   # for each sorted script
-  for sorted_script in "${!a_each_scr_list_sorted_by_linect[@]}"; do
+  for sorted_script in "${!a_each_scr_list_sorted_by_linect[@]}"
+  do
 
     # run shellcheck with selected/default severity
     # remove URL's
@@ -1016,21 +1055,21 @@ i=0
     # array, and exit the script when filters, etc completes, print
     # a NULL to start a new mapfile index
     mapfile -d '' -t a_each_scr_SC_results < <(
-      shellcheck -S "${SC_sevr}" \
-        "${a_each_scr_list_sorted_by_linect[sorted_script]}" \
-        | grep -Fv 'shellcheck.net' \
-        | grep -Eo "SC[0-9]{4}.*" \
-        | cut -b -64 \
-        | sort -g \
-        | uniq -c \
-        | sort -k3 \
-        || _erx "P:${PIPESTATUS[*]} I: S:" # index and script name
+      shellcheck -S "${SC_sevr}" "${a_each_scr_list_sorted_by_linect[sorted_script]}" |
+        grep -Fv 'shellcheck.net' |
+        grep -Eo "SC[0-9]{4}.*" |
+        cut -b -64 |
+        sort -g |
+        uniq -c |
+        sort -k3 ||
+          _erx "P:${PIPESTATUS[*]} I: S:" # index and script name
       # end of pipe intended
       printf '\0'
     )
 
     # if there's any output from shellcheck
-    if [[ -n "${a_each_scr_SC_results[*]:0:1}" ]]; then
+    if [[ -n "${a_each_scr_SC_results[*]:0:1}" ]]
+    then
 
       # Bug: iterator sb $sorted_script ? sorted_script should have
 
@@ -1045,7 +1084,8 @@ i=0
   unset i
 
   # append each text group to a findings file
-} | sudo  tee -a -- "${found_scrpts_f}" > /dev/null
+} |
+  sudo cat >> "${found_scrpts_f}"
 
 : 'Write semi-permanent archives'
 
@@ -1053,16 +1093,18 @@ i=0
 fn_bak "${found_scrpts_f}"
 
 # make copies of the findings file and backup those copies
-for d in /tmp "${main_d}"; do
-  sudo  rsync -ca -- "${found_scrpts_f}" "${d}" \
-    || _erx "${nL}"
+for d in /tmp "${main_d}"
+do
+  sudo  rsync -ca -- "${found_scrpts_f}" "${d}" ||
+    _erx "${nL}"
   fn_bak "${d}/${found_scrpts_f##*/}"
 done
 unset d
 
 # <> Print some variables for interactive use
 z=0
-for d in "${curr_time_ssubd}" "${main_d}" /tmp; do
+for d in "${curr_time_ssubd}" "${main_d}" /tmp
+do
   printf '\n\t data_d_%d=%s\n' $((z++)) "${d}"
 done
 unset d z
