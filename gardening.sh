@@ -28,7 +28,7 @@ export FUNCNEST close_ps4 far_ps4
 
 # Print a function trace stack, and capture the FN's LINENO on line 0
 function _fun_trc(){ : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"; local line_hyphen="${nL:?}:$-"
-  set -x # normally set -
+  set - # normally set -
   local line=${line_hyphen%:*}
   local hyphen="${line_hyphen#*:}"
   unset line_hyphen
@@ -351,7 +351,7 @@ _mk_deltas() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
 
 
 _debug_prompt() { : '_debug_prompt BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
-  echo 'ampersand, _debug_prompt:' "$@"
+  #echo 'ampersand, _debug_prompt:' "$@"
   local hyphen="$-"
   _mk_deltas
   : '                                                                                      ~~~ ~~ ~ PROMPT ~ ~~ ~~~'
@@ -383,9 +383,9 @@ declare -fx _full_xtrace
 
 
   # <> Obligatory debugging block
-  declare -p FUNCNAME BASH_SOURCE LINENO BASH_LINENO 
+  #declare -p FUNCNAME BASH_SOURCE LINENO BASH_LINENO 
   #trap 'declare -p FUNCNAME BASH_SOURCE LINENO BASH_LINENO' EXIT
-  caller
+  #caller
   _full_xtrace 3580
   : 31722
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
