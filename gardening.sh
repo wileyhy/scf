@@ -22,8 +22,8 @@ close_ps4='\n\e[0;104m+[${#nBS[@]}]${nBS[0]##*/}(${nL}) [$((${#nBS[@]}-1))]${nBS
 #far_ps4='\e[0;104m+[${#nBS[@]}]${nBS[0]##*/}(${nL}) [$((${#nBS[@]}-1))]${nBS[1]##*/}(${nBL[0]}) <${nF[0]:0:8}> \e[m > \e[0;93m '
 #far_ps4='\e[0;104m+[${#nBS[@]}]${nBS[0]##*/}(${nL}) <${nF[0]:0:8}> [$((${#nBS[@]}-1))]${nBS[1]##*/}(${nBL[0]}) \e[m > \e[0;93m '
 far_ps4='\e[0;104m+ At:[${#nBS[@]}]${nBS[0]##*/}(${nL}) In:<${nF[0]:0:8}> Fr:[$((${#nBS[@]}-1))]${nBS[1]##*/}(${nBL[0]}) \e[m > \e[0;93m '
-PS4="${far_ps4}"
-export FUNCNEST close_ps4 far_ps4 PS4
+#PS4="${far_ps4}" export PS4
+export FUNCNEST close_ps4 far_ps4 
 
 
 # Print a function trace stack, and capture the FN's LINENO on line 0
