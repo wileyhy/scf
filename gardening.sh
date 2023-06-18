@@ -338,12 +338,12 @@ _mk_v_setenv_delta() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
       diff --color=always --palette='ad=1;3;38;5;190:de=1;3;38;5;129' --suppress-{common-lines,blank-empty} "${xtr_senv_prev}" "${xtr_senv_now}" >> "${xtr_senv_delt}"
     
     # set colors for wc output
-    #GREP_COLORS='mt=01;101' export GREP_COLORS
-    #wc "${xtr_senv_delt}" | grep --color=always -E '.*'
+    GREP_COLORS='mt=01;101' export GREP_COLORS
+    wc "${xtr_senv_delt}" | grep --color=always -E '.*'
 
     # reset colors for grep output
     GREP_COLORS='mt=01;43' export GREP_COLORS
-    #grep --color=always -E '.*' < "${xtr_senv_delt}"
+    grep --color=always -E '.*' < "${xtr_senv_delt}"
   fi
 
   : '_mk_v_setenv_delta ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
