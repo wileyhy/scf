@@ -334,6 +334,7 @@ _mk_v_setenv_delta() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
 
     # reset colors for grep output
     export GREP_COLORS='mt=01;43'
+    grep --color=always -E '.*' <<< "${xtr_senv_delt}"
   fi
   : '_mk_v_setenv_delta ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }; declare -ftx _mk_v_setenv_delta
@@ -369,8 +370,9 @@ declare -fx _debug_prompt
 # command must have two separate command parsings on the same line.
 
 # Bug? within trap, the command after _debug_prompt has line number of 351 [trap(lineno)+1], even though both commands are on line 350.
+
 _full_xtrace() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
-  _fun_trc
+  #_fun_trc
   # PIUSV = "Prints In Underscore Shell Variable"
   trap '_fun_trc; : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}  |  PIUSV"; _debug_prompt "$_"; : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"' DEBUG; echo cmd after DEBUG trap, $LINENO, 5741
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}, 28666" #
