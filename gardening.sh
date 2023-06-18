@@ -282,7 +282,7 @@ _mk_v_setenv_pre() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   : 'if now file exists'
   if [[ -v xtr_senv_now ]]; then
     : 'if prev file exists'
-    if [[ -n "${xtr_senv_prev}" ]]; then
+    if [[ -v xtr_senv_prev ]]; then
       : 'remove prev file'
       unlink -- "${xtr_senv_prev}"
     fi
@@ -314,7 +314,7 @@ _mk_v_setenv_delta() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
     && [[ -v xtr_senv_prev ]];
   then
     : 'if delta'
-    if [[ -n "${xtr_senv_delt}" ]]; then
+    if [[ -v xtr_senv_delt ]]; then
       # add the current delta data to the history thereof
       cat "${xtr_senv_delt}" >> "${xtr_delta_sum_f}" # stderr to term
       # and unlink the current delta data file
@@ -326,7 +326,7 @@ _mk_v_setenv_delta() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
       # 'delta' file
       diff --color=always --palette='ad=1;3;38;5;190:de=1;3;38;5;129' \
         --suppress-{common-lines,blank-empty} \
-        "${xtr_senv_prev}" "${xtr_senv_now}" > "${xtr_senv_delt}"
+        "${xtr_senv_prev}" "${xtr_senv_now}" >> "${xtr_senv_delt}"
     # set colors for wc output
     export GREP_COLORS='mt=01;101'
     wc "${xtr_senv_delt}" \
@@ -341,11 +341,11 @@ _mk_v_setenv_delta() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
 
 _mk_deltas() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   # Note: comment out _xtrace_duck with : (and not #)
-  : _xtrace_duck
+  _xtrace_duck
   _mk_v_setenv_pre
   _mk_v_setenv_novv
   _mk_v_setenv_delta
-  : _xtrace_duck
+  _xtrace_duck
   : '_mk_deltas ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }; declare -ftx _mk_deltas
 
@@ -368,7 +368,8 @@ _debug_prompt() { : '_debug_prompt BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl)
 # Bug? within trap, the command after _debug_prompt has line number of 351 [trap(lineno)+1], even though both commands are on line 350.
 _full_xtrace() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   _fun_trc
-  trap '_fun_trc; : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}  |  prints in underscore shell variable"; _debug_prompt "$_"; : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"' DEBUG; echo cmd after DEBUG trap, $LINENO
+  trap '_fun_trc; : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}  |  PIUSV"; _debug_prompt "$_"; : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"' DEBUG; echo cmd after DEBUG trap, $LINENO
+  # "Prints In Underscore Shell Variable"
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}" #
   set -x
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"

@@ -26,7 +26,7 @@ SC_sevr=error
 SC_shells='(sh|bash|dash|ksh)'
 export SC_sevr SC_shells
 
-fn_bndry=' +++ +++ +++ ' 
+fn_bndry=' ~~~ ~~~ ~~~ ' 
 fn_lvl=0 
 export fn_lvl fn_bndry
 declare -nx nBL=BASH_LINENO nBS=BASH_SOURCE nF=FUNCNAME nL=LINENO
