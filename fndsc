@@ -8,19 +8,21 @@
 
 scr_lic='Apache 2 license'
 scr_max_age_of_tmp_files='1 minutes ago'
-scr_nm='./fndsc'
+scr_nm=./fndsc
 scr_proper_nm='Find scripts'
 scr_protected_git_dir_1="${HOME}/MYPROJECTS"
 scr_protected_git_dir_2="${HOME}/OTHERSPROJECTS"
-scr_repo_nm='scf'
-scr_tcode="$(builtin printf '%(%F_%H%M%S)T' 2>&1)"
+scr_repo_nm=scf
+scr_tcode="$(
+  builtin printf '%(%F_%H%M%S)T' 2>&1
+  )"
 scr_version=1.0
 export scr_lic scr_max_age_of_tmp_files scr_nm scr_proper_nm \
   scr_protected_git_dir_1 scr_protected_git_dir_2 scr_repo_nm \
   scr_tcode scr_version
 scr_dirnm="${scr_repo_nm}.d" export scr_dirnm
 
-SC_sevr='error'
+SC_sevr=error
 SC_shells='(sh|bash|dash|ksh)'
 export SC_sevr SC_shells
 
@@ -30,17 +32,18 @@ unset CDPATH
 readonly CDPATH
 
 builtin hash -r
-forced_path_search="$( 
-  builtin type -P getconf 2>&1 
-)"
+forced_path_search="$(
+  builtin type -P getconf 2>&1
+  )"
 [[ -z "$forced_path_search" ]] &&
   "${Halt:?}"
 builtin hash -p "${forced_path_search}" getconf
-PATH_getconf="$( 
+PATH_getconf="$(
   command -p getconf PATH 2>&1 ||
     "${Halt:?}"
-)"
-PATH="${PATH_getconf}:/usr/bin:/usr/sbin:${PATH}" export PATH
+  )"       # cmd
+PATH="${PATH_getconf}:/usr/bin:/usr/sbin:${PATH}"
+export PATH
 
 [[ -f ./path-verify.sh ]] &&
   source ./path-verify.sh
@@ -48,24 +51,29 @@ declare -p PATH
 
 
 unset LC_ALL
-LC_COLLATE="C.UTF-8" LC_CTYPE="C.UTF-8" # for predictable sorting
-LC_NUMERIC="en_US.UTF-8"                # for commas in large numbers
+LC_COLLATE="C.UTF-8" LC_CTYPE="C.UTF-8"     # for predictable sorting
+LC_NUMERIC="en_US.UTF-8"                    # for commas in large numbers
 export LC_COLLATE LC_CTYPE LC_NUMERIC
 
-GREP_COLORS='mt=01;43' export GREP_COLORS
+GREP_COLORS='mt=01;43' 
+export GREP_COLORS
 
-rand_i="${RANDOM}"
+rand_i="${RANDOM}" 
 rand_uniq_str="${scr_repo_nm}.${$}.${rand_i}"
-rand_lock_nm="${rand_uniq_str}.lock.d" rand_f_nm="${rand_uniq_str:?}.xtr"
+rand_lock_nm="${rand_uniq_str}.lock.d" 
+rand_f_nm="${rand_uniq_str:?}.xtr"
 export rand_i rand_uniq_str rand_lock_nm rand_f_nm
 
-fn_bndry=' +++ +++ +++ ' fn_lvl=0 export fn_lvl fn_bndry
+fn_bndry=' +++ +++ +++ ' 
+fn_lvl=0 
+export fn_lvl fn_bndry
 
 
 # Undocumented CLI option
 if [[ "$*" =~ rm_locks ]]
 then
-  rm_locks='y' export rm_locks
+  rm_locks='y' 
+  export rm_locks
 fi
 
 _erx() {
@@ -119,7 +127,8 @@ function _post_src {
   fi
   #[[ ! -v PS4 ]] &&
     printf '%b' "\e[m"
-}; declare -fxt _post_src
+}
+declare -fxt _post_src
 
 shopt -u sourcepath
 #set -T
