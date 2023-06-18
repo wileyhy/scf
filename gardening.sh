@@ -359,7 +359,9 @@ _debug_prompt() { : '_debug_prompt BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl)
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   [[ "${hyphen}" =~ x ]] && set -x
   : '_debug_prompt ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
-}; declare -ftx _debug_prompt
+}
+declare -fx _debug_prompt
+#declare -t _debug_prompt
 
 
 # Bug? for the line numbers in _fun_trc to be correct, this trap
@@ -374,11 +376,15 @@ _full_xtrace() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   set -x
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   : '_full_xtrace ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
-}; declare -ftx _full_xtrace
+}
+declare -fx _full_xtrace
+#declare -t _full_xtrace
 
 
   # <> Obligatory debugging block
-  #declare -p FUNCNAME BASH_SOURCE LINENO BASH_LINENO
+  declare -p FUNCNAME BASH_SOURCE LINENO BASH_LINENO
+  trap 'declare -p FUNCNAME BASH_SOURCE LINENO BASH_LINENO' EXIT
+  caller
   _full_xtrace
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   #exit "${nL}"
