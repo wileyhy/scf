@@ -43,7 +43,8 @@ _verify_path(){
     path_1[p]="$(realpath -e "${path_1[p]}" 2>&1)"
     
     # if the resulting index value is empty, then unset it
-    if [[ -z "${path_1[p]}" ]]
+    if [[ -z "${path_1[p]}" ]] ||
+      [[ ! -d "${path_1[p]}" ]]
     then
       unset 'path_1[p]'
     fi
@@ -94,7 +95,8 @@ declare -fxt
 
 # verify path vars
 _verify_path PATH
-_verify_path bash_path
+[[ -v bash_path ]] && 
+  _verify_path bash_path
 
 #exit "${nL}"
 #_full_xtrace

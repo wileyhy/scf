@@ -24,6 +24,8 @@ SC_sevr='error'
 SC_shells='(sh|bash|dash|ksh)'
 export SC_sevr SC_shells
 
+declare -nx nBL=BASH_LINENO nBS=BASH_SOURCE nF=FUNCNAME nL=LINENO
+
 unset CDPATH
 readonly CDPATH
 
@@ -40,13 +42,17 @@ PATH_getconf="$(
 )"
 PATH="${PATH_getconf}:/usr/bin:/usr/sbin:${PATH}" export PATH
 
+[[ -f ./path-verify.sh ]] &&
+  source ./path-verify.sh
+declare -p PATH
+
+
 unset LC_ALL
 LC_COLLATE="C.UTF-8" LC_CTYPE="C.UTF-8" # for predictable sorting
 LC_NUMERIC="en_US.UTF-8"                # for commas in large numbers
 export LC_COLLATE LC_CTYPE LC_NUMERIC
 
 GREP_COLORS='mt=01;43' export GREP_COLORS
-declare -nx nBL=BASH_LINENO nBS=BASH_SOURCE nF=FUNCNAME nL=LINENO
 
 rand_i="${RANDOM}"
 rand_uniq_str="${scr_repo_nm}.${$}.${rand_i}"
