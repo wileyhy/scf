@@ -7,7 +7,7 @@
   # <> Obligatory debugging block
   _post_src "${nL}" "$@"
   #_full_xtrace
-  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
+  : "${nBS[0]}:${nL}"
   #exit "${nL}"
   #set -x
 
@@ -45,7 +45,7 @@ unset yn list
 
   # <> Obligatory debugging block
   #_full_xtrace
-  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
+  : "${nBS[0]}:${nL}"
   #exit "${nL}"
   set -x
 

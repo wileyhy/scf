@@ -264,7 +264,7 @@ _xtrace_duck() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   else
     # ...then if xtrace was previously on...
     : 'if prev'
-    if [[ -n "${xtrace_prev}" ]]; then
+    if [[ -v xtrace_prev ]]; then
       # ...then restore xtrace and unset the record of its state
       set -x
       unset xtrace_prev
