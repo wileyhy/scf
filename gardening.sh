@@ -368,7 +368,9 @@ declare -fx _mk_deltas
 
 
 _debug_prompt() { : '_debug_prompt BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
-  
+
+  echo _debug_prompt  
+  _fun_trc
   #echo 'ampersand, _debug_prompt:' "$@"
   local hyphen="$-"
   
@@ -398,7 +400,7 @@ _full_xtrace() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   
   # PIUSV = "Prints In Underscore Shell Variable"
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}, 28666"
-  trap '_fun_trc; : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}  |  PIUSV"; _debug_prompt "$_"; : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"' DEBUG; 
+  trap 'echo DEBUG trap; _fun_trc; : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}  |  PIUSV"; _debug_prompt "$_"; : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"' DEBUG; 
     echo cmd after DEBUG trap, $LINENO, 5741
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}, 21506"
   
