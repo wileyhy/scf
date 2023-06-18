@@ -34,7 +34,6 @@ function _fun_trc(){ : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"; lo
   unset line_hyphen
   local i
   local -a ir # (indices reversed)
-  #                                                                 < x2 cmds
   mapfile -t ir < <(
     rev <<< "${!nBS[@]}" | 
     tr ' ' '\n'
@@ -67,11 +66,19 @@ _trap_ctrl_C() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   set -x
   trap - INT
 
-  # remove all the current xtrace environment log files
-  for f in "${xtr_time_f}" "${xtr_senv_prev}" \
-    "${xtr_senv_now}" "${xtr_senv_delt}";
+  # accommodating set -u
+  local a_xtr_files=( xtr_time_f xtr_senv_prev xtr_senv_now xtr_senv_delt )
+  for v in "${!a_xtr_files[@]}"
   do
+    [[ ! -v "${a_xtr_files[v]}" ]] &&
+      unset 'a_xtr_files[v]'
+  done
 
+  # remove all the current xtrace environment log files
+  for v in "${!a_xtr_files[@]}"
+  do
+    local f="${!a_xtr_files[v]}"
+  
     # as possible, add each to an array $rm_list
     if [[ -f "${f}" ]] && 
       [[ ! -L "${f}" ]] && 
@@ -85,7 +92,6 @@ _trap_ctrl_C() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   # if there are any files in array $rm_list, then remove then all at once
   if [[ -n "${rm_list[*]:0:8}" ]]
   then
-    #                                                               < cmd
     if ! rm -f --one-file-system --preserve-root=all "${verb[@]}" "${rm_list[@]}"
     then
       _erx "unlink failed, line ${nL}"
@@ -97,7 +103,7 @@ _trap_ctrl_C() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   unset PS4
   printf '\e[m'
   
-  # kill the script with INT                                        < cmd
+  # kill the script with INT
   command -p kill -s INT "$$"
   : '_trap_ctrl_C ENDS' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }
@@ -112,7 +118,6 @@ trap ': "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"; _trap_ctrl_C; : "${nBS[0]}:${nL} 
 
 # Vars
 xtr_time_f="/tmp/tmp.mtime_file.${rand_f_nm}"
-#                                                                   < cmd
 xtr_delta_sum_f="$(
   mktemp -p /tmp --suffix=."${rand_f_nm}.E" 2>&1
   )"
@@ -120,13 +125,11 @@ export rand_f_nm xtr_time_f xtr_delta_sum_f
 unset f xtr_rm_list xtr_files
 
 # Create the xtrace time file
-#                                                                   < cmd
 touch -d "${scr_max_age_of_tmp_files:?}" "${xtr_time_f}"
 
 # Remove any errant xtrace log files
 
 # Get the list of remaining xtrace log files (older than the time file)
-#                                                                   < cmd
 mapfile -d '' -t xtr_files < <(
   find -P /tmp -maxdepth 1 -type f \
     -name "tmp.[a-zA-Z0-9]*.${scr_repo_nm:?}.[0-9]*.[0-9]*.xtr*" \
@@ -139,7 +142,6 @@ for f in "${xtr_files[@]}"; do
   if [[ -f "${f}" ]] && [[ ! -L "${f}" ]] && [[ -O "${f}" ]]; then
 
     # then protect them and add then to an array $xtr_rm_list
-    #                                                               < cmd
     chmod "${verb[@]}" 000 "$f"
     xtr_rm_list+=("${f}")
   fi
