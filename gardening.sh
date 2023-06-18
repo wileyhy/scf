@@ -28,7 +28,7 @@ export FUNCNEST close_ps4 far_ps4
 
 # Print a function trace stack, and capture the FN's LINENO on line 0
 function _fun_trc(){ : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"; local line_hyphen="${nL:?}:$-"
-  set - # normally set -
+  set -x # normally set -
   local line=${line_hyphen%:*}
   local hyphen="${line_hyphen#*:}"
   unset line_hyphen
@@ -341,11 +341,11 @@ _mk_v_setenv_delta() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
 
 _mk_deltas() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   # Note: comment out _xtrace_duck with : (and not #)
-  _xtrace_duck
+  : _xtrace_duck
   _mk_v_setenv_pre
   _mk_v_setenv_novv
   _mk_v_setenv_delta
-  _xtrace_duck
+  : _xtrace_duck
   : '_mk_deltas ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }; declare -ftx _mk_deltas
 
