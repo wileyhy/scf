@@ -119,7 +119,7 @@ function _post_src {
   #[[ ! -v PS4 ]] && printf '%b' "\e[0;34m"
 
   # enable xtrace and "verbose commands"
-  if [[ "$5" == y ]]
+  if [[ "$6" == y ]]
   then
     verb=(-v --)
   # otherwise, neutralize the unused "verbose commands" syntax
@@ -128,19 +128,19 @@ function _post_src {
   fi
 
   # enable xtrace and "verbose commands"
-  if [[ "$4" == y ]]
+  if [[ "$5" == y ]]
   then
     set -x
   fi
 
   # after `source` returns, `exit` the calling shell with lineno $1.
-  if [[ "$3" == y ]]
+  if [[ "$4" == y ]]
   then
     # prints script name and line number of main script & function definition
-    echo caller="${scr_nm}:$2"
+    echo caller="$1:$2"
 
     # prints line number of script where function's executed
-    exit "$1"
+    exit "$2"
   fi
   #[[ ! -v PS4 ]] &&
     printf '%b' "\e[m"
@@ -152,7 +152,7 @@ declare -t _post_src
 #set -x
 
  : 'ID and sudo'       ; . './sudo.sh'          "${nL}"   n n n; #exit $nL
- : 'Enable debugging'  ; . './gardening.sh'     "${nL}"   n y y; #exit $nL
+ : 'Enable debugging'  ; . './gardening.sh'     "${nL}"   y y y; #exit $nL
  : 'Required programs' ; . './reqd-cmds.sh'     "${nL}"   n y y; exit $nL
  : 'Locks'             ; . './locks.sh'         "${nL}"   n y y; exit $nL
 #: 'Verify PATH'       ; . './path-verify.sh'   "${nL}"   n y y; exit $nL
