@@ -28,7 +28,7 @@ export FUNCNEST close_ps4 far_ps4
 
 # Print a function trace stack, and capture the FN's LINENO on line 0
 function _fun_trc(){ : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"; local line_hyphen="${nL:?}:$-"
-  set - # normally `set -`
+  set - # normally set -
   local line=${line_hyphen%:*}
   local hyphen="${line_hyphen#*:}"
   unset line_hyphen
@@ -278,7 +278,7 @@ _xtrace_duck() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
 # for use when the DEBUG trap is enabled.
 _mk_v_setenv_pre() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   : 'if now file exists'
-  if [[ -n "${xtr_senv_now}" ]]; then
+  if [[ -v xtr_senv_now ]]; then
     : 'if prev file exists'
     if [[ -n "${xtr_senv_prev}" ]]; then
       : 'remove prev file'
@@ -295,11 +295,11 @@ declare -ftx _mk_v_setenv_pre
 _mk_v_setenv_novv() {
   : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   
-  `# create 'now' file
+  # create 'now' file
   xtr_senv_now="$(mktemp -p /tmp --suffix=."${rand_f_nm}" 2>&1)"
   
   # output data to new file
-  set >  "${xtr_senv_now}" # stderr to term
+  set >> "${xtr_senv_now}" # stderr to term
   env >> "${xtr_senv_now}" # stderr to term
   : '_mk_v_setenv_novv ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }
@@ -309,7 +309,7 @@ declare -ftx _mk_v_setenv_novv
 _mk_v_setenv_delta() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   : 'if now and prev'
   if [[ -n "${xtr_senv_now}" ]] \
-    && [[ -n "${xtr_senv_prev}" ]];
+    && [[ -v xtr_senv_prev ]];
   then
     : 'if delta'
     if [[ -n "${xtr_senv_delt}" ]]; then
@@ -325,12 +325,12 @@ _mk_v_setenv_delta() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
       diff --color=always --palette='ad=1;3;38;5;190:de=1;3;38;5;129' \
         --suppress-{common-lines,blank-empty} \
         "${xtr_senv_prev}" "${xtr_senv_now}" > "${xtr_senv_delt}"
-    # set colors for `wc` output
+    # set colors for wc output
     export GREP_COLORS='mt=01;101'
     wc "${xtr_senv_delt}" \
       | grep --color=always -E '.*'
 
-    # reset colors for `grep` output
+    # reset colors for grep output
     export GREP_COLORS='mt=01;43'
   fi
   : '_mk_v_setenv_delta ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
@@ -338,7 +338,7 @@ _mk_v_setenv_delta() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
 
 
 _mk_deltas() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
-  # Note: comment out `_xtrace_duck` with ':' (and not '#')
+  # Note: comment out _xtrace_duck with : (and not #)
   : _xtrace_duck
   _mk_v_setenv_pre
   _mk_v_setenv_novv
@@ -360,15 +360,15 @@ _debug_prompt() { : '_debug_prompt BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl)
 }; declare -ftx _debug_prompt
 
 
+# Bug? for the line numbers in _fun_trc to be correct, this trap
+# command must have two separate command parsings on the same line.
+
+# Bug? within trap, the command after _debug_prompt has line number of 351 [trap(lineno)+1], even though both commands are on line 350.
 _full_xtrace() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
-  # Bug? for the line numbers in _fun_trc to be correct, this `trap` 
-  # command must have two separate command parsings on the same line.
-  
-  # Bug? within `trap`, the command after `_debug_prompt` has line number of 351 [trap(lineno)+1], even though both commands are on line 350.
   _fun_trc
   trap '_fun_trc; : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}  |  prints in underscore shell variable"; _debug_prompt "$_"; : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"' DEBUG; echo cmd after DEBUG trap, $LINENO
-  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}" # 
-  set -x 
+  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}" #
+  set -x
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   : '_full_xtrace ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }; declare -ftx _full_xtrace

@@ -52,7 +52,7 @@ export PATH
 
 [[ -f ./path-verify.sh ]] &&
   source ./path-verify.sh
-
+declare -p PATH
 
 unset LC_ALL
 LC_COLLATE="C.UTF-8" LC_CTYPE="C.UTF-8"     # for predictable sorting
