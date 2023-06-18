@@ -340,7 +340,8 @@ _mk_v_setenv_delta() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
     # set colors for wc output
     GREP_COLORS='mt=01;101' export GREP_COLORS
     wc "${xtr_senv_delt}" | grep --color=always -E '.*'
-
+    printf '\e[m'
+    
     # reset colors for grep output
     GREP_COLORS='mt=01;43' export GREP_COLORS
     grep --color=always -E '.*' < "${xtr_senv_delt}"
