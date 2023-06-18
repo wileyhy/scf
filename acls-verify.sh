@@ -3,7 +3,7 @@
 
 
   # <> Obligatory debugging block
-  _post_src "${nL}" "$@"
+  _post_src "${nBS[0]}" "${nL}" "$@"
   #_full_xtrace
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   #exit "${nL}"

@@ -111,7 +111,7 @@ declare -ax verb=( '--' )
   #printf '\e[m'
 
 # Processes positional parameters as they were passed to source
-# Usage: source [./script] "${nL}" [y|n] [y|n] ; _post_src "${nL}" "$@"
+# Usage: source [./script] "${nL}" [y|n] [y|n] ; _post_src "${nBS[0]}" "${nL}" "$@"
 #                   of caller-^                 of sub-script-^
 # pos-parms for _post_src:
 #              {<---------------------------->}                    ^^^^
