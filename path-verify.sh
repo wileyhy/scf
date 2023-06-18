@@ -40,6 +40,7 @@ _verify_path(){
   # from `realpath` sets an empty ('') array value.
   for p in "${!path_1[@]}"
   do
+    #                                                               < cmd
     path_1[p]="$(realpath -e "${path_1[p]}" 2>&1)"
     
     # if the resulting index value is empty, then unset it

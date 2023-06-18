@@ -12,9 +12,9 @@
   #set -x
 
 
-reqd_cmds=( file fuser getfacl namei pgrep shellcheck stat strings sudo )
+reqd_cmds=( file fuser getconf getfacl mktemp namei pgrep realpath shellcheck stat strings sudo )
 yn=n
-
+# cat chmod diff env find kill mkdir rev rm rsync tee test touch tr unlink ...
 
 hash -r;
 for c in "${reqd_cmds[@]}"
