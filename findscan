@@ -142,19 +142,19 @@ declare -t _post_src
 #set -T
 #set -x
 
- : 'ID and sudo'       ; . './sudo.sh'          "${nL}"   n n n; #exit $nL
+# Description            # -source- subscript               # 
+ : 'ID and sudo'       ;  . './id-sudov'   "${nL}"   n n n; #exit "$nL"
  # So PS4 is on whenever xtrace is on, and DEBUG trap is always on once defined: 2023-06-18 0840
- : 'Enable debugging'  ; . './gardening.sh'     "${nL}"   n y y; #exit $nL
- : 'Required programs' ; . './reqd-cmds.sh'     "${nL}"   n y y; exit $nL
- : 'Locks'             ; . './locks.sh'         "${nL}"   n y y; exit $nL
-#: 'Verify PATH'       ; . './path-verify.sh'   "${nL}"   n y y; exit $nL
- : 'Verify DACs'       ; . './dacs-verify.sh'   "${nL}"   n y y; exit $nL
- : 'Verify ACLs'       ; . './acls-verify.sh'   "${nL}"   n y y; exit $nL
- : 'Option Parsing'    ; . './opt-parsing.sh'   "${nL}"   n y y; exit $nL
- : 'Storing findings'  ; . './hard-disk.sh'     "${nL}"   n y y; exit $nL
-
-# ^--Purpose            ^--dot         nameref--^  xtrace--^
-#                            ^--filename           exit--^   ^-verbose
+ : 'Enable debugging'  ;  . './gardning'   "${nL}"   n y y; #exit "$nL"
+ : 'Required programs' ;  . './reqdcmds'   "${nL}"   n y y;  exit "$nL"
+ : 'Locks'             ;  . './lock-fds'   "${nL}"   n y y;  exit "$nL"
+#: 'Verify PATH'       ;  . './path-ver'   "${nL}"   n y y;  exit "$nL"
+ : 'Verify DACs'       ;  . './dacs-ver'   "${nL}"   n y y;  exit "$nL"
+ : 'Verify ACLs'       ;  . './acls-ver'   "${nL}"   n y y;  exit "$nL"
+ : 'Option Parsing'    ;  . './cli-opts'   "${nL}"   n y y;  exit "$nL"
+ : 'Storing findings'  ;  . './harddisk'   "${nL}"   n y y;  exit "$nL"
+# ^--Purpose              ^--dot    nameref-^  xtrace--^ ^      ^-die
+#                              ^--filename     exit--^   ^-verbose
 
 
   # <> Obligatory debugging block
