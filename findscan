@@ -1,18 +1,18 @@
 #!/bin/bash -p --
 #!/usr/bin/env -iS bash
-#   fndscn
+#   findscan
 #   shellcheck disable=SC2317
 
 # Note: Keep your goal in mind.
 
 
 echo 'ampersand:' "$@"
-set -CuTEx # <> for debugging
-set -abfP   # <>
-shopt -s expand_aliases
-shopt -s nocasematch # for cli-opts
-shopt -u sourcepath # for CDPATH
-#set -r     # <>
+set -CuTEx              # <> for debugging
+set -abfP               # <>
+#set -r                  # <>
+#shopt -s expand_aliases # for .test-shadows
+shopt -s nocasematch    # for cli-opts
+shopt -u sourcepath     # for CDPATH
 echo 'ampersand:' "$@" 
 
 scr_lic='Apache 2 license'
