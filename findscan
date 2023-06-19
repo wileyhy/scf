@@ -10,7 +10,7 @@ echo 'ampersand:' "$@"
 set -CuTEx # <> for debugging
 set -abfP   # <>
 shopt -s expand_aliases
-shopt -s nocasematch # for optargs
+shopt -s nocasematch # for cli-opts
 shopt -u sourcepath # for CDPATH
 #set -r     # <>
 echo 'ampersand:' "$@" 
