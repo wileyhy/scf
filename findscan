@@ -15,6 +15,18 @@ shopt -s nocasematch    # for cli-opts
 shopt -u sourcepath     # for CDPATH
 shopt -s nullglob       # for lock-fds
 shopt -s functrace      # for lock-fds
+ assoc_expand_once
+ checkhash
+ compat31
+compat32
+compat40
+compat41
+compat42
+compat43
+compat44
+ complete_fullquote
+ extdebug
+ 
 echo 'ampersand:' "$@" 
 
 scr_lic='Apache 2 license'
