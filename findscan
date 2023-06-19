@@ -28,7 +28,7 @@ export SC_sevr SC_shells
 
 fn_bndry=' ~~~ ~~~ ~~~ ' 
 fn_lvl=0 
-halt='' 
+halt=' ' 
 export fn_lvl fn_bndry halt
 declare -nx nBL=BASH_LINENO nBS=BASH_SOURCE nF=FUNCNAME nL=LINENO
 
