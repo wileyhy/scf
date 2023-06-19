@@ -1,4 +1,4 @@
-#!/bin/bash -p
+#!/bin/bash -p --
 #!/usr/bin/env -iS bash
 #   fndscn
 #   shellcheck disable=SC2317
@@ -6,9 +6,11 @@
 # Note: Keep your goal in mind.
 
 
+echo 'ampersand:' "$@"
 set -CuTEx # <> for debugging
-set -abf   # <>
+set -abfP   # <>
 #set -r     # <>
+echo 'ampersand:' "$@" 
 
 scr_lic='Apache 2 license'
 scr_max_age_of_tmp_files='1 minutes ago'
