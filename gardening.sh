@@ -21,8 +21,10 @@ PS4="${far_ps4}" export PS4
 export FUNCNEST close_ps4 far_ps4 
 
 
+: '<>: Debug functions & traps'
+
 # Print a function trace stack, and capture the FN's LINENO on line 0
-function _fun_trc(){ : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"; local line_hyphen="${nL:?}:$-"
+function _fun_trc(){ : "$_"'=?"_fun_trc"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"; local line_hyphen="${nL:?}:$-"
   set - # normally set -
   local line=${line_hyphen%:*}
   local hyphen="${line_hyphen#*:}"
@@ -47,9 +49,7 @@ declare -fx _fun_trc
 declare -t _fun_trc
 
 
-: '<>: Debug functions & traps'
-
-function exit { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
+function exit { : "$_"'=?"exit"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   unset PS4
   printf '\e[m'
   builtin exit "${nL}"
@@ -59,7 +59,7 @@ declare -t exit
 
 
 
-_trap_ctrl_C() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
+_trap_ctrl_C() { : "$_"'=?"_trap_ctrl_C"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   set -x
   trap - INT
 
@@ -164,7 +164,7 @@ unset xtr_rm_list xtr_files
 : 'Some standard data- & file-maintenance functions' 
 # Probably not nec in final script
 
-fn_bak() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
+fn_bak() { : "$_"'=?"fn_bak"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   # for each of multiple input files
   for filename_a in "${@}"; do
     # test verifying existence of input
@@ -198,7 +198,7 @@ fn_bak() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   : 'fn_bak ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
 }
 
-fn_write_arrays() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
+fn_write_arrays() { : "$_"'=?"fn_write_arrays"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   # Write each array to a file on disk.
   # Usage: fn_write_arrays [arrays]
   write_d_b="${curr_time_ssubd}arrays"
@@ -251,7 +251,7 @@ fn_write_arrays() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
 # +[6]gardening.sh(249) <_mk_v_se> [5]gardening.sh(310)  >  [[ -n '' ]]
 
 
-_xtrace_duck() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
+_xtrace_duck() { : "$_"'=?"_xtrace_duck"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   # If xtrace is on...
   if [[ "$-" =~ x ]]; then
     # ...then record its state
@@ -278,7 +278,7 @@ declare -t _xtrace_duck
 #   Remaining functions: A set of functions for printing changes in
 # shell variables and parameters between each execution of a command;
 # for use when the DEBUG trap is enabled.
-_mk_v_setenv_pre() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
+_mk_v_setenv_pre() { : "$_"'=?"_mk_v_setenv_pre"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   : 'if now file exists'
   if [[ -v xtr_senv_now ]]; then
     : 'if prev file exists'
@@ -295,8 +295,7 @@ declare -fx _mk_v_setenv_pre
 declare -t _mk_v_setenv_pre
 
 
-_mk_v_setenv_novv() {
-  : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
+_mk_v_setenv_novv() { : "$_"'=?"_mk_v_setenv_novv"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   
   # create 'now' file
   xtr_senv_now="$(mktemp -p /tmp --suffix=."${rand_f_nm}" 2>&1)"
@@ -310,7 +309,7 @@ declare -fx _mk_v_setenv_novv
 declare -t _mk_v_setenv_novv
 
 
-_mk_v_setenv_delta() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
+_mk_v_setenv_delta() { : "$_"'=?"_mk_v_setenv_delta"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   : 'if now and prev'
   if [[ -n "${xtr_senv_now}" ]] \
     && [[ -v xtr_senv_prev ]];
@@ -349,7 +348,7 @@ declare -fx _mk_v_setenv_delta
 declare -t _mk_v_setenv_delta
 
 
-_mk_deltas() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
+_mk_deltas() { : "$_"'=?"_mk_deltas"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   
   # Note: comment out _xtrace_duck with : (and not #)
   : _xtrace_duck
@@ -390,7 +389,7 @@ declare -t _debug_prompt
 
 # Bug? within trap, the command after _debug_prompt has line number of 351 [trap(lineno)+1], even though both commands are on line 350.
 
-_full_xtrace() { : "$_" 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
+_full_xtrace() { : "$_"'=?"_full_xtrace"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
   
   #_fun_trc
   #set -x 16074
