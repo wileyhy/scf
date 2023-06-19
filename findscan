@@ -10,7 +10,8 @@ echo 'ampersand:' "$@"
 set -CuTEx # <> for debugging
 set -abfP   # <>
 shopt -s expand_aliases
-shopt -s nocasematch
+shopt -s nocasematch # for optargs
+shopt -u sourcepath # for CDPATH
 #set -r     # <>
 echo 'ampersand:' "$@" 
 
@@ -46,7 +47,7 @@ declare -nx nBL=BASH_LINENO nBS=BASH_SOURCE nF=FUNCNAME nL=LINENO
 
 unset CDPATH
 readonly CDPATH
-shopt -u sourcepath
+
 
 builtin hash -r
 for c in getconf realpath
