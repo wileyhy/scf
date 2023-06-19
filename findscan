@@ -9,6 +9,8 @@
 echo 'ampersand:' "$@"
 set -CuTEx # <> for debugging
 set -abfP   # <>
+shopt -s expand_aliases
+shopt -s nocasematch
 #set -r     # <>
 echo 'ampersand:' "$@" 
 
