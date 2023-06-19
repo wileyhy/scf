@@ -1,3 +1,4 @@
+#!/bin/bash
 # Debugging
 # shellcheck shell=bash
 
@@ -15,8 +16,13 @@
 # shellcheck disable=SC2016
 #set -o functrace
 FUNCNEST=32
+# Note: the full (set -o functrace) cmd includes command substitutions 
+# and subshells, so -- using CS-s in PROMPT vars messed up xtrace output
 close_ps4='\n\e[0;104m+[${#nBS[@]}]${nBS[0]##*/}(${nL}) [$((${#nBS[@]}-1))]${nBS[1]##*/}(${nBL[0]})${nF[0]} [$((${#nBS[@]}-2))]${nBS[2]##*/}(${nBL[1]})${nF[1]} [$((${#nBS[@]}-3))]${nBS[3]##*/}(${nBL[2]})${nF[2]} [$((${#nBS[@]}-4))]${nBS[4]##*/}(${nBL[3]})${nF[3]} \e[m\n    |=\t=|> \e[0;93m '
-far_ps4='\e[0;104m+ At:[${#nBS[@]}]$( cut -c -8 <<< ${nBS[0]##*/} )(${nL}) In:<$( cut -c -8 <<< ${nF[0]:-""} )> Fr:[$((${#nBS[@]}-1))]$( cut -c -8 <<< ${nBS[1]##*/} )(${nBL[0]}) \e[m > \e[0;93m '
+#far_ps4='\e[0;104m+ At:[${#nBS[@]}]${nBS[0]##*/}(${nL}) In:<${nF[0]:-""}> Fr:[$((${#nBS[@]}-1))]${nBS[1]##*/}(${nBL[0]}) \e[m > \e[0;93m '
+#far_ps4='\e[0;104m+ At:[${#nBS[@]}]$( cut -c -8 <<< ${nBS[0]##*/} )(${nL}) In:<${nF[0]:-""}> Fr:[$((${#nBS[@]}-1))]${nBS[1]##*/}(${nBL[0]}) \e[m > \e[0;93m '
+far_ps4='\e[0;104m+ At:[${#nBS[@]}]$( cut -c -8 <<< ${nBS[0]##*/} )(${nL}) In:<$( cut -c -8 <<< ${nF[0]:-""} )> Fr:[$((${#nBS[@]}-1))]${nBS[1]##*/}(${nBL[0]}) \e[m > \e[0;93m '
+#far_ps4='\e[0;104m+ At:[${#nBS[@]}]$( cut -c -8 <<< ${nBS[0]##*/} )(${nL}) In:<$( cut -c -8 <<< ${nF[0]:-""} )> Fr:[$((${#nBS[@]}-1))]$( cut -c -8 <<< ${nBS[1]##*/} )(${nBL[0]}) \e[m > \e[0;93m '
 PS4="${far_ps4}" export PS4
 export FUNCNEST close_ps4 far_ps4 
 
@@ -92,7 +98,7 @@ function _trp_int { : "$_"'=?"_trp_int"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++
   then
     if ! rm -f --one-file-system --preserve-root=all "${verb[@]}" "${rm_list[@]}"
     then
-      _erx "unlink failed, line ${nL}"
+      _erx "rm failed, line ${nL}"
     fi
   fi
   unset rm_list
@@ -237,7 +243,10 @@ function _mkv_pre { : "$_"'=?"_mkv_pre"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++
     : 'if prev file exists'
     if [[ -v xtr_senv_prev ]]; then
       : 'remove prev file'
+      sync -f
       unlink -- "${xtr_senv_prev}"
+      sync -f
+      wait -f
     fi
     # turn the "now" file into the "prev" file
     xtr_senv_prev="${xtr_senv_now}"
@@ -274,7 +283,10 @@ function _mkv_dlt { : "$_"'=?"_mkv_dlt"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$((++
       cat "${xtr_senv_delt}" >> "${xtr_delta_sum_f}" # stderr to term
       
       # and unlink the current delta data file
+      sync -f
       unlink -- "${xtr_senv_delt}"
+      sync -f
+      wait -f
     fi
     
     # create a new delta file, each time
