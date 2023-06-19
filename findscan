@@ -28,8 +28,10 @@ export SC_sevr SC_shells
 
 fn_bndry=' ~~~ ~~~ ~~~ ' 
 fn_lvl=0 
+export fn_lvl fn_bndry 
+unset Halt
 halt=' ' 
-export fn_lvl fn_bndry halt
+declare -rx Halt halt # lower case for nounset
 declare -nx nBL=BASH_LINENO nBS=BASH_SOURCE nF=FUNCNAME nL=LINENO
 
 # move this entire path dection down
