@@ -1,10 +1,12 @@
-#!/bin/bash -CuTEx
+#!/bin/bash
 #!/usr/bin/env -iS bash
 #   fndscn
 #   shellcheck disable=SC2317
 
 # Note: Keep your goal in mind.
 
+
+set -CuTEx # <> for debugging
 
 scr_lic='Apache 2 license'
 scr_max_age_of_tmp_files='1 minutes ago'
