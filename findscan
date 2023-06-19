@@ -28,7 +28,8 @@ export SC_sevr SC_shells
 
 fn_bndry=' ~~~ ~~~ ~~~ ' 
 fn_lvl=0 
-export fn_lvl fn_bndry
+halt='' 
+export fn_lvl fn_bndry halt
 declare -nx nBL=BASH_LINENO nBS=BASH_SOURCE nF=FUNCNAME nL=LINENO
 
 # move this entire path dection down
@@ -46,7 +47,7 @@ do
   if [[ -z "$forced_path_search" ]] ||
     [[ ! -f "$forced_path_search" ]]
   then
-    "${Halt:?}"
+    "${halt:?}"
   fi
   builtin hash -p "${forced_path_search}" "$c"
 done
@@ -54,7 +55,7 @@ unset c forced_path_search
 
 PATH_getconf="$(
   command -p getconf PATH 2>&1 ||
-    "${Halt:?}"
+    "${halt:?}"
   )"
 PATH="${PATH_getconf}:/usr/bin:/usr/sbin:${PATH}"
 export PATH
@@ -62,7 +63,7 @@ export PATH
 if [[ -f ./path-verify.sh ]]; then
   source ./path-verify.sh
 else
-  "${Halt:?}"
+  "${halt:?}"
 fi
 #declare -p PATH
 
