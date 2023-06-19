@@ -16,7 +16,7 @@
 #set -o functrace
 FUNCNEST=32
 close_ps4='\n\e[0;104m+[${#nBS[@]}]${nBS[0]##*/}(${nL}) [$((${#nBS[@]}-1))]${nBS[1]##*/}(${nBL[0]})${nF[0]} [$((${#nBS[@]}-2))]${nBS[2]##*/}(${nBL[1]})${nF[1]} [$((${#nBS[@]}-3))]${nBS[3]##*/}(${nBL[2]})${nF[2]} [$((${#nBS[@]}-4))]${nBS[4]##*/}(${nBL[3]})${nF[3]} \e[m\n    |=\t=|> \e[0;93m '
-far_ps4='\e[0;104m+ At:[${#nBS[@]}]"$( cut -c -8 <<< ${nBS[0]##*/} )"(${nL}) In:<"$( cut -c -8 <<< ${nF[0]:-} )"> Fr:[$((${#nBS[@]}-1))]"$( cut -c -8 <<< ${nBS[1]##*/} )"(${nBL[0]}) \e[m > \e[0;93m '
+far_ps4='\e[0;104m+ At:[${#nBS[@]}]$( cut -c -8 <<< ${nBS[0]##*/} )(${nL}) In:<$( cut -c -8 <<< ${nF[0]:-""} )> Fr:[$((${#nBS[@]}-1))]$( cut -c -8 <<< ${nBS[1]##*/} )(${nBL[0]}) \e[m > \e[0;93m '
 PS4="${far_ps4}" export PS4
 export FUNCNEST close_ps4 far_ps4 
 
