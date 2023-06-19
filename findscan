@@ -13,6 +13,8 @@ set -abfP               # <>
 #shopt -s expand_aliases # for .test-shadows
 shopt -s nocasematch    # for cli-opts
 shopt -u sourcepath     # for CDPATH
+shopt -s nullglob       # for lock-fds
+shopt -s functrace      # for lock-fds
 echo 'ampersand:' "$@" 
 
 scr_lic='Apache 2 license'
