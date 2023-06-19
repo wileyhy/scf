@@ -12,7 +12,7 @@
   
 : 'Verify PATH'
 _verify_path(){
-  : '_verify_path BEGINS'  "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
+  : '_verify_path BEGINS'  "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
   #_xtrace_
   
   # Before running `type` / `command` or they'll print dups
@@ -90,7 +90,7 @@ _verify_path(){
   then
     IFS=":" read -ra find_path <<< "${bash_path}"
   fi
-  : '_verify_path ENDS  '  "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
+  : '_verify_path ENDS  '  "${fn_bndry}" "${fn_lvl}>$(( --fn_lvl ))"
 }
 declare -fx _verify_path
 declare -t _verify_path

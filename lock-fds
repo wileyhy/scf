@@ -35,7 +35,7 @@ _get_lockdirs(){
 
 _exit_trap() {
   #set -x
-  : "EXIT trap BEGINS" "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
+  : "EXIT trap BEGINS" "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
   trap - DEBUG
   trap - EXIT
   # If no such array exists yet, then search for possible lockdirs

@@ -59,7 +59,7 @@ verify=(all)
 fn_usage() {
   # Print a usage message and exit with a pre-determined exit code
   # Usage:  fn_usage [exit-code]
-  : 'fn_usage BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
+  : 'fn_usage BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
   {
     cat <<-EOF
     ${scr_repo_nm} - ${scr_proper_nm}, version ${scr_version}
@@ -97,7 +97,7 @@ fn_usage() {
 EOF
   } 2>&1 |
     more -e
-  : 'fn_usage ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
+  : 'fn_usage ENDS  ' "${fn_bndry}" "${fn_lvl}>$(( --fn_lvl ))"
   exit "$1"
 }
 

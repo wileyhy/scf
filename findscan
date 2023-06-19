@@ -93,10 +93,10 @@ fi
 
 _erx() {
   local exit_code="$?"
-  : '_erx BEGINS' "${fn_bndry}" "${fn_lvl}>$((++fn_lvl))"
+  : '_erx BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
   echo -e Error: "$@" >&2
   exit "${exit_code}"
-  : '_erx ENDS  ' "${fn_bndry}" "${fn_lvl}>$((--fn_lvl))"
+  : '_erx ENDS  ' "${fn_bndry}" "${fn_lvl}>$(( --fn_lvl ))"
 }
 declare -fx _erx
 declare -t _erx
