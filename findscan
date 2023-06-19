@@ -7,6 +7,7 @@
 
 
 set -CuTEx # <> for debugging
+set -b     # <>
 
 scr_lic='Apache 2 license'
 scr_max_age_of_tmp_files='1 minutes ago'
