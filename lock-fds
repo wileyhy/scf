@@ -493,7 +493,7 @@ elif [[ -e "/dev/shm/${scr_repo_nm}" ]]; then
             fi;
           done
     )" _mv_file;
-    shopt -s nullglob
+    #shopt -s nullglob
         prior_process_files=("/dev/shm/${scr_repo_nm}"/[0-9]*)
 
     # wrong
