@@ -31,6 +31,8 @@ fn_lvl=0
 export fn_lvl fn_bndry
 declare -nx nBL=BASH_LINENO nBS=BASH_SOURCE nF=FUNCNAME nL=LINENO
 
+# move this entire path dection down
+
 unset CDPATH
 readonly CDPATH
 shopt -u sourcepath
@@ -96,28 +98,13 @@ _erx() {
 declare -fx _erx
 declare -t _erx
 
-
-  # <> Obligatory debugging block
-  : "${nBS[0]}:${nL}"
-  #exit "${nL}"
-  #set -x
-
-
 # Sub-scripts
 declare -ax verb=( '--' )
 
   # Note: Exit traps don't print accurate trace data in PS4; so use a function
-  #far_ps4='\e[0;104m+[${#nBS[@]}]${nBS[0]##*/}(${nL}) [$((${#nBS[@]}-1))]${nBS[1]##*/}(${nBL[0]})${nF[0]} \e[m > \e[0;93m '
-  #trap "unset PS4; printf '\e[m'" EXIT
-  #+[1]fndsc(110) [0](0)  >  exit 110
-  #+[1]fndsc(1) [0](0)  >  unset PS4
-  #printf '\e[m'
 
 # Processes positional parameters as they were passed to source
-# Usage: source [./script] "${nL}" [y|n] [y|n] ; _post_src "${nBS[0]}" "${nL}" "$@"
-#                   of caller-^                 of sub-script-^
-# pos-parms for _post_src:
-#              {<---------------------------->}                    ^^^^
+
 function _post_src {
   #[[ ! -v PS4 ]] && printf '%b' "\e[0;34m"
 
