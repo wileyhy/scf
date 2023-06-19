@@ -103,7 +103,7 @@ EOF
 
 : 'Option parsing'
 
-shopt -s nocasematch
+
 while getopts "a:bc:d:hl:m:p:q:r:s:v" cli_input; do
 
   # Parse command line options
