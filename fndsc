@@ -308,6 +308,8 @@ do
       # if then else elif fi case esac for select while until do done in
       # function time { } ! [[ ]] coproc
       ;;
+    *|'') break
+      ;;
   esac
   break
 done
@@ -327,7 +329,7 @@ unset tt_o
 
 
 
-##  Thoughts
+##  Some thoughts
 #
 #   Remove variables and parameters.
 #
@@ -389,12 +391,7 @@ then
   # create a dictionary list of each possible initial character, and
   # include commands with odd yet permitted-by-Linux initial
   # characters, such as \n \t \c or \l, etc
-    #for i in 33 42 46 47 58
-    #do
-    #for i in 91 95
-    #do
-    #for i in {97..127}
-    #do
+
   for i in 8 9 10 11 12 13 {32..127}
   do
     allchr+=(["$i"]="$(printf '%b' "\\$(printf %03o "$i" 2>&1)" 2>&1)")
