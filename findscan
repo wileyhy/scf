@@ -143,7 +143,7 @@ declare -t _post_src
 #set -x
 
 # Description            # -source- subscript               # 
- : 'ID and sudo'       ;  . './id-sudov'   "${nL}"   n n n; #exit "$nL"
+ : 'ID and sudo'       ;  . './id_sudov'   "${nL}"   n n n; #exit "$nL"
  # So PS4 is on whenever xtrace is on, and DEBUG trap is always on once defined: 2023-06-18 0840
  : 'Enable debugging'  ;  . './gardning'   "${nL}"   n y y; #exit "$nL"
  : 'Required programs' ;  . './reqdcmds'   "${nL}"   n y y;  exit "$nL"
@@ -374,6 +374,7 @@ then
   # Workaround: `compgen -c "*"` was picking up executable shell
   # scripts from the CWD
   tempd="$(mktemp -d --suffix=."${rand_f_nm/%.xtr/.d}" 2>&1)"
+  # use pushd / popd
   cd "${tempd}" ||
     _erx cd
 
@@ -535,6 +536,7 @@ then
     #exit "${nL}"
     #_xtrace_
 
+  # use pushd / popd
   cd - ||
     _erx cd
   rmdir -v "${tempd}"
