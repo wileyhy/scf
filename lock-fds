@@ -251,8 +251,8 @@ fi
 
 ## Vars & Functions
 
-POSIXLY_CORRECT=0
-LC_ALL=C
+POSIXLY_CORRECT=O              # remember to unset
+LC_ALL=C                       # clobbers values from findscan 
 export POSIXLY_CORRECT LC_ALL
 unset IFS
 
@@ -563,6 +563,9 @@ echo
 stat "/dev/shm/${scr_repo_nm}"/[0-9]*;
 head "/dev/shm/${scr_repo_nm}"/[0-9]*;
 unset f i ps_o
+
+unset POSIXLY_CORRECT
+
 exit 101
 
 
