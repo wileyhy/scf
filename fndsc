@@ -319,6 +319,7 @@ unset tt_o
 # lookup file and force a PATH search with type -P
 # type -a
 
+# move rpm -V to end of script and only verify the found scripts.
 # using dnf & rpm are "ecpensive" opetations. it
 # would be better to do such a function after the
 # ELF files have been removed from the list
