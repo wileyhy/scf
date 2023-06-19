@@ -1,8 +1,6 @@
 # Required programs
 # shellcheck shell=bash
 
-# Distros tested:
-#   Fedora 38
 
   # <> Obligatory debugging block
   _post_src "${nBS[0]}" "${nL}" "$@"
