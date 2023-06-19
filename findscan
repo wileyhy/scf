@@ -51,7 +51,7 @@ do
   if [[ -z "$forced_path_search" ]] ||
     [[ ! -f "$forced_path_search" ]]
   then
-    : "${halt:?}"
+    : "${halt:?}" # reliance on error conflicts with -set -u-
   fi
   builtin hash -p "${forced_path_search}" "$c"
 done
