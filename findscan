@@ -47,7 +47,7 @@ do
   if [[ -z "$forced_path_search" ]] ||
     [[ ! -f "$forced_path_search" ]]
   then
-    "${halt:?}"
+    : "${halt:?}"
   fi
   builtin hash -p "${forced_path_search}" "$c"
 done
@@ -55,7 +55,7 @@ unset c forced_path_search
 
 PATH_getconf="$(
   command -p getconf PATH 2>&1 ||
-    "${halt:?}"
+    : "${halt:?}"
   )"
 PATH="${PATH_getconf}:/usr/bin:/usr/sbin:${PATH}"
 export PATH
@@ -63,7 +63,7 @@ export PATH
 if [[ -f ./path-verify.sh ]]; then
   source ./path-verify.sh
 else
-  "${halt:?}"
+  : "${halt:?}"
 fi
 #declare -p PATH
 
