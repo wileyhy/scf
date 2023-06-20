@@ -6,7 +6,9 @@
 # Note: Keep your goal in mind.
 
 
-# TODO: put _fun_trc in RETURN trap
+# TODO:
+# - put _fun_trc in RETURN trap
+# - try +trap -p+ with single-line trap cmds
 
 echo 'ampersand:' "$@"
 set -CuTEx              # <> for debugging
