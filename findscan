@@ -32,6 +32,13 @@ compat44
  complete_fullquote
  extdebug
 
+ promptvars
+ shift_verbose
+ restricted_shell
+ BASHOPTS
+ BASH_ARGC BASH_ARGV
+ BASH_COMPAT
+ BASH_ENV
  BASH_REMATCH instead of complex string parsing?
  
 echo 'ampersand:' "$@" 
