@@ -9,6 +9,7 @@
 # TODO:
 # - put _fun_trc in RETURN & ERR traps
 # - try +trap -p+ with single-line trap cmds
+# - add ;ulimit -t; ;-v; & ;-T;
 
 echo 'ampersand:' "$@"
 set -CuTEx              # <> for debugging
