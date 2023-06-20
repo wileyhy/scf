@@ -6,6 +6,8 @@
 # Note: Keep your goal in mind.
 
 
+# TODO: put _fun_trc in RETURN trap
+
 echo 'ampersand:' "$@"
 set -CuTEx              # <> for debugging
 set -abfP               # <>
