@@ -7,7 +7,7 @@
 
 
 # TODO:
-# - put _fun_trc in RETURN trap
+# - put _fun_trc in RETURN & ERR traps
 # - try +trap -p+ with single-line trap cmds
 
 echo 'ampersand:' "$@"
