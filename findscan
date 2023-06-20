@@ -31,6 +31,8 @@ compat43
 compat44
  complete_fullquote
  extdebug
+
+ BASH_REMATCH instead of complex string parsing?
  
 echo 'ampersand:' "$@" 
 
