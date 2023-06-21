@@ -698,6 +698,7 @@ do
     sudo cat <<< "${err_msg}" >> "${curr_time_ssubd}file_out"
   fi
 
+  # Bug: allow for charset / Unicode "byte order marks," ie, 'FE FF'.
   # Bug: keep `od` output in an array
   # Bug: avoid as many disk writes as possible.
   #  Write out only stats?
