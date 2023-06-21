@@ -1,5 +1,5 @@
 #!/usr/bin/env -iS bash
-# test-shadows.sh - Bash 5 required
+# test-shadows.bash - bash 5.2
 #   hellcheck disable=SC2317,SC2096,SC2154,SC2086
 
 : 'Regular users only, and -sudo- required' 
