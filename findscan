@@ -11,7 +11,24 @@
 # - try +trap -p+ with single-line trap cmds
 # - add ;ulimit -t 600; ;-v 100; & ;-T 1;
 
-in bash, echo $'\xc3\xa9'; file -i; iconv -l; isutf8 cmd; b
+#!/bin/bash
+LC_CTYPE=en_US.utf8
+v_utf8='é'
+n_utf8=${#v_utf8}
+f_utf8 () { tmp='é'; echo ${#tmp}; }
+echo "UTF-8 in UTF-8: $n_utf8 $(f_utf8)"
+LC_CTYPE=en_US
+v_latin1='é'
+n_latin1=${#v_latin1}
+f_latin1 () { tmp='é'; echo ${#tmp}; }
+echo "Latin 1 in Latin 1: $n_latin1 $(f_latin1)"
+echo "UTF-8 in Latin 1: ${#v_utf8} $(f_utf8)"
+LC_CTYPE=en_US.utf8
+echo "Latin 1 in UTF-8: ${#v_latin1} $(f_latin1)"
+# Giles, https://unix.stackexchange.com/questions/250366/how-to-force-shell-script-characters-encoding-from-within-the-script
+
+
+in bash, echo $'\xc3\xa9'; file -i; iconv -l; isutf8 cmd; recode cmd; https://unix.stackexchange.com/questions/636944/how-to-check-if-variable-contains-valid-utf-8-string-without-any-control-charact/636948#636948
 in vim, :set fileencoding?
 echo 'ampersand:' "$@"
 set -CuTEx              # <> for debugging
@@ -108,7 +125,13 @@ else
 fi
 #declare -p PATH
 
-unset LC_ALL
+# Test for valid UTF-8 string. in zsh, per Ste'phane C.
+set -o extendedglob
+[[ $string = [' '-$'\ud7fff'$'\ue000'-$'\U10FFFF']# && $string != *[[:cntrl:]]* ]]
+# https://www.unicode.org/reports/tr36/#EnablingLosslessConversion
+
+# "Setting LC_CTYPE without also setting the other LC_* variables is not always well supported." - Ste'phane Chazelas
+unset LC_ALL || : "${Halt:?}"
 LC_COLLATE="C.UTF-8" LC_CTYPE="C.UTF-8"     # for predictable sorting
 LC_NUMERIC="en_US.UTF-8"                    # for commas in large numbers
 export LC_COLLATE LC_CTYPE LC_NUMERIC
