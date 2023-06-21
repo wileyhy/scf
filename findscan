@@ -1185,6 +1185,7 @@ exit 00
 #   - grep for '(source|\.) .?.?/'
 #   - add search for FSO names w \t or \n & file as bugs
 #   - add grep for globs '“*”, “?”, or “[”, etc' preceded by white space or at the beginning of a line, and not in a comment
+#   - verify text encoding (ie, is / isn't UTF-8) within scripts and in absolute filenames. see d wheeler, https://dwheeler.com/essays/filenames-in-shell.html section 3.5 re iconv etc
 
 # ToDo: for $rand_i, use the most recent git commit hash ID
 # Q: LD_PRELOAD LD_LIBRARY_PATH ? https://www.ics.uci.edu/~goodrich/teach/cs201P/notes/02_Environment_Variables.pdf
