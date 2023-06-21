@@ -11,6 +11,8 @@
 # - try +trap -p+ with single-line trap cmds
 # - add ;ulimit -t 600; ;-v 100; & ;-T 1;
 
+in bash, echo $'\xc3\xa9'; file -i; iconv -l; isutf8 cmd; b
+in vim, :set fileencoding?
 echo 'ampersand:' "$@"
 set -CuTEx              # <> for debugging
 set -abfP               # <>
