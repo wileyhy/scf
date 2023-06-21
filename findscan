@@ -698,7 +698,7 @@ do
     sudo cat <<< "${err_msg}" >> "${curr_time_ssubd}file_out"
   fi
 
-  # Bug: allow for charset / Unicode "byte order marks," ie, 'FE FF'. https://en.m.wikipedia.org/wiki/Byte_order_mark
+  # Bug: allow for charset / Unicode "byte order marks," ie, 'FE FF'. https://en.m.wikipedia.org/wiki/Byte_order_mark https://unix.stackexchange.com/questions/250366/how-to-force-shell-script-characters-encoding-from-within-the-script see also chardet
   # Bug: keep `od` output in an array
   # Bug: avoid as many disk writes as possible.
   #  Write out only stats?
