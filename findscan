@@ -1183,7 +1183,7 @@ exit 00
 #   - grep for 'shellcheck disable'
 #   - grep for 'bash -c' and 'sh -c'
 #   - grep for '(source|\.) .?.?/'
-
+#   - add search for FSO names w \t or \n & file as bugs
 
 # ToDo: for $rand_i, use the most recent git commit hash ID
 # Q: LD_PRELOAD LD_LIBRARY_PATH ? https://www.ics.uci.edu/~goodrich/teach/cs201P/notes/02_Environment_Variables.pdf
