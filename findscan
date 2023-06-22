@@ -15,6 +15,9 @@
 cd /usr/lib/kbd/consolefonts; ls; setfont FILE
 # https://discussion.fedoraproject.org/t/hwo-to-increase-the-size-of-tty-font/72945/2
 
+ls /usr/lib/kbd/consolefonts/
+# https://www.computernetworkingnotes.com/linux-tutorials/how-to-set-font-and-change-font-size-on-linux-console.html
+
 
 You can verify if a file happens to pass UTF-8 encoding like this:
 $ iconv -f utf8 <filename> -t utf8 -o /dev/null
