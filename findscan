@@ -7,9 +7,17 @@
 
 
 # TODO:
+# - test a script w a utf8 bom
 # - put _fun_trc in RETURN & ERR traps
 # - try +trap -p+ with single-line trap cmds
 # - add ;ulimit -t 600; ;-v 100; & ;-T 1;
+
+You can verify if a file happens to pass UTF-8 encoding like this:
+$ iconv -f utf8 <filename> -t utf8 -o /dev/null
+A return code of zero means it passes UTF8. A non-zero return code means it is not valid UTF8.
+# Tim (questionable) https://superuser.com/questions/649834/is-there-a-linux-command-to-find-out-if-a-file-is-utf-8
+
+# scan all FSO names+paths for non-ascii char
 
 #!/bin/bash
 LC_CTYPE=en_US.utf8
