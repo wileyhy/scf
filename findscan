@@ -12,6 +12,10 @@
 # - try +trap -p+ with single-line trap cmds
 # - add ;ulimit -t 600; ;-v 100; & ;-T 1;
 
+cd /usr/lib/kbd/consolefonts; ls; setfont FILE
+# https://discussion.fedoraproject.org/t/hwo-to-increase-the-size-of-tty-font/72945/2
+
+
 You can verify if a file happens to pass UTF-8 encoding like this:
 $ iconv -f utf8 <filename> -t utf8 -o /dev/null
 A return code of zero means it passes UTF8. A non-zero return code means it is not valid UTF8.
