@@ -118,7 +118,7 @@ sudo dnf -y install \
   lynx libreoffice-calc chromium mozilla-noscript mozilla-privacy-badger \
     mozilla-https-everywhere \
   debian-keyring \
-  procps-ng \
+  procps-ng ncdu uxterm \
   git-fame # 🙄     # later: memstomp bpftrace gdb valgrind
   # python3-ptrace fatrace apitrace x11trace memstrack kernelshark
 
