@@ -23,8 +23,13 @@ close_ps4='\n\e[0;104m+[${#nBS[@]}]${nBS[0]##*/}( ${nL} ) [$(( ${#nBS[@]} - 1 ))
 #far_ps4='\e[0;104m+ At:[${#nBS[@]}]$( cut -c -8 <<< ${nBS[0]##*/} )( ${nL} ) In:<${nF[0]:-""}> Fr:[$(( ${#nBS[@]} - 1 ))]${nBS[1]##*/}( ${nBL[0]} ) \e[m > \e[0;93m '
 #far_ps4='\e[0;104m+ At:[${#nBS[@]}]$( cut -c -8 <<< ${nBS[0]##*/} )( ${nL} ) In:< $( cut -c -8 <<< ${nF[0]:-""} ) > Fr:[$(( ${#nBS[@]} - 1 ))]${nBS[1]##*/}( ${nBL[0]} ) \e[m > \e[0;93m '
 #far_ps4='\e[0;104m+ At:[${#nBS[@]}]$( cut -c -8 <<< ${nBS[0]##*/} )( ${nL} ) In:<$( cut -c -8 <<< ${nF[0]:-""} )> Fr:[$(( ${#nBS[@]} - 1 ))]$( cut -c -8 <<< ${nBS[1]##*/} )( ${nBL[0]} ) \e[m > \e[0;93m '
-far_ps4='\e[0;104m+ At:[${#nBS[@]}]$( cut -c -8 <<< ${nBS[0]##*/} )(${nL}) In:<${nF[0]:-""}> Fr:[$(( ${#nBS[@]} - 1 ))]$( cut -d "/" -f 3- <<< ${nBS[1]:-" "} )(${nBL[0]}) \e[m > \e[0;93m '
+#far_ps4='\e[0;104m+ At:[${#nBS[@]}]$( cut -c -8 <<< ${nBS[0]##*/} )(${nL}) In:<${nF[0]:-""}> Fr:[$(( ${#nBS[@]} - 1 ))]$( cut -d "/" -f 3- <<< ${nBS[1]:-" "} )(${nBL[0]}) \e[m > \e[0;93m '
+
+far_ps4='\e[0;104m+ At:[$( printf "%2d" ${#nBS[@]} )]$( : 21594 )$( cut -c -8 <<< ${nBS[0]##*/} )($( printf "%4d" ${nL} )) In:<$( printf "%-8s" ${nF[0]:-""})> Fr:[$( printf "%2d" $(( ${#nBS[@]} - 1 )) )]$( cut -c -8 <<< ${nBS[1]##*/} )($( printf "%4d" ${nBL[0]} )) \e[m > \e[0;93m'
+
 PS4="${far_ps4}" export PS4
+
+
 export FUNCNEST close_ps4 far_ps4 
 
 
@@ -393,25 +398,28 @@ touch -d "${scr_max_age_of_tmp_files:?}" "${xtr_time_f}"
 
 # Remove any errant xtrace log files
 
-# Get the list of remaining xtrace log files -older than the time file-
-mapfile -d '' -t xtr_files < <(
-  find -P /tmp -maxdepth 1 -type f \
-    -name "tmp.[a-zA-Z0-9]*.${scr_repo_nm:?}.[0-9]*.[0-9]*.xtr*" \
-    '!' -newer "${xtr_time_f}" '!' -name "${xtr_time_f##*/}" -print0
-  )
+if [[ "$rm_stale" = y ]]; 
+then
+  # Get the list of remaining xtrace log files -older than the time file-
+  mapfile -d '' -t xtr_files < <(
+    find -P /tmp -maxdepth 1 -type f \
+      -name "tmp.[a-zA-Z0-9]*.${scr_repo_nm:?}.[0-9]*.[0-9]*.xtr*" \
+      '!' -newer "${xtr_time_f}" '!' -name "${xtr_time_f##*/}" -print0
+    )
 
-# ...if they're -if inodes are- for files & not symlinks, & owned by
-# the same EUID....
-for f in "${xtr_files[@]}"; do
-  if [[ -f "${f}" ]] && [[ ! -L "${f}" ]] && [[ -O "${f}" ]]; then
+  # ...if they're -if inodes are- for files & not symlinks, & owned by
+  # the same EUID....
+  for f in "${xtr_files[@]}"; do
+    if [[ -f "${f}" ]] && [[ ! -L "${f}" ]] && [[ -O "${f}" ]]; then
 
-    # then protect them and add then to an array $xtr_rm_list
-    chmod "${verb[@]}" 000 "$f" ||
-	  _erx "${nL}" "$f"
-    xtr_rm_list+=( "${f}" )
-  fi
-done
-unset f
+      # then protect them and add then to an array $xtr_rm_list
+      chmod "${verb[@]}" 000 "$f" ||
+	    _erx "${nL}" "$f"
+      xtr_rm_list+=( "${f}" )
+    fi
+  done
+  unset f
+fi
 
 # remove the $xtr_rm_list files all at once
 if [[ -n "${xtr_rm_list[*]:0:8}" ]]; then
