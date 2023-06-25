@@ -60,8 +60,9 @@ then
   unset x
   rm_stale=y
   export rm_stale
+  declare -a array
 
-  mapfile -O (( ${#array[@]} + 1 )) -t array < <(
+  mapfile -O "$(( "${#array[@]}" + 1 ))" -t array < <(
     for x; do
       printf '%s\0' "$x" |
         grep -vz rm_stale
@@ -71,8 +72,8 @@ then
   echo "${array[@]}"
   declare -p array
   set -- "${array[@]}"
-  exit 101
 fi
+  exit 101
 
 _erx() {
   local exit_code="$?"
