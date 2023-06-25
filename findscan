@@ -28,11 +28,11 @@ SC_sevr=error
 SC_shells='(sh|bash|dash|ksh)'
 export SC_sevr SC_shells
 
-fn_bndry=' ~~~ ~~~ ~~~ ' 
-fn_lvl=0 
-export fn_lvl fn_bndry 
+fn_bndry=' ~~~ ~~~ ~~~ '
+fn_lvl=0
+export fn_lvl fn_bndry
 unset Halt
-halt=' ' 
+halt=' '
 declare -rx Halt halt # lower case for nounset
 declare -nx nBL=BASH_LINENO nBS=BASH_SOURCE nF=FUNCNAME nL=LINENO
 
@@ -42,13 +42,13 @@ LC_COLLATE="C.UTF-8" LC_CTYPE="C.UTF-8"     # for predictable sorting
 LC_NUMERIC="en_US.UTF-8"                    # for commas in large numbers
 export LC_COLLATE LC_CTYPE LC_NUMERIC
 
-GREP_COLORS='mt=01;43' 
+GREP_COLORS='mt=01;43'
 export GREP_COLORS
 unset CDPATH
 
-rand_i="${RANDOM}" 
+rand_i="${RANDOM}"
 rand_uniq_str="${scr_repo_nm}.${$}.${rand_i}"
-rand_lock_nm="${rand_uniq_str}.lock.d" 
+rand_lock_nm="${rand_uniq_str}.lock.d"
 rand_f_nm="${rand_uniq_str:?}.xtr"
 export rand_i rand_uniq_str rand_lock_nm rand_f_nm
 
@@ -100,7 +100,7 @@ function _post_src {
     # prints line number of script where function's executed
     exit -1
   fi
- 
+
   # reset the color
   printf '%b' "\e[m"
 }
@@ -111,7 +111,7 @@ declare -t _post_src
 #set -x
 
 #
-# Description            # -source- subscript                                         # 
+# Description            # -source- subscript                                         #
  : "${nBS[0]}:${nL}"; : 'Required programs' ;  . './reqdcmds.bash'   "${nL}"   n n n; #exit "$nL"
  : "${nBS[0]}:${nL}"; : 'Verify PATH'       ;  . './path-ver.bash'   "${nL}"   n n n; #exit "$nL"
  : "${nBS[0]}:${nL}"; : 'ID and sudo'       ;  . './id_sudov.bash'   "${nL}"   n n n; #exit "$nL"
@@ -925,7 +925,7 @@ mapfile -t a_interps_rps < <(
     printf '%s\n' "$dnf_po"
     unset dnf_po on_disk in_repos
 
-  done 
+  done
 } |
     cat >> "${curr_time_ssubd}a_interpreters" #sudo
 unset b
