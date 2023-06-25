@@ -60,7 +60,7 @@ then
   unset x
   rm_stale=y
   export rm_stale
-  declare -a array
+  declare -a array=''
 
   mapfile -O "$(( "${#array[@]}" + 1 ))" -t array < <(
     for x; do
