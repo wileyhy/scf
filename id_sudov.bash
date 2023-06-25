@@ -3,11 +3,15 @@
 
 
   # <> Obligatory debugging block
-  _post_src "${nBS[0]}" "${nL}" "$@" # posparms as they were passed to `source`
+  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
+  _post_src "${nBS[0]}" "${nL}" "$@"
   #_xtrace_
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
+  #exit "${nL}"
+  #set -x
 
 
+: 'ID and -sudo-'
 if [[ "${UID}" == 0 ]]; then
   printf '\n\t Must be a regular user and use sudo. \n\n'
   exit 1
@@ -22,5 +26,7 @@ fi
   # <> Obligatory debugging block
   #_post_src "${nBS[0]}" "${nL}" "$@"
   #_xtrace_
-  #: "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
+  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
+
+return 0
 

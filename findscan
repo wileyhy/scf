@@ -5,7 +5,8 @@
 
 # Note: Keep your goal in mind.
 
-set -CuTEx -a
+
+set -aCuTE; echo 'set -aCuTE'
 
 scr_lic='Apache 2 license'
 scr_max_age_of_tmp_files='1 minutes ago'
@@ -43,6 +44,7 @@ export LC_COLLATE LC_CTYPE LC_NUMERIC
 
 GREP_COLORS='mt=01;43' 
 export GREP_COLORS
+unset CDPATH
 
 rand_i="${RANDOM}" 
 rand_uniq_str="${scr_repo_nm}.${$}.${rand_i}"
@@ -54,8 +56,7 @@ export rand_i rand_uniq_str rand_lock_nm rand_f_nm
 # Undocumented CLI option
 if [[ "$*" =~ rm_locks ]]
 then
-  rm_locks='y' 
-  export rm_locks
+  rm_locks='y' export rm_locks
 fi
 
 _erx() {
@@ -68,56 +69,20 @@ _erx() {
 declare -fx _erx
 declare -t _erx
 
-# Path
-unset CDPATH
-readonly CDPATH
-
-builtin hash -r
-for c in getconf realpath
-do
-  forced_path_search="$(
-    builtin type -P "$c" 2>&1
-    )"
-  if [[ -z "$forced_path_search" ]] ||
-    [[ ! -f "$forced_path_search" ]]
-  then
-    : "${halt:?}" # reliance on error conflicts with -set -u-
-  fi
-  builtin hash -p "${forced_path_search}" "$c"
-done
-unset c forced_path_search
-
-PATH_getconf="$(
-  command -p getconf PATH 2>&1 ||
-    : "${halt:?}"
-  )"
-PATH="${PATH_getconf}:/usr/bin:/usr/sbin:${PATH}"
-export PATH
-
-if [[ -f ./path-ver.bash ]]; then
-  source ./path-ver.bash
-else
-  : "${halt:?}"
-fi
-#declare -p PATH
 
 # Sub-scripts
-declare -ax verb=( '--' )
-
-  # Note: Exit traps don't print accurate trace data in PS4; so use a function
+# Note: Exit traps don't print accurate trace data in PS4; so use a function
 
 # Processes positional parameters as they were passed to source
 
 function _post_src {
-  #[[ ! -v PS4 ]] && printf '%b' "\e[0;34m"
-
   # enable xtrace and "verbose commands"
   if [[ "$6" == y ]]
   then
-    verb=(-v --)
+    declare -ax verb=(-v --)
   # otherwise, neutralize the unused "verbose commands" syntax
   else
-    verb=(--)
+    declare -ax verb=(--)
   fi
 
   # enable xtrace and "verbose commands"
@@ -135,8 +100,9 @@ function _post_src {
     # prints line number of script where function's executed
     exit -1
   fi
-  #[[ ! -v PS4 ]] &&
-    printf '%b' "\e[m"
+ 
+  # reset the color
+  printf '%b' "\e[m"
 }
 declare -fx _post_src
 declare -t _post_src
@@ -144,19 +110,20 @@ declare -t _post_src
 #set -T
 #set -x
 
-# Description            # -source- subscript               # 
- : 'ID and sudo'       ;  . './id_sudov.bash'   "${nL}"   n n n; #exit "$nL"
- # So PS4 is on whenever xtrace is on, and DEBUG trap is always on once defined: 2023-06-18 0840
- : 'Enable debugging'  ;  . './gardning.bash'   "${nL}"   n y y; #exit "$nL"
- : 'Required programs' ;  . './reqdcmds.bash'   "${nL}"   n y y;  exit "$nL"
- : 'Locks'             ;  . './lock-fds.bash'   "${nL}"   n y y;  exit "$nL"
-#: 'Verify PATH'       ;  . './path-ver.bash'   "${nL}"   n y y;  exit "$nL"
- : 'Verify DACs'       ;  . './dacs-ver.bash'   "${nL}"   n y y;  exit "$nL"
- : 'Verify ACLs'       ;  . './acls-ver.bash'   "${nL}"   n y y;  exit "$nL"
- : 'Option Parsing'    ;  . './cli-opts.bash'   "${nL}"   n y y;  exit "$nL"
- : 'Storing findings'  ;  . './harddisk.bash'   "${nL}"   n y y;  exit "$nL"
-#   ^--Purpose            ^--dot        nameref--^ xtrace---^     ^--die
-#                              ^--filename          exit--^   ^--verbose
+#
+# Description            # -source- subscript                                         # 
+ : "${nBS[0]}:${nL}"; : 'Required programs' ;  . './reqdcmds.bash'   "${nL}"   n n n; #exit "$nL"
+ : "${nBS[0]}:${nL}"; : 'Verify PATH'       ;  . './path-ver.bash'   "${nL}"   n n n; #exit "$nL"
+ : "${nBS[0]}:${nL}"; : 'ID and sudo'       ;  . './id_sudov.bash'   "${nL}"   n y y; #exit "$nL"
+# So PS4 is on whenever xtrace is on, and DEBUG trap is always on once defined: 2023-06-18 0840
+ : "${nBS[0]}:${nL}"; : 'Enable debugging'  ;  . './gardning.bash'   "${nL}"   y y y;  exit "$nL"
+ : "${nBS[0]}:${nL}"; : 'Locks'             ;  . './lock-fds.bash'   "${nL}"   y y y;  exit "$nL"
+ : "${nBS[0]}:${nL}"; : 'Verify DACs'       ;  . './dacs-ver.bash'   "${nL}"   y y y;  exit "$nL"
+ : "${nBS[0]}:${nL}"; : 'Verify ACLs'       ;  . './acls-ver.bash'   "${nL}"   y y y;  exit "$nL"
+ : "${nBS[0]}:${nL}"; : 'Option Parsing'    ;  . './cli-opts.bash'   "${nL}"   y y y;  exit "$nL"
+ : "${nBS[0]}:${nL}"; : 'Storing findings'  ;  . './harddisk.bash'   "${nL}"   y y y;  exit "$nL"
+#   ^--Purpose                                 ^--dot        nameref--^ xtrace---^     ^--die
+#                                                   ^--filename          exit--^   ^--verbose
 
 
   # <> Obligatory debugging block
