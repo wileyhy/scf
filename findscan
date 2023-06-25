@@ -52,6 +52,7 @@ rand_lock_nm="${rand_uniq_str}.lock.d"
 rand_f_nm="${rand_uniq_str:?}.xtr"
 export rand_i rand_uniq_str rand_lock_nm rand_f_nm
 
+  set -x
 
 # Undocumented CLI option
 if [[ "$*" =~ rm_stale ]]
