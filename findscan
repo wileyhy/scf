@@ -60,8 +60,10 @@ then
   rm_stale=y
   export rm_stale
   mapfile -t < <(
-  printf '%s\n' |
-    grep -v rm_stale
+    for x in "$@"; do
+      printf '%s\0' "$@" |
+        grep -vz rm_stale
+    done
   )
   echo "${MAPFILE[@]}"
   declare -p MAPFILE
