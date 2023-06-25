@@ -1,11 +1,11 @@
-#!/bin/bash -p --
+#!/bin/bash
 #!/usr/bin/env -iS bash
 #   findscan
 #   shellcheck disable=SC2317
 
 # Note: Keep your goal in mind.
 
-echo 'ampersand:' "$@" 
+set -CuTEx -a
 
 scr_lic='Apache 2 license'
 scr_max_age_of_tmp_files='1 minutes ago'
@@ -94,8 +94,8 @@ PATH_getconf="$(
 PATH="${PATH_getconf}:/usr/bin:/usr/sbin:${PATH}"
 export PATH
 
-if [[ -f ./path-verify.sh ]]; then
-  source ./path-verify.sh
+if [[ -f ./path-ver.bash ]]; then
+  source ./path-ver.bash
 else
   : "${halt:?}"
 fi
@@ -145,18 +145,18 @@ declare -t _post_src
 #set -x
 
 # Description            # -source- subscript               # 
- : 'ID and sudo'       ;  . './id_sudov'   "${nL}"   n n n; #exit "$nL"
+ : 'ID and sudo'       ;  . './id_sudov.bash'   "${nL}"   n n n; #exit "$nL"
  # So PS4 is on whenever xtrace is on, and DEBUG trap is always on once defined: 2023-06-18 0840
- : 'Enable debugging'  ;  . './gardning'   "${nL}"   n y y; #exit "$nL"
- : 'Required programs' ;  . './reqdcmds'   "${nL}"   n y y;  exit "$nL"
- : 'Locks'             ;  . './lock-fds'   "${nL}"   n y y;  exit "$nL"
-#: 'Verify PATH'       ;  . './path-ver'   "${nL}"   n y y;  exit "$nL"
- : 'Verify DACs'       ;  . './dacs-ver'   "${nL}"   n y y;  exit "$nL"
- : 'Verify ACLs'       ;  . './acls-ver'   "${nL}"   n y y;  exit "$nL"
- : 'Option Parsing'    ;  . './cli-opts'   "${nL}"   n y y;  exit "$nL"
- : 'Storing findings'  ;  . './harddisk'   "${nL}"   n y y;  exit "$nL"
-# ^--Purpose              ^--dot    nameref-^  xtrace--^ ^      ^-die
-#                              ^--filename     exit--^   ^-verbose
+ : 'Enable debugging'  ;  . './gardning.bash'   "${nL}"   n y y; #exit "$nL"
+ : 'Required programs' ;  . './reqdcmds.bash'   "${nL}"   n y y;  exit "$nL"
+ : 'Locks'             ;  . './lock-fds.bash'   "${nL}"   n y y;  exit "$nL"
+#: 'Verify PATH'       ;  . './path-ver.bash'   "${nL}"   n y y;  exit "$nL"
+ : 'Verify DACs'       ;  . './dacs-ver.bash'   "${nL}"   n y y;  exit "$nL"
+ : 'Verify ACLs'       ;  . './acls-ver.bash'   "${nL}"   n y y;  exit "$nL"
+ : 'Option Parsing'    ;  . './cli-opts.bash'   "${nL}"   n y y;  exit "$nL"
+ : 'Storing findings'  ;  . './harddisk.bash'   "${nL}"   n y y;  exit "$nL"
+#   ^--Purpose            ^--dot        nameref--^ xtrace---^     ^--die
+#                              ^--filename          exit--^   ^--verbose
 
 
   # <> Obligatory debugging block
@@ -298,7 +298,7 @@ do
       # if then else elif fi case esac for select while until do done in
       # function time { } ! [[ ]] coproc
       ;;
-    *|'') break
+    *) break
       ;;
   esac
   break
@@ -642,8 +642,8 @@ do
   fi
 
   : '-file- magic'
-  sudo /bin/printf '+ %-8d: ' "${all_files_index}" >> \
-    "${curr_time_ssubd}file_out"
+  /bin/printf '+ %-8d: ' "${all_files_index}" >> \
+    "${curr_time_ssubd}file_out" #sudo
 
   file_o="$(sudo file -pk -- "${each_sorted_f}" 2>&1)" # Bug: needs erx
   file_o="${file_o%%64-bit LSB *}"
@@ -655,10 +655,10 @@ do
 
   if [[ -n "${file_o}" ]]
   then
-    sudo cat <<< "${file_o}" >> "${curr_time_ssubd}file_out"
+    cat <<< "${file_o}" >> "${curr_time_ssubd}file_out" #sudo
   else
     err_msg="WARNING: -file- produced 0 output:  <${each_sorted_f}>"
-    sudo cat <<< "${err_msg}" >> "${curr_time_ssubd}file_out"
+    cat <<< "${err_msg}" >> "${curr_time_ssubd}file_out" #sudo
   fi
 
   # Bug: allow for charset / Unicode "byte order marks," ie, 'FE FF'. https://en.m.wikipedia.org/wiki/Byte_order_mark https://unix.stackexchange.com/questions/250366/how-to-force-shell-script-characters-encoding-from-within-the-script see also chardet
@@ -812,11 +812,12 @@ sudo  touch -- "${a_write_path_nms[@]}"
 {
   printf '# crunchbangs -- %s\n' "${scr_tcode%-*}"
   printf '# %s\n' "$(declare -p a_relevant_search_dirs 2>&1)" |
-    sudo cat > "${a_write_path_nms[@]}"
+    cat > "${a_write_path_nms[@]}" #sudo
+}
 
 : 'printing contents of a_shell_scripts array, with backup'
 printf '%s\n' "${a_shell_scripts[@]}" |
-  sudo cat >> "${a_write_path_nms[@]}"
+  cat >> "${a_write_path_nms[@]}" #sudo
 _fun_bak "${a_write_path_nms[@]}"
 
 #_xtrace_
@@ -935,13 +936,7 @@ mapfile -t a_interps_rps < <(
     # binary need not be installed.
     # filter for rpm name by CPU type in its filename
     # sort rpms and print each unique
-    dnf_po="$(
-      {
-        sudo  dnf provides -- "${a_interps_rps[b]}" |
-          gawk --lint '/x86_64|i686/ { print $1 }' |
-          sort -u
-      } 2>&1
-    )"
+    dnf_po="$( { sudo  dnf provides -- "${a_interps_rps[b]}" | gawk --lint '/x86_64|i686/ { print $1 }' | sort -u; } 2>&1 )"
 
     # based on whether there was any output,
     # save a result message to variable
@@ -963,8 +958,9 @@ mapfile -t a_interps_rps < <(
     printf '%s\n' "$dnf_po"
     unset dnf_po on_disk in_repos
 
-  done |
-    sudo cat >> "${curr_time_ssubd}a_interpreters"
+  done 
+} |
+    cat >> "${curr_time_ssubd}a_interpreters" #sudo
 unset b
 
 # <>
@@ -986,7 +982,8 @@ _wrt_ary a_write_path_nms a_interpreters a_interps_rps \
 {
   printf '# SC-scrpts-list -- %s\n' "${scr_tcode%-*}"
   printf '# %s\n' "$(declare -p  a_relevant_search_dirs 2>&1)" |
-    sudo cat >> "${list_crunchbangs}_SC-scrpts-list"
+    cat >> "${list_crunchbangs}_SC-scrpts-list" #sudo
+}
 
 # filter out interpreters not compatible with shellcheck.
 # file $list_crunchbangs is located in $time_dir.
@@ -1112,7 +1109,7 @@ i=0
 
   # append each text group to a findings file
 } |
-  sudo cat >> "${found_scrpts_f}"
+  cat >> "${found_scrpts_f}" #sudo
 
 : 'Write semi-permanent archives'
 
