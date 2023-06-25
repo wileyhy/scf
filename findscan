@@ -57,17 +57,20 @@ export rand_i rand_uniq_str rand_lock_nm rand_f_nm
 # Undocumented CLI option
 if [[ "$*" =~ rm_stale ]]
 then
+  unset x
   rm_stale=y
   export rm_stale
-  mapfile -t < <(
-    for x in "$@"; do
-      printf '%s\0' "$@" |
+
+  mapfile -t array < <(
+    for x; do
+      printf '%s\0' "$x" |
         grep -vz rm_stale
     done
   )
-  echo "${MAPFILE[@]}"
-  declare -p MAPFILE
-  set -- "${MAPFILE[@]}"
+
+  echo "${array[@]}"
+  declare -p array
+  set -- "${array[@]}"
   exit 101
 fi
 
