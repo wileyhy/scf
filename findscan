@@ -56,8 +56,15 @@ export rand_i rand_uniq_str rand_lock_nm rand_f_nm
 # Undocumented CLI option
 if [[ "$*" =~ rm_stale ]]
 then
-  rm_stale='y' 
+  rm_stale=y
   export rm_stale
+  mapfile -t < <(
+  printf '%s\n' |
+    grep -v rm_stale
+  )
+  declare -p MAPFILE
+  set -- "${MAPFILE[@]}"
+  exit 101
 fi
 
 _erx() {
