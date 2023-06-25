@@ -61,12 +61,12 @@ then
   rm_stale=y
   export rm_stale
 
-  mapfile -t array < <(
+  #mapfile -t array < <(
     for x; do
       printf '%s\0' "$x" |
         grep -vz rm_stale
     done
-  )
+  #)
 
   echo "${array[@]}"
   declare -p array
