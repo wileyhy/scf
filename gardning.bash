@@ -398,7 +398,7 @@ touch -d "${scr_max_age_of_tmp_files:?}" "${xtr_time_f}"
 
 # Remove any errant xtrace log files
 
-if [[ -v rm_stale ]]; 
+if [[ -v rm_stale ]]
 then
   # Get the list of remaining xtrace log files -older than the time file-
   mapfile -d '' -t xtr_files < <(

@@ -63,6 +63,7 @@ then
   printf '%s\n' |
     grep -v rm_stale
   )
+  echo "${MAPFILE[@]}"
   declare -p MAPFILE
   set -- "${MAPFILE[@]}"
   exit 101
