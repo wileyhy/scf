@@ -208,20 +208,20 @@ function _wrt_ary { : "$_"'=?"_wrt_ary"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( +
 
 : '<> Debug: "Full xTrace" variables and functions'
 
-#   _xtr_hsh: If xtrace was previously on, then on first execution
+#   _xt_hush: If xtrace was previously on, then on first execution
 # of this function, turn xrtrace off, and on second execution, turn
 # xtrace back on and forget about this function's settings. If xtrace
 # was previously off, then leave it off.
 
-# Error: the code is "$_" should point to _mkv_pre, but instead, its still defined as _xtr_hsh
-# +[5]gardening.sh(308) <_mk_delt> [4]gardening.sh(326)  >  : _xtr_hsh
+# Error: the code is "$_" should point to _mkv_pre, but instead, its still defined as _xt_hush
+# +[5]gardening.sh(308) <_mk_delt> [4]gardening.sh(326)  >  : _xt_hush
 # +[5]gardening.sh(310) <_mk_delt> [4]gardening.sh(326)  >  _mkv_pre
-# +[6]gardening.sh(247) <_mk_v_se> [5]gardening.sh(310)  >  : _xtr_hsh BEGINS ' +++ +++ +++ ' '3>4'
+# +[6]gardening.sh(247) <_mk_v_se> [5]gardening.sh(310)  >  : _xt_hush BEGINS ' +++ +++ +++ ' '3>4'
 # +[6]gardening.sh(248) <_mk_v_se> [5]gardening.sh(310)  >  : 'if now file exists'
 # +[6]gardening.sh(249) <_mk_v_se> [5]gardening.sh(310)  >  [[ -n '' ]]
 
 
-function _xtr_hsh { : "$_"'=?"_xtr_hsh"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
+function _xt_hush { : "$_"'=?"_xt_hush"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
   # If xtrace is on...
   if [[ "$-" =~ x ]]; then
     # ...then record its state
@@ -239,17 +239,17 @@ function _xtr_hsh { : "$_"'=?"_xtr_hsh"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( +
     # but if xtrace is off and was previously off... -return-.
     fi
   fi
-  : '_xtr_hsh ENDS  ' "${fn_bndry}" "${fn_lvl}>$(( --fn_lvl ))"
+  : '_xt_hush ENDS  ' "${fn_bndry}" "${fn_lvl}>$(( --fn_lvl ))"
 }
-declare -fx _xtr_hsh
-declare -t _xtr_hsh
+declare -fx _xt_hush
+declare -t _xt_hush
 
 
 #   Remaining functions: A set of functions for printing changes in
 # shell variables and parameters between each execution of a command;
 # for use when the DEBUG trap is enabled.
 function _mkv_pre { : "$_"'=?"_mkv_pre"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
-  : 'if now file exists'
+  : 'if now-file exists'
   if [[ -v xtr_senv_now ]]; then
     : 'if prev file exists'
     if [[ -v xtr_senv_prev ]]; then
@@ -330,12 +330,12 @@ declare -t _mkv_dlt
 
 function _mk_dlts { : "$_"'=?"_mk_dlts"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
   
-  # Note: comment out _xtr_hsh with : -and not #-
-  : _xtr_hsh
+  # Note: comment out _xt_hush with : -and not #-
+  : _xt_hush
   _mkv_pre
   _mkv_now
   _mkv_dlt
-  : _xtr_hsh
+  : _xt_hush
   
   : '_mk_dlts ENDS  ' "${fn_bndry}" "${fn_lvl}>$(( --fn_lvl ))"
 }
