@@ -215,7 +215,7 @@ function _wrt_ary { : "$_"'=?"_wrt_ary"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( +
 # xtrace back on and forget about this function's settings. If xtrace
 # was previously off, then leave it off.
 
-# Error: the code is "$_" should point to _mkv_pre, but instead, its still defined as _xt_hush
+# Error: the variable "$_" should point to _mkv_pre, but instead, its still defined as _xt_hush
 # +[5]gardening.sh(308) <_mk_delt> [4]gardening.sh(326)  >  : _xt_hush
 # +[5]gardening.sh(310) <_mk_delt> [4]gardening.sh(326)  >  _mkv_pre
 # +[6]gardening.sh(247) <_mk_v_se> [5]gardening.sh(310)  >  : _xt_hush BEGINS ' +++ +++ +++ ' '3>4'
@@ -378,7 +378,7 @@ function _xtrace_ { : "$_"'=?"_xtrace_"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( +
   
   # PIUSV = "Prints In Underscore Shell Variable"
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}, 28666"
-  trap 'echo DEBUG trap; _fun_trc; : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}  |  PIUSV"; _dbg_pmt "$_"; : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"' DEBUG; 
+  trap 'echo DEBUG trap 30013; _fun_trc; : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}  |  PIUSV"; _dbg_pmt "$_"; : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"' DEBUG
     echo cmd after DEBUG trap, $LINENO, 5741
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}, 21506"
   
