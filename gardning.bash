@@ -27,7 +27,7 @@ close_ps4='\n\e[0;104m+[${#nBS[@]}]${nBS[0]##*/}( ${nL} ) [$(( ${#nBS[@]} - 1 ))
 #far_ps4='\e[0;104m+ At:[${#nBS[@]}]$( cut -c -8 <<< ${nBS[0]##*/} )( ${nL} ) In:<$( cut -c -8 <<< ${nF[0]:-""} )> Fr:[$(( ${#nBS[@]} - 1 ))]$( cut -c -8 <<< ${nBS[1]##*/} )( ${nBL[0]} ) \e[m > \e[0;93m '
 #far_ps4='\e[0;104m+ At:[${#nBS[@]}]$( cut -c -8 <<< ${nBS[0]##*/} )(${nL}) In:<${nF[0]:-""}> Fr:[$(( ${#nBS[@]} - 1 ))]$( cut -d "/" -f 3- <<< ${nBS[1]:-" "} )(${nBL[0]}) \e[m > \e[0;93m '
 
-far_ps4='\e[0;104m+ At:[$( printf "%2d" ${#nBS[@]} )]$( : 21594 )$( cut -c -8 <<< ${nBS[0]##*/} )($( printf "%4d" ${nL} )) In:<$( printf "%-8s" ${nF[0]:-""})> Fr:[$( printf "%2d" $(( ${#nBS[@]} - 1 )) )]$( cut -c -8 <<< ${nBS[1]##*/} )($( printf "%4d" ${nBL[0]} )) \e[m > \e[0;93m'
+far_ps4='\e[0;104m+ At:[$( printf "%2d" ${#nBS[@]} )]$( : 21594 )$( cut -c -8 <<< ${nBS[0]##*/} )($( printf "%4d" ${nL} )) In:<$( printf "%-8s" ${nF[0]:-""})> Fr:[$( printf "%2d" $(( ${#nBS[@]} - 1 )) )]$( cut -c -8 <<< ${nBS[1]##*/} )($( printf "%4d" ${nBL[0]} )) $( set -x )\e[m > \e[0;93m'
 
 PS4="${far_ps4}" export PS4
 
@@ -46,7 +46,7 @@ export FUNCNEST close_ps4 far_ps4
 function _fun_trc { : "$_"'=?"_fun_trc"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"; local line_hyphen="${nL:?}:$-"
   set - # normally set - # check number 22035
   local line=${line_hyphen%:*}
-  local hyphen_trc="${line_hyphen#*:}"
+  local hyphen_sav="${line_hyphen#*:}"
   unset line_hyphen
   local i
   local -a ir # indices reversed
@@ -60,7 +60,7 @@ function _fun_trc { : "$_"'=?"_fun_trc"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( +
       "${nF[$i]:?}"
   done
   echo "( +1 ):${nBS[0]:?}:${line:?}:_fun_trc:${nL}"
-  [[ "${hyphen_trc:?}" =~ x ]] && 
+  [[ "${hyphen_sav:?}" =~ x ]] && 
     set -x
   : '_fun_trc ENDS' "${fn_bndry}" "${fn_lvl}>$(( --fn_lvl ))"
 }
@@ -350,7 +350,7 @@ function _dbg_pmt { : '_dbg_pmt BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))
   echo _dbg_pmt  
   _fun_trc
   #echo 'ampersand, _dbg_pmt:' "$@"
-  local hyphen_dbg="$-"
+  local hyphen_sav="$-"
   
   _mk_dlts
   
@@ -358,7 +358,7 @@ function _dbg_pmt { : '_dbg_pmt BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))
   read -rp "R+ [${nBS[1]}:${nBL[0]}]  |  ${BASH_COMMAND}?  |: " _
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   
-  [[ "${hyphen_dbg}" =~ x ]] && set -x
+  [[ "${hyphen_sav}" =~ x ]] && set -x
 
   : '_dbg_pmt ENDS  ' "${fn_bndry}" "${fn_lvl}>$(( --fn_lvl ))"
 }
