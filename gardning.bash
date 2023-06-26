@@ -2,6 +2,8 @@
 # Debugging
 # shellcheck shell=bash
 
+# put BEGINS and ENDS on same column
+
 
   # <> Obligatory debugging block
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
