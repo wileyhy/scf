@@ -37,9 +37,9 @@ export FUNCNEST close_ps4 far_ps4
 
 # Print a function trace stack, and capture the FN's LINENO on line 0
 function _fun_trc { : "$_"'=?"_fun_trc"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"; local line_hyphen="${nL:?}:$-"
-  #set - # normally set -
+  set - # normally set -
   local line=${line_hyphen%:*}
-  local hyphen="${line_hyphen#*:}"
+  local hyphen_loc="${line_hyphen#*:}"
   unset line_hyphen
   local i
   local -a ir # indices reversed
@@ -53,7 +53,7 @@ function _fun_trc { : "$_"'=?"_fun_trc"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( +
       "${nF[$i]:?}"
   done
   echo "( +1 ):${nBS[0]:?}:${line:?}:_fun_trc:${nL}"
-  [[ "${hyphen:?}" =~ x ]] && 
+  [[ "${hyphen_loc:?}" =~ x ]] && 
     set -x
   : '_fun_trc ENDS' "${fn_bndry}" "${fn_lvl}>$(( --fn_lvl ))"
 }
@@ -100,7 +100,7 @@ function _trp_int { : "$_"'=?"_trp_int"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( +
   unset f xtr_time_f xtr_senv_prev xtr_senv_now xtr_senv_delt
 
   # if there are any files in array $rm_list, then remove then all at once
-  if [[ -n "${rm_list[*]:0:8}" ]]
+  if [[ -n "${rm_list[*]:0:1}" ]]
   then
     if ! rm -f --one-file-system --preserve-root=all "${verb[@]}" "${rm_list[@]}"
     then
@@ -222,7 +222,7 @@ function _xtr_hsh { : "$_"'=?"_xtr_hsh"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( +
     # ...then record its state
     local -gx xtrace_prev
     # and turn xtrace off
-    set -
+    #set -
   # but if xtrace is off...
   else
     # ...then if xtrace was previously on...
@@ -343,7 +343,7 @@ function _dbg_pmt { : '_dbg_pmt BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))
   echo _dbg_pmt  
   _fun_trc
   #echo 'ampersand, _dbg_pmt:' "$@"
-  local hyphen="$-"
+  local hyphen_loc="$-"
   
   _mk_dlts
   
@@ -351,8 +351,8 @@ function _dbg_pmt { : '_dbg_pmt BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))
   read -rp "R+ [${nBS[1]}:${nBL[0]}]  |  ${BASH_COMMAND}?  |: " _
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   
-  [[ "${hyphen}" =~ x ]] && set -x
-  
+  [[ "${hyphen_loc}" =~ x ]] && set -x
+
   : '_dbg_pmt ENDS  ' "${fn_bndry}" "${fn_lvl}>$(( --fn_lvl ))"
 }
 declare -fx _dbg_pmt
