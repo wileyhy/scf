@@ -53,6 +53,7 @@ rand_f_nm="${rand_uniq_str:?}.xtr"
 export rand_i rand_uniq_str rand_lock_nm rand_f_nm
 
   set -x
+  echo ampersand: "$@"
 
 # Undocumented CLI option
 if [[ "$*" =~ rm_stale ]]
@@ -62,11 +63,7 @@ then
   export rm_stale
   declare -a array
 
-  array+=( 
-    for x; do
-      array+=( "$( printf '%s\0' "$x" | grep -vz rm_stale )" )
-    done
-  )
+  for x in "$@"; do mapfile -O $(( "${#array[@]}" +1 )) -d '' -t array < <( printf '%s\0' "$x" | grep -vz rm_stale ); done
 
   echo "${array[@]}"
   declare -p array
