@@ -120,10 +120,10 @@ declare -t _post_src
 #set -x
 
 #
-# Description            # -source- subscript                                         #
- : "${nBS[0]}:${nL}"; : 'Required programs' ;  . './reqdcmds.bash'   "${nL}"   n n n; #exit "$nL"
- : "${nBS[0]}:${nL}"; : 'Verify PATH'       ;  . './path-ver.bash'   "${nL}"   n n n; #exit "$nL"
- : "${nBS[0]}:${nL}"; : 'ID and sudo'       ;  . './id_sudov.bash'   "${nL}"   n n n; #exit "$nL"
+# Description                                 # -source- subscript                    #
+#: "${nBS[0]}:${nL}"; : 'Required programs' ;  . './reqdcmds.bash'   "${nL}"   n n n; #exit "$nL"
+#: "${nBS[0]}:${nL}"; : 'Verify PATH'       ;  . './path-ver.bash'   "${nL}"   n n n; #exit "$nL"
+#: "${nBS[0]}:${nL}"; : 'ID and sudo'       ;  . './id_sudov.bash'   "${nL}"   n n n; #exit "$nL"
 # So PS4 is on whenever xtrace is on, and DEBUG trap is always on once defined: 2023-06-18 0840
  : "${nBS[0]}:${nL}"; : 'Enable debugging'  ;  . './gardning.bash'   "${nL}"   n y y;  exit "$nL"
  : "${nBS[0]}:${nL}"; : 'Locks'             ;  . './lock-fds.bash'   "${nL}"   y y y;  exit "$nL"
