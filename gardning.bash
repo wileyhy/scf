@@ -422,7 +422,7 @@ then
 fi
 
 # remove the $xtr_rm_list files all at once
-if [[ -n "${xtr_rm_list[*]:0:8}" ]]; then
+if [[ -n "${xtr_rm_list[*]:0:1}" ]]; then
   rm -f --one-file-system --preserve-root=all "${verb[@]}" "${xtr_rm_list[@]}" ||
     _erx "${nL}"
 fi
