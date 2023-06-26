@@ -402,19 +402,19 @@ if [[ -v rm_stale ]]
 then
   # Get the list of remaining xtrace log files -older than the time file-
   mapfile -d '' -t xtr_files < <(
-    find -P /tmp -maxdepth 1 -type f \
+    find -P /tmp -maxdepth 1 -type f -user "${UID}" \
       -name "tmp.[a-zA-Z0-9]*.${scr_repo_nm:?}.[0-9]*.[0-9]*.xtr*" \
       '!' -newer "${xtr_time_f}" '!' -name "${xtr_time_f##*/}" -print0
     )
 
   # ...if they're -if inodes are- for files & not symlinks, & owned by
-  # the same EUID....
+  # the same EUID.... (also, I clearly don't trust my computer... ;-p )
   for f in "${xtr_files[@]}"; do
     if [[ -f "${f}" ]] && [[ ! -L "${f}" ]] && [[ -O "${f}" ]]; then
 
       # then protect them and add then to an array $xtr_rm_list
       chmod "${verb[@]}" 000 "$f" ||
-	    _erx "${nL}" "$f"
+	      _erx "${nL}" "$f"
       xtr_rm_list+=( "${f}" )
     fi
   done
