@@ -35,11 +35,16 @@ export FUNCNEST close_ps4 far_ps4
 
 : '<>: Debug functions & traps'
 
+# Okay. At line with 22035, if xtrace and the DEBUG trap are turned 
+# off, then the function trace prints without PS4, which is much easier 
+# to read. 
+
+
 # Print a function trace stack, and capture the FN's LINENO on line 0
 function _fun_trc { : "$_"'=?"_fun_trc"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"; local line_hyphen="${nL:?}:$-"
-  set - # normally set -
+  set - # normally set - # check number 22035
   local line=${line_hyphen%:*}
-  local hyphen_loc="${line_hyphen#*:}"
+  local hyphen_trc="${line_hyphen#*:}"
   unset line_hyphen
   local i
   local -a ir # indices reversed
@@ -53,7 +58,7 @@ function _fun_trc { : "$_"'=?"_fun_trc"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( +
       "${nF[$i]:?}"
   done
   echo "( +1 ):${nBS[0]:?}:${line:?}:_fun_trc:${nL}"
-  [[ "${hyphen_loc:?}" =~ x ]] && 
+  [[ "${hyphen_trc:?}" =~ x ]] && 
     set -x
   : '_fun_trc ENDS' "${fn_bndry}" "${fn_lvl}>$(( --fn_lvl ))"
 }
@@ -343,7 +348,7 @@ function _dbg_pmt { : '_dbg_pmt BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))
   echo _dbg_pmt  
   _fun_trc
   #echo 'ampersand, _dbg_pmt:' "$@"
-  local hyphen_loc="$-"
+  local hyphen_dbg="$-"
   
   _mk_dlts
   
@@ -351,7 +356,7 @@ function _dbg_pmt { : '_dbg_pmt BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))
   read -rp "R+ [${nBS[1]}:${nBL[0]}]  |  ${BASH_COMMAND}?  |: " _
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   
-  [[ "${hyphen_loc}" =~ x ]] && set -x
+  [[ "${hyphen_dbg}" =~ x ]] && set -x
 
   : '_dbg_pmt ENDS  ' "${fn_bndry}" "${fn_lvl}>$(( --fn_lvl ))"
 }
