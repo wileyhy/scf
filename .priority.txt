@@ -7,6 +7,10 @@ new options
 ./scf [rpm]
 ./scf [dir]
 ./scf [get SC wiki pgs] 
+./scf [rpm scriptlets]
+./scf [systemd "Exec*" configs]
+
+
 
 #. L = Later
 #. D = Done
