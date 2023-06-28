@@ -1,5 +1,13 @@
 # priority
 # 
+
+new options
+./findscan [github repo] 
+./scf [wo existing disables]
+./scf [rpm]
+./scf [dir]
+./scf [get SC wiki pgs] 
+
 #. L = Later
 #. D = Done
 #. 
