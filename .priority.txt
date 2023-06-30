@@ -16,12 +16,10 @@ new options
 #. D = Done
 #. 
 #   purpose -- sys admining, security, etc
-#.    L pre-curated lists? 
-#.    L keyword for man -k search?
-#.    dnf groups?
-#   ubiquity -- datasets, each major distro
+#.    y lists of words / commands / filenames
+#.    L bash reserved words for man -k search
+#.    L dnf groups
 #.    `command -p`
-#     L sqlite
 #
 #   search patterns, ie, how likely to be exec'd
 #                                                 syms    decend
