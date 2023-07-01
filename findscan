@@ -85,7 +85,7 @@ declare -t _erx
 # Processes positional parameters as they were passed to source
 
 function _post_src {
-  # enable xtrace and "verbose commands"
+  # enable "verbose commands"
   if [[ "$6" == y ]]
   then
     declare -ax verb=(-v --)
@@ -94,7 +94,7 @@ function _post_src {
     declare -ax verb=(--)
   fi
 
-  # enable xtrace and "verbose commands"
+  # enable xtrace
   if [[ "$5" == y ]]
   then
     set -x
@@ -110,7 +110,7 @@ function _post_src {
     exit -1
   fi
 
-  # reset the color
+  # reset color
   printf '%b' "\e[m"
 }
 declare -fx _post_src
