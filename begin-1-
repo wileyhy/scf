@@ -1,21 +1,34 @@
-#!/bin/bash -x
-
-
-# output all xtrace to file
-#   https://serverfault.com/questions/103501/how-can-i-fully-log-all-bash-scripts-actions
-#exec 3>&1 4>&2
-#trap 'exec 2>&4 1>&3' 0 1 2 3
-#exec 1>Log.out 2>&1
-
+#!/bin/env bash
+# begin-1-
 
 ## Notes
 ###   Online Git Pro book:
 ###     https://git-scm.com/book/en/v2/Git-Basics-Recording-Changes-to-the-Repository
 
+
+# Write to TTY
+printf '%s - Executing %s: \n' "$(date +%H:%M:%S)" "$0" 
+
+# Output all xtrace to file
+#   https://serverfault.com/questions/103501/how-can-i-fully-log-all-bash-scripts-actions
+exec 3>&1 4>&2
+trap 'set -; exec 2>&4 1>&3' EXIT HUP INT QUIT USR2 TERM
+exec 1>Log.out 2>&1
+set -x
+
 # Vars, etc
 declare -n nL=LINENO
 dns_srv_1=8.8.8.8
 dns_srv_2=75.75.75.75
+
+# Functions
+_erx() {
+  local exit_code="$?"
+  echo -e Error: "$@" >&2
+  exit "${exit_code}"
+}
+declare -fx _erx 
+declare -t _erx 
 
 # Regular users only
 if [[ "${UID}" == 0 ]]
@@ -23,13 +36,13 @@ then
   printf '\n\t Must be a regular user and use sudo. \n\n'
   exit "${nL}"
 else
-  sudo -v || 
-    exit "${nL}"
+  sudo -v ||
+    _erx "${nL}"
 fi
 
 # Network & time
-function _test_dns { 
-  sudo ping -c 1 -W 15 "$1" > /dev/null 2>&1; 
+function _test_dns {
+  sudo ping -c 1 -W 15 "$1" > /dev/null 2>&1
 }
 declare -fxt _test_dns
 
@@ -38,12 +51,12 @@ if ! _test_dns "${dns_srv_1}" ||
 then
   printf '\n\tAttempting to connect...\n\n'
   # this command appears to be idempotent
-  sudo systemctl start NetworkManager.service 
+  sudo systemctl start NetworkManager.service
   wait -f
   sleep 15
   if ! _test_dns "${dns_srv_1}" ||
      ! _test_dns "${dns_srv_2}"
-  then 
+  then
     printf '\n\tGiving up; Exiting.\n\n'
     exit "${nL}"
   else
@@ -53,7 +66,7 @@ fi
 sudo timedatectl set-local-rtc 0
 sudo timedatectl set-timezone America/Vancouver
 sudo systemctl start chronyd.service
-sudo chronyc makestep > /dev/null 
+sudo chronyc makestep > /dev/null
 
 # Bash
 ## .bashrc
@@ -65,10 +78,10 @@ for f in "${files[@]}"
 do
   if ! sudo grep -q -- "${bashrc_str}" "${f}"
   then
-    sudo 
-    # this command appears to be idempotentcp -a -- "${f}" "${f}~"
-    
-    # this command appears to be idempotentecho "${bashrc_str}" | 
+
+    # these commands appear to be idempotent
+    sudo cp -a -- "${f}" "${f}~"
+    echo "${bashrc_str}" |
       sudo tee -a -- "${f}" > /dev/null
   fi
 done
@@ -95,7 +108,8 @@ then
 EOF
   # shellcheck disable=SC2024
   sudo tee /root/.vimrc < "${tmpf}" > /dev/null
-  rm -fv -- "${tmpf}"
+  rm -f -- "${tmpf}" ||
+    _erx "${nL}" 
   unset tmpf
 fi
 unset wc_out
@@ -106,120 +120,150 @@ sudo chown "${UID}:${UID}" "/home/${USER}/.vimrc"
 chmod 0400 "/home/${USER}/.vimrc"
 
   # <>
-  exit "${nL}"
-  set -x
+  #exit "${nL}"
+  #set -x
 
 # Dnf
-sudo dnf -y install \
-  angband \
-  git gh \
-  ShellCheck kcov shfmt patch strace ltrace \
-  info binutils parallel procmail \
-  lynx libreoffice-calc chromium mozilla-noscript mozilla-privacy-badger \
-    mozilla-https-everywhere \
-  debian-keyring \
-  procps-ng ncdu uxterm \
-  git-fame # 🙄     # later: memstomp bpftrace gdb valgrind
-  # python3-ptrace fatrace apitrace x11trace memstrack kernelshark
+#   Note: the parameters are for organization
+#   shellcheck disable=SC2086 #(info): Double quote to prevent globbin...
+sudo dnf -qy install \
+    ${for_fun:-}        angband \
+    ${for_git:-}        git gh \
+    ${for_bashdb:-}     bash-devel make autoconf \
+    ${for_linting:-}    ShellCheck kcov shfmt patch strace ltrace \
+    ${for_duh:-}        info ncdu \
+    ${for_strings:-}    binutils \
+    ${for_lockfile:-}   procmail \
+    ${for_firefox:-}    mozilla-noscript mozilla-privacy-badger \
+                          mozilla-https-everywhere \
+    ${for_unicode:-}    xterm ||
+  _erx "${nL}" 
 
-sudo dnf -y upgrade bash bash-completion
-sudo dnf -y --security upgrade
+
+  #$for_gcov           gcc \
+  #$for_internet       lynx chromium \
+  #$for_db             libreoffice-calc \
+  #$for_os_dnlds       debian-keyring \
+  #$for_hollywood      git-fame # 🙄
+  #$for_later_maybe    memstomp bpftrace gdb valgrind python3-ptrace \
+  #                      fatrace apitrace x11trace memstrack kernelshark
+
+sudo dnf -qy upgrade bash bash-completion ||
+  _erx "${nL}" 
+sudo dnf -qy --security upgrade ||
+  _erx "${nL}" 
 
   # <>
-  exit "${nL}"
-  set -x
+  #exit "${nL}"
+  #set -x
 
 
 # Restart any processes that may need to be restarted
 
 # Let the previous DNF processes finish
-pidwait dnf 
+pidwait dnf
 
 # Get a list of any such PIDs
 declare -ax a_pids
 function _get_pids(){
+  local dnf_o
+  dnf_o="$(sudo dnf needs-restarting 2>&1 || 
+    _erx "${nL}")"
   mapfile -t a_pids < <(
-    sudo dnf needs-restarting |& 
-    awk '{ print $1 }' | 
+    awk '{ print $1 }' <<< "${dnf_o}" |
       grep -E ^'[0-9]*'$
   )
 }
 declare -fxt _get_pids
-_get_pids
-declare -p a_pids
 
-  # <>
-  exit "${nL}"
-  set -x
+# TODO: a process lock on kill loop
 
+# ISSUE: this kill loop usually kills the user session, including the
+# terminal and the script, so the script usually needs to be run
+# multiple times.
 
-# a process lock on kill loop
+# this loop sb a separate script / heredoc that gets `exec`'d or bg'd and disowned
 
-# if any PIDs were found...
-if [[ -n "${a_pids[*]:0:8}" ]]
-then 
-          
-  # (for readability)
-  n="${#a_pids[@]}"
-  
-  # ...if there are any PIDs other than PID 1...
-  if [[ "${a_pids[*]:0:8}" != '1' ]]
+while true
+do
+  _get_pids
+
+    # <>
+    #declare -p a_pids
+    sleep 1
+    #exit "${nL}"
+    #set -x
+
+  # if any PIDs were found...
+  # ...and if there are any PIDs other than PID 1...
+  if [[ -n "${a_pids[*]:0:1}" ]] &&
+    [[ "${a_pids[*]:0:1}" != '1' ]]
   then
-    
+
+    # (for readability)
+    n="${#a_pids[@]}"
+
     # Print some info & wait for it to be read
     printf '\n\t PID-s, count: %d\n\n' "${n}"
 
-    #printf '\t Backgrounding and disowning -kill- loops.\n\n'
-    #sleep 3
-    #{
+      # <>
+      sleep 1
 
-      # for each signal and for each PID...
-      for s in HUP USR1 TERM
+    # for each signal and for each PID...
+    for p in "${!a_pids[@]}"
+    do
+
+      # (for readability)
+      :;: 'loop';:
+      q="${a_pids[p]}"
+
+      [[ "${q}" -eq 1 ]] &&
+        continue
+
+      for s in HUP USR1 TERM KILL
       do
-        for p in "${!a_pids[@]}"
-        do
-          
-          # (for readability)
-          :;: 'loop';:
-          q="${a_pids[p]}"
 
-          [[ "${q}" -eq 1 ]] && 
+        sleep 3
+
+        # ...if the PID is still running...
+        if ps h -q "${q}" > /dev/null
+        then
+
+          # ...then `kill` it with the according per-loop SIGNAL...
+
+          #   NOTE: the exit codes for `kill` only indicate whether
+          #+ or not the target PIDs existed, rather than whether the
+          #+ `kill` operation succeeded, per `info kill`.
+
+          sudo env -i kill -s "${s}" "${q}" > /dev/null 2>&1 &
+          wait -f
+          sleep 1
+
+          # ...and if the PID in question no longer exists, ie, if
+          # the `kill` command succeeded, then unset the the current
+          # array index number
+          if ps h -q "${q}" > /dev/null 2>&1
+          then
             continue
-          
-          sleep 3
-
-          # ...if the PID is still running...
-          if ps h -q "${q}" > /dev/null
-          then 
-            
-            # ...then `kill` it with the according per-loop SIGNAL...
-            
-            #   NOTE: the exit codes for `kill` only indicate whether 
-            #+ or not the target PIDs existed, rather than whether the
-            #+ `kill` operation succeeded, per `info kill`.
-            sudo env kill -s "${s}" "${q}" > /dev/null 2>&1 & 
-            wait -f
-
-            # ...and if the PID in question no longer exists, ie, if 
-            # the `kill` command succeeded, then unset the the current 
-            # array index number
-            if ps h -q "${q}" > /dev/null
-            then
-              unset 'a_pids[p]'
-            fi
+          else
+            unset 'a_pids[p]'
+            break 1
           fi
-        done;
-      done;
-    #} #&
-    #disown
+        else
+          break 01
+        fi
+      done
+    done
+  else
+    break 001
   fi
-fi
+done
 unset n s p q a_pids
 declare -ax a_pids
 
   # <>
-  exit "${nL}"
-  set -x
+  #exit "${nL}"
+  #set -x
 
 _get_pids
 
@@ -229,51 +273,51 @@ then
   do
 
     for p in "${a_pids[@]}"
-    do 
-      echo "$p"; 
-      set -x; 
-      
+    do
+      echo "$p"
+      #set -x
+
       if ps h -q "${p}" > /dev/null
       then
-        command -p kill -s "$s" "$p";
+        command -p kill -s "$s" "$p"
         wait -f
       fi
-      ps h -q "${p}" > /dev/null 
-      echo -e did \\x60kill\\x60 terminate the process?: $?; 
-      set -; 
-      sleep 1; 
+      ps h -q "${p}" > /dev/null
+      echo -e did \\x60kill\\x60 terminate the process?: $?
+      set -
+      sleep 1
     done
     unset p
-  
+
     unset a_pids
     declare -ax a_pids
     _get_pids
-    
+
     if [[ -n "${a_pids[*]:0:8}" ]]
     then
       continue
     else
       break
     fi
-      
+
   done
 fi
 unset p s a_pids
 
   # <>
-  exit "${nL}"
-  set -x
+  #exit "${nL}"
+  #set -x
 
 
 
 if [[ -n "${a_pids[*]:0:8}" ]]
-then 
+then
   n="${#a_pids[@]}"
-  
+
   # ...if there are any PIDs other than PID 1...
   if [[ "${a_pids[*]}" -eq '1' ]]
   then
-    printf '\n\t The remaining "needs-restarting" process (PID 1)cannot be '
+    printf '\n\t The remaining "needs-restarting" process (PID 1) cannot be '
     printf 'restarted \n\t without rebooting the machine.\n'
     printf '\n\t %s \n\n' "${a_pids[@]}"
   fi
@@ -281,9 +325,13 @@ fi
 
 
 if ! ping -4qc1 8.8.8.8 2> /dev/null >&2
-then 
-  sudo systemctl restart NetworkManager.service
+then
+  sudo systemctl restart NetworkManager.service ||
+    _erx "${nL}" 
 fi
 
+# Write to TTY and exit
+kill -s USR2 "$$"
+printf '%s - Done\n' "$(date +%H:%M:%S)"
 exit 00
 
