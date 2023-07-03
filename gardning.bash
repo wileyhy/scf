@@ -23,7 +23,7 @@ FUNCNEST=32
 
 #close_ps4='\n\e[0;104m+[${#nBS[@]}]${nBS[0]##*/}( ${nL} ) [$(( ${#nBS[@]} - 1 ))]${nBS[1]##*/}( ${nBL[0]} )${nF[0]:-""} [$(( ${#nBS[@]} - 2 ))]${nBS[2]##*/}( ${nBL[1]} )${nF[1]} [$(( ${#nBS[@]} - 3 ))]${nBS[3]##*/}( ${nBL[2]} )${nF[2]} [$(( ${#nBS[@]} - 4 ))]${nBS[4]##*/}( ${nBL[3]} )${nF[3]} \e[m\n    |=\t=|> \e[0;93m '
 
-close_ps4='\n\e[0;104m+ $( II={#nBS[@]} for (( ii=0; ii<=II; ii++ )); do printf "[%d]%s( %d )%s " $(( II - ii )) "${nBS[ii+1]##*/}" "${nBL[ii]:-""}" "${nF[ii]:-""}"; done) \e[m\n    |=\t=|> \e[0;93m '
+#close_ps4='\n\e[0;104m+ $( II={#nBS[@]} for (( ii=0; ii<=II; ii++ )); do printf "[%d]%s( %d )%s " $(( II - ii )) "${nBS[ii+1]##*/}" "${nBL[ii]:-""}" "${nF[ii]:-""}"; done) \e[m\n    |=\t=|> \e[0;93m '
   
 
 #far_ps4='\e[0;104m+ At:[${#nBS[@]}]${nBS[0]##*/}( ${nL} ) In:<${nF[0]:-""}> Fr:[$(( ${#nBS[@]} - 1 ))]${nBS[1]##*/}( ${nBL[0]} ) \e[m > \e[0;93m '
@@ -34,8 +34,8 @@ close_ps4='\n\e[0;104m+ $( II={#nBS[@]} for (( ii=0; ii<=II; ii++ )); do printf 
 
 far_ps4='\e[0;104m+ At:[$( printf "%2d" ${#nBS[@]} )]$( : 21594 )$( cut -c -8 <<< ${nBS[0]##*/} )($( printf "%4d" ${nL} )) In:<$( printf "%-8s" ${nF[0]:-""})> Fr:[$( printf "%2d" $(( ${#nBS[@]} - 1 )) )]$( cut -c -8 <<< ${nBS[1]##*/} )($( printf "%4d" ${nBL[0]} )) $( set -x )\e[m > \e[0;93m'
 
-PS4="${close_ps4}" export PS4
-#PS4="${far_ps4}" export PS4
+#PS4="${close_ps4}" export PS4
+PS4="${far_ps4}" export PS4
 
 
 export FUNCNEST close_ps4 far_ps4 
@@ -54,20 +54,22 @@ function _fun_trc { : "$_"'=?"_fun_trc"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( +
   local line=${line_hyphen%:*}
   local hyphen_sav="${line_hyphen#*:}"
   unset line_hyphen
-  local i
+  local ii
   local -a ir # indices reversed
   mapfile -t ir < <(
     rev <<< "${!nBS[@]}" | 
     tr ' ' '\n'
     )
-  for i in "${ir[@]}"
+  for ii in "${ir[@]}"
   do
-    printf '( -%d ):%s:%s:%s  ' "${i}" "${nBS[$i+1]:-$0}" "${nBL[$i]:?}" \
-      "${nF[$i]:?}"
+    printf '( -%d ):%s:%s:%s  ' "${ii}" "${nBS[$ii+1]:-$0}" "${nBL[$ii]:?}" \
+      "${nF[$ii]:?}"
   done
+  unset ii ir
   echo "( +1 ):${nBS[0]:?}:${line:?}:_fun_trc:${nL}"
   [[ "${hyphen_sav:?}" =~ x ]] && 
     set -x
+  unset line hyphen_sav
   : '_fun_trc ENDS' "${fn_bndry}" "${fn_lvl}>$(( --fn_lvl ))"
 }
 declare -fx _fun_trc
@@ -361,7 +363,7 @@ function _dbg_pmt { : '_dbg_pmt BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))
   _mk_dlts
   
   : '                                                           ~~~ ~~ ~ PROMPT ~ ~~ ~~~'
-  read -rp "R+ [${nBS[1]}:${nBL[0]}]  |  ${BASH_COMMAND}?  |: " _
+  read -rp "R+ [${nBS[1]}:${nBL[0]}]  |  ${BASH_COMMAND}?  |: "$'\n' _
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   
   [[ "${hyphen_sav}" =~ x ]] && set -x
