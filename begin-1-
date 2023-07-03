@@ -71,7 +71,7 @@ sudo chronyc makestep > /dev/null
 # Bash
 ## .bashrc
 umask 071 # for bashrc specifically
-bashrc_str='EDITOR=/usr/bin/vim; BROWSER=/usr/bin/firefox;'
+bashrc_str='EDITOR=/usr/bin/vim; BROWSER=/usr/bin/firefox; function rm { mkdir ~/rm\.d; mv "$@" ~/rm\.d ; }'
 
 files=(/root/.bashrc /home/*/.bashrc)
 for f in "${files[@]}"
@@ -81,7 +81,7 @@ do
 
     # these commands appear to be idempotent
     sudo cp -a -- "${f}" "${f}~"
-    echo "${bashrc_str}" |
+    printf '%s\n' "${bashrc_str}" |
       sudo tee -a -- "${f}" > /dev/null
   fi
 done
