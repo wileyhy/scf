@@ -56,14 +56,10 @@ function _fun_trc { : "$_"'=?"_fun_trc"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( +
   unset line_hyphen
   local ii
   local -a ir # indices reversed
-  mapfile -t ir < <(
-    rev <<< "${!nBS[@]}" | 
-    tr ' ' '\n'
-    )
+  mapfile -t ir < <( rev <<< "${!nBS[@]}" | tr ' ' '\n') 
   for ii in "${ir[@]}"
   do
-    printf '( -%d ):%s:%s:%s  ' "${ii}" "${nBS[$ii+1]:-$0}" "${nBL[$ii]:?}" \
-      "${nF[$ii]:?}"
+    printf '( -%d ):%s:%s:%s  ' "${ii}" "${nBS[$ii+1]:-$0}" "${nBL[$ii]:?}" "${nF[$ii]:?}"
   done
   unset ii ir
   echo "( +1 ):${nBS[0]:?}:${line:?}:_fun_trc:${nL}"
@@ -381,8 +377,8 @@ declare -t _dbg_pmt
 
 function _xtrace_ { : "$_"'=?"_xtrace_"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
   
-  #_fun_trc
-  #set -x 16074
+  _fun_trc
+  set -x 16074
   
   # PIUSV = "Prints In Underscore Shell Variable"
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}, 28666"
@@ -394,7 +390,7 @@ function _xtrace_ { : "$_"'=?"_xtrace_"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( +
 }
 declare -fx _xtrace_
 declare -t _xtrace_
-
+_fun_trc
 
 
 
