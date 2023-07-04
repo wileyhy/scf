@@ -71,21 +71,35 @@ sudo chronyc makestep > /dev/null
 # Bash
 ## .bashrc
 umask 071 # for bashrc specifically
-bashrc_str='EDITOR=/usr/bin/vim; BROWSER=/usr/bin/firefox; function rm { mkdir ~/rm\.d; mv "$@" ~/rm\.d ; }'
 
+unset "${!bashrc_str_@}" files f s 
+bashrc_str_1='EDITOR=/usr/bin/vim ;' 
+bashrc_str_2='BROWSER=/usr/bin/firefox ;' 
+# shellcheck disable=SC2016 #(info): Expressions don't expand in single quotes, use double quotes for that.
+bashrc_str_3='function rm() { local d ; d=~/rm\.d ; [[ ! -e "$d" ]] && mkdir -v "$d" ; mv -iv "$@" "$d" ; } ;'
 files=(/root/.bashrc /home/*/.bashrc)
+
 for f in "${files[@]}"
 do
-  if ! sudo grep -q -- "${bashrc_str}" "${f}"
-  then
+  for s in "$bashrc_str_1" "$bashrc_str_2" "$bashrc_str_3"
+  do
+    if ! sudo grep -q -- "${s}" "${f}"
+    then
 
-    # these commands appear to be idempotent
-    sudo cp -a -- "${f}" "${f}~"
-    printf '%s\n' "${bashrc_str}" |
-      sudo tee -a -- "${f}" > /dev/null
-  fi
+      # these commands appear to be idempotent
+      sudo cp -a -- "${f}" "${f}~" ||
+        _erx $LINENO
+      {
+        printf '%s\n' "${s}" |
+          sudo tee -a -- "${f}" > /dev/null
+      } ||
+        _erx $LINENO
+    fi
+  done
 done
-unset files f bashrc_str
+unset "${!bashrc_str_@}" files f s
+# shellcheck source=/home/liveuser/.bashrc
+source ~/.bashrc
 
 # Vim
 wc_out="$(sudo wc /root/.vimrc 2>&1)"
