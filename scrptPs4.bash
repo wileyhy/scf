@@ -156,8 +156,8 @@ declare -t mars
 
 # Command grouping protects correct line numbers
 {
-  PS4="${close_ps4}"  lineno_PS4=$LINENO
-  #PS4="$far_ps4"     lineno_PS4=$LINENO
+  #PS4="${close_ps4}"  lineno_PS4=$LINENO
+  PS4="$far_ps4"      lineno_PS4=$LINENO
 }
 #set -x
 
