@@ -69,7 +69,7 @@ then
     )
 fi
 
-_erx() {
+function _erx() {
   local exit_code="$?"
   : '_erx BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
   echo -e Error: "$@" >&2
@@ -78,6 +78,16 @@ _erx() {
 }
 declare -fx _erx
 declare -t _erx
+
+# 'exit' function: name is intended, at global scope, to supercede builtin
+function exit() { : "$_"'=?"exit"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
+  unset PS4
+  printf '\e[m'
+  builtin exit "${nL}"
+}
+declare -fx exit
+# shellcheck disable=SC2034
+declare -t exit
 
 
 # Sub-scripts
@@ -108,7 +118,7 @@ function _post_src {
     : called_at: "$1:$2"
 
     # prints line number of script where function's executed
-    exit -1
+    exit "${nL}"
   fi
 
   # reset color
@@ -122,9 +132,9 @@ declare -t _post_src
 
 #
 # Description                                 # -source- subscript                    #
-#: "${nBS[0]}:${nL}"; : 'Required programs' ;  . './reqdcmds.bash'   "${nL}"   n n n; #exit "$nL"
-#: "${nBS[0]}:${nL}"; : 'Verify PATH'       ;  . './path-ver.bash'   "${nL}"   n n n; #exit "$nL"
-#: "${nBS[0]}:${nL}"; : 'ID and sudo'       ;  . './id_sudov.bash'   "${nL}"   n n n; #exit "$nL"
+ : "${nBS[0]}:${nL}"; : 'Required programs' ;  . './reqdcmds.bash'   "${nL}"   n n n; #exit "$nL"
+ : "${nBS[0]}:${nL}"; : 'Verify PATH'       ;  . './path-ver.bash'   "${nL}"   n n n; #exit "$nL"
+ : "${nBS[0]}:${nL}"; : 'ID and sudo'       ;  . './id_sudov.bash'   "${nL}"   n n n; #exit "$nL"
 # So PS4 is on whenever xtrace is on, and DEBUG trap is always on once defined: 2023-06-18 0840
  : "${nBS[0]}:${nL}"; : 'Enable debugging'  ;  . './gardning.bash'   "${nL}"   n y y;  exit "$nL"
  : "${nBS[0]}:${nL}"; : 'Locks'             ;  . './lock-fds.bash'   "${nL}"   y y y;  exit "$nL"

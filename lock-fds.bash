@@ -331,7 +331,7 @@ if pathchk "${l}"; then
   else
     printf 'A lock already exists:\n'
     ls -alhFi "${l}"
-    ps aux | grep -e "${scr_nm}"
+    pgrep "${scr_nm#./}"
   fi
 fi; unset f l
 
@@ -373,7 +373,7 @@ exit "${nL}"
 # https://pubs.opengroup.org/onlinepubs/9699919799/utilities/pathchk.html
 
 
-
+exit # necc sections are commented out below: see 'for f in "/dev/shm'
 printf 'Wait for the lock to be freed? [Y/n]\n'
 read -r ans
 case "$ans" in
@@ -384,7 +384,7 @@ case "$ans" in
         continue
       else
         break
-      fi;
+      fi
     done ;;
 esac;
 unset POSIXLY_CORRECT
@@ -396,20 +396,22 @@ if mkdir -m 0700 -- "/dev/shm/${scr_repo_nm}"
 then
   printf 'Creation of lockdir succeeded.\n'
 
-  # probably deleting this chunck
-  i="$( for f in "/dev/shm/${scr_repo_nm}"/*; do 
-          if [[ -e "$f" ]]; then 
-            basename "$f"; 
-          else 
-            if : > "${f/\*/${i:=$((n))}}"; then 
-              export creation_t="${EPOCHSECONDS}"
-              printf 'Process file created.\n' >&2 
-            else
-              : 'touch failed'
-            fi
-          fi;
-                  done
-    )" _mv_file;
+  ## probably deleting this chunck
+  #: "${i:=$((n))}"
+  #declare -x creation_t="${EPOCHSECONDS}"
+  #i="$( for f in "/dev/shm/${scr_repo_nm}"/*; do 
+          #if [[ -e "$f" ]]; then 
+            #basename "$f"; 
+          #else 
+            #if : > "${f/\*/$i}"; then 
+              #declare -Ig creation_t="${EPOCHSECONDS}"
+              #printf 'Process file created.\n' >&2 
+            #else
+              #: 'touch failed'
+            #fi
+          #fi;
+                  #done
+    #)" _mv_file;
 
 
   # for use of `lsof`
@@ -425,22 +427,22 @@ then
     exit 101
     sleep 60
   unset i f
-  # benchmark this syntax
-  i="$( for f in "/dev/shm/${scr_repo_nm}"/*; do
-          if [[ -e "$f" ]]; then
-            basename "$f";
-          else
-                        # SC2030 (info): Modification of i is local (to subshell caused by $(..) expansion).
-            #+ SC2030 (info): Modification of creation_t is local (to subshell caused by $(..) expansion).
-            if : > "${f/\*/${i:=$((n))}}"; then
-              export creation_t="${EPOCHSECONDS}"
-              printf 'Process file created.\n' >&2
-            else
-              : 'touch failed'
-            fi
-          fi;
-        done
-    )" _mv_file;
+  ## benchmark this syntax
+  #i="$( for f in "/dev/shm/${scr_repo_nm}"/*; do
+          #if [[ -e "$f" ]]; then
+            #basename "$f";
+          #else
+            ## SC2030 (info): Modification of i is local (to subshell caused by $(..) expansion).
+            ##+ SC2030 (info): Modification of creation_t is local (to subshell caused by $(..) expansion).
+            #if : > "${f/\*/${i:=$((n))}}"; then
+              #export creation_t="${EPOCHSECONDS}"
+              #printf 'Process file created.\n' >&2
+            #else
+              #: 'touch failed'
+            #fi
+          #fi;
+        #done
+    #)" _mv_file;
 
 
     # benchmark this syntax
@@ -517,8 +519,9 @@ elif [[ -e "/dev/shm/${scr_repo_nm}" ]]; then
       fi;
       zero="${0#./}"
       #set -
+      # shellcheck disable=SC2009
       ps_o="$(ps aux \
-        |& grep -e "${bashpid:='bash'}" -e "${ppid:="${scr_repo_nm}"}" -e "${zero:='.sh'}" \
+        |& grep -e "${bashpid:=bash}" -e "${ppid:="${scr_repo_nm}"}" -e "${zero:=\.sh}" \
         |& grep -ve grep -e "${BASHPID}" -e "${PPID}" 2>&1)"
 
       #set -x

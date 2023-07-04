@@ -32,12 +32,13 @@ FUNCNEST=32
 #far_ps4='\e[0;104m+ At:[${#nBS[@]}]$( cut -c -8 <<< ${nBS[0]##*/} )( ${nL} ) In:<$( cut -c -8 <<< ${nF[0]:-""} )> Fr:[$(( ${#nBS[@]} - 1 ))]$( cut -c -8 <<< ${nBS[1]##*/} )( ${nBL[0]} ) \e[m > \e[0;93m '
 #far_ps4='\e[0;104m+ At:[${#nBS[@]}]$( cut -c -8 <<< ${nBS[0]##*/} )(${nL}) In:<${nF[0]:-""}> Fr:[$(( ${#nBS[@]} - 1 ))]$( cut -d "/" -f 3- <<< ${nBS[1]:-" "} )(${nBL[0]}) \e[m > \e[0;93m '
 
+# shellcheck disable=SC2089,SC2016 # 04 July 2023
 far_ps4='\e[0;104m+ At:[$( printf "%2d" ${#nBS[@]} )]$( : 21594 )$( cut -c -8 <<< ${nBS[0]##*/} )($( printf "%4d" ${nL} )) In:<$( printf "%-8s" ${nF[0]:-""})> Fr:[$( printf "%2d" $(( ${#nBS[@]} - 1 )) )]$( cut -c -8 <<< ${nBS[1]##*/} )($( printf "%4d" ${nBL[0]} )) $( set -x )\e[m > \e[0;93m'
 
 #PS4="${close_ps4}" export PS4
 PS4="${far_ps4}" export PS4
 
-
+# shellcheck disable=SC2090 # 04 July 2023
 export FUNCNEST close_ps4 far_ps4 
 
 
@@ -70,18 +71,6 @@ function _fun_trc { : "$_"'=?"_fun_trc"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( +
 }
 declare -fx _fun_trc
 declare -t _fun_trc
-
-
-# 'exit' function: name is intended, at global scope, to supercede builtin
-function exit { : "$_"'=?"exit"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
-  unset PS4
-  printf '\e[m'
-  builtin exit "${nL}"
-}
-declare -fx exit
-declare -t exit
-
-
 
 function _trp_int { : "$_"'=?"_trp_int"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
   set -x
@@ -383,7 +372,7 @@ function _xtrace_ { : "$_"'=?"_xtrace_"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( +
   # PIUSV = "Prints In Underscore Shell Variable"
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}, 28666"
   trap 'echo DEBUG trap 30013; _fun_trc; : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}  |  PIUSV"; _dbg_pmt "$_"; : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"' DEBUG
-    echo cmd after DEBUG trap, $LINENO, 5741
+    echo cmd after DEBUG trap, "$LINENO", 5741
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}, 21506"
   
   : '_xtrace_ ENDS  ' "${fn_bndry}" "${fn_lvl}>$(( --fn_lvl )), 26149"
@@ -454,3 +443,4 @@ unset xtr_rm_list xtr_files
   # <>
   #sleep 3
   exit 101
+
