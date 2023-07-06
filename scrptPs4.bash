@@ -4,6 +4,7 @@
 fn_bndry=' ~~~ ~~~ ~~~ '
 fn_lvl=0
 export fn_lvl fn_bndry
+#set -o extdebug
 
 # 'exit' function: name is intended, at global scope, to supercede builtin
 # shellcheck disable=SC2317
@@ -27,7 +28,6 @@ function venus() { :
   earth
 }
 function earth() { :
-  set -x
   echo 'count, nBS:' "${#BASH_SOURCE[@]}"
   declare -p BASH_SOURCE BASH_LINENO FUNCNAME LINENO
   mars
@@ -74,49 +74,7 @@ declare -t mars
     printf "%s" "${bash_source_0:0:8}" ;
     printf "(%4d)" $lineno_far_ps4_ext_cmd ;
     
-    if [[ ${#FUNCNAME[@]} -ne 0 ]] ;
-    then
-
-      I="${#BASH_SOURCE[@]}" ; 
-      for (( i=I-1; i>=0; i-- )) ; 
-      do 
-        ir+=("$i") ; 
-      done ;
-      unset I i 
-
-      for ii in "${!FUNCNAME[@]}" ;
-      do
-        bash_source_count=$(( ${#BASH_SOURCE[ii]} - 1 )) export bash_source_count ;
-        bash_source_ii=${BASH_SOURCE[ii]##*/} export bash_source_ii ;
-        
-        func_array+=( [$ii]+="$( printf "In:<%-8s> " ${FUNCNAME[$ii]} )" ) ;
-        func_array+=( [$ii]+="$( printf "Fr:[%2d]" ${bash_source_count} )" ) ;
-        func_array+=( [$ii]+="$( printf "%s" "${bash_source_ii:0:8}" )" ) ;
-        func_array+=( [$ii]+="$( printf "(%4d)" ${BASH_LINENO[ii]} )" ) ;
-      done
-      printf "%s " "${func_array[@]}"
-    fi ;
-    
-    unset inside_line_dist_a lineno_far_ps4_inside bash_source_0 ii bash_source_count bash_source_ii func_array
-  )\e[m > \e[0;93m'
-}
-
-# Bug: a `declare` in the prompt variable seems to affect the LINENO var. also an `echo`.
-
-{
-  lineno_close_ps4_outside=$(( LINENO + 1 ))
-  close_ps4='\e[0;104m+ $(
-    unset inside_line_dist_a lineno_close_ps4_inside bash_source_0 ii bash_source_count bash_source_ii func_array
-    inside_line_dist_a=4 export inside_line_dist_a ;
-    lineno_close_ps4_inside=$(( LINENO - inside_line_dist_a )) export lineno_close_ps4_inside ;
-    lineno_close_ps4_ext_cmd=$(( lineno_close_ps4_inside + 1 )) export lineno_close_ps4_ext_cmd ;
-    
-    bash_source_0=${BASH_SOURCE[0]##*/} ;
-    printf "[%2d]" ${#BASH_SOURCE[@]} ;
-    printf "%s" "${bash_source_0:0:8}" ;
-    printf "(%4d) " $lineno_close_ps4_ext_cmd ;
-    
-    if [[ ${#FUNCNAME[@]} -ne 0 ]] ;
+    if [[ ${#BASH_SOURCE[@]} -ne 0 ]] ;
     then
 
       I="${#BASH_SOURCE[@]}" ; 
@@ -128,43 +86,91 @@ declare -t mars
 
       for ii in "${!ir[@]}" ;
       do
-        if [[ ${ir[ii]} -ne 0 ]] ; 
-        then
-          BASH_SOURCE_ii=${BASH_SOURCE[ii]##*/} export ir_ii ;
-        
-          func_array+=( [$ii]+="$( printf "In:<%-8s> " ${FUNCNAME[$ii]} )" ) ;
-          func_array+=( [$ii]+="$( printf "Fr:[%2d]" ${ir[ii]} )" ) ;
-          func_array+=( [$ii]+="$( printf "%s" "${BASH_SOURCE_ii:0:8}" )" ) ;
-          func_array+=( [$ii]+="$( printf "(%4d)" ${BASH_LINENO[ii]} )" ) ;
-        fi
+        unset bash_source_count bash_source_ii func_array
+        bash_source_count=$(( ${#ir[$ii]} - 1 )) export bash_source_count ;
+        bash_source_ii=${BASH_SOURCE[$ii]##*/} export bash_source_ii ;
+        #declare -p bash_source_count bash_source_ii ii BASH_SOURCE FUNCNAME ir i I
+        #echo "count, FUNCNAME:${#FUNCNAME[@]} ...and BASH_SOURCE:${#BASH_SOURCE[@]}"
+
+        func_array+=( [$ii]+="$( printf "In:<%-8s> " ${FUNCNAME[$ii]} )" ) ;
+        func_array+=( [$ii]+="$( printf "Fr:[%2d]" ${bash_source_count} )" ) ;
+        func_array+=( [$ii]+="$( printf "%s" "${bash_source_ii:0:8}" )" ) ;
+        func_array+=( [$ii]+="$( printf "(%4d)" ${BASH_LINENO[$ii]} )" ) ;
       done
       printf "%s " "${func_array[@]}"
     fi ;
-    unset inside_line_dist_a lineno_close_ps4_inside bash_source_0 ii bash_source_ii func_array
-
-    # PS4-trace section
-    unset ii d3 d5 d7 s4 s6 ;
-    ii=0 ;
-    d5="${lineno_PS4}" ;
-
-    # name of this function; a string
-    s6=close_ps4 ;
-    d7="${lineno_close_ps4_outside}" ;
-
-    # a string
-    s4=PS4 ;
-    printf "PS4(%d)%s(%d) " "${d5}" "${s6}" "${d7}" ;
-    unset ii d3 d5 d7 s4 s6 ;
-
+    
+    unset inside_line_dist_a lineno_far_ps4_inside bash_source_0 ii bash_source_count bash_source_ii func_array
   )\e[m > \e[0;93m'
 }
+
+# Bug: a `declare` in the prompt variable seems to affect the LINENO var. also an `echo`.
+
+
+#  GOOD CODE -- just work on one PS4 variable at a time!!!
+#
+#{
+#  lineno_close_ps4_outside=$(( LINENO + 1 ))
+#  close_ps4='\e[0;104m+ $(
+#    unset inside_line_dist_a lineno_close_ps4_inside bash_source_0 ii bash_source_count bash_source_ii func_array
+#    inside_line_dist_a=4 export inside_line_dist_a ;
+#    lineno_close_ps4_inside=$(( LINENO - inside_line_dist_a )) export lineno_close_ps4_inside ;
+#    lineno_close_ps4_ext_cmd=$(( lineno_close_ps4_inside + 1 )) export lineno_close_ps4_ext_cmd ;
+#    
+#    bash_source_0=${BASH_SOURCE[0]##*/} ;
+#    printf "[%2d]" ${#BASH_SOURCE[@]} ;
+#    printf "%s" "${bash_source_0:0:8}" ;
+#    printf "(%4d) " $lineno_close_ps4_ext_cmd ;
+#    
+#    if [[ ${#FUNCNAME[@]} -ne 0 ]] ;
+#    then
+#
+#      I="${#BASH_SOURCE[@]}" ; 
+#      for (( i=I-1; i>=0; i-- )) ; 
+#      do 
+#        ir+=("$i") ; 
+#      done ;
+#      unset I i 
+#
+#      for ii in "${!ir[@]}" ;
+#      do
+#        if [[ ${ir[ii]} -ne 0 ]] ; 
+#        then
+#          BASH_SOURCE_ii=${BASH_SOURCE[ii]##*/} export ir_ii ;
+#        
+#          func_array+=( [$ii]+="$( printf "In:<%-8s> " ${FUNCNAME[$ii]} )" ) ;
+#          func_array+=( [$ii]+="$( printf "Fr:[%2d]" ${ir[ii]} )" ) ;
+#          func_array+=( [$ii]+="$( printf "%s" "${BASH_SOURCE_ii:0:8}" )" ) ;
+#          func_array+=( [$ii]+="$( printf "(%4d)" ${BASH_LINENO[ii]} )" ) ;
+#        fi
+#      done
+#      printf "%s " "${func_array[@]}"
+#    fi ;
+#    unset inside_line_dist_a lineno_close_ps4_inside bash_source_0 ii bash_source_ii func_array
+#
+#    # PS4-trace section
+#    unset ii d3 d5 d7 s4 s6 ;
+#    ii=0 ;
+#    d5="${lineno_PS4}" ;
+#
+#    # name of this function; a string
+#    s6=close_ps4 ;
+#    d7="${lineno_close_ps4_outside}" ;
+#
+#    # a string
+#    s4=PS4 ;
+#    printf "PS4(%d)%s(%d) " "${d5}" "${s6}" "${d7}" ;
+#    unset ii d3 d5 d7 s4 s6 ;
+#
+#  )\e[m > \e[0;93m'
+#}
 
 # Command grouping protects correct line numbers
 {
   #PS4="${close_ps4}"  lineno_PS4=$LINENO
   PS4="$far_ps4"      lineno_PS4=$LINENO
 }
-#set -x
+set -x
 
 #declare -p BASH_LINENO BASH_SOURCE FUNCNAME LINENO lineno_PS4 lineno_close_ps4_outside 
 #echo foo
