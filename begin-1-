@@ -47,15 +47,17 @@ function _test_dns {
 declare -fxt _test_dns
 
 if ! _test_dns "${dns_srv_1}" ||
-   ! _test_dns "${dns_srv_2}"
+  ! _test_dns "${dns_srv_2}"
 then
   printf '\n\tAttempting to connect...\n\n'
+  
   # this command appears to be idempotent
   sudo systemctl start NetworkManager.service
   wait -f
   sleep 15
+  
   if ! _test_dns "${dns_srv_1}" ||
-     ! _test_dns "${dns_srv_2}"
+    ! _test_dns "${dns_srv_2}"
   then
     printf '\n\tGiving up; Exiting.\n\n'
     exit "${nL}"
@@ -63,6 +65,7 @@ then
     printf '\n\tSuccess!\n\n'
   fi
 fi
+
 sudo timedatectl set-local-rtc 0
 sudo timedatectl set-timezone America/Vancouver
 sudo systemctl start chronyd.service
@@ -71,11 +74,11 @@ sudo chronyc makestep > /dev/null
 # Bash
 ## .bashrc
 umask 071 # for bashrc specifically
-
 unset "${!bashrc_str_@}" files f s 
+
+# shellcheck disable=SC2016 #(info): Expressions don't expand in single quotes, use double quotes for that.
 bashrc_str_1='EDITOR=/usr/bin/vim ;' 
 bashrc_str_2='BROWSER=/usr/bin/firefox ;' 
-# shellcheck disable=SC2016 #(info): Expressions don't expand in single quotes, use double quotes for that.
 bashrc_str_3='function rm() { local d ; d=~/rm\.d ; [[ ! -e "$d" ]] && mkdir -v "$d" ; mv -iv "$@" "$d" ; } ;'
 files=(/root/.bashrc /home/*/.bashrc)
 
@@ -98,11 +101,14 @@ do
   done
 done
 unset "${!bashrc_str_@}" files f s
+
 # shellcheck source=/home/liveuser/.bashrc
 source ~/.bashrc
 
 # Vim
-wc_out="$(sudo wc /root/.vimrc 2>&1)"
+wc_out="$(\
+  sudo wc /root/.vimrc 2>&1
+  )"
 if [[ "${wc_out}" != '11  42 346 /root/.vimrc' ]]
 then
   umask 177 # for vimrc specifically
@@ -120,6 +126,7 @@ then
   " On pressing tab, insert 2 spaces
   set expandtab
 EOF
+  
   # shellcheck disable=SC2024
   sudo tee /root/.vimrc < "${tmpf}" > /dev/null
   rm -f -- "${tmpf}" ||

@@ -10,27 +10,30 @@ dev_d1=~/MYPROJECTS
 dev_d2=~/OTHERSPROJECTS
 scr_repo_nm=scf
 
+# Environment
+unset files bashrc_str f tmpf gitmesg gitignr ps_o
+declare -n nL=LINENO
+PATH='/usr/bin:/usr/sbin' || 
+  exit "${nL}"
+
 # Regular users only
-if [[ "${UID}" == 0 ]]; then
+if [[ "${UID}" == 0 ]]; 
+then
   printf '\n\t Must be a regular user and use sudo. \n\n'
   exit "${nL}"
   else
-  sudo -v \
-    || exit "${nL}"
+  sudo -v || 
+    exit "${nL}"
 fi
 
-# Environment
-unset files bashrc_str f tmpf gitmesg gitignr ps_o
-PATH='/usr/bin:/usr/sbin' \
-  || exit "${nL}"
-
 # Network 
-if ! sudo ping -c 1 -W 15 8.8.8.8 > /dev/null; then
+if ! sudo ping -c 1 -W 15 8.8.8.8 > /dev/null; 
+then
   sudo systemctl start NetworkManager.service
   wait -f
   sleep 15
-  sudo ping -c 1 -W 15 8.8.8.8 > /dev/null \
-    || exit "${nL}"
+  sudo ping -c 1 -W 15 8.8.8.8 > /dev/null || 
+    exit "${nL}"
 fi
 
 # Git
@@ -65,7 +68,8 @@ gitignr=/etc/.gitignore_system
 
 ## (message)
 tmpd="$(mktemp -d)"
-if [[ ! -f "${gitmesg}" ]]; then
+if [[ ! -f "${gitmesg}" ]]; 
+then
   cat << EOF -> "${tmpd}/msg"
   Subject line (try to keep under 50 characters)
 
@@ -74,21 +78,21 @@ if [[ ! -f "${gitmesg}" ]]; then
 
   [Ticket: X]
 EOF
-  sudo tee -- "${gitmesg}" <<< "${tmpd}/msg" > /dev/null \
-    || exit "${nL}"
+  sudo tee -- "${gitmesg}" <<< "${tmpd}/msg" > /dev/null || 
+    exit "${nL}"
 fi
 
 ## (ignore)
-if [[ ! -f "${gitignr}" ]] \
-  || ! grep -q swp "${gitignr}";
+if [[ ! -f "${gitignr}" ]] || 
+  ! grep -q swp "${gitignr}";
 then
   cat << EOF -> "${tmpd}/ign"
   *~
   .*.swp
   .DS_Store
 EOF
-  sudo tee -- "${gitignr}" <<< "${tmpd}/ign" > /dev/null \
-    || exit "${nL}"
+  sudo tee -- "${gitignr}" <<< "${tmpd}/ign" > /dev/null || 
+    exit "${nL}"
 fi
 
 sudo git config --system commit.template "${gitmesg}"
@@ -96,13 +100,15 @@ sudo git config --system core.excludesfile "${gitignr}"
 
 ## Permissions
 files=(/etc/git* /etc/.git*)
-for f in "${files[@]}"; do
+for f in "${files[@]}"; 
+do
   sudo chmod 0604 -- "${f}"
 done
 unset files f
 
 ## Copy root-user files to $USER
-for f in "${gitmesg}" "${gitignr}"; do
+for f in "${gitmesg}" "${gitignr}"; 
+do
   sudo rsync -ca -- "${f}" "/home/${USER}"
   sudo chown 1000:1000 -- "/home/${USER}/${f##*/}"
   chmod 0400 "/home/${USER}/${f##*/}"
@@ -111,7 +117,8 @@ unset f
 
 ## Rename files
 files=(/home/*/.git*_system)
-for f in "${files[@]}"; do
+for f in "${files[@]}"; 
+do
   sudo mv -f -- "${f}" "${f%_system}"
 done
 unset files f 
@@ -119,18 +126,20 @@ unset files f
 ## make and change into directories
 umask 077
 
-for d in "${dev_d1}" "${dev_d2}"; do
-  if [[ ! -d "${d}" ]]; then
-    mkdir -p "${d}" \
-      || exit "${nL}"
+for d in "${dev_d1}" "${dev_d2}"; 
+do
+  if [[ ! -d "${d}" ]]; 
+  then
+    mkdir -p "${d}" || 
+      exit "${nL}"
   fi
 done
 unset d
 
 ### Note: in order to clone into any repo, and keep 
 ### multiple repos separate, `cd` is required
-pushd "${dev_d1}" \
-  || exit "${nL}"
+pushd "${dev_d1}" || 
+  exit "${nL}"
 
 # TODO:
 #   Parse output of `gh config list` ?
@@ -147,26 +156,28 @@ gh auth setup-git --hostname 'github.com'
 # Log in 
 gh auth status 2> ./ghast # (executing this command just once)
 ghast_exit="${?}"
-count_of_checkmarks="$(grep -c $'\xe2\x9c\x93' <<< ./ghast)"
+count_of_checkmarks="$(\
+  grep -c $'\xe2\x9c\x93' <<< ./ghast
+  )"
 rm -f ./ghast
 
-if [[ "${count_of_checkmarks}" -ne 4 ]] \
-  || [[ "${ghast_exit}" -ne 0 ]];
+if [[ "${count_of_checkmarks}" -ne 4 ]] || 
+  [[ "${ghast_exit}" -ne 0 ]];
 then
   gh auth login --git-protocol 'ssh' \
     --hostname 'github.com' \
     --scopes 'admin:public_key,read:gpg_key,admin:ssh_signing_key' \
-    --web \
-    || exit "${nL}"
+    --web || 
+    exit "${nL}"
 fi
 
 # Clone repo
-if [[ ! -d ./"${scr_repo_nm}" ]] \
-  || [[ ! -f ./"${scr_repo_nm}"/README.md ]]; 
+if [[ ! -d ./"${scr_repo_nm}" ]] || 
+  [[ ! -f ./"${scr_repo_nm}"/README.md ]]; 
 then
   git clone -o 'github' \
-    https://github.com/wileyhy/"${scr_repo_nm}" \
-    || exit "${nL}"
+    https://github.com/wileyhy/"${scr_repo_nm}" || 
+    exit "${nL}"
 fi
 
 ## Get SSH & GPG keys
@@ -177,12 +188,14 @@ gh gpg-key list
 gh auth status --show-token
 
 # SSH
-sudo chown 1000:1000 ~/.ssh \
-|| "${nL}"
+sudo chown 1000:1000 ~/.ssh || 
+  "${nL}"
 sudo chmod -R 700 ~/.ssh
 
-if [[ -e ~/.ssh/config ]]; then
-  if ! grep -q 'ForwardAgent yes' ~/.ssh/config; then
+if [[ -e ~/.ssh/config ]]; 
+then
+  if ! grep -q 'ForwardAgent yes' ~/.ssh/config; 
+  then
     cat << EOF > ~/.ssh/config
       Host github.com
       ForwardAgent yes
@@ -190,35 +203,42 @@ EOF
   fi
 fi
 
-[[ -e /etc/ssh_config ]] \
-  && exit "${nL}"
+[[ -e /etc/ssh_config ]] && 
+  exit "${nL}"
 
 ### Bug? not necc to restart ssh-agent if both of these 
 ### vars exist?
-if [[ -z "${SSH_AUTH_SOCK}" ]] \
-  || [[ -z "${SSH_AGENT_PID}" ]];
+if [[ -z "${SSH_AUTH_SOCK}" ]] || 
+  [[ -z "${SSH_AGENT_PID}" ]];
 then
 
   # shellcheck disable=SC2154
   ps_o="$(ps aux)"
   awk_o="$(awk '$0 ~ /ssh-agent/ && $0 !~ /startx/ \
     { print $2 }' <<<"${ps_o:?}")"
-  if [[ -n "${awk_o}" ]]; then 
+  if [[ -n "${awk_o}" ]]; 
+  then 
     mapfile -t ssh_agent_pids <<< "${awk_o:?}"
   fi
 
-  if [[ "${#ssh_agent_pids[@]}" -gt 0 ]]; then
-  case "${#ssh_agent_pids[@]}" in
-    0)  : ;;
-    1)  if [[ -v SSH_AGENT_PID ]]; then
-          ssh-agent -k
-        else
-          command -p kill "${ssh_agent_pids[*]}"
-        fi ;;
-    *)  for p in "${ssh_agent_pids[@]}"; do
-          command -p kill "${p}"
-        done ;;
-  esac
+  if [[ "${#ssh_agent_pids[@]}" -gt 0 ]]; 
+  then
+    case "${#ssh_agent_pids[@]}" in
+      0)  : 
+          ;;
+      1)  if [[ -v SSH_AGENT_PID ]]; 
+          then
+            ssh-agent -k
+          else
+            command -p kill "${ssh_agent_pids[*]}"
+          fi 
+          ;;
+      *)  for p in "${ssh_agent_pids[@]}"; 
+          do
+            command -p kill "${p}"
+          done 
+          ;;
+    esac
   fi
 
   ssh_agent_o="$(ssh-agent -s)"
@@ -230,13 +250,14 @@ then
 fi
 
 # GPG
-sudo chown 1000:1000 ~/.gnupg \
-  || exit "${nL}"
+sudo chown 1000:1000 ~/.gnupg || 
+  exit "${nL}"
 sudo chmod -R 700 ~/.gnupg
 
 ### shellcheck disable=SC2009
-if grep -qE '[g]pg-a.*daemon' <<< "${ps_o}"; then
-gpgconf --kill gpg-agent
+if grep -qE '[g]pg-a.*daemon' <<< "${ps_o}"; 
+then
+  gpgconf --kill gpg-agent
 fi
 
 gpg-connect-agent /bye
@@ -246,11 +267,15 @@ export GPG_TTY
 
 # Remind user of commands for the interactive shell
 set -x
-popd
-if [[ "${PWD}" != "${dev_d1}/${scr_repo_nm}" ]]; then 
+popd || 
+  exit "${nL}"
+if [[ "${PWD}" != "${dev_d1}/${scr_repo_nm}" ]]; 
+then 
   printf '\n\t Now run this command: \n'
   printf '\n\t cd %s/%s; git status \n\n' "${dev_d1}" "${scr_repo_nm}"
 fi
 
-# Clean up
+# Clean up & exit
 rm -fr "${tmpd}"
+exit 00
+

@@ -1,3 +1,4 @@
+#!/usr/bin/bash
 #!/usr/bin/env -iS bash
 # test-shadows.bash - bash 5.2
 #   hellcheck disable=SC2317,SC2096,SC2154,SC2086
@@ -17,6 +18,7 @@ LC_ALL=C
 unset PATH 
 PATH='/home/liveuser/.local/bin_symlink:/home/liveuser/bin_hardlink:/usr/local/bin_copy-of-inode:/usr/bin:/bin:/usr/local/sbin_dangling_symlink:/usr/sbin'
 IFS=':' read -ra pathdirs <<< "$PATH"
+declare -n nL=LINENO
 verb='-v'
 symlnk="${pathdirs[0]}/$x"
 hrdlnk="${pathdirs[1]}/$x"

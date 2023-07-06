@@ -1,8 +1,13 @@
 #!/bin/bash
+# shellcheck disable=SC2034,SC2016
 
+fn_bndry=' ~~~ ~~~ ~~~ '
+fn_lvl=0
+export fn_lvl fn_bndry
 
 # 'exit' function: name is intended, at global scope, to supercede builtin
-function exit { : "$_"'=?"exit"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
+# shellcheck disable=SC2317
+function exit() { : "$_"'=?"exit"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
   unset PS4
   printf '\e[m'
   builtin exit "${LINENO}"
@@ -11,23 +16,23 @@ declare -fx exit
 declare -t exit
 
 # Note: Location of colon (`:`) commands protects line numbers
-mercury() { :
+function mercury() { :
   echo 'count, nBS:' "${#BASH_SOURCE[@]}"
   declare -p BASH_SOURCE BASH_LINENO FUNCNAME LINENO
   venus
 }
-venus() { :
+function venus() { :
   echo 'count, nBS:' "${#BASH_SOURCE[@]}"
   declare -p BASH_SOURCE BASH_LINENO FUNCNAME LINENO
   earth
 }
-earth() { :
+function earth() { :
   set -x
   echo 'count, nBS:' "${#BASH_SOURCE[@]}"
   declare -p BASH_SOURCE BASH_LINENO FUNCNAME LINENO
   mars
 }
-mars() { :
+function mars() { :
   echo 'count, nBS:' "${#BASH_SOURCE[@]}"
   declare -p BASH_SOURCE BASH_LINENO FUNCNAME LINENO
 }
@@ -57,7 +62,7 @@ declare -t mars
 #            [ 0]...(...)
 
 {
-  lineno_far_ps4_outside=$(( LINENO + 1 ))
+  lineno_far_ps4_outside=$(( LINENO + 1 )) export lineno_far_ps4_outside
   far_ps4='\e[0;104m+ $(
     unset inside_line_dist_a lineno_far_ps4_inside bash_source_0 ii bash_source_count bash_source_ii func_array
     inside_line_dist_a=4 export inside_line_dist_a ;
@@ -172,6 +177,7 @@ declare -t mars
 
 declare -p BASH_LINENO BASH_SOURCE FUNCNAME LINENO lineno_PS4 lineno_close_ps4_outside 
 mercury
+
 #declare -p BASH_LINENO BASH_SOURCE FUNCNAME LINENO lineno_PS4 lineno_close_ps4_outside 
 
 exit 00
