@@ -22,13 +22,13 @@ dns_srv_1=8.8.8.8
 dns_srv_2=75.75.75.75
 
 # Functions
-_erx() {
+_erx(){
   local exit_code="$?"
   echo -e Error: "$@" >&2
   exit "${exit_code}"
 }
-declare -fx _erx 
-declare -t _erx 
+export -f _erx 
+declare -ft _erx 
 
 # Regular users only
 if [[ "${UID}" == 0 ]]
@@ -41,10 +41,11 @@ else
 fi
 
 # Network & time
-function _test_dns {
+function _test_dns(){
   sudo ping -c 1 -W 15 "$1" > /dev/null 2>&1
 }
-declare -fxt _test_dns
+export -f _test_dns
+declare -ft _test_dns
 
 if ! _test_dns "${dns_srv_1}" ||
   ! _test_dns "${dns_srv_2}"
@@ -79,7 +80,7 @@ unset "${!bashrc_str_@}" files f s
 # shellcheck disable=SC2016 #(info): Expressions don't expand in single quotes, use double quotes for that.
 bashrc_str_1='EDITOR=/usr/bin/vim ;' 
 bashrc_str_2='BROWSER=/usr/bin/firefox ;' 
-bashrc_str_3='function rm() { local d ; d=~/rm\.d ; [[ ! -e "$d" ]] && mkdir -v "$d" ; mv -iv "$@" "$d" ; } ;'
+bashrc_str_3='function rm(){ [[ $* -gt 0 ]] || return 1; local Dd ; Dd=~/rm\.d ; [[ ! -e "$Dd" ]] && mkdir -v "$Dd" ; mv -bnv --strip-trailing-slashes --suffix=$( date +%s ) -- "$@" "$Dd" ; } ;'
 files=(/root/.bashrc /home/*/.bashrc)
 
 for f in "${files[@]}"
@@ -185,9 +186,11 @@ sudo dnf -qy --security upgrade ||
 pidwait dnf
 
 # Get a list of any such PIDs
-declare -ax a_pids
-function _get_pids(){
+a_pids=()
+export a_pids
+function _get_pids(){ :
   local dnf_o
+  local -I a_pids
   dnf_o="$(sudo dnf needs-restarting 2>&1 || 
     _erx "${nL}")"
   mapfile -t a_pids < <(
@@ -195,7 +198,8 @@ function _get_pids(){
       grep -E ^'[0-9]*'$
   )
 }
-declare -fxt _get_pids
+export -f _get_pids
+declare -ft _get_pids
 
 # TODO: a process lock on kill loop
 
@@ -280,7 +284,8 @@ do
   fi
 done
 unset n s p q a_pids
-declare -ax a_pids
+a_pids=()
+export a_pids
 
   # <>
   #exit "${nL}"
@@ -311,7 +316,8 @@ then
     unset p
 
     unset a_pids
-    declare -ax a_pids
+    a_pids=()
+    export a_pids
     _get_pids
 
     if [[ -n "${a_pids[*]:0:8}" ]]

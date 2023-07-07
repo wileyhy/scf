@@ -10,7 +10,8 @@ if [[ "$UID" == 0 ]]; then echo May not be root.; exit 1
 fi
 
 : 'Target string:'
-declare -rx x='export'
+export  x='export'
+readonly x='export'
 
 : 'Functions, variables and umask' 
 function _erx(){ local ec="$?"; echo ERROR: "$@"; exit "$ec"; }
@@ -43,7 +44,7 @@ if ! declare -p "$x" |& grep -qE ' -[lrtux]*n[lrtux]*'; then
 fi
 if ! enable | grep -q "$x"; then enable "$x"; fi
 if ! alias "$x" 2> /dev/null; then eval alias "$x='{ echo alias foo;}'"; fi
-if ! declare -pf "$x" > /dev/null 2>&1; then
+if ! declare -pF "$x" > /dev/null 2>&1; then
   eval function "$x" '{ echo function bar;}'
 fi
 

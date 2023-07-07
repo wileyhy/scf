@@ -56,7 +56,7 @@ verify=(all)
 #exit "${nL}"
 
 # TODO: review options & fix this function
-fn_usage() {
+fn_usage(){ :
   # Print a usage message and exit with a pre-determined exit code
   # Usage:  fn_usage [exit-code]
   : 'fn_usage BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"

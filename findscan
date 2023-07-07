@@ -34,8 +34,10 @@ fn_lvl=0
 export fn_lvl fn_bndry
 unset Halt
 halt=' '
-declare -rx Halt halt # lower case for nounset
-declare -nx nBL=BASH_LINENO nBS=BASH_SOURCE nF=FUNCNAME nL=LINENO
+export   Halt halt   # lower case for nounset
+readonly Halt halt
+declare -n  nBL=BASH_LINENO nBS=BASH_SOURCE nF=FUNCNAME nL=LINENO
+export      nBL=BASH_LINENO nBS=BASH_SOURCE nF=FUNCNAME nL=LINENO
 
 # "Setting LC_CTYPE without also setting the other LC_* variables is not always well supported." - Ste'phane Chazelas
 unset LC_ALL || : "${Halt:?}"
@@ -43,9 +45,9 @@ LC_COLLATE="C.UTF-8" LC_CTYPE="C.UTF-8"     # for predictable sorting
 LC_NUMERIC="en_US.UTF-8"                    # for commas in large numbers
 export LC_COLLATE LC_CTYPE LC_NUMERIC
 
+unset CDPATH
 GREP_COLORS='mt=01;43'
 export GREP_COLORS
-unset CDPATH
 
 rand_i="${RANDOM}"
 rand_uniq_str="${scr_repo_nm}.${$}.${rand_i}"
@@ -69,40 +71,43 @@ then
     )
 fi
 
-function _erx() {
+function _erx(){ :
   local exit_code="$?"
   : '_erx BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
   echo -e Error: "$@" >&2
   exit "${exit_code}"
   : '_erx ENDS  ' "${fn_bndry}" "${fn_lvl}>$(( --fn_lvl ))"
 }
-declare -fx _erx
-declare -t _erx
+export -f   _erx
+declare -ft _erx
 
 # 'exit' function: name is intended, at global scope, to supercede builtin
-function exit() { : "$_"'=?"exit"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
+function exit(){ : "$_"'=?"exit"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
   unset PS4
   printf '\e[m'
   builtin exit "${nL}"
 }
-declare -fx exit
 # shellcheck disable=SC2034
-declare -t exit
+export -f   exit
+declare -ft exit
 
 
 # Sub-scripts
 # Note: Exit traps don't print accurate trace data in PS4; so use a function
 
 # Processes positional parameters as they were passed to source
+verb=()
 
-function _post_src {
+function _post_src(){ :
   # enable "verbose commands"
   if [[ "$6" == y ]]
   then
-    declare -ax verb=(-v --)
+    declare -I  verb=(-v --)
+    export      verb
   # otherwise, neutralize the unused "verbose commands" syntax
   else
-    declare -ax verb=(--)
+    declare -I  verb=(--)
+    export      verb
   fi
 
   # enable xtrace
@@ -124,8 +129,8 @@ function _post_src {
   # reset color
   printf '%b' "\e[m"
 }
-declare -fx _post_src
-declare -t _post_src
+export -x   _post_src
+declare -ft _post_src
 
 #set -T
 #set -x

@@ -50,7 +50,7 @@ export FUNCNEST close_ps4 far_ps4
 
 
 # Print a function trace stack, and capture the FN's LINENO on line 0
-function _fun_trc { : "$_"'=?"_fun_trc"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"; local line_hyphen="${nL:?}:$-"
+function _fun_trc(){ : "$_"'=?"_fun_trc"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"; local line_hyphen="${nL:?}:$-"
   set - # normally set - # check number 22035
   local line=${line_hyphen%:*}
   local hyphen_sav="${line_hyphen#*:}"
@@ -69,10 +69,10 @@ function _fun_trc { : "$_"'=?"_fun_trc"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( +
   unset line hyphen_sav
   : '_fun_trc ENDS' "${fn_bndry}" "${fn_lvl}>$(( --fn_lvl ))"
 }
-declare -fx _fun_trc
-declare -t _fun_trc
+export -f _fun_trc
+declare -ft _fun_trc
 
-function _trp_int { : "$_"'=?"_trp_int"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
+function _trp_int(){ : "$_"'=?"_trp_int"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
   set -x
   trap - INT
 
@@ -117,8 +117,8 @@ function _trp_int { : "$_"'=?"_trp_int"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( +
   command -p kill -s INT "$$"
   : '_trp_int ENDS' "${fn_bndry}" "${fn_lvl}>$(( --fn_lvl ))"
 }
-declare -fx _trp_int
-declare -t _trp_int
+export -f _trp_int
+declare -ft _trp_int
 
 
 # redefine the INT trap
@@ -128,7 +128,7 @@ trap ': "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"; _trp_int; : "${nBS[0]}:${nL} ${nB
 : 'Some standard data- & file-maintenance functions' 
 # Probably not nec in final script
 
-function _fun_bak { : "$_"'=?"_fun_bak"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
+function _fun_bak(){ : "$_"'=?"_fun_bak"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
   # for each of multiple input files
   for filename_a in "${@}"; do
     # test verifying existence of input
@@ -163,7 +163,7 @@ function _fun_bak { : "$_"'=?"_fun_bak"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( +
 }
 
 
-function _wrt_ary { : "$_"'=?"_wrt_ary"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
+function _wrt_ary(){ : "$_"'=?"_wrt_ary"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
   # Write each array to a file on disk.
   # Usage: _wrt_ary [arrays]
   write_d_b="${curr_time_ssubd}arrays"
@@ -216,7 +216,7 @@ function _wrt_ary { : "$_"'=?"_wrt_ary"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( +
 # +[6]gardening.sh(249) <_mk_v_se> [5]gardening.sh(310)  >  [[ -n '' ]]
 
 
-function _xt_hush { : "$_"'=?"_xt_hush"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
+function _xt_hush(){ : "$_"'=?"_xt_hush"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
   # If xtrace is on...
   if [[ "$-" =~ x ]]; then
     # ...then record its state
@@ -236,14 +236,14 @@ function _xt_hush { : "$_"'=?"_xt_hush"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( +
   fi
   : '_xt_hush ENDS  ' "${fn_bndry}" "${fn_lvl}>$(( --fn_lvl ))"
 }
-declare -fx _xt_hush
-declare -t _xt_hush
+export -f _xt_hush
+declare -ft _xt_hush
 
 
 #   Remaining functions: A set of functions for printing changes in
 # shell variables and parameters between each execution of a command;
 # for use when the DEBUG trap is enabled.
-function _mkv_pre { : "$_"'=?"_mkv_pre"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
+function _mkv_pre(){ : "$_"'=?"_mkv_pre"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
   : 'if now-file exists'
   if [[ -v xtr_senv_now ]]; then
     : 'if prev file exists'
@@ -259,11 +259,11 @@ function _mkv_pre { : "$_"'=?"_mkv_pre"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( +
   fi
   : '_mkv_pre ENDS  ' "${fn_bndry}" "${fn_lvl}>$(( --fn_lvl ))"
 }
-declare -fx _mkv_pre
-declare -t _mkv_pre
+export -f _mkv_pre
+declare -ft _mkv_pre
 
 
-function _mkv_now { : "$_"'=?"_mkv_now"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
+function _mkv_now(){ : "$_"'=?"_mkv_now"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
   
   # create 'now' file
   xtr_senv_now="$(
@@ -275,11 +275,11 @@ function _mkv_now { : "$_"'=?"_mkv_now"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( +
   env >> "${xtr_senv_now}" # stderr to term
   : '_mkv_now ENDS  ' "${fn_bndry}" "${fn_lvl}>$(( --fn_lvl ))"
 }
-declare -fx _mkv_now
-declare -t _mkv_now
+export -f _mkv_now
+declare -ft _mkv_now
 
 
-function _mkv_dlt { : "$_"'=?"_mkv_dlt"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
+function _mkv_dlt(){ : "$_"'=?"_mkv_dlt"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
   : 'if now and prev'
   if [[ -n "${xtr_senv_now}" ]] \
     && [[ -v xtr_senv_prev ]];
@@ -319,11 +319,11 @@ function _mkv_dlt { : "$_"'=?"_mkv_dlt"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( +
 
   : '_mkv_dlt ENDS  ' "${fn_bndry}" "${fn_lvl}>$(( --fn_lvl ))"
 }
-declare -fx _mkv_dlt
-declare -t _mkv_dlt
+export -f _mkv_dlt
+declare -ft _mkv_dlt
 
 
-function _mk_dlts { : "$_"'=?"_mk_dlts"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
+function _mk_dlts(){ : "$_"'=?"_mk_dlts"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
   
   # Note: comment out _xt_hush with : -and not #-
   : _xt_hush
@@ -334,11 +334,11 @@ function _mk_dlts { : "$_"'=?"_mk_dlts"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( +
   
   : '_mk_dlts ENDS  ' "${fn_bndry}" "${fn_lvl}>$(( --fn_lvl ))"
 }
-declare -fx _mk_dlts
-declare -t _mk_dlts
+export -f _mk_dlts
+declare -ft _mk_dlts
 
 
-function _dbg_pmt { : '_dbg_pmt BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
+function _dbg_pmt(){ : '_dbg_pmt BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
 
   echo _dbg_pmt  
   _fun_trc
@@ -355,8 +355,8 @@ function _dbg_pmt { : '_dbg_pmt BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))
 
   : '_dbg_pmt ENDS  ' "${fn_bndry}" "${fn_lvl}>$(( --fn_lvl ))"
 }
-declare -fx _dbg_pmt
-declare -t _dbg_pmt
+export -f _dbg_pmt
+declare -ft _dbg_pmt
 
 
 # Bug? for the line numbers in _fun_trc to be correct, this trap
@@ -364,7 +364,7 @@ declare -t _dbg_pmt
 
 # Bug? within trap, the command after _dbg_pmt has line number of 351 [trap(lineno)+1], even though both commands are on line 350.
 
-function _xtrace_ { : "$_"'=?"_xtrace_"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
+function _xtrace_(){ : "$_"'=?"_xtrace_"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
   
   _fun_trc
   set -x 16074
@@ -377,8 +377,8 @@ function _xtrace_ { : "$_"'=?"_xtrace_"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( +
   
   : '_xtrace_ ENDS  ' "${fn_bndry}" "${fn_lvl}>$(( --fn_lvl )), 26149"
 }
-declare -fx _xtrace_
-declare -t _xtrace_
+export -f _xtrace_
+declare -ft _xtrace_
 _fun_trc
 
 

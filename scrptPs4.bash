@@ -1,12 +1,13 @@
 #!/bin/bash -x
 # shellcheck disable=SC2034,SC2016
 
+unset PS4
+PS4='\e[0;104m+ Debug\e[m > \e[0;93m'
 fn_bndry=' ~~~ ~~~ ~~~ ' fn_lvl=0 export fn_lvl fn_bndry
-shopt -s extdebug
 
 # 'exit' function: name is intended, at global scope, to supercede builtin
 # shellcheck disable=SC2317
-function exit() { : "$_"'=?"exit"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
+function exit(){ : "$_"'=?"exit"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
   unset PS4
   printf '\e[m'
   builtin exit "${LINENO}"
@@ -14,33 +15,33 @@ function exit() { : "$_"'=?"exit"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lv
 export -f exit
 
 # Note: Location of colon (`:`) commands protects line numbers
-function mercury() { :
+function mercury(){ :
   echo 'count, nBS:' "${#BASH_SOURCE[@]}"
   declare -p BASH_SOURCE BASH_LINENO FUNCNAME LINENO
   venus
 }
-function venus() { :
+function venus(){ :
   echo 'count, nBS:' "${#BASH_SOURCE[@]}"
   declare -p BASH_SOURCE BASH_LINENO FUNCNAME LINENO
   earth
 }
-function earth() { :
+function earth(){ :
   echo 'count, nBS:' "${#BASH_SOURCE[@]}"
   declare -p BASH_SOURCE BASH_LINENO FUNCNAME LINENO
   mars
 }
-function mars() { :
+function mars(){ :
   echo 'count, nBS:' "${#BASH_SOURCE[@]}"
   declare -p BASH_SOURCE BASH_LINENO FUNCNAME LINENO
 }
 export -f mercury venus earth mars
 
-# add "trace" attributes
-declare -t exit
-declare -t mercury
-declare -t venus
-declare -t earth
-declare -t mars
+# add "trace" attributes to functions
+declare -ft exit
+declare -ft mercury
+declare -ft venus
+declare -ft earth
+declare -ft mars
 
 #   Goals:
 

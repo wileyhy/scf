@@ -19,7 +19,7 @@ a_poss_proces_lock_dirs+=("/dev/shm/${scr_repo_nm}" /var/lock \
   "${XDG_RUNTIME_DIR}" "${TMPDIR}" /var/lock "${HOME}" /tmp \
   /var/tmp)
 
-_get_lockdirs(){
+_get_lockdirs(){ :
   #_xtrace_
   local -gax lkdrs
 
@@ -33,7 +33,7 @@ _get_lockdirs(){
   #export lkdrs
 }
 
-_exit_trap() {
+_exit_trap(){ :
   #set -x
   : "EXIT trap BEGINS" "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
   trap - DEBUG
@@ -293,12 +293,12 @@ done
 
 ### Optional: if any of these are missing, print an info message and continue
 for c in "${lk_cmds_opt[@]}"; do
-  declare -x "lk_cmd_abspth=$(type -P "${c}" 2>&1 )"
+  export "lk_cmd_abspth=$(type -P "${c}" 2>&1 )"
   
   if [[ -z "$lk_cmd_abspth" ]]; then
     echo "INFO: line: ${nL}, command ${c} is not available." >&2
   else
-    declare -x "${c}"="${c}"
+    export "${c}"="${c}"
   fi
 done; unset c lk_cmd_abspth
 
@@ -398,7 +398,7 @@ then
 
   ## probably deleting this chunck
   #: "${i:=$((n))}"
-  #declare -x creation_t="${EPOCHSECONDS}"
+  #export creation_t="${EPOCHSECONDS}"
   #i="$( for f in "/dev/shm/${scr_repo_nm}"/*; do 
           #if [[ -e "$f" ]]; then 
             #basename "$f"; 

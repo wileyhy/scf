@@ -12,7 +12,7 @@
   
 
 : 'Verify PATH'
-_verify_path(){
+_verify_path(){ :
   : '_verify_path BEGINS'  "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
   #_xtrace_
  
@@ -129,8 +129,8 @@ _verify_path(){
   fi
   : '_verify_path ENDS  '  "${fn_bndry}" "${fn_lvl}>$(( --fn_lvl ))"
 }
-declare -fx _verify_path
-declare -t _verify_path
+export -f _verify_path
+declare -ft _verify_path
 
 : 'verify path vars'
 
