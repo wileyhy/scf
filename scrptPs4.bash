@@ -1,10 +1,8 @@
-#!/bin/bash
+#!/bin/bash -x
 # shellcheck disable=SC2034,SC2016
 
-fn_bndry=' ~~~ ~~~ ~~~ '
-fn_lvl=0
-export fn_lvl fn_bndry
-#set -o extdebug
+fn_bndry=' ~~~ ~~~ ~~~ ' fn_lvl=0 export fn_lvl fn_bndry
+shopt -s extdebug
 
 # 'exit' function: name is intended, at global scope, to supercede builtin
 # shellcheck disable=SC2317
@@ -13,8 +11,7 @@ function exit() { : "$_"'=?"exit"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lv
   printf '\e[m'
   builtin exit "${LINENO}"
 }
-declare -fx exit
-declare -t exit
+export -f exit
 
 # Note: Location of colon (`:`) commands protects line numbers
 function mercury() { :
@@ -36,7 +33,10 @@ function mars() { :
   echo 'count, nBS:' "${#BASH_SOURCE[@]}"
   declare -p BASH_SOURCE BASH_LINENO FUNCNAME LINENO
 }
-declare -fx mercury venus earth mars
+export -f mercury venus earth mars
+
+# add "trace" attributes
+declare -t exit
 declare -t mercury
 declare -t venus
 declare -t earth
@@ -64,12 +64,15 @@ declare -t mars
 {
   lineno_far_ps4_outside=$(( LINENO + 1 )) export lineno_far_ps4_outside
   far_ps4='\e[0;104m+ $(
+    #set -x # xtrace cannot be enabled within prompt variables
+
     unset inside_line_dist_a lineno_far_ps4_inside bash_source_0 ii bash_source_count bash_source_ii func_array
+    
     inside_line_dist_a=4 export inside_line_dist_a ;
     lineno_far_ps4_inside=$(( LINENO - inside_line_dist_a )) export lineno_far_ps4_inside ;
     lineno_far_ps4_ext_cmd=$(( lineno_far_ps4_inside + 1 )) export lineno_far_ps4_ext_cmd ;
-
     bash_source_0=${BASH_SOURCE[0]##*/} ;
+    
     printf "[%2d]" ${#BASH_SOURCE[@]} ;
     printf "%s" "${bash_source_0:0:8}" ;
     printf "(%4d)" $lineno_far_ps4_ext_cmd ;
@@ -82,15 +85,17 @@ declare -t mars
       do 
         ir+=("$i") ; 
       done ;
-      unset I i 
+      #unset I i 
 
       for ii in "${!ir[@]}" ;
       do
         unset bash_source_count bash_source_ii func_array
+        
         bash_source_count=$(( ${#ir[$ii]} - 1 )) export bash_source_count ;
         bash_source_ii=${BASH_SOURCE[$ii]##*/} export bash_source_ii ;
-        #declare -p bash_source_count bash_source_ii ii BASH_SOURCE FUNCNAME ir i I
-        #echo "count, FUNCNAME:${#FUNCNAME[@]} ...and BASH_SOURCE:${#BASH_SOURCE[@]}"
+        
+        declare -p bash_source_count bash_source_ii ii BASH_SOURCE FUNCNAME ir i I
+        echo "count, FUNCNAME:${#FUNCNAME[@]} ...and BASH_SOURCE:${#BASH_SOURCE[@]}"
 
         func_array+=( [$ii]+="$( printf "In:<%-8s> " ${FUNCNAME[$ii]} )" ) ;
         func_array+=( [$ii]+="$( printf "Fr:[%2d]" ${bash_source_count} )" ) ;
@@ -165,15 +170,14 @@ declare -t mars
 #  )\e[m > \e[0;93m'
 #}
 
-# Command grouping protects correct line numbers
-{
-  #PS4="${close_ps4}"  lineno_PS4=$LINENO
-  PS4="$far_ps4"      lineno_PS4=$LINENO
-}
+PROMPT_COMMAND=([0]="printf '\e[m'")
+
+  #PS4="${close_ps4@P}"  lineno_PS4=$LINENO
+  PS4="${far_ps4}"      lineno_PS4=$LINENO
+
 set -x
 
 #declare -p BASH_LINENO BASH_SOURCE FUNCNAME LINENO lineno_PS4 lineno_close_ps4_outside 
-#echo foo
 #echo zero: "$0"
 #echo bar |
   #cat -Aen
@@ -181,8 +185,14 @@ set -x
   #grep btrfs |
   #awk '{ print $10 }'
 
-declare -p BASH_LINENO BASH_SOURCE FUNCNAME LINENO lineno_PS4 lineno_close_ps4_outside 
-mercury
+echo foo
+
+PS4="${far_ps4@P}"      lineno_PS4=$LINENO
+echo foo
+
+
+#declare -p BASH_LINENO BASH_SOURCE FUNCNAME LINENO lineno_PS4 lineno_close_ps4_outside 
+#mercury
 
 #declare -p BASH_LINENO BASH_SOURCE FUNCNAME LINENO lineno_PS4 lineno_close_ps4_outside 
 
