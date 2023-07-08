@@ -6,99 +6,102 @@
 # Note: Keep your goal in mind.
 
 
-set -aCuTE; echo 'set -aCuTE'
-set -x
+      set -aCuTE
+echo 'set -aCuTE'
+      set -x
 
-scr_lic='Apache 2 license'
-scr_max_age_of_tmp_files='1 minutes ago'
-scr_nm=./findscan
-scr_proper_nm='Find scripts'
-scr_protected_git_dir_1="${HOME}/MYPROJECTS"
-scr_protected_git_dir_2="${HOME}/OTHERSPROJECTS"
-scr_repo_nm=scf
+scr_lic='Apache 2 license'                          export scr_lic
+scr_max_age_of_tmp_files='1 minutes ago'            export scr_max_age_of_tmp_files
+scr_nm=./findscan                                   export scr_nm
+scr_proper_nm='Find scripts'                        export scr_proper_nm
+scr_protected_git_dir_1="${HOME}/MYPROJECTS"        export scr_protected_git_dir_1
+scr_protected_git_dir_2="${HOME}/OTHERSPROJECTS"    export scr_protected_git_dir_2
+scr_repo_nm=scf                                     export scr_repo_nm
 scr_tcode="$(
   builtin printf '%(%F_%H%M%S)T' 2>&1
-  )"
-scr_version=1.0
-export scr_lic scr_max_age_of_tmp_files scr_nm scr_proper_nm \
-  scr_protected_git_dir_1 scr_protected_git_dir_2 scr_repo_nm \
-  scr_tcode scr_version
-scr_dirnm="${scr_repo_nm}.d" export scr_dirnm
+  )"                                                export scr_tcode
+scr_version=1.0                                     export scr_version
+scr_dirnm="${scr_repo_nm}.d"                        export scr_dirnm
 
-SC_sevr=error
-SC_shells='(sh|bash|dash|ksh)'
-export SC_sevr SC_shells
+SC_sevr=error                                       export SC_sevr
+SC_shells='(sh|bash|dash|ksh)'                      export SC_shells
 
-fn_bndry=' ~~~ ~~~ ~~~ '
-fn_lvl=0
-export fn_lvl fn_bndry
-unset Halt
-halt=' '
-export   Halt halt   # lower case for nounset
-readonly Halt halt
+fn_bndry=' ~~~ ~~~ ~~~ '                            export fn_bndry
+fn_lvl=0                                            export fn_lvl
+
+unset     Halt
+export    Halt 
+readonly  Halt
+unset     halt || 
+  exit "$nL"
+          halt=' '                                  export halt       # lower case for nounset
+readonly  halt
+
 declare -n  nBL=BASH_LINENO nBS=BASH_SOURCE nF=FUNCNAME nL=LINENO
 export      nBL=BASH_LINENO nBS=BASH_SOURCE nF=FUNCNAME nL=LINENO
 
 # "Setting LC_CTYPE without also setting the other LC_* variables is not always well supported." - Ste'phane Chazelas
-unset LC_ALL || : "${Halt:?}"
-LC_COLLATE="C.UTF-8" LC_CTYPE="C.UTF-8"     # for predictable sorting
-LC_NUMERIC="en_US.UTF-8"                    # for commas in large numbers
-export LC_COLLATE LC_CTYPE LC_NUMERIC
+unset     LC_ALL || 
+  : "${Halt:?}"
+readonly  LC_ALL
+export    LC_ALL
+
+# for predictable sorting
+LC_COLLATE="C.UTF-8" LC_CTYPE="C.UTF-8"             export LC_COLLATE LC_CTYPE
+# for commas in large numbers
+LC_NUMERIC="en_US.UTF-8"                            export LC_NUMERIC
 
 unset CDPATH
-GREP_COLORS='mt=01;43'
-export GREP_COLORS
+GREP_COLORS='mt=01;43'                              export GREP_COLORS
 
-rand_i="${RANDOM}"
-rand_uniq_str="${scr_repo_nm}.${$}.${rand_i}"
-rand_lock_nm="${rand_uniq_str}.lock.d"
-rand_f_nm="${rand_uniq_str:?}.xtr"
-export rand_i rand_uniq_str rand_lock_nm rand_f_nm
+rand_i="${RANDOM}"                                  export rand_i
+rand_uniq_str="${scr_repo_nm}.${$}.${rand_i}"       export rand_uniq_str
+rand_lock_nm="${rand_uniq_str}.lock.d"              export rand_lock_nm
+rand_f_nm="${rand_uniq_str:?}.xtr"                  export rand_f_nm
 
-# Undocumented CLI option
+# Whether to remove the stale locks and log files
 if [[ "$*" =~ rm_stale ]]
 then
   unset x
-  rm_stale=y
-  export rm_stale
+  rm_stale=y                                        export rm_stale
 
   while read -rd '' pp
   do
-    array+=( "$pp" )
+    array+=( "$pp" )                                export array
   done < <(
     printf '%s\0' "$@" |
       grep -vz rm_stale
     )
 fi
 
-function _erx(){ :
+
+function er_x(){ :
   local exit_code="$?"
-  : '_erx BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
+  : 'er_x BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
   echo -e Error: "$@" >&2
   exit "${exit_code}"
-  : '_erx ENDS  ' "${fn_bndry}" "${fn_lvl}>$(( --fn_lvl ))"
+  : 'er_x ENDS  ' "${fn_bndry}" "${fn_lvl}>$(( --fn_lvl ))"
 }
-export -f   _erx
-declare -ft _erx
+export  -f  er_x
+declare -ft er_x
 
 # 'exit' function: name is intended, at global scope, to supercede builtin
 function exit(){ : "$_"'=?"exit"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
   unset PS4
-  printf '\e[m'
+  printf '%b' '\033[m' # POSIX according to some stack exchange page
   builtin exit "${nL}"
 }
 # shellcheck disable=SC2034
-export -f   exit
+export  -f  exit
 declare -ft exit
 
 
 # Sub-scripts
 # Note: Exit traps don't print accurate trace data in PS4; so use a function
-
-# Processes positional parameters as they were passed to source
 verb=()
 
-function _post_src(){ :
+# Processes positional parameters as they were passed to source
+function post_src(){ :
   # enable "verbose commands"
   if [[ "$6" == y ]]
   then
@@ -127,10 +130,10 @@ function _post_src(){ :
   fi
 
   # reset color
-  printf '%b' "\e[m"
+  printf '%b' '\033[m'
 }
-export -x   _post_src
-declare -ft _post_src
+export  -f  post_src
+declare -ft post_src
 
 #set -T
 #set -x
@@ -139,6 +142,12 @@ declare -ft _post_src
 # Description                                 # -source- subscript                    #
  : "${nBS[0]}:${nL}"; : 'Required programs' ;  . './reqdcmds.bash'   "${nL}"   n n n; #exit "$nL"
  : "${nBS[0]}:${nL}"; : 'Verify PATH'       ;  . './path-ver.bash'   "${nL}"   n n n; #exit "$nL"
+ 
+ declare -p PATH
+ exit 101
+ 
+ 
+ 
  : "${nBS[0]}:${nL}"; : 'ID and sudo'       ;  . './id_sudov.bash'   "${nL}"   n n n; #exit "$nL"
 # So PS4 is on whenever xtrace is on, and DEBUG trap is always on once defined: 2023-06-18 0840
  : "${nBS[0]}:${nL}"; : 'Enable debugging'  ;  . './gardning.bash'   "${nL}"   n y y;  exit "$nL"
@@ -152,7 +161,7 @@ declare -ft _post_src
 
 
   # <> Obligatory debugging block
-  #_xtrace_
+  #x_trace
   #: "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   exit "${nL}"
   set -x
@@ -336,7 +345,7 @@ unset tt_o
 #
 
 #exit "${nL}"
-#_xtrace_
+#x_trace
 
 
 # Bug: this section /\ and this section \/ need to be merged.
@@ -370,7 +379,7 @@ then
   tempd="$(mktemp -d --suffix=."${rand_f_nm/%.xtr/.d}" 2>&1)"
   # use pushd / popd
   cd "${tempd}" ||
-    _erx cd
+    er_x cd
 
   # create a dictionary list of each possible initial character, and
   # include commands with odd yet permitted-by-Linux initial
@@ -384,7 +393,7 @@ then
   unset i
 
     # <>
-    #_xtrace_
+    #x_trace
     set -x
 
   # for each possible ascii character or value
@@ -528,11 +537,11 @@ then
     # <>
     echo 'all_commands, count:' "${#all_commands[@]}"
     #exit "${nL}"
-    #_xtrace_
+    #x_trace
 
   # use pushd / popd
   cd - ||
-    _erx cd
+    er_x cd
   rmdir -v "${tempd}"
   unset tempd
 
@@ -546,7 +555,7 @@ else
 fi
 
 # <>
-#_xtrace_
+#x_trace
 #exit "${nL}"
 
 
@@ -586,7 +595,7 @@ mapfile -d '' -t a_all_files_sorted < <(
     sort -z
 )
 
-#_xtrace_
+#x_trace
 #exit "${nL}"
 
 
@@ -673,12 +682,12 @@ do
         tr -s ' ' |
         gawk --lint '{ print $2, $3, $4 }' |
         tr -d '\n' ||
-          _erx "P:${PIPESTATUS[*]} I:${all_files_index} ${each_sorted_f}"
+          er_x "P:${PIPESTATUS[*]} I:${all_files_index} ${each_sorted_f}"
     } 2>&1
   )"
 
   [[ -n "${od_o}" ]] ||
-    _erx "I:${all_files_index} ${each_sorted_f}"
+    er_x "I:${all_files_index} ${each_sorted_f}"
 
   a_bin_od_output+=([all_files_index]="${od_o}")
 
@@ -689,7 +698,7 @@ do
   : '-od_o- non-zero'
   if [[ -z "${byte_0}" ]]
   then
-    _erx "I:${all_files_index} <${each_sorted_f}>" \
+    er_x "I:${all_files_index} <${each_sorted_f}>" \
       '*unreachable code*'
   elif [[ "${byte_0}" == @(23|21) ]]
   then
@@ -714,13 +723,13 @@ do
           strings -n1 <"${each_sorted_f}" |
             head -n1 |
             cut -b -$((2 ** 14)) ||
-              _erx "P:${PIPESTATUS[*]} I:${all_files_index} \
+              er_x "P:${PIPESTATUS[*]} I:${all_files_index} \
                 ${each_sorted_f}"
         } 2>&1
       )"
 
       IFS= read -r first_line_printable <<< "${strings_o}" ||
-        _erx "I:${all_files_index} ${each_sorted_f}"
+        er_x "I:${all_files_index} ${each_sorted_f}"
 
       : '-#!comment-'
       if [[ "${first_line_printable}" =~ ^'#!comment' ]]
@@ -793,8 +802,8 @@ a_arrays=(a_all_files a_all_files_sorted a_file_DNE a_empty_files
   a_write_path_nms)
 export "${a_arrays[@]}"
 
-_wrt_ary "${a_arrays[@]}"
-_fun_bak "${curr_time_ssubd}/file_out"
+wrt_ary "${a_arrays[@]}"
+fun_bak "${curr_time_ssubd}/file_out"
 #exit "${nL}"
 
 : 'create the original list_crunchbangs'
@@ -810,13 +819,13 @@ sudo  touch -- "${a_write_path_nms[@]}"
 : 'printing contents of a_shell_scripts array, with backup'
 printf '%s\n' "${a_shell_scripts[@]}" |
   cat >> "${a_write_path_nms[@]}" #sudo
-_fun_bak "${a_write_path_nms[@]}"
+fun_bak "${a_write_path_nms[@]}"
 
-#_xtrace_
+#x_trace
 #exit "${nL}"
 
 # <> ?
-_wrt_ary a_write_path_nms
+wrt_ary a_write_path_nms
 
 #set -x; :;: "<>"
 
@@ -839,10 +848,10 @@ mapfile -t a_interpreters < <(
     sed 's, *,,g' |
     sort -u |
     cut -b3- ||
-      _erx "P:${PIPESTATUS[*]}"
+      er_x "P:${PIPESTATUS[*]}"
 )
 
-#_xtrace_
+#x_trace
 #exit "${nL}"
 
 # <>
@@ -896,7 +905,7 @@ mapfile -t a_interps_rps < <(
     sort -u
 )
 
-#_xtrace_
+#x_trace
 #exit "${nL}"
 
 # <>
@@ -957,11 +966,11 @@ unset b
 
 # <>
 #set -x; :;: "<>"
-_wrt_ary a_write_path_nms a_interpreters a_interps_rps \
+wrt_ary a_write_path_nms a_interpreters a_interps_rps \
   a_interps_disk_repo
 #exit "${nL}"
 
-#_xtrace_
+#x_trace
 #exit "${nL}"
 
 # SECTION E
@@ -981,22 +990,22 @@ _wrt_ary a_write_path_nms a_interpreters a_interps_rps \
 # file $list_crunchbangs is located in $time_dir.
 sudo  grep -E -- '/bin/'"${SC_shells}"'.*%=%=%=%' "${list_crunchbangs}" |
   sudo  tee -a -- "${list_crunchbangs}_SC-scrpts-list" ||
-    _erx "${nL}"
+    er_x "${nL}"
 
 # Copy list to /tmp
 sudo  rsync -ca -- "${list_crunchbangs}_SC-scrpts-list" /tmp ||
-  _erx "${nL}"
+  er_x "${nL}"
 
 # Backup both lists
-_fun_bak "${list_crunchbangs}_SC-scrpts-list" /tmp/*_SC-scrpts-list
+fun_bak "${list_crunchbangs}_SC-scrpts-list" /tmp/*_SC-scrpts-list
 
 # <>
-#_xtrace_
+#x_trace
 :;: "<>"
-_wrt_ary scr_tcode list_crunchbangs SC_shells
+wrt_ary scr_tcode list_crunchbangs SC_shells
 #exit "${nL}"
 
-#_xtrace_
+#x_trace
 #exit "${nL}"
 
 : 'CENTRAL TASK, 2 of 2: with ShellCheck scan each script for errors'
@@ -1078,7 +1087,7 @@ i=0
         sort -g |
         uniq -c |
         sort -k3 ||
-          _erx "P:${PIPESTATUS[*]} I: S:" # index and script name
+          er_x "P:${PIPESTATUS[*]} I: S:" # index and script name
       # end of pipe intended
       printf '\0'
     )
@@ -1106,14 +1115,14 @@ i=0
 : 'Write semi-permanent archives'
 
 # backup the findings file
-_fun_bak "${found_scrpts_f}"
+fun_bak "${found_scrpts_f}"
 
 # make copies of the findings file and backup those copies
 for d in /tmp "${main_d}"
 do
   sudo  rsync -ca -- "${found_scrpts_f}" "${d}" ||
-    _erx "${nL}"
-  _fun_bak "${d}/${found_scrpts_f##*/}"
+    er_x "${nL}"
+  fun_bak "${d}/${found_scrpts_f##*/}"
 done
 unset d
 

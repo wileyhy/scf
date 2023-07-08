@@ -54,7 +54,7 @@ declare -ft mars
 # This:      ********************************************************
 #        At:|[level]script-name(script-lineno) In:<function-name> Fr:[level - 1]script-name(script-lineno) |
 #      + At:|[ 2   ]gardning   (  38         ) In:<...          > Fr:[ 1       ]findscan   ( 129         )
-#    | + At:|[ 6   ]gardning   ( 106         ) In:<_trp_int     > Fr:| 
+#    | + At:|[ 6   ]gardning   ( 106         ) In:<trp_int     > Fr:| 
 #            [ 5   ]gardning   (   1         ) In:<...          > Fr:
 #            [ 4]...(...) In:<...> Fr:
 #            [ 3]...(...) In:<...> Fr:

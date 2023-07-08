@@ -22,13 +22,13 @@ dns_srv_1=8.8.8.8
 dns_srv_2=75.75.75.75
 
 # Functions
-_erx(){
+er_x(){
   local exit_code="$?"
   echo -e Error: "$@" >&2
   exit "${exit_code}"
 }
-export -f _erx 
-declare -ft _erx 
+export -f er_x 
+declare -ft er_x 
 
 # Regular users only
 if [[ "${UID}" == 0 ]]
@@ -37,18 +37,18 @@ then
   exit "${nL}"
 else
   sudo -v ||
-    _erx "${nL}"
+    er_x "${nL}"
 fi
 
 # Network & time
-function _test_dns(){
+function test_dns(){
   sudo ping -c 1 -W 15 "$1" > /dev/null 2>&1
 }
-export -f _test_dns
-declare -ft _test_dns
+export -f test_dns
+declare -ft test_dns
 
-if ! _test_dns "${dns_srv_1}" ||
-  ! _test_dns "${dns_srv_2}"
+if ! test_dns "${dns_srv_1}" ||
+  ! test_dns "${dns_srv_2}"
 then
   printf '\n\tAttempting to connect...\n\n'
   
@@ -57,8 +57,8 @@ then
   wait -f
   sleep 15
   
-  if ! _test_dns "${dns_srv_1}" ||
-    ! _test_dns "${dns_srv_2}"
+  if ! test_dns "${dns_srv_1}" ||
+    ! test_dns "${dns_srv_2}"
   then
     printf '\n\tGiving up; Exiting.\n\n'
     exit "${nL}"
@@ -92,12 +92,12 @@ do
 
       # these commands appear to be idempotent
       sudo cp -a -- "${f}" "${f}~" ||
-        _erx $LINENO
+        er_x $LINENO
       {
         printf '%s\n' "${s}" |
           sudo tee -a -- "${f}" > /dev/null
       } ||
-        _erx $LINENO
+        er_x $LINENO
     fi
   done
 done
@@ -131,7 +131,7 @@ EOF
   # shellcheck disable=SC2024
   sudo tee /root/.vimrc < "${tmpf}" > /dev/null
   rm -f -- "${tmpf}" ||
-    _erx "${nL}" 
+    er_x "${nL}" 
   unset tmpf
 fi
 unset wc_out
@@ -159,7 +159,7 @@ sudo dnf -qy install \
     ${for_firefox:-}    mozilla-noscript mozilla-privacy-badger \
                           mozilla-https-everywhere \
     ${for_unicode:-}    xterm ||
-  _erx "${nL}" 
+  er_x "${nL}" 
 
 
   #$for_gcov           gcc \
@@ -171,9 +171,9 @@ sudo dnf -qy install \
   #                      fatrace apitrace x11trace memstrack kernelshark
 
 sudo dnf -qy upgrade bash bash-completion ||
-  _erx "${nL}" 
+  er_x "${nL}" 
 sudo dnf -qy --security upgrade ||
-  _erx "${nL}" 
+  er_x "${nL}" 
 
   # <>
   #exit "${nL}"
@@ -188,18 +188,18 @@ pidwait dnf
 # Get a list of any such PIDs
 a_pids=()
 export a_pids
-function _get_pids(){ :
+function get_pids(){ :
   local dnf_o
   local -I a_pids
   dnf_o="$(sudo dnf needs-restarting 2>&1 || 
-    _erx "${nL}")"
+    er_x "${nL}")"
   mapfile -t a_pids < <(
     awk '{ print $1 }' <<< "${dnf_o}" |
       grep -E ^'[0-9]*'$
   )
 }
-export -f _get_pids
-declare -ft _get_pids
+export -f get_pids
+declare -ft get_pids
 
 # TODO: a process lock on kill loop
 
@@ -211,7 +211,7 @@ declare -ft _get_pids
 
 while true
 do
-  _get_pids
+  get_pids
 
     # <>
     #declare -p a_pids
@@ -291,7 +291,7 @@ export a_pids
   #exit "${nL}"
   #set -x
 
-_get_pids
+get_pids
 
 if [[ -n "${a_pids[*]:0:8}" ]]
 then
@@ -318,7 +318,7 @@ then
     unset a_pids
     a_pids=()
     export a_pids
-    _get_pids
+    get_pids
 
     if [[ -n "${a_pids[*]:0:8}" ]]
     then
@@ -354,7 +354,7 @@ fi
 if ! ping -4qc1 8.8.8.8 2> /dev/null >&2
 then
   sudo systemctl restart NetworkManager.service ||
-    _erx "${nL}" 
+    er_x "${nL}" 
 fi
 
 # Write to TTY and exit

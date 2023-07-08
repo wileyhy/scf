@@ -7,8 +7,8 @@
 
   # <> Obligatory debugging block
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
-  _post_src "${nBS[0]}" "${nL}" "$@"
-  #_xtrace_
+  post_src "${nBS[0]}" "${nL}" "$@"
+  #x_trace
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   #exit "${nL}"
   #set -x
@@ -50,7 +50,7 @@ export FUNCNEST close_ps4 far_ps4
 
 
 # Print a function trace stack, and capture the FN's LINENO on line 0
-function _fun_trc(){ : "$_"'=?"_fun_trc"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"; local line_hyphen="${nL:?}:$-"
+function fun_trc(){ : "$_"'=?"fun_trc"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"; local line_hyphen="${nL:?}:$-"
   set - # normally set - # check number 22035
   local line=${line_hyphen%:*}
   local hyphen_sav="${line_hyphen#*:}"
@@ -63,16 +63,16 @@ function _fun_trc(){ : "$_"'=?"_fun_trc"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( 
     printf '( -%d ):%s:%s:%s  ' "${ii}" "${nBS[$ii+1]:-$0}" "${nBL[$ii]:?}" "${nF[$ii]:?}"
   done
   unset ii ir
-  echo "( +1 ):${nBS[0]:?}:${line:?}:_fun_trc:${nL}"
+  echo "( +1 ):${nBS[0]:?}:${line:?}:fun_trc:${nL}"
   [[ "${hyphen_sav:?}" =~ x ]] && 
     set -x
   unset line hyphen_sav
-  : '_fun_trc ENDS' "${fn_bndry}" "${fn_lvl}>$(( --fn_lvl ))"
+  : 'fun_trc ENDS' "${fn_bndry}" "${fn_lvl}>$(( --fn_lvl ))"
 }
-export -f _fun_trc
-declare -ft _fun_trc
+export -f fun_trc
+declare -ft fun_trc
 
-function _trp_int(){ : "$_"'=?"_trp_int"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
+function trp_int(){ : "$_"'=?"trp_int"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
   set -x
   trap - INT
 
@@ -104,7 +104,7 @@ function _trp_int(){ : "$_"'=?"_trp_int"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( 
   then
     if ! rm -f --one-file-system --preserve-root=all "${verb[@]}" "${rm_list[@]}"
     then
-      _erx "rm failed, line ${nL}"
+      er_x "rm failed, line ${nL}"
     fi
   fi
   unset rm_list
@@ -115,27 +115,27 @@ function _trp_int(){ : "$_"'=?"_trp_int"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( 
   
   # kill the script with INT
   command -p kill -s INT "$$"
-  : '_trp_int ENDS' "${fn_bndry}" "${fn_lvl}>$(( --fn_lvl ))"
+  : 'trp_int ENDS' "${fn_bndry}" "${fn_lvl}>$(( --fn_lvl ))"
 }
-export -f _trp_int
-declare -ft _trp_int
+export -f trp_int
+declare -ft trp_int
 
 
 # redefine the INT trap
-trap ': "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"; _trp_int; : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"' INT
+trap ': "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"; trp_int; : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"' INT
 
 
 : 'Some standard data- & file-maintenance functions' 
 # Probably not nec in final script
 
-function _fun_bak(){ : "$_"'=?"_fun_bak"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
+function fun_bak(){ : "$_"'=?"fun_bak"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
   # for each of multiple input files
   for filename_a in "${@}"; do
     # test verifying existence of input
     if sudo /bin/test -f "${filename_a}"; then 
 
       # Bug: Why does this ^ test req sudo when this test \/ doesnt?
-      # Requires use of _fun_bak or _fun_bak to debug this.
+      # Requires use of fun_bak or fun_bak to debug this.
       # -~line 2000, 15 May-
 
       # if the destination -.bak- file already exists,
@@ -150,7 +150,7 @@ function _fun_bak(){ : "$_"'=?"_fun_bak"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( 
       fi   
       # write a new .bak file
       sudo rsync -acq -- "${filename_a}"{,.bak} \
-        || _erx "${nL}"
+        || er_x "${nL}"
     # if input file DNE, then print an error and exit
     else 
       {    
@@ -159,17 +159,17 @@ function _fun_bak(){ : "$_"'=?"_fun_bak"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( 
       }    
     fi   
   done 
-  : '_fun_bak ENDS  ' "${fn_bndry}" "${fn_lvl}>$(( --fn_lvl ))"
+  : 'fun_bak ENDS  ' "${fn_bndry}" "${fn_lvl}>$(( --fn_lvl ))"
 }
 
 
-function _wrt_ary(){ : "$_"'=?"_wrt_ary"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
+function wrt_ary(){ : "$_"'=?"wrt_ary"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
   # Write each array to a file on disk.
-  # Usage: _wrt_ary [arrays]
+  # Usage: wrt_ary [arrays]
   write_d_b="${curr_time_ssubd}arrays"
   if [[ ! -d "${write_d_b}" ]]; then
     sudo mkdir -p -- "${write_d_b}" \
-      || _erx "${nL}"
+      || er_x "${nL}"
   fi
   # for each of multiple input array names
   for unquotd_array_nm_b in "${@}"; do
@@ -183,40 +183,40 @@ function _wrt_ary(){ : "$_"'=?"_wrt_ary"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( 
       )"
 
     # Bug? When array correctly is empty: 'declare -p ... > ||' ?
-    # requires use of _wrt_ary or _wrt_ary to debug this.
+    # requires use of wrt_ary or wrt_ary to debug this.
     # ~line 2000, 15 May-
 
     # if the input array holds no data, then populate it
     if [[ ! -v nameref_b[@] ]]; then
-      nameref_b=( [0]='_wrt_ary: Empty array' )
+      nameref_b=( [0]='wrt_ary: Empty array' )
     fi
     # then write a data file to disk
     [[ -n "${decl_o}" ]] &&
       cat "${decl_o}" > "${write_f_b}" # stderr to console
     # write a backup of the new data file
-    _fun_bak "${write_f_b}"
+    fun_bak "${write_f_b}"
   done
-  : '_wrt_ary ENDS  ' "${fn_bndry}" "${fn_lvl}>$(( --fn_lvl ))"
+  : 'wrt_ary ENDS  ' "${fn_bndry}" "${fn_lvl}>$(( --fn_lvl ))"
 }
 
 
 
 : '<> Debug: "Full xTrace" variables and functions'
 
-#   _xt_hush: If xtrace was previously on, then on first execution
+#   xt_hush: If xtrace was previously on, then on first execution
 # of this function, turn xrtrace off, and on second execution, turn
 # xtrace back on and forget about this function's settings. If xtrace
 # was previously off, then leave it off.
 
-# Error: the variable "$_" should point to _mkv_pre, but instead, its still defined as _xt_hush
-# +[5]gardening.sh(308) <_mk_delt> [4]gardening.sh(326)  >  : _xt_hush
-# +[5]gardening.sh(310) <_mk_delt> [4]gardening.sh(326)  >  _mkv_pre
-# +[6]gardening.sh(247) <_mk_v_se> [5]gardening.sh(310)  >  : _xt_hush BEGINS ' +++ +++ +++ ' '3>4'
+# Error: the variable "$_" should point to mkv_pre, but instead, its still defined as xt_hush
+# +[5]gardening.sh(308) <_mk_delt> [4]gardening.sh(326)  >  : xt_hush
+# +[5]gardening.sh(310) <_mk_delt> [4]gardening.sh(326)  >  mkv_pre
+# +[6]gardening.sh(247) <_mk_v_se> [5]gardening.sh(310)  >  : xt_hush BEGINS ' +++ +++ +++ ' '3>4'
 # +[6]gardening.sh(248) <_mk_v_se> [5]gardening.sh(310)  >  : 'if now file exists'
 # +[6]gardening.sh(249) <_mk_v_se> [5]gardening.sh(310)  >  [[ -n '' ]]
 
 
-function _xt_hush(){ : "$_"'=?"_xt_hush"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
+function xt_hush(){ : "$_"'=?"xt_hush"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
   # If xtrace is on...
   if [[ "$-" =~ x ]]; then
     # ...then record its state
@@ -234,16 +234,16 @@ function _xt_hush(){ : "$_"'=?"_xt_hush"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( 
     # but if xtrace is off and was previously off... -return-.
     fi
   fi
-  : '_xt_hush ENDS  ' "${fn_bndry}" "${fn_lvl}>$(( --fn_lvl ))"
+  : 'xt_hush ENDS  ' "${fn_bndry}" "${fn_lvl}>$(( --fn_lvl ))"
 }
-export -f _xt_hush
-declare -ft _xt_hush
+export -f xt_hush
+declare -ft xt_hush
 
 
 #   Remaining functions: A set of functions for printing changes in
 # shell variables and parameters between each execution of a command;
 # for use when the DEBUG trap is enabled.
-function _mkv_pre(){ : "$_"'=?"_mkv_pre"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
+function mkv_pre(){ : "$_"'=?"mkv_pre"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
   : 'if now-file exists'
   if [[ -v xtr_senv_now ]]; then
     : 'if prev file exists'
@@ -257,13 +257,13 @@ function _mkv_pre(){ : "$_"'=?"_mkv_pre"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( 
     # turn the "now" file into the "prev" file
     xtr_senv_prev="${xtr_senv_now}"
   fi
-  : '_mkv_pre ENDS  ' "${fn_bndry}" "${fn_lvl}>$(( --fn_lvl ))"
+  : 'mkv_pre ENDS  ' "${fn_bndry}" "${fn_lvl}>$(( --fn_lvl ))"
 }
-export -f _mkv_pre
-declare -ft _mkv_pre
+export -f mkv_pre
+declare -ft mkv_pre
 
 
-function _mkv_now(){ : "$_"'=?"_mkv_now"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
+function mkv_now(){ : "$_"'=?"mkv_now"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
   
   # create 'now' file
   xtr_senv_now="$(
@@ -273,13 +273,13 @@ function _mkv_now(){ : "$_"'=?"_mkv_now"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( 
   # output data to new file
   set >> "${xtr_senv_now}" # stderr to term
   env >> "${xtr_senv_now}" # stderr to term
-  : '_mkv_now ENDS  ' "${fn_bndry}" "${fn_lvl}>$(( --fn_lvl ))"
+  : 'mkv_now ENDS  ' "${fn_bndry}" "${fn_lvl}>$(( --fn_lvl ))"
 }
-export -f _mkv_now
-declare -ft _mkv_now
+export -f mkv_now
+declare -ft mkv_now
 
 
-function _mkv_dlt(){ : "$_"'=?"_mkv_dlt"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
+function mkv_dlt(){ : "$_"'=?"mkv_dlt"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
   : 'if now and prev'
   if [[ -n "${xtr_senv_now}" ]] \
     && [[ -v xtr_senv_prev ]];
@@ -317,35 +317,35 @@ function _mkv_dlt(){ : "$_"'=?"_mkv_dlt"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( 
     sudo cat "${xtr_senv_delt}"
   fi
 
-  : '_mkv_dlt ENDS  ' "${fn_bndry}" "${fn_lvl}>$(( --fn_lvl ))"
+  : 'mkv_dlt ENDS  ' "${fn_bndry}" "${fn_lvl}>$(( --fn_lvl ))"
 }
-export -f _mkv_dlt
-declare -ft _mkv_dlt
+export -f mkv_dlt
+declare -ft mkv_dlt
 
 
-function _mk_dlts(){ : "$_"'=?"_mk_dlts"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
+function mk_dlts(){ : "$_"'=?"mk_dlts"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
   
-  # Note: comment out _xt_hush with : -and not #-
-  : _xt_hush
-  _mkv_pre
-  _mkv_now
-  _mkv_dlt
-  : _xt_hush
+  # Note: comment out xt_hush with : -and not #-
+  : xt_hush
+  mkv_pre
+  mkv_now
+  mkv_dlt
+  : xt_hush
   
-  : '_mk_dlts ENDS  ' "${fn_bndry}" "${fn_lvl}>$(( --fn_lvl ))"
+  : 'mk_dlts ENDS  ' "${fn_bndry}" "${fn_lvl}>$(( --fn_lvl ))"
 }
-export -f _mk_dlts
-declare -ft _mk_dlts
+export -f mk_dlts
+declare -ft mk_dlts
 
 
-function _dbg_pmt(){ : '_dbg_pmt BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
+function dbg_pmt(){ : 'dbg_pmt BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
 
-  echo _dbg_pmt  
-  _fun_trc
-  #echo 'ampersand, _dbg_pmt:' "$@"
+  echo dbg_pmt  
+  fun_trc
+  #echo 'ampersand, dbg_pmt:' "$@"
   local hyphen_sav="$-"
   
-  _mk_dlts
+  mk_dlts
   
   : '                                                           ~~~ ~~ ~ PROMPT ~ ~~ ~~~'
   read -rp "R+ [${nBS[1]}:${nBL[0]}]  |  ${BASH_COMMAND}?  |: "$'\n' _
@@ -353,33 +353,33 @@ function _dbg_pmt(){ : '_dbg_pmt BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl )
   
   [[ "${hyphen_sav}" =~ x ]] && set -x
 
-  : '_dbg_pmt ENDS  ' "${fn_bndry}" "${fn_lvl}>$(( --fn_lvl ))"
+  : 'dbg_pmt ENDS  ' "${fn_bndry}" "${fn_lvl}>$(( --fn_lvl ))"
 }
-export -f _dbg_pmt
-declare -ft _dbg_pmt
+export -f dbg_pmt
+declare -ft dbg_pmt
 
 
-# Bug? for the line numbers in _fun_trc to be correct, this trap
+# Bug? for the line numbers in fun_trc to be correct, this trap
 # command must have two separate command parsings on the same line.
 
-# Bug? within trap, the command after _dbg_pmt has line number of 351 [trap(lineno)+1], even though both commands are on line 350.
+# Bug? within trap, the command after dbg_pmt has line number of 351 [trap(lineno)+1], even though both commands are on line 350.
 
-function _xtrace_(){ : "$_"'=?"_xtrace_"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
+function x_trace(){ : "$_"'=?"x_trace"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
   
-  _fun_trc
+  fun_trc
   set -x 16074
   
   # PIUSV = "Prints In Underscore Shell Variable"
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}, 28666"
-  trap 'echo DEBUG trap 30013; _fun_trc; : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}  |  PIUSV"; _dbg_pmt "$_"; : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"' DEBUG
+  trap 'echo DEBUG trap 30013; fun_trc; : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}  |  PIUSV"; dbg_pmt "$_"; : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"' DEBUG
     echo cmd after DEBUG trap, "$LINENO", 5741
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}, 21506"
   
-  : '_xtrace_ ENDS  ' "${fn_bndry}" "${fn_lvl}>$(( --fn_lvl )), 26149"
+  : 'x_trace ENDS  ' "${fn_bndry}" "${fn_lvl}>$(( --fn_lvl )), 26149"
 }
-export -f _xtrace_
-declare -ft _xtrace_
-_fun_trc
+export -f x_trace
+declare -ft x_trace
+fun_trc
 
 
 
@@ -414,7 +414,7 @@ then
 
       # then protect them and add then to an array $xtr_rm_list
       chmod "${verb[@]}" 000 "$f" ||
-	      _erx "${nL}" "$f"
+	      er_x "${nL}" "$f"
       xtr_rm_list+=( "${f}" )
     fi
   done
@@ -424,7 +424,7 @@ fi
 # remove the $xtr_rm_list files all at once
 if [[ -n "${xtr_rm_list[*]:0:1}" ]]; then
   rm -f --one-file-system --preserve-root=all "${verb[@]}" "${xtr_rm_list[@]}" ||
-    _erx "${nL}"
+    er_x "${nL}"
 fi
 unset xtr_rm_list xtr_files
 
@@ -434,7 +434,7 @@ unset xtr_rm_list xtr_files
   #declare -p FUNCNAME BASH_SOURCE LINENO BASH_LINENO 
   #trap 'declare -p FUNCNAME BASH_SOURCE LINENO BASH_LINENO' EXIT
   #caller
-  _xtrace_ 3580
+  x_trace 3580
   : 31722
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   #exit "${nL}"

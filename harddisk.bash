@@ -43,11 +43,11 @@ done
 : 'of curr_time_ssubd'
 if [[ ! -d "${curr_time_ssubd}" ]]; then
   sudo  mkdir -p -- "${curr_time_ssubd}" \
-    || _erx "${nL}"
+    || er_x "${nL}"
 fi
 #set -x; :;: "<>"; sudo namei -xl  -- "${curr_time_ssubd}"
 
 # <>
-#_xtrace_
+#x_trace
 #exit "${nL}"
 

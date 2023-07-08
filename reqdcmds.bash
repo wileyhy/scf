@@ -4,38 +4,62 @@
 
   # <> Obligatory debugging block
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
-  _post_src "${nBS[0]}" "${nL}" "$@"
-  #_xtrace_
-  : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
+  post_src "${nBS[0]}" "${nL}" "$@"
+  #x_trace
+  #: "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   #exit "${nL}"
   #set -x
-  
 
-reqd_cmds=( file        fuser getconf getfacl 
-            mktemp      namei pgrep   realpath 
-            shellcheck  stat  strings sudo 
-          )
-  # <>
-  #reqd_cmds+=( codeblocks  gcc-c++ )
 
-# otherwise, common commands: cat chmod diff env find kill mkdir rev 
-#   rm rsync tee test touch tr unlink ...
 yn=n
+reqd_cmds=( file
+            fuser
+            getconf
+            getfacl
+            mktemp
+            namei
+            pgrep
+            realpath
+            shellcheck
+            stat
+            strings
+            sudo
+          )
+cmn_cmds=(  cat
+            chmo\d
+            diff
+            env
+            fin\d
+            kil\l
+            mkdi\r
+            rev
+	          r\m
+            rsync
+            tee
+            tes\t
+            touch
+            tr
+            unlink
+          ) # backslash escapes for disabling vim colors
 
-builtin hash -r;
-for c in "${reqd_cmds[@]}"
+hash -r
+unset cc type_P_o cmds_list
+
+for cc in "${reqd_cmds[@]}" "${cmn_cmds[@]}"
 do
-  type_P_o="$(builtin type -P "$c" 2>&1)"
+  type_P_o="$(\
+    type -P "$cc" 2>&1
+  )"
   if [[ -n "$type_P_o" ]] &&
     [[ -f "$type_P_o" ]]
   then
-    builtin hash -p "$type_P_o" "$c"
+    hash -p "$type_P_o" "$cc"
   else
     yn=y
-    list+=("$c")
-  fi;
+    cmds_list+=("$cc")
+  fi
 done
-unset c reqd_cmds type_P_o
+unset cc reqd_cmds type_P_o
 
 
 if [[ "$yn" == n ]]
@@ -43,20 +67,21 @@ then
   : 'No additional commands are required'
 else
   printf '\n\t Please install the following commands:\n'
-  printf '\t\t%s\n' "${list[@]}"
+  printf '\t\t%s\n' "${cmds_list[@]}"
   echo
   exit "$nL"
 fi
-unset yn list
+unset yn cmds_list
 
   # <>
   #hash | sort | cat -n
 
   # <> Obligatory debugging block
-  #_xtrace_
+  #x_trace
   : "${nBS[0]}:${nL}"
   #exit "${nL}"
   #set -x
 
+: "Finished $0; exiting at line ${LINENO}"
 return 0
 

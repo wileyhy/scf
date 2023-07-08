@@ -14,7 +14,7 @@ export  x='export'
 readonly x='export'
 
 : 'Functions, variables and umask' 
-function _erx(){ local ec="$?"; echo ERROR: "$@"; exit "$ec"; }
+function er_x(){ local ec="$?"; echo ERROR: "$@"; exit "$ec"; }
 LC_ALL=C  
 unset PATH 
 PATH='/home/liveuser/.local/bin_symlink:/home/liveuser/bin_hardlink:/usr/local/bin_copy-of-inode:/usr/bin:/bin:/usr/local/sbin_dangling_symlink:/usr/sbin'
@@ -34,7 +34,7 @@ shopt -s expand_aliases
 : 'Additions: "shadow" dirs, etc'
 for d in "${files[@]%/*}"; do
   if [[ ! -d "$d" ]]; then
-    sudo mkdir -p ${verb} "$d" || _erx "$nL"
+    sudo mkdir -p ${verb} "$d" || er_x "$nL"
   fi;
 done; unset d
 
@@ -51,31 +51,31 @@ fi
 : 'Additions: "shadow" files, DACs' 
 if [[ ! -f "$exectbl" ]]; then
   printf '\x23\x21/usr/bin/sh\n/bin/echo %s \x22\x24\x40\x22\n' "$x" | 
-    sudo tee "$exectbl" > /dev/null || _erx "$nL"
+    sudo tee "$exectbl" > /dev/null || er_x "$nL"
 fi
 if [[ ! -f "$symlnk" ]]; then
-  sudo ln -s ${verb} "$exectbl" "$symlnk" || _erx "$nL"
+  sudo ln -s ${verb} "$exectbl" "$symlnk" || er_x "$nL"
 fi
 if [[ ! -f "$hrdlnk" ]]; then
-  sudo ln ${verb} "$exectbl" "$hrdlnk" || _erx "$nL"
+  sudo ln ${verb} "$exectbl" "$hrdlnk" || er_x "$nL"
 fi
 if [[ ! -f "$dnglsym" ]]; then
-  sudo cp -b ${verb} "$exectbl" "$deldexec" || _erx "$nL"
-  sudo ln -s ${verb} "$deldexec" "$dnglsym" || _erx "$nL"
+  sudo cp -b ${verb} "$exectbl" "$deldexec" || er_x "$nL"
+  sudo ln -s ${verb} "$deldexec" "$dnglsym" || er_x "$nL"
   sudo rm -f ${verb} --one-file-system --preserve-root=all \
     -- "$deldexec" || 
-    _erx "$nL"
+    er_x "$nL"
 fi; unset 'files[6]'
 if [[ ! -f "$cpinod" ]]; then
   sudo find "${exectbl%/*}" -inum "$(stat -c%i "$exectbl")" \
-    -exec rsync -ac '{}' "$cpinod" \; || _erx "$nL"
+    -exec rsync -ac '{}' "$cpinod" \; || er_x "$nL"
 fi
 
 for f in "${files[@]}" ; do
   [[ -L "$f" ]] && continue
   if [[ -f "$f" ]]; then 
     if ! sudo stat -c%a "$f" | grep -q 755; then
-      sudo chmod ${verb} 755 "$f" || _erx "$nL"
+      sudo chmod ${verb} 755 "$f" || er_x "$nL"
     fi
   fi
 done
@@ -102,7 +102,7 @@ type -a "$x"
 for f in "${files[@]}"; do
   if [[ -f "$f" ]] || [[ -L "$f" ]]; then
     sudo rm -f ${verb} --one-file-system --preserve-root=all -- "$f" || 
-      _erx "$nL"
+      er_x "$nL"
   fi;
 done; unset f
 
@@ -114,7 +114,7 @@ for d in "${files[@]}"; do
         tr -d '\n' |& head -c32)" 
       if [[ -z "$fsobj" ]] && [[ ! -L "$d" ]]; then
         sudo rmdir ${verb} --ignore-fail-on-non-empty -- "$d" || 
-          _erx "$nL"
+          er_x "$nL"
       else
         break
       fi
@@ -128,5 +128,6 @@ unset -f "$x"
 [[ "$(enable -a | grep "$x")" != *-n* ]] && enable -n "$x"
 unalias "$x" 2> /dev/null
 
+echo Script finished\; exiting at line $LINENO
 exit 00
 

@@ -3,8 +3,8 @@
 
 
   # <> Obligatory debugging block
-  _post_src "${nBS[0]}" "${nL}" "$@"
-  #_xtrace_
+  post_src "${nBS[0]}" "${nL}" "$@"
+  #x_trace
   : "${nBS[0]}:${nL} ${nBS[1]}:${nBL[0]}"
   #exit "${nL}"
   #set -x
@@ -69,11 +69,11 @@ for dir in "${bash_path[@]}"; do
     ext_first="${ext_array[0]}"
     [[ -n "${ext_first}" ]] \
       && unset 'ext_array[0]'
-    #_xtrace_
+    #x_trace
     :;: "<>"
     declare -p  ext_array
     ext_last="${ext_array[*]: -1:1}" # [@] or [*] ? SC-2124=w TODO
-    #_xtrace_
+    #x_trace
     :;: "<>"
     declare -p  ext_last
     #exit "${nL}"
@@ -116,7 +116,7 @@ done
 unset fs_root_d full_dir_list ext_array dir sub_dir num_sub_dirs \
   N n extglob_pattern ext_first ext_last getfacl_o grep_o
 # <>
-#_xtrace_
+#x_trace
 #exit "${nL}"
 
 
