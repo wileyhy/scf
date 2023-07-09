@@ -1,0 +1,207 @@
+
+
+	28476
+[38;5;60m     5	:                         "LINENO ${LINENO} :rand.28476:"
+(B[m
+     3	+ : 'LINENO 5 :rand.[01;31m[K28476[m[K:'
+
+
+	7940
+[38;5;60m     7	:                         "LINENO ${LINENO} :rand.7940:" 'Initial value of PS4'
+(B[m
+     4	+ : 'LINENO 7 :rand.[01;31m[K7940[m[K:' 'Initial value of PS4'
+
+
+	27518
+[38;5;60m    11	:                         "LINENO ${LINENO} :rand.27518:"
+(B[m
+     7	+ : 'LINENO 11 :rand.[01;31m[K27518[m[K:'
+
+
+	7156
+[38;5;60m    13	:                         "LINENO ${LINENO} :rand.7156:" 'Verify the value is correct'
+(B[m
+     8	+ : 'LINENO 13 :rand.[01;31m[K7156[m[K:' 'Verify the value is correct'
+
+
+	13239
+[38;5;60m    17	:                         "LINENO ${LINENO} :rand.13239:"
+(B[m
+    12	+ : 'LINENO 17 :rand.[01;31m[K13239[m[K:'
+
+
+	15006
+[38;5;60m    19	:                         "LINENO ${LINENO} :rand.15006:" 'Assigns parameter transformation'
+(B[m
+    13	+ : 'LINENO 19 :rand.[01;31m[K15006[m[K:' 'Assigns parameter transformation'
+
+
+	23445
+[38;5;60m    23	:                         "LINENO ${LINENO} :rand.23445:"
+(B[m
+    15	+ : 'LINENO 23 :rand.[01;31m[K23445[m[K:'
+
+
+	956
+[38;5;60m    25	:                         "LINENO ${LINENO} :rand.956:" 'Resets PS4'
+(B[m
+    16	+ : 'LINENO 25 :rand.[01;31m[K956[m[K:' 'Resets PS4'
+
+
+	19046
+[38;5;60m    29	:                         "LINENO ${LINENO} :rand.19046:"
+(B[m
+    19	+ : 'LINENO 29 :rand.[01;31m[K19046[m[K:'
+
+
+	241
+[38;5;60m    31	:                         "LINENO ${LINENO} :rand.241:" 'Assigns PS4 color codes and a command substitution'
+(B[m
+    20	+ : 'LINENO 31 :rand.[01;31m[K241[m[K:' 'Assigns PS4 color codes and a command substitution'
+
+
+	7001
+[38;5;60m    34	  :; echo                 "LINENO ${LINENO} :rand.7001:" 
+(B[m
+    22	  :; echo                 "LINENO ${LINENO} :rand.[01;31m[K7001[m[K:" 
+    24	[0;104m+ LINENO 38 :rand.[01;31m[K7001[m[K:[m > [0;93m: 'LINENO 37 :rand.21119:'
+    25	[0;104m+ LINENO 40 :rand.[01;31m[K7001[m[K:[m > [0;93m: 'LINENO 39 :rand.4103:' 'Assigns parameter transformation'
+    26	[0;104m+ LINENO 43 :rand.[01;31m[K7001[m[K:[m > [0;93m:
+    27	[0;104m+ LINENO 43 :rand.[01;31m[K7001[m[K:[m > [0;93mecho 'LINENO 42 :rand.[01;31m[K7001[m[K:'
+    28	[0;104m+ LINENO 42 :rand.[01;31m[K7001[m[K:[m > [0;93mPS4='[0;104m+ LINENO 42 :rand.[01;31m[K7001[m[K:[m > [0;93m'
+    29	[0;104m+ LINENO 42 :rand.[01;31m[K7001[m[K:[m > [0;93m: 'LINENO 43 :rand.7926:'
+    30	[0;104m+ LINENO 42 :rand.[01;31m[K7001[m[K:[m > [0;93m: 'LINENO 45 :rand.15207:' 'Resets PS4 to its initial value'
+    31	[0;104m+ LINENO 42 :rand.[01;31m[K7001[m[K:[m > [0;93meval declare -- 'PS4="+' '"'
+    32	[0;104m+ LINENO 42 :rand.[01;31m[K7001[m[K:[m > [0;93mdeclare -- 'PS4=+ '
+
+
+	21119
+[38;5;60m    37	:                         "LINENO ${LINENO} :rand.21119:"
+(B[m
+    24	[0;104m+ LINENO 38 :rand.7001:[m > [0;93m: 'LINENO 37 :rand.[01;31m[K21119[m[K:'
+
+
+	4103
+[38;5;60m    39	:                         "LINENO ${LINENO} :rand.4103:" 'Assigns parameter transformation'
+(B[m
+    25	[0;104m+ LINENO 40 :rand.7001:[m > [0;93m: 'LINENO 39 :rand.[01;31m[K4103[m[K:' 'Assigns parameter transformation'
+
+
+	7926
+[38;5;60m    43	:                         "LINENO ${LINENO} :rand.7926:"
+(B[m
+    29	[0;104m+ LINENO 42 :rand.7001:[m > [0;93m: 'LINENO 43 :rand.[01;31m[K7926[m[K:'
+
+
+	15207
+[38;5;60m    45	:                         "LINENO ${LINENO} :rand.15207:" 'Resets PS4 to its initial value'
+(B[m
+    30	[0;104m+ LINENO 42 :rand.7001:[m > [0;93m: 'LINENO 45 :rand.[01;31m[K15207[m[K:' 'Resets PS4 to its initial value'
+
+
+	23421
+[38;5;60m    49	:                         "LINENO ${LINENO} :rand.23421:"
+(B[m
+    33	+ : 'LINENO 49 :rand.[01;31m[K23421[m[K:'
+
+
+	610
+[38;5;60m    51	:                         "LINENO ${LINENO} :rand.610:" 'A value for PS4 for debugging how xtrace prints line numbers'
+(B[m
+    34	+ : 'LINENO 51 :rand.[01;31m[K610[m[K:' 'A value for PS4 for debugging how xtrace prints line numbers'
+
+
+	30089
+[38;5;60m    54	  :                       "LINENO ${LINENO} :rand.30089: variable line 1"
+(B[m
+    36	  :                       "LINENO ${LINENO} :rand.[01;31m[K30089[m[K: variable line 1"
+    51	  :                       "LINENO ${LINENO} :rand.[01;31m[K30089[m[K: variable line 1"
+    82	declare -- var_line3="LINENO 79 :rand.3793:"[m > [0;93m: 'LINENO 76 :rand.[01;31m[K30089[m[K: variable line 1'
+
+
+	9617
+[38;5;60m    55	  :                       "LINENO ${LINENO} :rand.9617: variable line 2"
+(B[m
+    37	  :                       "LINENO ${LINENO} :rand.[01;31m[K9617[m[K: variable line 2"
+    52	  :                       "LINENO ${LINENO} :rand.[01;31m[K9617[m[K: variable line 2"
+    88	declare -- var_line3="LINENO 80 :rand.3793:"[m > [0;93m: 'LINENO 77 :rand.[01;31m[K9617[m[K: variable line 2'
+
+
+	3793
+[38;5;60m    56	  :; printf -v var_line3  "LINENO ${LINENO} :rand.3793:" 
+(B[m
+    38	  :; printf -v var_line3  "LINENO ${LINENO} :rand.[01;31m[K3793[m[K:" 
+    53	  :; printf -v var_line3  "LINENO ${LINENO} :rand.[01;31m[K3793[m[K:" 
+    64	declare -- var_line3="LINENO 74 :rand.[01;31m[K3793[m[K:"[m > [0;93m: 'LINENO 71 :rand.14061:'
+    70	declare -- var_line3="LINENO 76 :rand.[01;31m[K3793[m[K:"[m > [0;93m: 'LINENO 73 :rand.4944:' 'If there was a variable value previously assigned to PS4, then this assignment syntax, of a parameter transformation, also prints the commands within the PS4 variable in the script-commands space of the xtrace output.'
+    76	declare -- var_line3="LINENO 78 :rand.[01;31m[K3793[m[K:"[m > [0;93m:
+    82	declare -- var_line3="LINENO 79 :rand.[01;31m[K3793[m[K:"[m > [0;93m: 'LINENO 76 :rand.30089: variable line 1'
+    88	declare -- var_line3="LINENO 80 :rand.[01;31m[K3793[m[K:"[m > [0;93m: 'LINENO 77 :rand.9617: variable line 2'
+    94	declare -- var_line3="LINENO 81 :rand.[01;31m[K3793[m[K:"[m > [0;93m:
+   100	declare -- var_line3="LINENO 81 :rand.[01;31m[K3793[m[K:"[m > [0;93mprintf -v var_line3 'LINENO 78 :rand.[01;31m[K3793[m[K:'
+   106	declare -- var_line3="LINENO 83 :rand.[01;31m[K3793[m[K:"[m > [0;93mdeclare -p FUNCNAME LINENO BASH_LINENO BASH_SOURCE var_line3 random_no
+   113	declare -- var_line3="LINENO 85 :rand.[01;31m[K3793[m[K:"[m > [0;93m: 'LINENO 82 :rand.25178: variable line 4'
+   119	declare -- var_line3="LINENO 78 :rand.[01;31m[K3793[m[K:"[m > [0;93mprintf -v PS4 'LINENO 75 :rand.3692 : [0;104m+ declare -a FUNCNAME
+   123	declare -- var_line3="LINENO 78 :rand.[01;31m[K3793[m[K:"[m > [0;93m'
+   128	declare -- var_line3="LINENO 78 :rand.[01;31m[K3793[m[K:"[m > [0;93m: 'LINENO 77 :rand.20491:'
+
+
+	25178
+[38;5;60m    60	  :                       "LINENO ${LINENO} :rand.25178: variable line 4"
+(B[m
+    42	  :                       "LINENO ${LINENO} :rand.[01;31m[K25178[m[K: variable line 4"
+    57	  :                       "LINENO ${LINENO} :rand.[01;31m[K25178[m[K: variable line 4"
+   113	declare -- var_line3="LINENO 85 :rand.3793:"[m > [0;93m: 'LINENO 82 :rand.[01;31m[K25178[m[K: variable line 4'
+
+
+	21232
+[38;5;60m    63	:                       "LINENO ${LINENO} :rand.21232:"
+(B[m
+    44	+ : 'LINENO 63 :rand.[01;31m[K21232[m[K:'
+
+
+	8329
+[38;5;60m    65	:                       "LINENO ${LINENO} :rand.8329:" 'Commands within PS4 variable are printed in the PS4 space'
+(B[m
+    45	+ : 'LINENO 65 :rand.[01;31m[K8329[m[K:' 'Commands within PS4 variable are printed in the PS4 space'
+
+
+	14581
+[38;5;60m    69	:; PS4="$(tput setaf 12) LINENO ${LINENO} :rand.14581: ${var_ps4}"
+(B[m
+    50	+ PS4='[94m LINENO 69 :rand.[01;31m[K14581[m[K: [0;104m+ $( 
+    60	[94m LINENO 69 :rand.[01;31m[K14581[m[K: [0;104m+ declare -a FUNCNAME
+    66	[94m LINENO 69 :rand.[01;31m[K14581[m[K: [0;104m+ declare -a FUNCNAME
+    72	[94m LINENO 69 :rand.[01;31m[K14581[m[K: [0;104m+ declare -a FUNCNAME
+    78	[94m LINENO 69 :rand.[01;31m[K14581[m[K: [0;104m+ declare -a FUNCNAME
+    84	[94m LINENO 69 :rand.[01;31m[K14581[m[K: [0;104m+ declare -a FUNCNAME
+    90	[94m LINENO 69 :rand.[01;31m[K14581[m[K: [0;104m+ declare -a FUNCNAME
+    96	[94m LINENO 69 :rand.[01;31m[K14581[m[K: [0;104m+ declare -a FUNCNAME
+   102	[94m LINENO 69 :rand.[01;31m[K14581[m[K: [0;104m+ declare -a FUNCNAME
+   109	[94m LINENO 69 :rand.[01;31m[K14581[m[K: [0;104m+ declare -a FUNCNAME
+   115	[94m LINENO 69 :rand.[01;31m[K14581[m[K: [0;104m+ declare -a FUNCNAME
+
+
+	14061
+[38;5;60m    71	:                       "LINENO ${LINENO} :rand.14061:"
+(B[m
+    64	declare -- var_line3="LINENO 74 :rand.3793:"[m > [0;93m: 'LINENO 71 :rand.[01;31m[K14061[m[K:'
+
+
+	4944
+[38;5;60m    73	:                       "LINENO ${LINENO} :rand.4944:" 'If there was a variable value previously assigned to PS4, then this assignment syntax, of a parameter transformation, also prints the commands within the PS4 variable in the script-commands space of the xtrace output.' 
+(B[m
+    70	declare -- var_line3="LINENO 76 :rand.3793:"[m > [0;93m: 'LINENO 73 :rand.[01;31m[K4944[m[K:' 'If there was a variable value previously assigned to PS4, then this assignment syntax, of a parameter transformation, also prints the commands within the PS4 variable in the script-commands space of the xtrace output.'
+
+
+	3692 
+[38;5;60m    75	:; printf -v PS4        "LINENO ${LINENO} :rand.3692 : ${var_ps4@P}"
+(B[m
+   119	declare -- var_line3="LINENO 78 :rand.3793:"[m > [0;93mprintf -v PS4 'LINENO 75 :rand.[01;31m[K3692 [m[K: [0;104m+ declare -a FUNCNAME
+   124	LINENO 75 :rand.[01;31m[K3692 [m[K: [0;104m+ declare -a FUNCNAME
+
+
+	20491
+[38;5;60m    77	:                       "LINENO ${LINENO} :rand.20491:" 
+(B[m
+   128	declare -- var_line3="LINENO 78 :rand.3793:"[m > [0;93m: 'LINENO 77 :rand.[01;31m[K20491[m[K:'

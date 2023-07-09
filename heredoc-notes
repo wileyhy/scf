@@ -1,0 +1,42 @@
+
+
+LINENO's
+
+heredoc.bash  heredoc.out         heredoc.bash    random number       heredoc.out     correct(y|n)
+    random number         heredoc.out     heredoc.bash    random number 
+
+4	  28476     1                            
+6	  7940      2                      
+10	27518     5                       
+12	7156      6                      
+16	13239     10                       
+18	15006     11                       
+22	23445     13                       
+24	956       14                     
+28	19046     17                       
+30	241       18                     
+33	7001      20                      
+36	21119                            
+38	4103                            
+42	7926                            
+44	15207                            
+48	23421                            
+50	610                            
+53	30089                            
+54	9617                            
+55	3793                            
+59	25178                            
+62	21232                            
+64	8329                            
+68	14581                            
+70	14061                            
+72	4944                            
+74	3692                             
+76	20491                            
+EOF
+
+
+mapfile -t randos < <( cat -n heredoc.bash | grep -Fe':' | cut -d':' -f1,3 | cut -d'.' -f2 )
+unset 'randos[4]'
+reset; for r in "${randos[@]}"; do unset cat_1 cat_2; printf '\n\n\t%s\n' "$r"; printf -v cat_1 '%b' "$( tput setaf 60; cat -n ./heredoc.bash |& grep "$r" ; tput sgr0)"; printf -v cat_2 '%b' "$( ./heredoc.bash |& cat -n |& grep --color=always "$r" )"; if [[ -n "$cat_1" ]] && [[ "$cat_2" ]]; then printf '%s\n' "$cat_1" "$cat_2"; fi; done
+

@@ -3,6 +3,8 @@
 # test-shadows.bash - bash 5.2
 #   hellcheck disable=SC2317,SC2096,SC2154,SC2086
 
+# "That is, making sure none are missing is the challenging part, weeding out fakes is simple." - kre
+
 : 'Regular users only, and -sudo- required' 
 if [[ "$UID" == 0 ]]; then echo May not be root.; exit 1
   elif ! sudo -v; then echo sudo failed.; exit 2
