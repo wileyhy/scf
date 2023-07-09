@@ -46,12 +46,13 @@ unset     LC_ALL ||
 readonly  LC_ALL
 export    LC_ALL
 
+unset CDPATH
+
 # for predictable sorting
 LC_COLLATE="C.UTF-8" LC_CTYPE="C.UTF-8"             export LC_COLLATE LC_CTYPE
+
 # for commas in large numbers
 LC_NUMERIC="en_US.UTF-8"                            export LC_NUMERIC
-
-unset CDPATH
 GREP_COLORS='mt=01;43'                              export GREP_COLORS
 
 rand_i="${RANDOM}"                                  export rand_i
@@ -59,21 +60,39 @@ rand_uniq_str="${scr_repo_nm}.${$}.${rand_i}"       export rand_uniq_str
 rand_lock_nm="${rand_uniq_str}.lock.d"              export rand_lock_nm
 rand_f_nm="${rand_uniq_str:?}.xtr"                  export rand_f_nm
 
-# Whether to remove the stale locks and log files
-if [[ "$*" =~ rm_stale ]]
-then
-  unset x
-  rm_stale=y                                        export rm_stale
+# TODO: move this block to cli-opts.bash
 
-  while read -rd '' pp
+# Whether to remove the stale locks and log files
+unset rm_stale new_ampersand pos_param
+rm_stale=n                                          export rm_stale
+
+if [[ $* =~ '--rm-stale'  ]]
+then
+  
+  # set flag
+  rm_stale=y
+
+  # re-assign the remaining positional parameters
+  while read -rd '' pos_param
   do
-    array+=( "$pp" )                                export array
+    new_ampersand+=( "${pos_param}" )
   done < <(
-    printf '%s\0' "$@" |
-      grep -vz rm_stale
+    printf '%s\0' "$@" | 
+      grep -Fvz -e '--rm-stale'
     )
 fi
+set -- "${new_ampersand[@]}"
+unset new_ampersand pos_param
 
+  # <>
+  #unset ii pp
+  #ii=0
+  #for pp
+  #do
+    #printf '%d: <%s>\n' $(( ++ii )) "$pp"
+  #done
+  #unset ii pp
+  #exit "${nL}"
 
 function er_x(){ :
   local exit_code="$?"
@@ -85,7 +104,7 @@ function er_x(){ :
 export  -f  er_x
 declare -ft er_x
 
-# 'exit' function: name is intended, at global scope, to supercede builtin
+# Note: 'exit' function: name is intended, at global scope, to supercede builtin
 function exit(){ : "$_"'=?"exit"' 'BEGINS' "${fn_bndry}" "${fn_lvl}>$(( ++fn_lvl ))"
   unset PS4
   printf '%b' '\033[m' # POSIX according to some stack exchange page
@@ -98,19 +117,19 @@ declare -ft exit
 
 # Sub-scripts
 # Note: Exit traps don't print accurate trace data in PS4; so use a function
+unset verb
 verb=()
+export verb
 
 # Processes positional parameters as they were passed to source
 function post_src(){ :
   # enable "verbose commands"
   if [[ "$6" == y ]]
   then
-    declare -I  verb=(-v --)
-    export      verb
+    declare -I  verb=( [0]='-v' [1]='--' )
   # otherwise, neutralize the unused "verbose commands" syntax
   else
-    declare -I  verb=(--)
-    export      verb
+    declare -I  verb=( [0]='--' )
   fi
 
   # enable xtrace
@@ -151,10 +170,10 @@ declare -ft post_src
  : "${nBS[0]}:${nL}"; : 'ID and sudo'       ;  . './id_sudov.bash'   "${nL}"   n n n; #exit "$nL"
 # So PS4 is on whenever xtrace is on, and DEBUG trap is always on once defined: 2023-06-18 0840
  : "${nBS[0]}:${nL}"; : 'Enable debugging'  ;  . './gardning.bash'   "${nL}"   n y y;  exit "$nL"
- : "${nBS[0]}:${nL}"; : 'Locks'             ;  . './lock-fds.bash'   "${nL}"   y y y;  exit "$nL"
  : "${nBS[0]}:${nL}"; : 'Verify DACs'       ;  . './dacs-ver.bash'   "${nL}"   y y y;  exit "$nL"
  : "${nBS[0]}:${nL}"; : 'Verify ACLs'       ;  . './acls-ver.bash'   "${nL}"   y y y;  exit "$nL"
  : "${nBS[0]}:${nL}"; : 'Option Parsing'    ;  . './cli-opts.bash'   "${nL}"   y y y;  exit "$nL"
+ : "${nBS[0]}:${nL}"; : 'Locks'             ;  . './lock-fds.bash'   "${nL}"   y y y;  exit "$nL"
  : "${nBS[0]}:${nL}"; : 'Storing findings'  ;  . './harddisk.bash'   "${nL}"   y y y;  exit "$nL"
 #   ^--Purpose                                 ^--dot        nameref--^ xtrace---^     ^--die
 #                                                   ^--filename          exit--^   ^--verbose

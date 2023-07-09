@@ -2,6 +2,8 @@
 # shellcheck shell=bash
 
 
+# TODO: add '--rm-stale' option
+
   # <> Obligatory debugging block
   post_src "${nBS[0]}" "${nL}" "$@"
   #x_trace

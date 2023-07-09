@@ -96,7 +96,7 @@ verify_path(){ :
   do
     if [[ ${path_2[*]} =~ ${path_1[pp]} ]]
     then
-      unset 'path_1[p]'
+      unset 'path_1[pp]'
     else
       path_2+=( "${path_1[pp]}" )
     fi

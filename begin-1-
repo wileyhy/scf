@@ -1,23 +1,40 @@
 #!/bin/env bash
 # begin-1-
 
+set -aCuTexo pipefail
+
 ## Notes
 ###   Online Git Pro book:
 ###     https://git-scm.com/book/en/v2/Git-Basics-Recording-Changes-to-the-Repository
 
-
 # Write to TTY
-printf '%s - Executing %s: \n' "$(date +%H:%M:%S)" "$0" 
+printf '%s - Executing %s: \n' "$(date +%H:%M:%S)" "$0"
 
-# Output all xtrace to file
-#   https://serverfault.com/questions/103501/how-can-i-fully-log-all-bash-scripts-actions
-exec 3>&1 4>&2
-trap 'set -; exec 2>&4 1>&3' EXIT HUP INT QUIT USR2 TERM
-exec 1> log_begin-1.txt 2>&1
-set -x
+  # <> Output all xtrace to file
+  #   https://serverfault.com/questions/103501/how-can-i-fully-log-all-bash-scripts-actions
+  #exec 3>&1 4>&2
+  #trap 'set -; exec 2>&4 1>&3' EXIT HUP INT QUIT USR2 TERM
+  #exec 1> ./Log_begin-1.txt 2>&1
+  set -x
 
 # Vars, etc
-declare -n nL=LINENO
+declare -n  nL=LINENO
+export      nL LINENO
+: "${PROMPT_COMMAND:=__vte_prompt_command}"
+declare -n  nPC=PROMPT_COMMAND
+export      nPC PROMPT_COMMAND
+
+# re `set -u`
+#   /etc/bashrc
+BASHRCSOURCED='' export BASHRCSOURCED
+PS1='' export PS1
+
+#   /etc/profile.d/colorls.sh
+USER_LS_COLORS='' export USER_LS_COLORS
+
+#   /etc/profile.d/lang.sh
+LC_ALL='' export LC_ALL
+
 dns_srv_1=8.8.8.8
 dns_srv_2=75.75.75.75
 
@@ -27,8 +44,8 @@ er_x(){
   echo -e Error: "$@" >&2
   exit "${exit_code}"
 }
-export -f er_x 
-declare -ft er_x 
+export -f er_x
+declare -ft er_x
 
 # Regular users only
 if [[ "${UID}" == 0 ]]
@@ -51,12 +68,12 @@ if ! test_dns "${dns_srv_1}" ||
   ! test_dns "${dns_srv_2}"
 then
   printf '\n\tAttempting to connect...\n\n'
-  
+
   # this command appears to be idempotent
   sudo systemctl start NetworkManager.service
   wait -f
   sleep 15
-  
+
   if ! test_dns "${dns_srv_1}" ||
     ! test_dns "${dns_srv_2}"
   then
@@ -75,64 +92,138 @@ sudo chronyc makestep > /dev/null
 # Bash
 ## .bashrc
 umask 071 # for bashrc specifically
-unset "${!bashrc_str_@}" files f s 
+unset "${!bashrc_str_@}" files ff ss oldPromptCmd bashrc_strings
+unset -f prompt_cmd_fn
 
-# shellcheck disable=SC2016 #(info): Expressions don't expand in single quotes, use double quotes for that.
-bashrc_str_1='EDITOR=/usr/bin/vim ;' 
-bashrc_str_2='BROWSER=/usr/bin/firefox ;' 
-bashrc_str_3='function rm(){ [[ $* -gt 0 ]] || return 1; local Dd ; Dd=~/rm\.d ; [[ ! -e "$Dd" ]] && mkdir -v "$Dd" ; mv -bnv --strip-trailing-slashes --suffix=$( date +%s ) -- "$@" "$Dd" ; } ;'
+  # <>
+  declare -p nPC PROMPT_COMMAND
+  #exit "${nL}"
+
+# If PROMPT_COMMAND doesn't exist, or if PROMPT_COMMAND exists and is an array...
+# shellcheck disable=SC2128
+if [[ -z "${!nPC}" ]] ||
+  declare -p nPC |
+  awk '$2 !~ /a/{ec=0} /^Match/{exit} END{exit !ec}'
+
+  # ...then create an array, or append a command to the end of the existing array, resetting
+  #+ terminal colors...
+  then
+    nPC+=( "printf %b '\033[m'" )
+
+# ...otherwise it's a string. If there's just one command therein, (ie, only one [and prior
+#+ known] value... or if PROMPT_COMMAND doesn't contain any newlines,
+#+ semicolons or line continuations...)
+elif [[ ${!nPC} == __vte_prompt_command ]] ||
+  ! [[ "$( declare -p "${nPC}" )" =~ (\\n|;|\\\n) ]]
+
+  # ...then the contents of PROMPT_COMMAND as one string, consisting
+  #+ of one command, can be added as-is into a index-value of an array.
+  #+ So let's define that value in the variable oldPromptCmd.
+  then
+    oldPromptCmd="$(
+      printf '%s\n' "$nPC"
+    )"
+
+# ...otherwise, there are likely multiple commands within the string
+#+ formerly known as PROMPT_COMMAND, so redefine all of them together
+#+ as one function, storing that function also in the varaible
+#+ oldPromptCmd.
+else
+  eval "$(
+    printf 'function prompt_cmd_fn(){\n  %b\n}\n' "$nPC"
+  )"
+  export -f prompt_cmd_fn
+  oldPromptCmd="$(
+    declare -F prompt_cmd_fn
+  )"
+fi
+
+# ...lastly redefine PROMPT_COMMAND to include that new function
+#+ as ell as our additional command for resetting terminal colors.
+if [[ -n "${oldPromptCmd}" ]]
+then
+  export oldPromptCmd
+  unset -v nPC
+  nPC=( [0]="${oldPromptCmd}" [1]="printf %b '\033[m'" )
+elif [[ -z "$( printf '%s' "${!nPC}" )" ]]
+  then
+    nPC=( "printf %b '\033[m'" )
+    er_x "${nL}: PROMPT_COMMAND should have been defined already"
+fi
+unset -n nPC
+export PROMPT_COMMAND
+
+# shellcheck disable=SC2034,SC2034,SC2016
+declare -A bashrc_strings
+bashrc_strings=(
+  [$'# EDITOR']=$'EDITOR=/usr/bin/vim\n'
+  [$'# BROWSER']=$'BROWSER=/usr/bin/firefox\n'
+  [$'# function rm']=$'rm(){\n  [[ "$#@" -eq 0 ]] &&\n    return 1;\n  local Dd;\n  Dd=~/rm.d;\n  if ! [[ -e "$Dd" ]];\n  then\n    mkdir -m 0700 -v "$Dd" ||\n      return 2;\n  fi;\n  mv -nv --strip-trailing-slashes --suffix="$( date +%s )" -- "$@" "$Dd" ||\n    return 3;\n}\n'
+  [$'# PROMPT_COMMAND']="$( declare -p PROMPT_COMMAND )"$'\n'
+)
+
+unset files ff ss
 files=(/root/.bashrc /home/*/.bashrc)
 
-for f in "${files[@]}"
+for ff in "${files[@]}"
 do
-  for s in "$bashrc_str_1" "$bashrc_str_2" "$bashrc_str_3"
+  # see `man bash`, Parameter Expansions
+  for ss in "${!bashrc_strings[@]}"
   do
-    if ! sudo grep -q -- "${s}" "${f}"
+    if ! sudo grep -qe "${ss}" -- "${ff}"
     then
 
       # these commands appear to be idempotent
-      sudo cp -a -- "${f}" "${f}~" ||
-        er_x $LINENO
+      sudo cp -a -- "${ff}" "${ff}~" ||
+        er_x "${LINENO}"
       {
-        printf '%s\n' "${s}" |
-          sudo tee -a -- "${f}" > /dev/null
+        printf '%s\n%s\n' "${ss}" "${bashrc_strings[$ss]}" |
+          sudo tee -a -- "${ff}" > /dev/null
       } ||
         er_x $LINENO
     fi
   done
 done
-unset "${!bashrc_str_@}" files f s
+unset "${!bashrc_str_@}" files ff ss
 
 # shellcheck source=/home/liveuser/.bashrc
 source ~/.bashrc
 
 # Vim
-wc_out="$(\
+wc_out="$(
   sudo wc /root/.vimrc 2>&1
   )"
 if [[ "${wc_out}" != '11  42 346 /root/.vimrc' ]]
 then
   umask 177 # for vimrc specifically
-  tmpf="$(mktemp 2>&1)"
-  cat <<- EOF > "${tmpf}"
-  " per google:
-  set number
+  tmpf="$(
+    mktemp 2>&1 ||
+      er_x "${LINENO}"
+  )"
+  if ! [[ -s "${tmpf}" ]]
+  then
+    cat <<- EOF >> "${tmpf}"
+    " per google:
+    set number
 
-  " per https://stackoverflow.com/questions/234564/tab-key-4-spaces-and-auto-indent-after-curly-braces-in-vim
-  filetype plugin indent on
-  " show existing tab with 2 spaces width
-  set tabstop=2
-  " when indenting with '>', use 2 spaces width
-  set shiftwidth=2
-  " On pressing tab, insert 2 spaces
-  set expandtab
+    " per https://stackoverflow.com/questions/234564/tab-key-4-spaces-and-auto-indent-after-curly-braces-in-vim
+    filetype plugin indent on
+    " show existing tab with 2 spaces width
+    set tabstop=2
+    " when indenting with '>', use 2 spaces width
+    set shiftwidth=2
+    " On pressing tab, insert 2 spaces
+    set expandtab
 EOF
-  
-  # shellcheck disable=SC2024
-  sudo tee /root/.vimrc < "${tmpf}" > /dev/null
-  rm -f -- "${tmpf}" ||
-    er_x "${nL}" 
-  unset tmpf
+
+    # shellcheck disable=SC2024
+    sudo tee /root/.vimrc < "${tmpf}" > /dev/null
+    rm -f -- "${tmpf}" ||
+      er_x "${nL}"
+    unset tmpf
+  else
+    er_x "${LINENO}: file size cannot be zero"
+  fi
 fi
 unset wc_out
 
@@ -159,8 +250,7 @@ sudo dnf -qy install \
     ${for_firefox:-}    mozilla-noscript mozilla-privacy-badger \
                           mozilla-https-everywhere \
     ${for_unicode:-}    xterm ||
-  er_x "${nL}" 
-
+  er_x "${nL}"
 
   #$for_gcov           gcc \
   #$for_internet       lynx chromium \
@@ -171,14 +261,13 @@ sudo dnf -qy install \
   #                      fatrace apitrace x11trace memstrack kernelshark
 
 sudo dnf -qy upgrade bash bash-completion ||
-  er_x "${nL}" 
+  er_x "${nL}"
 sudo dnf -qy --security upgrade ||
-  er_x "${nL}" 
+  er_x "${nL}"
 
   # <>
   #exit "${nL}"
   #set -x
-
 
 # Restart any processes that may need to be restarted
 
@@ -191,7 +280,7 @@ export a_pids
 function get_pids(){ :
   local dnf_o
   local -I a_pids
-  dnf_o="$(sudo dnf needs-restarting 2>&1 || 
+  dnf_o="$(sudo dnf needs-restarting 2>&1 ||
     er_x "${nL}")"
   mapfile -t a_pids < <(
     awk '{ print $1 }' <<< "${dnf_o}" |
@@ -335,8 +424,6 @@ unset p s a_pids
   #exit "${nL}"
   #set -x
 
-
-
 if [[ -n "${a_pids[*]:0:8}" ]]
 then
   n="${#a_pids[@]}"
@@ -350,11 +437,10 @@ then
   fi
 fi
 
-
 if ! ping -4qc1 8.8.8.8 2> /dev/null >&2
 then
   sudo systemctl restart NetworkManager.service ||
-    er_x "${nL}" 
+    er_x "${nL}"
 fi
 
 # Write to TTY and exit
