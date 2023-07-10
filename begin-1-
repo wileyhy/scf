@@ -1,7 +1,7 @@
 #!/bin/env bash
 # begin-1-
 
-set -aCuTexo pipefail
+set -aCuTeo pipefail
 
 ## Notes
 ###   Online Git Pro book:
@@ -15,7 +15,7 @@ printf '%s - Executing %s: \n' "$(date +%H:%M:%S)" "$0"
   #exec 3>&1 4>&2
   #trap 'set -; exec 2>&4 1>&3' EXIT HUP INT QUIT USR2 TERM
   #exec 1> ./Log_begin-1.txt 2>&1
-  set -x
+  #set -x
 
 # Vars, etc
 declare -n  nL=LINENO
@@ -95,15 +95,41 @@ umask 071 # for bashrc specifically
 unset "${!bashrc_str_@}" files ff ss oldPromptCmd bashrc_strings
 unset -f prompt_cmd_fn
 
+# Fedora 38, Sun 09 July 2023
+function __vte_osc7 ()
+{
+    printf "\033]7;file://%s%s\033\\" "${HOSTNAME}" "$(/usr/libexec/vte-urlencode-cwd)"
+}
+
+function __vte_prompt_command ()
+{
+    local command=$(HISTTIMEFORMAT= history 1 | sed 's/^ *[0-9]\+ *//')
+    command="${command//;/ }"
+    local pwd=~
+    [ "$PWD" != "$HOME" ] && pwd=${PWD/#$HOME\//\~\/}
+    pwd="${pwd//[[:cntrl:]]}"
+    printf '\033]777;notify;Command completed;%s\033\\\033]777;precmd\033\\\033]0;%s@%s:%s\033\\' "${command}" "${USER}" "${HOSTNAME%%.*}" "${pwd}"
+    __vte_osc7
+}
+
   # <>
-  declare -p nPC PROMPT_COMMAND
+  #declare -p nPC PROMPT_COMMAND
+  #declare -fp "${PROMPT_COMMAND}" # how can bash not know the definition of __vte_prompt_command ?
   #exit "${nL}"
+
+# Add some trailing newlines if there isn't one already
+lineno_minus1_bashrc="$( cat -Ae ~/.bashrc | tail -n1 )"
+if [[ ${#lineno_minus1_bashrc} -ne 1 ]] ||
+  ! [[ ${lineno_minus1_bashrc} =~ ^\$$ ]]
+then
+  printf '\n\n' >> ~/.bashrc
+fi
 
 # If PROMPT_COMMAND doesn't exist, or if PROMPT_COMMAND exists and is an array...
 # shellcheck disable=SC2128
 if [[ -z "${!nPC}" ]] ||
   declare -p nPC |
-  awk '$2 !~ /a/{ec=0} /^Match/{exit} END{exit !ec}'
+    awk '$2 !~ /a/{ec=0} /^Match/{exit} END{exit !ec}'
 
   # ...then create an array, or append a command to the end of the existing array, resetting
   #+ terminal colors...
@@ -114,7 +140,7 @@ if [[ -z "${!nPC}" ]] ||
 #+ known] value... or if PROMPT_COMMAND doesn't contain any newlines,
 #+ semicolons or line continuations...)
 elif [[ ${!nPC} == __vte_prompt_command ]] ||
-  ! [[ "$( declare -p "${nPC}" )" =~ (\\n|;|\\\n) ]]
+  ! [[ "$( { declare -p "${nPC}"; declare -pf "${nPC}";} 2> /dev/null )" =~ (\\n|;|\\\n) ]]
 
   # ...then the contents of PROMPT_COMMAND as one string, consisting
   #+ of one command, can be added as-is into a index-value of an array.
@@ -139,7 +165,7 @@ else
 fi
 
 # ...lastly redefine PROMPT_COMMAND to include that new function
-#+ as ell as our additional command for resetting terminal colors.
+#+ as well as our additional command for resetting terminal colors.
 if [[ -n "${oldPromptCmd}" ]]
 then
   export oldPromptCmd
@@ -158,7 +184,7 @@ declare -A bashrc_strings
 bashrc_strings=(
   [$'# EDITOR']=$'EDITOR=/usr/bin/vim\n'
   [$'# BROWSER']=$'BROWSER=/usr/bin/firefox\n'
-  [$'# function rm']=$'rm(){\n  [[ "$#@" -eq 0 ]] &&\n    return 1;\n  local Dd;\n  Dd=~/rm.d;\n  if ! [[ -e "$Dd" ]];\n  then\n    mkdir -m 0700 -v "$Dd" ||\n      return 2;\n  fi;\n  mv -nv --strip-trailing-slashes --suffix="$( date +%s )" -- "$@" "$Dd" ||\n    return 3;\n}\n'
+  [$'# function rm']=$'function rm(){ :;\n  [[ "${#@}" -eq 0 ]] &&\n    return 1;\n\n  local delete_d;\n  delete_d=~/rm.d export delete_d;\n\n  if ! [[ -e "${delete_d}" ]];\n  then\n    mkdir -m 0700 -v "${delete_d}" ||\n      return 2;\n  fi;\n\n  local fd;\n  fd= export fd;\n  local time_sxx;\n  time_sfx="$( date +%s )" export time_sfx;\n\n  for fd;\n  do\n    if [[ -e ${fd} ]];\n    then command mv -b --strip-trailing-slashes --suffix="${time_sfx}" -- "${fd}" "${delete_d}" ||\n      return 3;\n    fi;\n  done;\n};\n'
   [$'# PROMPT_COMMAND']="$( declare -p PROMPT_COMMAND )"$'\n'
 )
 
@@ -190,10 +216,20 @@ unset "${!bashrc_str_@}" files ff ss
 source ~/.bashrc
 
 # Vim
-wc_out="$(
-  sudo wc /root/.vimrc 2>&1
-  )"
-if [[ "${wc_out}" != '11  42 346 /root/.vimrc' ]]
+vim_skip=n export vim_skip
+
+if [[ -f /root/.vimrc ]]
+then
+  wc_out="$(
+    sudo wc /root/.vimrc 2>&1
+    )"
+  if [[ "${wc_out}" != '11  42 346 /root/.vimrc' ]]
+  then
+    vim_skip=y
+  fi
+fi
+
+if [[ ${vim_skip} == n ]]
 then
   umask 177 # for vimrc specifically
   tmpf="$(
@@ -239,31 +275,55 @@ chmod 0400 "/home/${USER}/.vimrc"
 # Dnf
 #   Note: the parameters are for organization
 #   shellcheck disable=SC2086 #(info): Double quote to prevent globbin...
-sudo dnf -qy install \
-    ${for_fun:-}        angband \
-    ${for_git:-}        git gh \
-    ${for_bashdb:-}     bash-devel make autoconf \
-    ${for_linting:-}    ShellCheck kcov shfmt patch strace ltrace \
-    ${for_duh:-}        info ncdu \
-    ${for_strings:-}    binutils \
-    ${for_lockfile:-}   procmail \
-    ${for_firefox:-}    mozilla-noscript mozilla-privacy-badger \
-                          mozilla-https-everywhere \
-    ${for_unicode:-}    xterm ||
-  er_x "${nL}"
+unset rpms rr
+rpms=(
+    ${for_fun:-}          angband
+    ${for_git:-}          git gh
+    ${for_bashdb:-}       bash-devel make autoconf
+    ${for_linting:-}      ShellCheck kcov shfmt patch strace ltrace
+    ${for_duh:-}          info ncdu
+    ${for_strings:-}      binutils
+    ${for_lockfile:-}     procmail
+    ${for_firefox:-}      mozilla-noscript mozilla-privacy-badger
+                            mozilla-https-everywhere
+    ${for_bugNoTerm:-}    gnome-terminal
+    ${for_unicode:-}      xterm rxvt-unicode perl-Text-Bidi-urxvt
 
-  #$for_gcov           gcc \
-  #$for_internet       lynx chromium \
-  #$for_db             libreoffice-calc \
-  #$for_os_dnlds       debian-keyring \
-  #$for_hollywood      git-fame # 🙄
-  #$for_later_maybe    memstomp bpftrace gdb valgrind python3-ptrace \
-  #                      fatrace apitrace x11trace memstrack kernelshark
+    #${for_gcov:-}         gcc
+    #${for_internet:-}     lynx chromium
+    #${for_db:-}           libreoffice-calc
+    #${for_os_dnlds:-}     debian-keyring
+    #${for_hollywood:-}    git-fame # 🙄
+    #${for_later_maybe:-}  memstomp bpftrace gdb valgrind python3-ptrace
+    #                        fatrace apitrace x11trace memstrack kernelshark
+)
+export rpms
 
+  # <>
+  #declare -p rpms
+
+for rr in "${!rpms[@]}"
+do
+  if rpm -q --quiet "${rpms[$rr]}"
+  then
+    unset 'rpms[$rr]'
+  fi
+done
+
+  # <>
+  #declare -p rpms
+  #exit "${nL}"
+
+if [[ -n "${rpms[*]:0:8}" ]]
+then
+  sudo dnf -qy install "${rpms[@]}" ||
+    er_x "${nL}"
+fi
 sudo dnf -qy upgrade bash bash-completion ||
   er_x "${nL}"
 sudo dnf -qy --security upgrade ||
   er_x "${nL}"
+unset rr rpms
 
   # <>
   #exit "${nL}"
@@ -271,21 +331,40 @@ sudo dnf -qy --security upgrade ||
 
 # Restart any processes that may need to be restarted
 
-# Let the previous DNF processes finish
-pidwait dnf
-
 # Get a list of any such PIDs
 a_pids=()
 export a_pids
+pr_counter=0 export pr_counter
+
+  # <>
+  #declare -p pr_counter
+  #exit "${nL}"
+
 function get_pids(){ :
   local dnf_o
-  local -I a_pids
-  dnf_o="$(sudo dnf needs-restarting 2>&1 ||
-    er_x "${nL}")"
-  mapfile -t a_pids < <(
-    awk '{ print $1 }' <<< "${dnf_o}" |
-      grep -E ^'[0-9]*'$
+  local -Ig a_pids pr_counter
+  dnf_o="$(
+    sudo dnf needs-restarting 2> /dev/null ||
+      er_x "${nL}"
+  )"
+
+
+  # separated out to check the values mid-stream
+  pipline1="$( awk '{ print $1 }' <<< "${dnf_o}" )"
+  pipline2="$( grep -oE ^'[0-9]*'$ <<< "${pipline1}" )"
+  mapfile -d '' -t a_pids < <(
+    tr '\n' '\0' <<< "${pipline2}"
   )
+
+  # lengths of variables
+  : $((++pr_counter))
+  cat <<-EOF
+  Lengths of vars: ${pr_counter}
+    dnf_o:    ${#dnf_o}
+    pipline1: ${#pipline1}
+    pipline2: ${#pipline2}
+    a_pids:   ${#a_pids}
+EOF
 }
 export -f get_pids
 declare -ft get_pids
@@ -302,16 +381,22 @@ while true
 do
   get_pids
 
+  # <>
+  #declare -p pr_counter
+  #exit "${nL}"
+
     # <>
+    #sync -f
+    #wait -f
+    #sleep 5
     #declare -p a_pids
-    sleep 1
     #exit "${nL}"
     #set -x
 
   # if any PIDs were found...
   # ...and if there are any PIDs other than PID 1...
-  if [[ -n "${a_pids[*]:0:1}" ]] &&
-    [[ "${a_pids[*]:0:1}" != '1' ]]
+  if [[ -n "${a_pids[*]:0:8}" ]] &&
+    [[ "${a_pids[*]:0:8}" != '1' ]]
   then
 
     # (for readability)
@@ -321,7 +406,7 @@ do
     printf '\n\t PID-s, count: %d\n\n' "${n}"
 
       # <>
-      sleep 1
+      #sleep 1
 
     # for each signal and for each PID...
     for p in "${!a_pids[@]}"
@@ -338,6 +423,8 @@ do
       do
 
         sleep 3
+        sync -f
+        wait -f
 
         # ...if the PID is still running...
         if ps h -q "${q}" > /dev/null
@@ -382,6 +469,10 @@ export a_pids
 
 get_pids
 
+  # <>
+  #declare -p pr_counter
+  #exit "${nL}"
+
 if [[ -n "${a_pids[*]:0:8}" ]]
 then
   for s in HUP USR1 USR2 TERM
@@ -408,6 +499,10 @@ then
     a_pids=()
     export a_pids
     get_pids
+
+      # <>
+      #declare -p pr_counter
+      #exit "${nL}"
 
     if [[ -n "${a_pids[*]:0:8}" ]]
     then
@@ -444,7 +539,10 @@ then
 fi
 
 # Write to TTY and exit
-kill -s USR2 "$$"
-printf '%s - Done\n' "$(date +%H:%M:%S)"
+#kill -s USR2 "$$"
+
+printf '%s - Done\n' "$(
+  date +%H:%M:%S
+)"
 exit 00
 
